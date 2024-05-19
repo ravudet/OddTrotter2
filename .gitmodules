@@ -1,0 +1,3 @@
+[submodule "Fx.Core"]
+	path = Fx.Core
+	url = https://github.com/ravudet/Fx.Core.git

@@ -1,0 +1,83 @@
+﻿@page "/Settings"
+
+@using System.Net;
+@using System.Text.Json;
+
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Http
+@using Microsoft.Extensions.Configuration
+@using OddTrotter;
+@using OddTrotter.AzureBlobClient;
+@using OddTrotter.Encryptor;
+@using OddTrotter.GraphClient;
+
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IConfiguration Configuration
+
+<PageTitle>OddTrotter Settings</PageTitle>
+
+@if (HttpContextAccessor.HttpContext?.Request.HasFormContentType == true)
+{
+    //// TODO do this whole page
+    
+    //// TODO you HttpRequestData.Instance is used by the Main.razor page; you should use an "Instance2" or something
+    HttpRequestData.Instance = new HttpRequestData(HttpContextAccessor.HttpContext.Request);
+}
+
+@if (HttpRequestData.Instance != null)
+{
+    var httpRequest = HttpRequestData.Instance;
+    var graphClient = GraphClientFactory.Create(httpRequest, Configuration);
+    var encryptor = EncryptorFactory.Create(httpRequest);
+
+    var blobContainerUrl = httpRequest.Form["oddTrotterBlobContainerUrl"].Single();
+    var blobContainerSasToken = httpRequest.Form["oddTrotterBlobContainerSasToken"].Single();
+
+    var settings = new OddTrotterBlobSettings.Builder()
+    {
+        BlobContainerUrl = blobContainerUrl,
+        SasToken = blobContainerSasToken,
+    };
+    var serializedSettings = JsonSerializer.Serialize(settings);
+    var encrypted = encryptor.Encrypt(serializedSettings);
+    var extension = new OddTrotterUserExtension()
+    {
+        Data = Convert.ToBase64String(encrypted),
+    };
+    Utilities.UpdateUserExtension(graphClient, extension).ConfigureAwait(false).GetAwaiter().GetResult();
+}
+else
+{
+    <h3>WARNING: this form nukes your existing extension data</h3>
+    <form action="/Settings" method="post">
+        <div>
+            <span id="graphTokenHeader" class="expandableHeader collapsedHeader" onclick="expand('graphToken')">Graph Access Token: </span><input id="graphAccessToken" name="graphAccessToken" type="text" />
+            <div id="graphTokenDiv" hidden="true">
+                TODO
+            </div>
+        </div>
+
+        <div>
+            <span id="oddTrotterEncryptionPasswordHeader" class="expandableHeader collapsedHeader" onclick="expand('oddTrotterEncryptionPassword')">OddTrotter extension encryption key: </span><input id="oddTrotterEncryptionPassword" name="oddTrotterEncryptionPassword" type="password" />
+            <div id="oddTrotterEncryptionPasswordDiv" hidden="true">
+                TODO
+            </div>
+        </div>
+
+        <div>
+            <span id="oddTrotterBlobContainerUrlHeader" class="expandableHeader collapsedHeader" onclick="expand('oddTrotterBlobContainerUrl')">OddTrotter blob container URL: </span><input id="oddTrotterBlobContainerUrl" name="oddTrotterBlobContainerUrl" type="text" />
+            <div id="oddTrotterBlobContainerUrlDiv" hidden="true">
+                TODO
+            </div>
+        </div>
+
+        <div>
+            <span id="oddTrotterBlobContainerSasTokenHeader" class="expandableHeader collapsedHeader" onclick="expand('oddTrotterBlobContainerSasToken')">OddTrotter blob container SAS token: </span><input id="oddTrotterBlobContainerSasToken" name="oddTrotterBlobContainerSasToken" type="text" />
+            <div id="oddTrotterBlobContainerSasTokenDiv" hidden="true">
+                TODO
+            </div>
+        </div>
+
+        <input type="submit" value="Submit" />
+    </form>
+}

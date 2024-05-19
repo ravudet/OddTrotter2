@@ -1,0 +1,24 @@
+﻿@page "/Login"
+
+@using Microsoft.AspNetCore.Components.Web
+@using OddTrotter;
+
+<PageTitle>OddTrotter Login</PageTitle>
+
+<form action="/Main" method="post">
+    <div>
+        <span id="graphTokenHeader" class="expandableHeader collapsedHeader" onclick="expand('graphToken')">Graph Access Token: </span><input id="graphAccessToken" name="graphAccessToken" type="text" />
+        <div id="graphTokenDiv" hidden="true">
+            MSGraph is used to authenticate. It is also used to store oddtrotter configuration data. An access token is required in order retrieve this data.
+        </div>
+    </div>
+
+    <div>
+        <span id="oddTrotterEncryptionPasswordHeader" class="expandableHeader collapsedHeader" onclick="expand('oddTrotterEncryptionPassword')">OddTrotter extension encryption key: </span><input id="oddTrotterEncryptionPassword" name="oddTrotterEncryptionPassword" type="password" />
+        <div id="oddTrotterEncryptionPasswordDiv" hidden="true">
+            OddTrotter stores configuration data in a graph user extension. This configuration data may contain sensitive information, so OddTrotter encrypts the configuration data. Please provide the encryption key that OddTrotter should use in order to encrypt the data stored in the graph user extension.
+        </div>
+    </div>
+
+    <input type="submit" value="Submit" />
+</form>

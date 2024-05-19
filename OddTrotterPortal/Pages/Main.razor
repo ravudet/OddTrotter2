@@ -1,0 +1,496 @@
+﻿@page "/Main"
+
+@using System.Net.Http;
+
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Http
+@using Microsoft.Extensions.Caching.Memory
+@using Microsoft.Extensions.Configuration
+@using OddTrotter;
+@using OddTrotter.AzureBlobClient;
+@using OddTrotter.Encryptor;
+@using OddTrotter.GraphClient;
+@using OddTrotter.TodoList;
+
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IConfiguration Configuration
+@inject IMemoryCache MemoryCache
+
+<PageTitle>OddTrotter</PageTitle>
+
+@if (HttpContextAccessor.HttpContext?.Request.HasFormContentType == true)
+{
+    HttpRequestData.Instance = new HttpRequestData(HttpContextAccessor.HttpContext.Request);
+}
+else
+{
+    if (HttpRequestData.Instance == null)
+    {
+        <div>
+            This page is being accessed without any form data provided. Please <a href="/Login">login</a>
+        </div>
+    }
+}
+
+@if (HttpRequestData.Instance != null)
+{
+    OddTrotter? oddTrotter = null;
+    @try
+    {
+        oddTrotter = OddTrotterFactory.Create(MemoryCache, HttpRequestData.Instance, Configuration).ConfigureAwait(false).GetAwaiter().GetResult();
+    }
+    catch (GraphUriException graphUriException)
+    {
+        //// TODO log this to service log
+        <div>
+            The service was configured with an invalid graph root URL of '@graphUriException.ProvidedUri'. Please contact the service owner in order to reconfigure the service with a valid URL.
+        </div>
+    }
+    catch (MissingFormDataException missingFormDataException)
+    {
+        <div>
+            The following fields were not provided during login: @string.Join(", ", missingFormDataException.MissingFormFieldNames). Please <a href="/Login">login</a>
+        </div>
+    }
+    catch (InvalidFormDataException invalidFormDataException)
+    {
+        <div>
+            An invalid value for the '@invalidFormDataException.FormFieldName' field was provided during login. Please <a href="/Login">login</a>
+        </div>
+    }
+    catch (HttpRequestException httpRequestException)
+    {
+        //// TODO log this to service log
+        <div>
+            A network error occurred while retrieving the OddTrotter user extension. If a retry does not resolve the issue, please contact the service owner with the following error message:
+            <div>
+                @httpRequestException.ToString()
+            </div>
+        </div>
+    }
+    catch (InvalidAccessTokenException invalidAccessTokenException)
+    {
+        <div>
+            The access token provided during login was invalid or did not provide sufficient privileges to read the OddTrotter user extension at '@invalidAccessTokenException.Url'. The observed error was:
+            <div>
+                @invalidAccessTokenException.Message
+            </div>
+            <br />
+            The provided access token was '@invalidAccessTokenException.AccessToken'.
+            <br />
+            Please <a href="/Login">login</a> with a valid access token.
+        </div>
+    }
+    catch (ExtensionNotConfiguredException extensionNotConfiguredException)
+    {
+        <div>
+            No OddTrotter user extension was found at '@extensionNotConfiguredException.ExtensionPath'. Please go <a href="/Settings">here</a> to configure your extension.
+        </div>
+    }
+    catch (GraphException graphException)
+    {
+        //// TODO log this to service log
+        <div>
+            An graph error occurred while reading the OddTrotter user extension. If a retry does not resolve the issue, please contact the service owner with the following error message:
+            <div>
+                @graphException.ToString()
+            </div>
+        </div>
+    }
+    catch (MalformedExtensionException malformedExtensionException)
+    {
+        <div>
+            The OddTrotter user extension at '@malformedExtensionException.Url' is malformed.
+            @if (malformedExtensionException.InnerException != null)
+            {
+                <span>
+                    The error observed was:
+                    <div>
+                        @malformedExtensionException.InnerException.ToString()
+                    </div>
+                </span>
+                <br />
+            }
+            The current extension value is:
+            <div>
+                @malformedExtensionException.Message
+            </div>
+            <br />
+            Please go <a href="/Settings">here</a> to configure your extension.
+        </div>
+    }
+    catch (MalformedExtensionDataException malformedExtensionDataException)
+    {
+        <div>
+            The data in the OddTrotter user extension found at '@malformedExtensionDataException.Url' was malformed. The error observed was:
+            <div>
+                @malformedExtensionDataException.InnerException?.ToString()
+            </div>
+            <br />
+            The current value of the data is:
+            <div>
+                @malformedExtensionDataException.Message
+            </div>
+            <br />
+            Please go <a href="/Settings">here</a> to configure your extension.
+        </div>
+    }
+    catch (EncryptionException encryptionException)
+    {
+        <div>
+            The password provided during login could not be used to decrypt the OddTrotter user extension data. The OddTrotter user extension data that was being decrypted was:
+            <div>
+                @encryptionException.Message
+            </div>
+            <br />
+            Please <a href="/Login">login</a> with the correct password or go <a href="/Settings">here</a> to configure your extension.
+        </div>
+    }
+    catch (MalformedSettingsException malformedSettingsException)
+    {
+        <div>
+            The decrypted settings were malformed in the OddTrotter user extension data at '@malformedSettingsException.Url'.
+            @if (malformedSettingsException.InnerException != null)
+            {
+                <span>
+                    The observed error was:
+                    <div>
+                        @malformedSettingsException.InnerException.ToString()
+                    </div>
+                </span>
+                <br />
+            }
+            else if (malformedSettingsException.PropertyName != null)
+            {
+                <span>
+                    The property with the malformed value was '@malformedSettingsException.PropertyName'.
+                </span>
+                <br />
+            }
+            The current value for the settings is:
+            <div>
+                @malformedSettingsException.Message
+            </div>
+            <br />
+            Please go <a href="/Settings">here</a> to configure your extension.
+        </div>
+    }
+    catch (InvalidSasTokenException invalidSasTokenException)
+    {
+        <div>
+            The decrypted settings in the OddTrotter user extension data contained a SAS token that results in malformed blob URLs. The configured SAS token was '@invalidSasTokenException.Token'.
+            @if (invalidSasTokenException.InnerException != null)
+            {
+                <span>
+                    The observed error was:
+                    <div>
+                        @invalidSasTokenException.InnerException.ToString()
+                    </div>
+                </span>
+                <br />
+            }
+            
+            Please go <a href="/Settings">here</a> to configure your extension.
+        </div>
+    }
+
+    if (oddTrotter != null)
+    {
+        TodoListResult? todoListResult = null;
+        @try
+        {
+            todoListResult = oddTrotter.TodoList.RetrieveTodoList().ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        catch (InvalidBlobNameException)
+        {
+            // this is not current configurable by the user, and the default value is a valid blob name; if we get here, it's pretty catastrophic, so we should throw
+            //// TODO log this to service log
+            throw;
+        }
+        catch (HttpRequestException httpRequestException)
+        {
+            //// TODO log this to service log
+            <div>
+                A network error occurred while retrieving the calendar data. If a retry does not resolve the issue, please contact the service owner with the following error message:
+                <div>
+                    @httpRequestException.ToString()
+                </div>
+            </div>
+        }
+        catch (InvalidSasTokenException invalidSasTokenException)
+        {
+            <div>
+                The decrypted settings in the OddTrotter user extension data contained a SAS token that results in malformed blob URLs. The configured SAS token was '@invalidSasTokenException.Token'.
+                @if (invalidSasTokenException.InnerException != null)
+                {
+                    <span>
+                        The observed error was:
+                        <div>
+                            @invalidSasTokenException.InnerException.ToString()
+                        </div>
+                    </span>
+                    <br />
+                }
+
+                Please go <a href="/Settings">here</a> to configure your extension.
+            </div>
+        }
+        catch (SasTokenNoReadPrivilegesException sasTokenNoReadPrivilegesException)
+        {
+            <div>
+                The decrypted settings in the OddTrotter user extension data contained a SAS token that does not have read privileges for the blob at '@sasTokenNoReadPrivilegesException.BlobUrl'. The configured SAS token was '@sasTokenNoReadPrivilegesException.Token'.
+                @if (sasTokenNoReadPrivilegesException.InnerException != null)
+                {
+                    <span>
+                        The observed error was:
+                        <div>
+                            @sasTokenNoReadPrivilegesException.InnerException.ToString()
+                        </div>
+                    </span>
+                    <br />
+                }
+
+                Please go <a href="/Settings">here</a> to configure your extension.
+            </div>
+        }
+        catch (AzureStorageException azureStorageException)
+        {
+            //// TODO log this to service log
+            <div>
+                An azure storage error occurred while reading or writing the todo list blobs. If a retry does not resolve the issue, please contact the service owner with the following error message:
+                <div>
+                    @azureStorageException.ToString()
+                </div>
+            </div>
+        }
+        catch (MalformedBlobDataException malformedBlobDataException)
+        {
+            <div>
+                The data stored in the todo list blob was not in the expected format.
+                @if (malformedBlobDataException.InnerException != null)
+                {
+                    <span>
+                        The observed error was:
+                        <div>
+                            @malformedBlobDataException.InnerException.ToString()
+                        </div>
+                    </span>
+                    <br />
+                }
+
+                The contents of the blob were:
+                <div>
+                    @malformedBlobDataException.Message
+                </div>
+                <br />
+
+                It's possible that this data can be recovered from the blob itself. Please either:
+                <ol>
+                    <li>Recover the data from the blob and then delete the blob</li>
+                    <li>Go <a href="/Settings">here</a> to configure your extension with a different blob container that contains blobs with well-formed data</li>
+                </ol>
+            </div>
+        }
+        catch (InvalidAccessTokenException invalidAccessTokenException)
+        {
+            <div>
+                The access token provided during login was invalid or did not provide sufficient privileges to read the calendar events at '@invalidAccessTokenException.Url'. The observed error was:
+                <div>
+                    @invalidAccessTokenException.Message
+                </div>
+                <br />
+                The provided access token was '@invalidAccessTokenException.AccessToken'.
+                <br />
+                Please <a href="/Login">login</a> with an access token that can read calendar events.
+            </div>
+        }
+        catch (SasTokenNoWritePrivilegesException sasTokenNoWritePrivilegesException)
+        {
+            <div>
+                The decrypted settings in the OddTrotter user extension data contained a SAS token that does not have write or create privileges for the blob at '@sasTokenNoWritePrivilegesException.BlobUrl'. The configured SAS token was '@sasTokenNoWritePrivilegesException.Token'.
+                @if (sasTokenNoWritePrivilegesException.InnerException != null)
+                {
+                    <span>
+                        The observed error was:
+                        <div>
+                            @sasTokenNoWritePrivilegesException.InnerException.ToString()
+                        </div>
+                    </span>
+                    <br />
+                }
+
+                Please go <a href="/Settings">here</a> to configure your extension.
+            </div>
+        }
+        catch (InvalidBlobDataException invalidBlobDataException)
+        {
+            //// TODO log this to service log
+            <div>
+                An error occurred while writing the todo list data to the blob. The observed error was:
+                <div>
+                    @invalidBlobDataException.ToString()
+                </div>
+                <br />
+
+                If a retry does not resolve the issue, please contact the service owner with the following error message:
+                <div>
+                    @invalidBlobDataException.ToString()
+                </div>
+            </div>
+        }
+
+        if (todoListResult != null)
+        {
+            <div id="todolistHeader" class="expandableHeader expandedHeader sectionHeader" onclick="expand('todolist')">Todo List</div>
+            <div id="todolistDiv" class="section">
+                <textarea>
+                    @todoListResult.TodoList
+                </textarea>
+            </div>
+
+            if (todoListResult.BrokenNextLink != null || todoListResult.EventsWithBodyParseFailures.Any() || todoListResult.EventsWithoutBodies.Any() || todoListResult.EventsWithoutStarts.Any() || todoListResult.EventsWithStartParseFailures.Any())
+            {
+                <div id="todolistHeader" class="expandableHeader expandedHeader sectionHeader" onclick="expand('todolist')">Todo List Failures</div>
+                <div id="todolistDiv" class="section">
+                    @if (todoListResult.BrokenNextLink != null)
+                    {
+                        <div>
+                            An error occurred while reading some of the calendar events. The data above is incomplete. The URL of the next page of data that caused the error was '@todoListResult.BrokenNextLink'.
+                        </div>
+                    }
+
+                    @if (todoListResult.EventsWithBodyParseFailures.Any())
+                    {
+                        <div>
+                            An error occurred while parsing the bodies of the following calendar events:
+                            <table>
+                                @foreach (var calendarEvent in todoListResult.EventsWithBodyParseFailures)
+                                {
+                                    <tr>
+                                        <td>
+                                            @calendarEvent.Item1.Id
+                                        </td>
+                                        <td>
+                                            @calendarEvent.Item1.Start?.DateTime
+                                        </td>
+                                        <td>
+                                            @calendarEvent.Item1.Body?.Content
+                                        </td>
+                                        <td>
+                                            @calendarEvent.Item2.ToString()
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    }
+
+                    @if (todoListResult.EventsWithoutBodies.Any())
+                    {
+                        <div>
+                            The following calendar events did not contain bodies:
+                            <table>
+                                @foreach (var calendarEvent in todoListResult.EventsWithoutBodies)
+                                {
+                                    <tr>
+                                        <td>
+                                            @calendarEvent.Id
+                                        </td>
+                                        <td>
+                                            @calendarEvent.Start?.DateTime
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    }
+
+                    @if (todoListResult.EventsWithoutStarts.Any())
+                    {
+                        <div>
+                            The following calendar events did not have start times:
+                            <table>
+                                @foreach (var calendarEvent in todoListResult.EventsWithoutStarts)
+                                {
+                                    <tr>
+                                        <td>
+                                            @calendarEvent.Id
+                                        </td>
+                                        <td>
+                                            @calendarEvent.Body?.Content
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    }
+
+                    @if (todoListResult.EventsWithStartParseFailures.Any())
+                    {
+                        <div>
+                            An error occurred while parsing the start times of the following calendar events:
+                            <table>
+                                @foreach (var calendarEvent in todoListResult.EventsWithStartParseFailures)
+                                {
+                                    <tr>
+                                        <td>
+                                            @calendarEvent.Item1.Id
+                                        </td>
+                                        <td>
+                                            @calendarEvent.Item1.Start?.DateTime
+                                        </td>
+                                        <td>
+                                            @calendarEvent.Item1.Body?.Content
+                                        </td>
+                                        <td>
+                                            @calendarEvent.Item2.ToString()
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
+
+            //// TODO future work:
+            //// not putting "bearer" at the beginning of an MSA token results in an uncaught exception
+            //// make sure documentation using statements are included
+            //// use inheritdoc where available
+            //// change builder/default settings pattern to have a default instance that the builder leverages
+            //// document "thisisunsafe" thing
+            //// document the storage account requirements
+            //// idatastore so you can use onedrive intead of blob storage?
+            //// encrypted data store or encrypted blob storage?
+            //// fix encryptor.encrypt length error message
+            //// create itodolistservice in oddtrotter.core; do you actually want this, or are you taking a hard dependency on graph? maybe just have a custom interface for the cache
+            //// the unit tests use Assert.ThrowsException which allows for inheritance (for example, Assert.ThrowsException<ArgumentException>(() => throw new ArgumentNullException("name")) will pass); they should be updated to use a custom assertion that is more strict
+            //// do you want to separate OddTrotter.Core and OddTrotter.Common? it might make it easier to distinguish what things can go in fx.core in the future
+            //// the encryptor can't really throw cryptogarphic exception during encyrption; also, the outofrangeexception can be avoided if you use a stream instead of an array
+            //// you chose not to use blob storage for the todo list itself, only the timestamp, because the timestamp could sometimes lead you to either duplicating or leaving out events; if you store the timestamp *and* the event ID, this can probably be avoided
+            //// don't overload exception messages
+            //// graphclient is disposable but is not disposed
+            //// blob urls are not exposed often enough
+            //// revisit the applyaggregation design and write tests for it
+            //// graphclientsettings.graphrooturi probably should have been of type absoluteuri
+            //// create an extension method for graph exceptions "(string Content) EnsureSuccessfulGraphStatus(HttpResponseMessage) throws GraphException" (note that, because we know it's graph, we know that the response is a string); re-evaluate the exception namespace and the namespace of the extension
+            //// the todo list items come back not in chronological order because we retrieve instance events and then series events and concatenate; we should merge instead of concatenate
+            //// a new httpclient should not be created for every azureblobclient request
+            //// create a memorycache interface for todolistservice to use that doesn't allow for null cache values; you should probably avoid imemorycache entirely: it doesn't document its exceptions and it throws quite a number of them
+            //// implement a service log that is used for supportability
+            //// would it make sense to have a method like "bool TryGetPage(IGraphClient, RelativeUri, out ODataCollectionPage, out ODataCollection)"  in todolistservice?
+            //// read through all hard-coded exception messages
+            //// use extension methods to read from streams in the encryptor
+            //// rework the "possibleerror" stuff in todolistservice; maybe use "try" as the naming
+            //// use an intermediate key for the blobs; use the user's key to decrypt the oddtrotter extension, then the extension data should have a per-user key that is what is actually used to decrypt the blobs; doing this means that if someone compromises the password or the portal service, but not graph, then the blobs are still safe
+            //// don't use "me" and instead use a user ID
+            //// allow configuring the blob type used
+            //// allow configure calendar page size
+            //// allow configuring todo list blob name
+            //// the encryption stuff should really not treat things as strings and instead treat them as streams; for example, the encryptedazureblobclient assumes that the blob contents are strings, which reduces its re-usability
+            //// make the calendar that's used by the todo list service configurable
+            //// version OddTrotterTodoListData
+            //// version oddtrotter settings
+        }
+    }
+}

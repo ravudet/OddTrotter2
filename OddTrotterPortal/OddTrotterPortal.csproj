@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fx.Core\Fx.Core\Fx.Core.csproj" />
+    <ProjectReference Include="..\OddTrotter.Core\OddTrotter.Core.csproj" />
+    <ProjectReference Include="..\OddTrotter.MemoryCachingInteractionLibrary\OddTrotter.MemoryCachingInteractionLibrary.csproj" />
+  </ItemGroup>
+
+</Project>
