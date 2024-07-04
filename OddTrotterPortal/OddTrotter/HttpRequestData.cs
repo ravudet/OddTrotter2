@@ -33,10 +33,5 @@
         public Guid Id { get; }
 
         public IReadOnlyDictionary<string, StringValues> Form { get; }
-
-        /// <summary>
-        /// this is null if there has been no form data posted; otherwise, it is the http request data for the most recent form data posted
-        /// </summary>
-        public static HttpRequestData? Instance { get; set; } = null;
     }
 }

@@ -4,6 +4,7 @@
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Runtime.CompilerServices;
     using System.Text.Json;
     using System.Text.Json.Serialization;
@@ -134,6 +135,196 @@
                 await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.GetAsync(new Uri("/servicePrincipals", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
             }
         }
+        
+        /// <summary>
+        /// Updates a user that does not exist
+        /// </summary>
+        [TestMethod]
+        public async Task PatchNonexistentUser()
+        {
+            var testConfiguration = GetAndValidateTestConfiguration();
+            using (var graphClient = new GraphClient(testConfiguration.PatchNonexistentUser, new GraphClientSettings.Builder().Build()))
+            {
+                using (var content = new StringContent(
+"""
+{
+  "displayName": "test"
+}
+""",
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    using (var httpResponse = await graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content).ConfigureAwait(false))
+                    {
+                        Assert.AreEqual(HttpStatusCode.NotFound, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates a user when there is no network
+        /// </summary>
+        [TestMethod]
+        public async Task PatchUserWithNoNetwork()
+        {
+            var testConfiguration = GetAndValidateTestConfiguration();
+            var graphClientSettings = new GraphClientSettings.Builder()
+            {
+                GraphRootUri = new Uri("https://0.0.0.0/v1.0"),
+            }.Build();
+            using (var graphClient = new GraphClient("sometoken", graphClientSettings))
+            {
+                using (var content = new StringContent(
+"""
+{
+  "displayName": "test"
+}
+""",
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update a user with an invalid access token
+        /// </summary>
+        [TestMethod]
+        public async Task PatchUserWithInvalidAccessToken()
+        {
+            var testConfiguration = GetAndValidateTestConfiguration();
+            using (var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build()))
+            {
+                using (var content = new StringContent(
+"""
+{
+  "displayName": "test"
+}
+""",
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates a service principal with an access token that doesn't have write permissions
+        /// </summary>
+        [TestMethod]
+        public async Task PatchServicePrincipalWithNoPermissions()
+        {
+            var testConfiguration = GetAndValidateTestConfiguration();
+            using (var graphClient = new GraphClient(testConfiguration.PatchServicePrincipalWithNoPermissions, new GraphClientSettings.Builder().Build()))
+            {
+                using (var content = new StringContent(
+"""
+{
+  "displayName": "test"
+}
+""",
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.PatchAsync(new Uri("/servicePrincipals(appId='00000003-0000-0000-c000-000000000000')", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a new application
+        /// </summary>
+        [TestMethod]
+        public async Task PostApplication()
+        {
+            var testConfiguration = GetAndValidateTestConfiguration();
+            using (var graphClient = new GraphClient(testConfiguration.PostApplication, new GraphClientSettings.Builder().Build()))
+            {
+                using (var content = new StringContent(
+"""
+{
+  "displayName": "testing"
+}
+""",
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    using (var httpResponse = await graphClient.PostAsync(new Uri("/applications", UriKind.Relative).ToRelativeUri(), content).ConfigureAwait(false))
+                    {
+                        Assert.AreEqual(HttpStatusCode.Created, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a user when there is no network
+        /// </summary>
+        [TestMethod]
+        public async Task PostUserWithNoNetwork()
+        {
+            var testConfiguration = GetAndValidateTestConfiguration();
+            var graphClientSettings = new GraphClientSettings.Builder()
+            {
+                GraphRootUri = new Uri("https://0.0.0.0/v1.0"),
+            }.Build();
+            using (var graphClient = new GraphClient("sometoken", graphClientSettings))
+            {
+                using (var content = new StringContent(
+"""
+{
+  "displayName": "test"
+}
+""",
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.PostAsync(new Uri("/users", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a user with an invalid access token
+        /// </summary>
+        [TestMethod]
+        public async Task PostUserWithInvalidAccessToken()
+        {
+            var testConfiguration = GetAndValidateTestConfiguration();
+            using (var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build()))
+            {
+                using (var content = new StringContent(
+"""
+{
+  "displayName": "test"
+}
+""",
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.PostAsync(new Uri("/users", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates an application with an access token that doesn't have write permissions
+        /// </summary>
+        [TestMethod]
+        public async Task PostApplicationWithNoPermissions()
+        {
+            var testConfiguration = GetAndValidateTestConfiguration();
+            using (var graphClient = new GraphClient(testConfiguration.PostApplicationWithNoPermissions, new GraphClientSettings.Builder().Build()))
+            {
+                using (var content = new StringContent(
+"""
+{
+  "displayName": "testing"
+}
+""",
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.PostAsync(new Uri("/applications", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                }
+            }
+        }
 
         /// <summary>
         /// 
@@ -232,6 +423,26 @@
                     throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained a 'null' value for '{nameof(testConfigurationBuilder.GetUserWithNoPermissionsRelativeUri)}'. Please follow the instructions in the JSON file for what value is expected in this property.");
                 }
 
+                if (testConfigurationBuilder.PatchNonexistentUser == null)
+                {
+                    throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained a 'null' value for '{nameof(testConfigurationBuilder.PatchNonexistentUser)}'. Please follow the instructions in the JSON file for what value is expected in this property.");
+                }
+
+                if (testConfigurationBuilder.PatchServicePrincipalWithNoPermissions == null)
+                {
+                    throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained a 'null' value for '{nameof(testConfigurationBuilder.PatchServicePrincipalWithNoPermissions)}'. Please follow the instructions in the JSON file for what value is expected in this property.");
+                }
+
+                if (testConfigurationBuilder.PostApplication == null)
+                {
+                    throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained a 'null' value for '{nameof(testConfigurationBuilder.PostApplication)}'. Please follow the instructions in the JSON file for what value is expected in this property.");
+                }
+
+                if (testConfigurationBuilder.PostApplicationWithNoPermissions == null)
+                {
+                    throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained a 'null' value for '{nameof(testConfigurationBuilder.PostApplicationWithNoPermissions)}'. Please follow the instructions in the JSON file for what value is expected in this property.");
+                }
+
                 var testConfiguration = testConfigurationBuilder.Build();
 
                 if (string.Equals(testConfiguration.GetNonexistentUserAbsoluteUri, testName ?? nameof(testConfiguration.GetNonexistentUserAbsoluteUri), StringComparison.OrdinalIgnoreCase))
@@ -264,6 +475,26 @@
                     throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained its default value for the property '{nameof(testConfiguration.GetUserWithNoPermissionsRelativeUri)}', which is not valid for the test. Please follow the instructions in the JSON file for what value is expected in this property.");
                 }
 
+                if (string.Equals(testConfiguration.PatchNonexistentUser, testName ?? nameof(testConfiguration.PatchNonexistentUser), StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained its default value for the property '{nameof(testConfiguration.PatchNonexistentUser)}', which is not valid for the test. Please follow the instructions in the JSON file for what value is expected in this property.");
+                }
+
+                if (string.Equals(testConfiguration.PatchServicePrincipalWithNoPermissions, testName ?? nameof(testConfiguration.PatchServicePrincipalWithNoPermissions), StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained its default value for the property '{nameof(testConfiguration.PatchServicePrincipalWithNoPermissions)}', which is not valid for the test. Please follow the instructions in the JSON file for what value is expected in this property.");
+                }
+
+                if (string.Equals(testConfiguration.PostApplication, testName ?? nameof(testConfiguration.PostApplication), StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained its default value for the property '{nameof(testConfiguration.PostApplication)}', which is not valid for the test. Please follow the instructions in the JSON file for what value is expected in this property.");
+                }
+
+                if (string.Equals(testConfiguration.PostApplicationWithNoPermissions, testName ?? nameof(testConfiguration.PostApplicationWithNoPermissions), StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException($"The tests in '{testConfigurationType.Name}' use an embedded resource to store a test configuration. The test configuration at '{resourceName}' contained its default value for the property '{nameof(testConfiguration.PostApplicationWithNoPermissions)}', which is not valid for the test. Please follow the instructions in the JSON file for what value is expected in this property.");
+                }
+
                 return testConfiguration;
             }
             finally
@@ -279,8 +510,8 @@
             /// </summary>
             /// <param name="azureBlobContainerExpiredSasToken"></param>
             /// <param name="getExpiredSasToken"></param>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="getNonexistentUserAbsoluteUri"/> or <paramref name="getNonexistentUserAbsoluteUri"/> or <paramref name="getUserWithNoPermissionsAbsoluteUri"/> or <paramref name="getNonexistentUserRelativeUri"/> or <paramref name="getUserWithNoNetworkRelativeUri"/> or <paramref name="getUserWithNoPermissionsRelativeUri"/> is <see langword="null"/></exception>
-            public TestConfiguration(string getNonexistentUserAbsoluteUri, string getUserWithNoNetworkAbsoluteUri, string getUserWithNoPermissionsAbsoluteUri, string getNonexistentUserRelativeUri, string getUserWithNoNetworkRelativeUri, string getUserWithNoPermissionsRelativeUri)
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="getNonexistentUserAbsoluteUri"/> or <paramref name="getNonexistentUserAbsoluteUri"/> or <paramref name="getUserWithNoPermissionsAbsoluteUri"/> or <paramref name="getNonexistentUserRelativeUri"/> or <paramref name="getUserWithNoNetworkRelativeUri"/> or <paramref name="getUserWithNoPermissionsRelativeUri"/> or <paramref name="patchNonexistentUser"/> or <paramref name="postApplication"/> or <paramref name="postApplicationWithNoPermissions"/> is <see langword="null"/></exception>
+            public TestConfiguration(string getNonexistentUserAbsoluteUri, string getUserWithNoNetworkAbsoluteUri, string getUserWithNoPermissionsAbsoluteUri, string getNonexistentUserRelativeUri, string getUserWithNoNetworkRelativeUri, string getUserWithNoPermissionsRelativeUri, string patchNonexistentUser, string patchServicePrincipalWithNoPermissions, string postApplication, string postApplicationWithNoPermissions)
             {
                 if (getNonexistentUserAbsoluteUri == null)
                 {
@@ -312,12 +543,36 @@
                     throw new ArgumentNullException(nameof(getUserWithNoPermissionsRelativeUri));
                 }
 
+                if (patchNonexistentUser == null)
+                {
+                    throw new ArgumentNullException(nameof(patchNonexistentUser));
+                }
+
+                if (patchServicePrincipalWithNoPermissions == null)
+                {
+                    throw new ArgumentNullException(nameof(patchServicePrincipalWithNoPermissions));
+                }
+
+                if (postApplication == null)
+                {
+                    throw new ArgumentNullException(nameof(postApplication));
+                }
+
+                if (postApplicationWithNoPermissions == null)
+                {
+                    throw new ArgumentNullException(nameof(postApplicationWithNoPermissions));
+                }
+
                 this.GetNonexistentUserAbsoluteUri = getNonexistentUserAbsoluteUri;
                 this.GetUserWithNoNetworkAbsoluteUri = getUserWithNoNetworkAbsoluteUri;
                 this.GetUserWithNoPermissionsAbsoluteUri = getUserWithNoPermissionsAbsoluteUri;
                 this.GetNonexistentUserRelativeUri = getNonexistentUserRelativeUri;
                 this.GetUserWithNoNetworkRelativeUri = getUserWithNoNetworkRelativeUri;
                 this.GetUserWithNoPermissionsRelativeUri = getUserWithNoPermissionsRelativeUri;
+                this.PatchNonexistentUser = patchNonexistentUser;
+                this.PatchServicePrincipalWithNoPermissions = patchServicePrincipalWithNoPermissions;
+                this.PostApplication = postApplication;
+                this.PostApplicationWithNoPermissions = postApplicationWithNoPermissions;
             }
 
             public string GetNonexistentUserAbsoluteUri { get; }
@@ -331,6 +586,14 @@
             public string GetUserWithNoNetworkRelativeUri { get; }
 
             public string GetUserWithNoPermissionsRelativeUri { get; }
+
+            public string PatchNonexistentUser { get; }
+
+            public string PatchServicePrincipalWithNoPermissions { get; }
+
+            public string PostApplication { get; }
+
+            public string PostApplicationWithNoPermissions { get; }
 
             public sealed class Builder
             {
@@ -351,12 +614,24 @@
 
                 [JsonPropertyName("GetUserWithNoPermissionsRelativeUri")]
                 public string? GetUserWithNoPermissionsRelativeUri { get; set; }
+                
+                [JsonPropertyName("PatchNonexistentUser")]
+                public string? PatchNonexistentUser { get; set; }
+
+                [JsonPropertyName("PatchServicePrincipalWithNoPermissions")]
+                public string? PatchServicePrincipalWithNoPermissions { get; set; }
+
+                [JsonPropertyName("PostApplication")]
+                public string? PostApplication { get; set; }
+
+                [JsonPropertyName("PostApplicationWithNoPermissions")]
+                public string? PostApplicationWithNoPermissions { get; set; }
 
                 /// <summary>
                 /// 
                 /// </summary>
                 /// <returns></returns>
-                /// <exception cref="ArgumentNullException">Thrown if <see cref="GetNonexistentUserAbsoluteUri"/> or <see cref="GetUserWithNoNetworkAbsoluteUri"/> or <see cref="GetUserWithNoPermissionsAbsoluteUri"/> or <see cref="GetNonexistentUserRelativeUri"/> or <see cref="GetUserWithNoNetworkRelativeUri"/> or <see cref="GetUserWithNoPermissionsRelativeUri"/> is <see langword="null"/></exception>
+                /// <exception cref="ArgumentNullException">Thrown if <see cref="GetNonexistentUserAbsoluteUri"/> or <see cref="GetUserWithNoNetworkAbsoluteUri"/> or <see cref="GetUserWithNoPermissionsAbsoluteUri"/> or <see cref="GetNonexistentUserRelativeUri"/> or <see cref="GetUserWithNoNetworkRelativeUri"/> or <see cref="GetUserWithNoPermissionsRelativeUri"/> or <see cref="PatchNonexistentUser"/> or <see cref="PatchServicePrincipalWithNoPermissions"/> or <see cref="PostApplication"/> or <see cref="PostApplicationWithNoPermissions"/> is <see langword="null"/></exception>
                 public TestConfiguration Build()
                 {
                     if (this.GetNonexistentUserAbsoluteUri == null)
@@ -389,7 +664,27 @@
                         throw new ArgumentNullException(nameof(this.GetUserWithNoPermissionsRelativeUri));
                     }
 
-                    return new TestConfiguration(this.GetNonexistentUserAbsoluteUri, this.GetUserWithNoNetworkAbsoluteUri, this.GetUserWithNoPermissionsAbsoluteUri, this.GetNonexistentUserRelativeUri, this.GetUserWithNoNetworkRelativeUri, this.GetUserWithNoPermissionsRelativeUri);
+                    if (this.PatchNonexistentUser == null)
+                    {
+                        throw new ArgumentNullException(nameof(this.PatchNonexistentUser));
+                    }
+
+                    if (this.PatchServicePrincipalWithNoPermissions == null)
+                    {
+                        throw new ArgumentNullException(nameof(this.PatchServicePrincipalWithNoPermissions));
+                    }
+
+                    if (this.PostApplication == null)
+                    {
+                        throw new ArgumentNullException(nameof(this.PostApplication));
+                    }
+
+                    if (this.PostApplicationWithNoPermissions == null)
+                    {
+                        throw new ArgumentNullException(nameof(this.PostApplicationWithNoPermissions));
+                    }
+
+                    return new TestConfiguration(this.GetNonexistentUserAbsoluteUri, this.GetUserWithNoNetworkAbsoluteUri, this.GetUserWithNoPermissionsAbsoluteUri, this.GetNonexistentUserRelativeUri, this.GetUserWithNoNetworkRelativeUri, this.GetUserWithNoPermissionsRelativeUri, this.PatchNonexistentUser, this.PatchServicePrincipalWithNoPermissions, this.PostApplication, this.PostApplicationWithNoPermissions);
                 }
             }
         }

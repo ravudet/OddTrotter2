@@ -16,15 +16,22 @@
 @inject IConfiguration Configuration
 @inject IMemoryCache MemoryCache
 
+@code{
+    /// <summary>
+    /// this is null if there has been no form data posted; otherwise, it is the http request data for the most recent form data posted
+    /// </summary>
+    private static HttpRequestData? Instance { get; set; } = null;
+}
+
 <PageTitle>OddTrotter</PageTitle>
 
 @if (HttpContextAccessor.HttpContext?.Request.HasFormContentType == true)
 {
-    HttpRequestData.Instance = new HttpRequestData(HttpContextAccessor.HttpContext.Request);
+    Instance = new HttpRequestData(HttpContextAccessor.HttpContext.Request);
 }
 else
 {
-    if (HttpRequestData.Instance == null)
+    if (Instance == null)
     {
         <div>
             This page is being accessed without any form data provided. Please <a href="/Login">login</a>
@@ -32,12 +39,12 @@ else
     }
 }
 
-@if (HttpRequestData.Instance != null)
+@if (Instance != null)
 {
     OddTrotter? oddTrotter = null;
     @try
     {
-        oddTrotter = OddTrotterFactory.Create(MemoryCache, HttpRequestData.Instance, Configuration).ConfigureAwait(false).GetAwaiter().GetResult();
+        oddTrotter = OddTrotterFactory.Create(MemoryCache, Instance, Configuration).ConfigureAwait(false).GetAwaiter().GetResult();
     }
     catch (GraphUriException graphUriException)
     {
@@ -457,8 +464,14 @@ else
             //// you need to come up with your productization checklist and then follow it
             //// - configure await
             //// - inheritdoc
+            //// - exception documentation
+            //// - null documentation
             //// - no warnings
+            //// - project with min dependencies
+            //// - namespaces (unused, ordering, etc.)
+            //// - sealed
             ////
+            //// mark integration tests so that you can run unit tests wihtou mistaking failure
             //// move non-factories out of portal project if possible; test them as you move them; start with a todolistservice interface and then you coudl even have oddtrotter outside of portal
             //// do a proper code review of todolistserviceunittests
             //// address todos in todolistesrviceunittests by moving those helper methods to a core lbirary and productizing them
@@ -493,7 +506,7 @@ else
             //// the todo list items come back not in chronological order because we retrieve instance events and then series events and concatenate; we should merge instead of concatenate
             //// a new httpclient should not be created for every azureblobclient request
             //// create a memorycache interface for todolistservice to use that doesn't allow for null cache values; you should probably avoid imemorycache entirely: it doesn't document its exceptions and it throws quite a number of them
-            //// implement a service log that is used for supportability
+            //// implement a service log that is used for supportability in both main and settings pages
             //// would it make sense to have a method like "bool TryGetPage(IGraphClient, RelativeUri, out ODataCollectionPage, out ODataCollection)"  in todolistservice?
             //// read through all hard-coded exception messages
             //// use extension methods to read from streams in the encryptor
@@ -508,6 +521,13 @@ else
             //// version OddTrotterTodoListData
             //// version oddtrotter settings
             //// have an encypted<t>? it wouldn't really add anything as an abstrraction because it would still need a reference to the decryptor or a factory or seomthing, but it would allow you to strongly type properties that are otherwise just strings
+            //// go through ui changes
+            //// settings page todo about blob container requirements
+            //// get 100% code coverage
+            //// are the instance properties in the razor pages still relevant now that your using constructir injection instead of di containbers?
+            //// adjust the test and implementation for UserExtensionServiceUnitTests.ConfigureUserExtensionLongBlobSettings after serializer bug is fixed
+            //// EncryptionException doesn't seem throwable from ConfigureUserExtension; either remove it or write a test
+            //// factor userextensionserviceextersniosn.configureuserextension into another method that generates the settings from the request data and leveages that new method
         }
     }
 }

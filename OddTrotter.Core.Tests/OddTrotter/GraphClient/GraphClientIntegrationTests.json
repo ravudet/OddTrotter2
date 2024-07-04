@@ -36,7 +36,31 @@
   // 2. login as TODO is it ok to put the username here?
   // 3. under the "Access token" tab, copy the acccess token
   // 4. paste here the access token
-  "GetUserWithNoPermissionsRelativeUri": "GetUserWithNoPermissionsRelativeUri"
+  "GetUserWithNoPermissionsRelativeUri": "GetUserWithNoPermissionsRelativeUri",
+
+  // 1. go to https://developer.microsoft.com/en-us/graph/graph-explorer
+  // 2. login as TODO is it ok to put the username here?
+  // 3. under the "Access token" tab, copy the acccess token
+  // 4. paste here the access token
+  "PatchNonexistentUser": "PatchNonexistentUser",
+
+  // 1. go to https://developer.microsoft.com/en-us/graph/graph-explorer
+  // 2. login as TODO is it ok to put the username here?
+  // 3. under the "Access token" tab, copy the acccess token
+  // 4. paste here the access token
+  "PatchServicePrincipalWithNoPermissions": "PatchServicePrincipalWithNoPermissions",
+
+  // 1. go to https://developer.microsoft.com/en-us/graph/graph-explorer
+  // 2. login as TODO is it ok to put the username here?
+  // 3. under the "Access token" tab, copy the acccess token
+  // 4. paste here the access token
+  "PostApplication": "PostApplication",
+
+  // 1. go to https://developer.microsoft.com/en-us/graph/graph-explorer
+  // 2. login as TODO is it ok to put the username here?
+  // 3. under the "Access token" tab, copy the acccess token
+  // 4. paste here the access token
+  "PostApplicationWithNoPermissions": "PostApplicationWithNoPermissions"
 
   // When adding a new entry to this file, ensure that the TestConfiguration class and its builder are updated with the newest property and validations for it. Also ensure that the GetTestConfiguration is update with validations against unchanged default values in the configuration file.
 }

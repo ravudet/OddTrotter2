@@ -9,16 +9,19 @@
         {
             //// TODO version this
             this.BlobContainerUrl = blobContainerUrl;
-            this.sasToken = sasToken;
+            this.SasToken = sasToken;
         }
 
+
+        [JsonPropertyName("blobContainerUrl")]
         public string BlobContainerUrl { get; }
 
         /// <summary>
         /// 
         /// </summary>
         /// <remarks>read, write, and create permissions are required</remarks>
-        public string sasToken { get; }
+        [JsonPropertyName("sasToken")]
+        public string SasToken { get; }
 
         public sealed class Builder
         {

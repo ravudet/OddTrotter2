@@ -10,71 +10,171 @@
 @using OddTrotter.AzureBlobClient;
 @using OddTrotter.Encryptor;
 @using OddTrotter.GraphClient;
+@using OddTrotter.UserExtension;
+@using System.Net.Http
 
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IConfiguration Configuration
+
+@code {
+    /// <summary>
+    /// this is null if there has been no form data posted; otherwise, it is the http request data for the most recent form data posted
+    /// </summary>
+    private static HttpRequestData? Instance { get; set; } = null;
+}
 
 <PageTitle>OddTrotter Settings</PageTitle>
 
 @if (HttpContextAccessor.HttpContext?.Request.HasFormContentType == true)
 {
-    //// TODO do this whole page
-    
-    //// TODO you HttpRequestData.Instance is used by the Main.razor page; you should use an "Instance2" or something
-    HttpRequestData.Instance = new HttpRequestData(HttpContextAccessor.HttpContext.Request);
+    Instance = new HttpRequestData(HttpContextAccessor.HttpContext.Request);
 }
 
-@if (HttpRequestData.Instance != null)
+@if (Instance != null)
 {
-    var httpRequest = HttpRequestData.Instance;
-    var graphClient = GraphClientFactory.Create(httpRequest, Configuration);
-    var encryptor = EncryptorFactory.Create(httpRequest);
-
-    var blobContainerUrl = httpRequest.Form["oddTrotterBlobContainerUrl"].Single();
-    var blobContainerSasToken = httpRequest.Form["oddTrotterBlobContainerSasToken"].Single();
-
-    var settings = new OddTrotterBlobSettings.Builder()
+    var httpRequest = Instance;
+    UserExtensionService? userExtensionService = null;
+    try
     {
-        BlobContainerUrl = blobContainerUrl,
-        SasToken = blobContainerSasToken,
-    };
-    var serializedSettings = JsonSerializer.Serialize(settings);
-    var encrypted = encryptor.Encrypt(serializedSettings);
-    var extension = new OddTrotterUserExtension()
+        userExtensionService = UserExtensionServiceFactory.Create(httpRequest, Configuration);
+    }
+    catch (GraphUriException graphUriException)
     {
-        Data = Convert.ToBase64String(encrypted),
-    };
-    Utilities.UpdateUserExtension(graphClient, extension).ConfigureAwait(false).GetAwaiter().GetResult();
+        //// TODO log this to service log
+        <div>
+            The service was configured with an invalid graph root URL of '@graphUriException.ProvidedUri'. Please contact the service owner in order to reconfigure the service with a valid URL.
+        </div>
+    }
+    catch (MissingFormDataException missingFormDataException)
+    {
+        <div>
+            The following fields were not provided when updating the OddTrotter user extension: @string.Join(", ", missingFormDataException.MissingFormFieldNames). Please <a href="/Settings">update</a> the extension again.
+        </div>
+
+        Instance = null;
+    }
+    catch (InvalidFormDataException invalidFormDataException)
+    {
+        <div>
+            An invalid value for the '@invalidFormDataException.FormFieldName' field was provided when updated the OddTrotter user extension. Please <a href="/Settings">update</a> the extension again.
+        </div>
+
+        Instance = null;
+    }
+
+    if (userExtensionService != null)
+    {
+        try
+        {
+            userExtensionService.ConfigureUserExtension(httpRequest).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        catch (MissingFormDataException missingFormDataException)
+        {
+            <div>
+                The following fields were not provided when updating the OddTrotter user extension: @string.Join(", ", missingFormDataException.MissingFormFieldNames). Please <a href="/Settings">update</a> the extension again.
+            </div>
+
+            Instance = null;
+        }
+        catch (InvalidFormDataException invalidFormDataException)
+        {
+            <div>
+                An invalid value for the '@invalidFormDataException.FormFieldName' field was provided when updated the OddTrotter user extension. Please <a href="/Settings">update</a> the extension again.
+            </div>
+
+            Instance = null;
+        }
+        catch (UserExtensionEncryptionException userExtensionEncryptionException)
+        {
+            //// TODO log this to service log
+            <div>
+                The Azure blob settings were too long to be encrypted during the OddTrotter user extension update. The observed error was:
+                <div>
+                    @userExtensionEncryptionException.ToString()
+                </div>
+                <br />
+                The data being encrypted was '@userExtensionEncryptionException.DataToEncrypt'.
+                <br />
+                Please <a href="/Settings">update</a> the extension again with blob settings that are shorter.
+            </div>
+        }
+        catch (EncryptionException encryptionException)
+        {
+            //// TODO log this to service log
+            <div>
+                The Azure blob settings could not be encrypted during the OddTrotter user extension update. If a retry does not resolve the issue, please contact the service owner with the following error message:
+                <div>
+                    @encryptionException.ToString()
+                </div>
+            </div>
+        }
+        catch (HttpRequestException httpRequestException)
+        {
+            //// TODO log this to service log
+            <div>
+                A network error occurred while updating the OddTrotter user extension. If a retry does not resolve the issue, please contact the service owner with the following error message:
+                <div>
+                    @httpRequestException.ToString()
+                </div>
+            </div>
+        }
+        catch (InvalidAccessTokenException invalidAccessTokenException)
+        {
+            <div>
+                The access token provided to update the OddTrotter user extension was invalid or did not provide sufficient privileges to read, write, and create the user extension at '@invalidAccessTokenException.Url'. The observed error was:
+                <div>
+                    @invalidAccessTokenException.Message
+                </div>
+                <br />
+                The provided access token was '@invalidAccessTokenException.AccessToken'.
+                <br />
+                Please <a href="/Settings">update</a> the extension again with an access token that can read, write, and create user extensions.
+            </div>
+        }
+        catch (GraphException graphException)
+        {
+            //// TODO log this to service log
+            <div>
+                A graph error occurred while updating the OddTrotter user extension. If a retry does not resolve the issue, please contact the service owner with the following error message:
+                <div>
+                    @graphException.ToString()
+                </div>
+            </div>
+        }
+    }
 }
 else
 {
-    <h3>WARNING: this form nukes your existing extension data</h3>
+    <h3>WARNING: this form will entirely replace your existing extension data with no possibility of recovery</h3>
+    <h4>
+        OddTrotter stores various bits of state for different tables (for example, the timestamp of that last viewed calendar event is stored so that future viewings don't contain calendar events from previous viewings). These states are stored in configurable locations (at this time, only Azure Blob Storage is supported). To configure these locations, OddTrotter leverages Microsoft Graph <a href="https://learn.microsoft.com/en-us/graph/extensibility-open-users?tabs=http">open user extensions</a>. Any Microsoft Graph client that has the "User.Read.All" permission scope can read these extensions, and, because access data (such as tokens) is stored in the OddTrotter user extension, the extension data is encrypted for security reasons.
+    </h4>
     <form action="/Settings" method="post">
         <div>
             <span id="graphTokenHeader" class="expandableHeader collapsedHeader" onclick="expand('graphToken')">Graph Access Token: </span><input id="graphAccessToken" name="graphAccessToken" type="text" />
             <div id="graphTokenDiv" hidden="true">
-                TODO
+                The Microsoft Graph access token that should be used when reading and writing the OddTrotter user extension for the single settings update operation performed by this form. This requires the "User.ReadWrite" or "User.ReadWrite.All" permission scope. This access token will not be used for future OddTrotter requests.
             </div>
         </div>
 
         <div>
             <span id="oddTrotterEncryptionPasswordHeader" class="expandableHeader collapsedHeader" onclick="expand('oddTrotterEncryptionPassword')">OddTrotter extension encryption key: </span><input id="oddTrotterEncryptionPassword" name="oddTrotterEncryptionPassword" type="password" />
             <div id="oddTrotterEncryptionPasswordDiv" hidden="true">
-                TODO
+                A password that will be used to encrypt the OddTrotter user extension data that is written to Microsoft Graph. This is the password that you will provide in the future when logging into OddTrotter. 
             </div>
         </div>
 
         <div>
             <span id="oddTrotterBlobContainerUrlHeader" class="expandableHeader collapsedHeader" onclick="expand('oddTrotterBlobContainerUrl')">OddTrotter blob container URL: </span><input id="oddTrotterBlobContainerUrl" name="oddTrotterBlobContainerUrl" type="text" />
             <div id="oddTrotterBlobContainerUrlDiv" hidden="true">
-                TODO
+                The URL of the Azure Blob Container that OddTrotter will use to store state information. OddTrotter will create a variety of blobs in this container. TODO write out the "minimum" requirements for the container.
             </div>
         </div>
 
         <div>
             <span id="oddTrotterBlobContainerSasTokenHeader" class="expandableHeader collapsedHeader" onclick="expand('oddTrotterBlobContainerSasToken')">OddTrotter blob container SAS token: </span><input id="oddTrotterBlobContainerSasToken" name="oddTrotterBlobContainerSasToken" type="text" />
             <div id="oddTrotterBlobContainerSasTokenDiv" hidden="true">
-                TODO
+                The SAS token that OddTrotter will use to access that above Azure Blob Container. This token requires the "Read", "Create", and "Write" permissions.
             </div>
         </div>
 

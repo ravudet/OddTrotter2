@@ -53,7 +53,7 @@
                 }
                 catch (FormatException e)
                 {
-                    throw new ArgumentException($"'{nameof(accessToken)}' had a value of '{accessToken}' which is not a valid 'Authorization' header value");
+                    throw new ArgumentException($"'{nameof(accessToken)}' had a value of '{accessToken}' which is not a valid 'Authorization' header value", e);
                 }
             }
             catch
@@ -104,7 +104,7 @@
                 }
                 catch (HttpRequestException e)
                 {
-                    throw new HttpRequestException($"An error occurred during the request to {absoluteUri.OriginalString}", e);
+                    throw new HttpRequestException($"An error occurred during the GET request to {absoluteUri.OriginalString}", e);
                 }
 
                 if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
@@ -122,16 +122,84 @@
             return httpResponse;
         }
 
+        /// <inheritdoc/>
         public async Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
         {
-            //// TODO document exceptions
-            return await this.httpClient.PatchAsync(this.rootUrl + '/' + relativeUri.ToString(), httpContent).ConfigureAwait(false);
+            if (relativeUri == null)
+            {
+                throw new ArgumentNullException(nameof(relativeUri));
+            }
+
+            if (httpContent == null)
+            {
+                throw new ArgumentNullException(nameof(httpContent));
+            }
+
+            HttpResponseMessage? httpResponse = null;
+            try
+            {
+                try
+                {
+                    httpResponse = await this.httpClient.PatchAsync(this.rootUrl + '/' + relativeUri.ToString(), httpContent).ConfigureAwait(false);
+                }
+                catch (HttpRequestException e)
+                {
+                    throw new HttpRequestException($"An error occurred during the PATCH request to {relativeUri.OriginalString}", e);
+                }
+
+                if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new InvalidAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                }
+            }
+            catch
+            {
+                httpResponse?.Dispose();
+                throw;
+            }
+
+            return httpResponse;
         }
 
+        /// <inheritdoc/>
         public async Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
         {
-            //// TODO document exceptions
-            return await this.httpClient.PostAsync(this.rootUrl + '/' + relativeUri.ToString(), httpContent).ConfigureAwait(false);
+            if (relativeUri == null)
+            {
+                throw new ArgumentNullException(nameof(relativeUri));
+            }
+
+            if (httpContent == null)
+            {
+                throw new ArgumentNullException(nameof(httpContent));
+            }
+
+            HttpResponseMessage? httpResponse = null;
+            try
+            {
+                try
+                {
+                    httpResponse = await this.httpClient.PostAsync(this.rootUrl + '/' + relativeUri.ToString(), httpContent).ConfigureAwait(false);
+                }
+                catch (HttpRequestException e)
+                {
+                    throw new HttpRequestException($"An error occurred during the POST request to {relativeUri.OriginalString}", e);
+                }
+
+                if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new InvalidAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                }
+            }
+            catch
+            {
+                httpResponse?.Dispose();
+                throw;
+            }
+
+            return httpResponse;
         }
     }
 }

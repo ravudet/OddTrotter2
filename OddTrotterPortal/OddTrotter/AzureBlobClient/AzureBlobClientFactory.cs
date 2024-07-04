@@ -8,6 +8,7 @@
 
     using global::OddTrotter.Encryptor;
     using global::OddTrotter.GraphClient;
+    using global::OddTrotter.UserExtension;
 
     public static class AzureBlobClientFactory
     {
@@ -149,7 +150,7 @@
 
             return new AzureBlobClient(
                 new Uri(oddTrotterSettings.BlobContainerUrl, UriKind.Absolute).ToAbsoluteUri(),
-                oddTrotterSettings.sasToken,
+                oddTrotterSettings.SasToken,
                 "2020-02-10" // the api version is hard-coded instead of configured because callers of the class need to know the api version in order to call it correctly in the
                              // first place; this means that the api version is already known by those callers, so any need to change the api version must arise from net-new code,
                              // and so recompilation will be rqeuired anyway, making the configuration a moot point
