@@ -794,55 +794,6 @@
         }
     }
 
-    public sealed class CalendarEvent
-    {
-        [JsonPropertyName("id")]
-        public string? Id { get; set; }
-
-        [JsonPropertyName("subject")]
-        public string? Subject { get; set; }
-
-        [JsonPropertyName("start")]
-        public TimeStructure? Start { get; set; }
-
-        [JsonPropertyName("body")]
-        public BodyStructure? Body { get; set; }
-
-        /*[JsonPropertyName("responseStatus")]
-        public ResponseStatus ResponseStatus { get; set; }
-
-        [JsonPropertyName("webLink")]
-        public string WebLink { get; set; }*/
-    }
-
-    public sealed class BodyStructure
-    {
-        /*[JsonPropertyName("contentType")]
-        public string ContentType { get; set; }*/
-
-        [JsonPropertyName("content")]
-        public string? Content { get; set; }
-    }
-
-    public sealed class TimeStructure
-    {
-        [JsonPropertyName("dateTime")]
-        public string? DateTime { get; set; }
-
-        [JsonPropertyName("timeZone")]
-        public string? TimeZone { get; set; }
-    }
-
-    /*public sealed class ResponseStatus
-    {
-        [JsonPropertyName("response")]
-        public string Response { get; set; }
-
-        [JsonPropertyName("time")]
-        public string Time { get; set; }
-    }*/
-
-
     /*public interface IAggregatedEnumerable<TElement, TAggregate> : IEnumerable<TElement>
     {
         public TAggregate Aggregate { get; }
