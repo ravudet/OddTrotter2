@@ -4789,7 +4789,9 @@ some more data
                 }
             }
 
+#pragma warning disable CS8601 // Possible null reference assignment.
             found = default;
+#pragma warning restore CS8601 // Possible null reference assignment.
             return false;
         }
     }
