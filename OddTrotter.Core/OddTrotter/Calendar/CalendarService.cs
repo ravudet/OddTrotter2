@@ -27,7 +27,7 @@
 
         public async Task<TentativeCalendarResult> RetrieveTentativeCalendar()
         {
-
+            //// TODO refactor commonalities between this and todolistservice
         }
 
         /// <summary>
