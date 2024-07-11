@@ -21,6 +21,8 @@
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                 null,
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                DateTime.MinValue,
+                DateTime.MinValue,
                 null,
                 Enumerable.Empty<CalendarEvent>(),
                 Enumerable.Empty<(CalendarEvent, Exception)>(),
@@ -36,6 +38,8 @@
         {
             Assert.ThrowsException<ArgumentNullException>(() => new TodoListResult(
                 "the list",
+                DateTime.MinValue,
+                DateTime.MinValue,
                 null,
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                 null,
@@ -53,6 +57,8 @@
         {
             Assert.ThrowsException<ArgumentNullException>(() => new TodoListResult(
                 "the list",
+                DateTime.MinValue,
+                DateTime.MinValue,
                 null,
                 Enumerable.Empty<CalendarEvent>(),
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -70,6 +76,8 @@
         {
             Assert.ThrowsException<ArgumentNullException>(() => new TodoListResult(
                 "the list",
+                DateTime.MinValue,
+                DateTime.MinValue,
                 null,
                 Enumerable.Empty<CalendarEvent>(),
                 Enumerable.Empty<(CalendarEvent, Exception)>(),
@@ -87,6 +95,8 @@
         {
             Assert.ThrowsException<ArgumentNullException>(() => new TodoListResult(
                 "the list",
+                DateTime.MinValue,
+                DateTime.MinValue,
                 null,
                 Enumerable.Empty<CalendarEvent>(),
                 Enumerable.Empty<(CalendarEvent, Exception)>(),

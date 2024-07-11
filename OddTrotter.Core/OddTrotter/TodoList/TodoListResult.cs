@@ -20,6 +20,8 @@
         /// </exception>
         public TodoListResult(
             string todoList,
+            DateTime startTimestamp,
+            DateTime endTimestamp,
             string? brokenNextLink,
             IEnumerable<CalendarEvent> eventsWithoutStarts,
             IEnumerable<(CalendarEvent, Exception)> eventsWithStartParseFailures,
@@ -52,6 +54,8 @@
             }
 
             this.TodoList = todoList;
+            this.StartTimestamp = startTimestamp;
+            this.EndTimestamp = endTimestamp;
             this.BrokenNextLink = brokenNextLink;
             EventsWithoutStarts = eventsWithoutStarts;
             EventsWithStartParseFailures = eventsWithStartParseFailures;
@@ -60,6 +64,10 @@
         }
 
         public string TodoList { get; }
+
+        public DateTime StartTimestamp { get; }
+
+        public DateTime EndTimestamp { get; }
 
         /// <summary>
         /// Gets the URI of one of three values:
