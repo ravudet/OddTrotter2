@@ -98,11 +98,17 @@
                 /// </summary>
                 /// <returns></returns>
                 /// <exception cref="ArgumentNullException">Thrown if <see cref="LastRecordedEventTimeStamp"/> is <see langword="null"/></exception>
+                /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="LastRecordedEventTimeStamp"/> is not UTC</exception>
                 public OddTrotterTodoListData Build()
                 {
                     if (this.LastRecordedEventTimeStamp == null)
                     {
                         throw new ArgumentNullException(nameof(this.LastRecordedEventTimeStamp));
+                    }
+
+                    if (this.LastRecordedEventTimeStamp?.Kind != DateTimeKind.Utc)
+                    {
+                        throw new ArgumentOutOfRangeException($"The 'Kind' of '{nameof(this.LastRecordedEventTimeStamp)}' must be '{nameof(DateTimeKind.Utc)}'");
                     }
 
                     return new OddTrotterTodoListData(this.LastRecordedEventTimeStamp.Value);
@@ -117,9 +123,9 @@
                 builder = new OddTrotterTodoListData.Builder();
             }
 
-            if (builder.LastRecordedEventTimeStamp == null)
+            if (builder.LastRecordedEventTimeStamp == null || builder.LastRecordedEventTimeStamp?.Kind != DateTimeKind.Utc)
             {
-                builder.LastRecordedEventTimeStamp = DateTime.MinValue;
+                builder.LastRecordedEventTimeStamp = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
             }
 
             return builder;
@@ -231,12 +237,15 @@
                 .Select(
                     instanceEvent => PossibleError.FromThrowable(
                         instanceEvent,
-                        @event => DateTime.Parse(
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                        @event => !string.Equals(@event?.Start?.TimeZone, "utc", StringComparison.OrdinalIgnoreCase) ? throw new InvalidOperationException("the event did not have a known time zone in its start time") :  DateTime.SpecifyKind(DateTime.Parse(
 #pragma warning disable CS8604 // Possible null reference argument.
-                            @event.Start.DateTime)));
-#pragma warning restore CS8604 // Possible null reference argument.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                            @event
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning restore CS8604 // Possible null reference argument.
+                                .Start
+                                .DateTime),
+                            DateTimeKind.Utc)));
             var todoListEventsAggregatedStartParseFailures = todoListEventsWithPotentiallyParsedStarts
                 .ApplyAggregation(
                     Enumerable.Empty<(CalendarEvent, Exception)>(), 
