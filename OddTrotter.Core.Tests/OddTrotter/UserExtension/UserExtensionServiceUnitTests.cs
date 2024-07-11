@@ -6,9 +6,9 @@ namespace OddTrotter.UserExtension
     using System.Threading.Tasks;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using global::OddTrotter.Encryptor;
-    using global::OddTrotter.GraphClient;
-    using global::OddTrotter.AzureBlobClient;
+    using OddTrotter.Encryptor;
+    using OddTrotter.GraphClient;
+    using OddTrotter.AzureBlobClient;
 
     /// <summary>
     /// Unit tests for <see cref="UserExtensionService"/>
