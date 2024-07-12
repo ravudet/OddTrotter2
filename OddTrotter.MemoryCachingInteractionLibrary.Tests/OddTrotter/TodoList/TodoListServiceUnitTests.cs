@@ -297,6 +297,8 @@
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual("a todo list item", todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -567,6 +569,8 @@
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual("a todo list item", todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -763,6 +767,8 @@ some data
 a todo list item
 """
                     , todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-06-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
 
             using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
@@ -793,6 +799,8 @@ a todo list item
 some data
 """
                     , todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.Parse("2024-05-30T00:00:00Z").ToUniversalTime(), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-06-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1026,6 +1034,8 @@ some data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1074,6 +1084,8 @@ some data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1143,6 +1155,8 @@ some data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1212,6 +1226,8 @@ some data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1281,6 +1297,8 @@ some data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1362,6 +1380,8 @@ some data
                     , 
                     todoListResult.TodoList, 
                     true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1543,6 +1563,8 @@ some data
                     ,
                     todoListResult.TodoList,
                     true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1643,6 +1665,8 @@ some data
                     ,
                     todoListResult.TodoList,
                     true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1764,6 +1788,8 @@ some data
                     ,
                     todoListResult.TodoList,
                     true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -1885,6 +1911,8 @@ some data
                     ,
                     todoListResult.TodoList,
                     true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -2006,6 +2034,8 @@ some data
                     ,
                     todoListResult.TodoList,
                     true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -2133,6 +2163,8 @@ some more data
                     ,
                     todoListResult.TodoList,
                     true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -2265,6 +2297,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -2403,6 +2437,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -2569,6 +2605,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -2729,6 +2767,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -2889,6 +2929,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -3055,6 +3097,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual("a todo list item", todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -3234,6 +3278,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -3368,6 +3414,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -3499,6 +3547,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -3633,6 +3683,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -3767,6 +3819,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -3900,6 +3954,8 @@ some more data
                 Assert.AreEqual(1, todoListResult.EventsWithoutBodies.Count());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -4031,6 +4087,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.AreEqual(1, todoListResult.EventsWithBodyParseFailures.Count());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 
@@ -4176,6 +4234,8 @@ some more data
                 Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
                 Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
                 Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.Parse("2024-04-17T00:00:00Z").ToUniversalTime(), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.Parse("2024-04-17T00:00:00Z").ToUniversalTime(), todoListResult.EndTimestamp);
 
                 using (var httpResponse = await azureBlobClient.GetAsync("todoListData").ConfigureAwait(false))
                 {
@@ -4917,6 +4977,8 @@ some data
 a todo list item
 """
                     , todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-06-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
 
             using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
@@ -4948,6 +5010,8 @@ some data
 a todo list item
 """
                     , todoListResult.TodoList, true); // we expect another full retrieval because there was not time zone in the blob data
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-06-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
             }
         }
 

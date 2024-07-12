@@ -348,7 +348,7 @@ else
 
         if (todoListResult != null)
         {
-            <div id="todolistHeader" class="expandableHeader expandedHeader sectionHeader" onclick="expand('todolist')">Todo List</div>
+            <div id="todolistHeader" class="expandableHeader expandedHeader sectionHeader" onclick="expand('todolist')">Todo List from @todoListResult.StartTimestamp to @todoListResult.EndTimestamp</div>
             <div id="todolistDiv" class="section">
                 <textarea>
                     @todoListResult.TodoList

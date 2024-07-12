@@ -225,7 +225,8 @@
                 oddTrotterTodoList = SetDefaults(oddTrotterTodoListDataBuilder).Build();
             }
 
-            var instanceEventsCollection = GetEvents(this.graphClient, oddTrotterTodoList.LastRecordedEventTimeStamp, DateTime.UtcNow, this.calendarEventPageSize);
+            var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
+            var instanceEventsCollection = GetEvents(this.graphClient, originalLastRecordedEventTimeStamp, DateTime.UtcNow, this.calendarEventPageSize);
             var instanceEvents = instanceEventsCollection.Elements.ToV2Enumerable();
             var todoListEvents = instanceEvents
                 .Where(instanceEvent => instanceEvent.Subject?.Contains("todo list", StringComparison.OrdinalIgnoreCase) == true);
@@ -307,6 +308,8 @@
 
             return new TodoListResult(
                 newData,
+                originalLastRecordedEventTimeStamp,
+                newOddTrotterTodoList.LastRecordedEventTimeStamp.Value,
                 instanceEventsCollection.LastRequestedPageUrl,
                 instanceEventsAggregatedWithoutStarts.Aggregation,
                 todoListEventsAggregatedStartParseFailures.Aggregation,
