@@ -772,7 +772,7 @@ a todo list item
                 using (var stringContent = new StringContent(
 """
 {
-  "lastRecordedEventTimeStamp": "2024-05-30"
+  "lastRecordedEventTimeStamp": "2024-05-30T00:00:00Z"
 }
 """
                     ))
@@ -3748,6 +3748,139 @@ some more data
         }
 
         /// <summary>
+        /// Retrieves the todo list where an event has a start date time without a timezone
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task RetrieveTodoListStartDateTimeNoTimeZone()
+        {
+            using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                var graphClient = new MockRetrieveTodoListMalformedStartDateTimeGraphClient();
+                var azureBlobClient = new MemoryBlobClient();
+                var todoListService = new TodoListService(memoryCache, graphClient, azureBlobClient);
+                var todoListResult = await todoListService.RetrieveTodoList().ConfigureAwait(false);
+
+                Assert.IsNull(todoListResult.BrokenNextLink);
+                Assert.IsFalse(todoListResult.EventsWithoutStarts.Any());
+                Assert.AreEqual(1, todoListResult.EventsWithStartParseFailures.Count());
+                Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
+                Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
+                Assert.AreEqual(string.Empty, todoListResult.TodoList, true);
+            }
+        }
+
+        private sealed class MockRetrieveTodoListStartDateTimeNoTimeZoneGraphClient : IGraphClient
+        {
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                var path = GetPath(relativeUri);
+                if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
+                {
+                    var queryParameters = GetQuery(relativeUri)
+                        .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
+                    if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
+                    {
+                        if (string.Join('=', filter).Contains("type eq 'singleInstance'", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_id",
+            "subject": "todo list",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>a todo list item</p></body></html>"
+            },
+            "start": {
+                "dateTime": "not a timestamp"
+            }
+        }
+    ]
+}
+""";
+                            StringContent? stringContent = null;
+                            try
+                            {
+                                stringContent = new StringContent(content);
+                                HttpResponseMessage? responseMessage = null;
+                                try
+                                {
+                                    responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                                    responseMessage.Content = stringContent;
+                                    return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                                }
+                                catch
+                                {
+                                    responseMessage?.Dispose();
+                                    throw;
+                                }
+                            }
+                            catch
+                            {
+                                stringContent?.Dispose();
+                                throw;
+                            }
+                        }
+                        else if (string.Join('=', filter).Contains("type eq 'seriesMaster'", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": []
+}
+""";
+                            StringContent? stringContent = null;
+                            try
+                            {
+                                stringContent = new StringContent(content);
+                                HttpResponseMessage? responseMessage = null;
+                                try
+                                {
+                                    responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                                    responseMessage.Content = stringContent;
+                                    return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                                }
+                                catch
+                                {
+                                    responseMessage?.Dispose();
+                                    throw;
+                                }
+                            }
+                            catch
+                            {
+                                stringContent?.Dispose();
+                                throw;
+                            }
+                        }
+                    }
+                }
+
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
         /// Retrieves the todo list where an event has a malformed start date time
         /// </summary>
         /// <returns></returns>
@@ -4026,7 +4159,7 @@ some more data
                 using (var stringContent = new StringContent(
 """
 {
-  "lastRecordedEventTimeStamp": "2024-04-17"
+  "lastRecordedEventTimeStamp": "2024-04-17T00:00:00Z"
 }
 """
                     ))
@@ -4047,7 +4180,7 @@ some more data
                 using (var httpResponse = await azureBlobClient.GetAsync("todoListData").ConfigureAwait(false))
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    Assert.AreEqual(true, responseContent?.Contains("2024-04-17"));
+                    Assert.AreEqual(true, responseContent?.Contains("2024-04-17T00:00:00Z"));
                 }
             }
         }
@@ -4757,6 +4890,64 @@ some more data
             public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the todo list when it's been retrieved previously but the blob doesn't have the time zone for the last retrieval time
+        /// </summary>
+        [TestMethod]
+        public async Task RetrieveTodoListWithExistingBlobDataLackingTimeZone()
+        {
+            using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                var graphClient = new MockRetrieveTodoListWithExistingBlobDataGraphClient(); // this test is leverage the *same* backing calendar data as RetrieveTodoListWithExistingBlobData but with different blob data; the two tests are *intended* to re-use the mocked client
+                var azureBlobClient = new MemoryBlobClient();
+                var todoListService = new TodoListService(memoryCache, graphClient, azureBlobClient);
+                var todoListResult = await todoListService.RetrieveTodoList().ConfigureAwait(false);
+
+                Assert.IsNull(todoListResult.BrokenNextLink);
+                Assert.IsFalse(todoListResult.EventsWithoutStarts.Any());
+                Assert.IsFalse(todoListResult.EventsWithStartParseFailures.Any());
+                Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
+                Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
+                Assert.AreEqual(
+"""
+some data
+a todo list item
+"""
+                    , todoListResult.TodoList, true);
+            }
+
+            using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                var graphClient = new MockRetrieveTodoListWithExistingBlobDataGraphClient();
+                var azureBlobClient = new MemoryBlobClient();
+                using (var stringContent = new StringContent(
+"""
+{
+  "lastRecordedEventTimeStamp": "2024-05-30"
+}
+"""
+                    ))
+                {
+                    await azureBlobClient.PutAsync("todoListData", stringContent).ConfigureAwait(false);
+                }
+
+                var todoListService = new TodoListService(memoryCache, graphClient, azureBlobClient);
+                var todoListResult = await todoListService.RetrieveTodoList().ConfigureAwait(false);
+
+                Assert.IsNull(todoListResult.BrokenNextLink);
+                Assert.IsFalse(todoListResult.EventsWithoutStarts.Any());
+                Assert.IsFalse(todoListResult.EventsWithStartParseFailures.Any());
+                Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
+                Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
+                Assert.AreEqual(
+"""
+some data
+a todo list item
+"""
+                    , todoListResult.TodoList, true); // we expect another full retrieval because there was not time zone in the blob data
             }
         }
 
