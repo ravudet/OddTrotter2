@@ -5,9 +5,9 @@
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    using global::OddTrotter.AzureBlobClient;
-    using global::OddTrotter.Encryptor;
-    using global::OddTrotter.GraphClient;
+    using OddTrotter.AzureBlobClient;
+    using OddTrotter.Encryptor;
+    using OddTrotter.GraphClient;
 
     public sealed class UserExtensionService
     {
