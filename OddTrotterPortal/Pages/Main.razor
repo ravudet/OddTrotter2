@@ -27,7 +27,7 @@
 
 @if (HttpContextAccessor.HttpContext?.Request.HasFormContentType == true)
 {
-    Instance = new HttpRequestData(HttpContextAccessor.HttpContext.Request);
+    Instance = HttpContextAccessor.HttpContext.Request.ToHttpRequestData();
 }
 else
 {

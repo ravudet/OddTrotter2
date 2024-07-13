@@ -17,7 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OddTrotter.TestCore", "OddT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OddTrotter.MemoryCachingInteractionLibrary.Tests", "OddTrotter.MemoryCachingInteractionLibrary.Tests\OddTrotter.MemoryCachingInteractionLibrary.Tests.csproj", "{84020AE6-A68B-4B7A-9665-31796B42B6F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OddTrotterPortal.Tests", "OddTrotterPortal.Tests\OddTrotterPortal.Tests.csproj", "{374BB3F1-BAAA-49D4-913C-5D20A68B431A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OddTrotterPortal.Tests", "OddTrotterPortal.Tests\OddTrotterPortal.Tests.csproj", "{374BB3F1-BAAA-49D4-913C-5D20A68B431A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OddTrotter.AspNetCoreHttpInteractionLibrary", "OddTrotter.AspNetCoreHttpInteractionLibrary\OddTrotter.AspNetCoreHttpInteractionLibrary.csproj", "{D1B7AF72-E793-47EB-9C11-76D2418761DE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OddTrotter.AspNetCoreHttpInteractionLibrary.Tests", "OddTrotter.AspNetCoreHttpInteractionLibrary.Tests\OddTrotter.AspNetCoreHttpInteractionLibrary.Tests.csproj", "{05DB2BD3-7EE2-407F-9CF7-B1E3AA3D98BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +61,14 @@ Global
 		{374BB3F1-BAAA-49D4-913C-5D20A68B431A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{374BB3F1-BAAA-49D4-913C-5D20A68B431A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{374BB3F1-BAAA-49D4-913C-5D20A68B431A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1B7AF72-E793-47EB-9C11-76D2418761DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1B7AF72-E793-47EB-9C11-76D2418761DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1B7AF72-E793-47EB-9C11-76D2418761DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1B7AF72-E793-47EB-9C11-76D2418761DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05DB2BD3-7EE2-407F-9CF7-B1E3AA3D98BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05DB2BD3-7EE2-407F-9CF7-B1E3AA3D98BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05DB2BD3-7EE2-407F-9CF7-B1E3AA3D98BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05DB2BD3-7EE2-407F-9CF7-B1E3AA3D98BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

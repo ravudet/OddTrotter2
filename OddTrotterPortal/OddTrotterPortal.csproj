@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fx.Core\Fx.Core\Fx.Core.csproj" />
+    <ProjectReference Include="..\OddTrotter.AspNetCoreHttpInteractionLibrary\OddTrotter.AspNetCoreHttpInteractionLibrary.csproj" />
     <ProjectReference Include="..\OddTrotter.Core\OddTrotter.Core.csproj" />
     <ProjectReference Include="..\OddTrotter.MemoryCachingInteractionLibrary\OddTrotter.MemoryCachingInteractionLibrary.csproj" />
   </ItemGroup>
