@@ -5015,6 +5015,160 @@ a todo list item
             }
         }
 
+        /// <summary>
+        /// Retrieves the todo list when there are new calendar events
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task RetrieveTodoListNewEvents()
+        {
+            using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                var graphClient = new MockRetrieveTodoListNewEventsGraphClient();
+                var azureBlobClient = new MemoryBlobClient();
+                using (var stringContent = new StringContent(
+"""
+{
+  "lastRecordedEventTimeStamp": "2024-04-17T13:30:00Z"
+}
+"""
+                    ))
+                {
+                    await azureBlobClient.PutAsync("todoListData", stringContent).ConfigureAwait(false);
+                }
+
+                var todoListService = new TodoListService(memoryCache, graphClient, azureBlobClient);
+                var todoListResult = await todoListService.RetrieveTodoList().ConfigureAwait(false);
+
+                Assert.IsNull(todoListResult.BrokenNextLink);
+                Assert.IsFalse(todoListResult.EventsWithoutStarts.Any());
+                Assert.IsFalse(todoListResult.EventsWithStartParseFailures.Any());
+                Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
+                Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
+                Assert.AreEqual("some data", todoListResult.TodoList, true);
+                Assert.AreEqual(DateTime.Parse("2024-04-17T13:30:00Z").ToUniversalTime(), todoListResult.StartTimestamp);
+                Assert.AreEqual(DateTime.Parse("2024-04-17T14:30:00Z").ToUniversalTime(), todoListResult.EndTimestamp);
+
+                using (var httpResponse = await azureBlobClient.GetAsync("todoListData").ConfigureAwait(false))
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    Assert.AreEqual(true, responseContent?.Contains("2024-04-17T14:30:00Z"));
+                }
+            }
+        }
+
+        private sealed class MockRetrieveTodoListNewEventsGraphClient : IGraphClient
+        {
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                var path = GetPath(relativeUri);
+                if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
+                {
+                    var queryParameters = GetQuery(relativeUri)
+                        .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
+                    if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
+                    {
+                        if (string.Join('=', filter).Contains("type eq 'singleInstance'", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_id",
+            "subject": "todo list",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>some data</p></body></html>"
+            },
+            "start": {
+                "dateTime": "2024-04-17T14:30:00.0000000",
+                "timeZone": "UTC"
+            }
+        }
+    ]
+}
+""";
+                            StringContent? stringContent = null;
+                            try
+                            {
+                                stringContent = new StringContent(content);
+                                HttpResponseMessage? responseMessage = null;
+                                try
+                                {
+                                    responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                                    responseMessage.Content = stringContent;
+                                    return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                                }
+                                catch
+                                {
+                                    responseMessage?.Dispose();
+                                    throw;
+                                }
+                            }
+                            catch
+                            {
+                                stringContent?.Dispose();
+                                throw;
+                            }
+                        }
+                        else if (string.Join('=', filter).Contains("type eq 'seriesMaster'", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": []
+}
+""";
+                            StringContent? stringContent = null;
+                            try
+                            {
+                                stringContent = new StringContent(content);
+                                HttpResponseMessage? responseMessage = null;
+                                try
+                                {
+                                    responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                                    responseMessage.Content = stringContent;
+                                    return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                                }
+                                catch
+                                {
+                                    responseMessage?.Dispose();
+                                    throw;
+                                }
+                            }
+                            catch
+                            {
+                                stringContent?.Dispose();
+                                throw;
+                            }
+                        }
+                    }
+                }
+
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+
         private static string GetQuery(RelativeUri relativeUri)
         {
             //// TODO
