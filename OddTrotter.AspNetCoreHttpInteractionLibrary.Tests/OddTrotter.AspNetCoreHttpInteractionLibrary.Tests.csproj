@@ -11,16 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="OddTrotter\AzureBlobClient\AzureBlobClientIntegrationTests.json" />
-    <None Remove="OddTrotter\GraphClient\GraphClientIntegrationTests.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="OddTrotter\AzureBlobClient\AzureBlobClientIntegrationTests.json" />
-    <EmbeddedResource Include="OddTrotter\GraphClient\GraphClientIntegrationTests.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.1" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
@@ -28,8 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OddTrotter.Core\OddTrotter.Core.csproj" />
-    <ProjectReference Include="..\OddTrotter.TestCore\OddTrotter.TestCore.csproj" />
+    <ProjectReference Include="..\OddTrotter.AspNetCoreHttpInteractionLibrary\OddTrotter.AspNetCoreHttpInteractionLibrary.csproj" />
   </ItemGroup>
-  
+
 </Project>
