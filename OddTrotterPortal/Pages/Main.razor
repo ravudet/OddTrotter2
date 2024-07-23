@@ -471,7 +471,6 @@ else
             //// - using statements (unused, ordering, inside namespace declaration, etc.)
             //// - sealed
             ////
-            //// move non-factories out of portal project if possible; test them as you move them; start with a todolistservice interface and then you coudl even have oddtrotter outside of portal
             //// mark integration tests so that you can run unit tests wihtou mistaking failure
             //// do a proper code review of todolistserviceunittests
             //// address todos in todolistesrviceunittests by moving those helper methods to a core lbirary and productizing them
@@ -528,6 +527,7 @@ else
             //// EncryptionException doesn't seem throwable from ConfigureUserExtension; either remove it or write a test
             //// factor userextensionserviceextersniosn.configureuserextension into another method that generates the settings from the request data and leveages that new method
             //// todolistserviceunittests has a suppressed warning about a null reference in TryFindBy; fix this
+            //// do you want to move the oddtrotter class to core? doing this means that each service needs to have an interface and that those interfaces need to have well-defined exception documentation
         }
     }
 }
