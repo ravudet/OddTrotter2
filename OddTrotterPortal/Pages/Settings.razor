@@ -20,7 +20,8 @@
     /// <summary>
     /// this is null if there has been no form data posted; otherwise, it is the http request data for the most recent form data posted
     /// </summary>
-    private static HttpRequestData? Instance { get; set; } = null;
+    /// <remarks>TODO this *should* be private, but it is internal for now so that external repositories can reference this page as a razor component and extend it; once a proper plugin model is being leveraged, this should be marked private</remarks>
+    internal static HttpRequestData? Instance { get; set; } = null;
 }
 
 <PageTitle>OddTrotter Settings</PageTitle>
