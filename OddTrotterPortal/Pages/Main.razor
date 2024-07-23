@@ -20,7 +20,8 @@
     /// <summary>
     /// this is null if there has been no form data posted; otherwise, it is the http request data for the most recent form data posted
     /// </summary>
-    private static HttpRequestData? Instance { get; set; } = null;
+    /// <remarks>TODO this *should* be private, but it is internal for now so that external repositories can reference this page as a razor component and extend it; once a proper plugin model is being leveraged, this should be marked private</remarks>
+    internal static HttpRequestData? Instance { get; set; } = null;
 }
 
 <PageTitle>OddTrotter</PageTitle>
@@ -528,6 +529,7 @@ else
             //// factor userextensionserviceextersniosn.configureuserextension into another method that generates the settings from the request data and leveages that new method
             //// todolistserviceunittests has a suppressed warning about a null reference in TryFindBy; fix this
             //// do you want to move the oddtrotter class to core? doing this means that each service needs to have an interface and that those interfaces need to have well-defined exception documentation
+            //// implement a proper plugin model and mark main.razor, settings.razor instances as private
         }
     }
 }
