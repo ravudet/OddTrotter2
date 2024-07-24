@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OddTrotter.AspNetCoreHttpInteractionLibrary\OddTrotter.AspNetCoreHttpInteractionLibrary.csproj" />
+    <ProjectReference Include="..\OddTrotter.TestCore\OddTrotter.TestCore.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,11 +1,13 @@
 ﻿namespace Microsoft.Extensions.Caching.Memory
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using OddTrotter;
     using System;
 
     /// <summary>
     /// Unit tests for <see cref="PartitionedMemoryCache{T}"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class PartitionedMemoryCacheUnitTests
     {

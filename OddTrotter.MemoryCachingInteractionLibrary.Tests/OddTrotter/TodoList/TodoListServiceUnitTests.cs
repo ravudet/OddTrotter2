@@ -17,6 +17,7 @@
     /// <summary>
     /// Unit tests for <see cref="TodoListService"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class TodoListServiceUnitTests
     {

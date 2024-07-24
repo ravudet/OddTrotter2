@@ -19,6 +19,7 @@
     /// Note that these tests require:
     /// 1. A network connection with access to https://graph.microsoft.com/v1.0
     /// </remarks>
+    [TestCategory(TestCategories.Integration)]
     [TestClass]
     public sealed class GraphClientIntegrationTests
     {

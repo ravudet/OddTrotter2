@@ -1,10 +1,12 @@
 namespace System
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using OddTrotter;
 
     /// <summary>
     /// Unit tests for <see cref="RelativeUri"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class RelativeUriUnitTests
     {

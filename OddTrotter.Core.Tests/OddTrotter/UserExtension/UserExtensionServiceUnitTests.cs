@@ -13,6 +13,7 @@ namespace OddTrotter.UserExtension
     /// <summary>
     /// Unit tests for <see cref="UserExtensionService"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class UserExtensionServiceUnitTests
     {

@@ -14,6 +14,7 @@ namespace OddTrotter
     /// <summary>
     /// Unit tests for <see cref="HttpRequestExtensions"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public class HttpRequestExtensionsUnitTests
     {

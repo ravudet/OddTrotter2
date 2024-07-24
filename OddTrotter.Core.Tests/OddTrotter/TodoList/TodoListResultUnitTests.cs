@@ -8,6 +8,7 @@
     /// <summary>
     /// Unit tests for <see cref="TodoListResult"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class TodoListResultUnitTests
     {

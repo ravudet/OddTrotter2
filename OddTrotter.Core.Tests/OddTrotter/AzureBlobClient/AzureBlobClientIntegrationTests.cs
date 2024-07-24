@@ -20,6 +20,7 @@
     /// 1. A network connection with access to blob.core.windows.net
     /// 2. The use of the "oddtrotterabcit" storage account
     /// </remarks>
+    [TestCategory(TestCategories.Integration)]
     [TestClass]
     public sealed class AzureBlobClientIntegrationTests
     {

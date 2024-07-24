@@ -1,11 +1,13 @@
 ﻿namespace System.Collections.Generic
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using OddTrotter;
     using System.Net.NetworkInformation;
 
     /// <summary>
     /// Unit tests for <see cref="ComparerExtensions"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class ComparerExtensionsUnitTests
     {

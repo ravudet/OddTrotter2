@@ -7,6 +7,7 @@
     /// <summary>
     /// Unit tests for <see cref="Encryptor"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class EncryptorUnitTests
     {

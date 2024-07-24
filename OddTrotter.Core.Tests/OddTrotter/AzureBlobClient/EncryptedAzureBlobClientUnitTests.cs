@@ -11,6 +11,7 @@
     /// <summary>
     /// Unit tests for <see cref="EncryptedAzureBlobClient"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class EncryptedAzureBlobClientUnitTests
     {

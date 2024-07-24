@@ -6,6 +6,7 @@
     /// <summary>
     /// Unit tests for <see cref="OddTrotterBlobSettings"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class OddTrotterBlobSettingsUnitTests
     {
