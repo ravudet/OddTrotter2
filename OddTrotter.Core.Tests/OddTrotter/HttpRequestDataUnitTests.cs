@@ -8,6 +8,7 @@
     /// <summary>
     /// Unit tests for <see cref="HttpRequestData"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class HttpRequestDataUnitTests
     {

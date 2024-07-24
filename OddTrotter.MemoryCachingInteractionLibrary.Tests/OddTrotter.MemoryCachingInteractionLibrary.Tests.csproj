@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OddTrotter.MemoryCachingInteractionLibrary\OddTrotter.MemoryCachingInteractionLibrary.csproj" />
+    <ProjectReference Include="..\OddTrotter.TestCore\OddTrotter.TestCore.csproj" />
   </ItemGroup>
 
 </Project>

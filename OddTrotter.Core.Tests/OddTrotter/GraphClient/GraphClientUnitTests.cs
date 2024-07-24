@@ -9,6 +9,7 @@
     /// <summary>
     /// Unit tests for <see cref="GraphClient"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class GraphClientUnitTests
     {

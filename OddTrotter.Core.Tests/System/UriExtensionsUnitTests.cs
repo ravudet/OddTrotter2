@@ -1,10 +1,12 @@
 ﻿namespace System
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using OddTrotter;
 
     /// <summary>
     /// Unit tests for <see cref="UriExtensions"/>
     /// </summary>
+    [TestCategory(TestCategories.Unit)]
     [TestClass]
     public sealed class UriExtensionsUnitTests
     {
