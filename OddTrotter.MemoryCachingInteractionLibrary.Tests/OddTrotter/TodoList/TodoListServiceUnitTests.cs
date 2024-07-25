@@ -5205,4 +5205,125 @@ a todo list item
             return false;
         }
     }
+
+    internal static class TryFindByExtensions
+    {
+        public static void Driver()
+        {
+            var data = new string[] { "asdf" };
+            var found = data.TryFindBy(val => val.Length, 3, EqualityComparer<int>.Default, out var element);
+            if (found)
+            {
+                // do work
+            }
+
+            var data2 = new string?[] { "asdf", null };
+            //// is element2 null because null is in data2 or because null is *not* in data2?
+            var element2 = data2.TryFindBy2(val => val, null, StringComparer.Ordinal);
+            if (element2 != null)
+            {
+                // do work
+            }
+
+            var data4 = data2.ToArray();
+            //// this works great, but we had to define our own nullable type just for this purpose; it also doens't have the neat "treat this as null" stuff
+            var element4 = data4.TryFindBy4(val => val, null, StringComparer.Ordinal);
+            if (element4.HasValue)
+            {
+                // do work
+            }
+
+            //// uncomment this to illustrate that null comparisons don't work like they would on System.Nullable
+            ////if (element4 == null)
+            {
+            }
+        }
+
+        public static bool TryFindBy<TSource, TSelected>(this IEnumerable<TSource> source, Func<TSource, TSelected> selector, TSelected comparand, IEqualityComparer<TSelected> comparer, out TSource found)
+        {
+            foreach (var element in source)
+            {
+                var selected = selector(element);
+                if (comparer.Equals(selected, comparand))
+                {
+                    found = element;
+                    return true;
+                }
+            }
+
+#pragma warning disable CS8601 // Possible null reference assignment.
+            found = default;
+#pragma warning restore CS8601 // Possible null reference assignment.
+            return false;
+        }
+
+        public static TSource? TryFindBy2<TSource, TSelected>(this IEnumerable<TSource> source, Func<TSource, TSelected> selector, TSelected comparand, IEqualityComparer<TSelected> comparer)
+        {
+            if (source.TryFindBy(selector, comparand, comparer, out var found))
+            {
+                return found;
+            }
+            else
+            {
+                //// we still have a suppression required
+                return null;
+            }
+        }
+
+        public static TSource? TryFindBy3<TSource, TSelected>(this IEnumerable<TSource> source, Func<TSource, TSelected> selector, TSelected comparand, IEqualityComparer<TSelected> comparer)
+        {
+            foreach (var element in source)
+            {
+                var selected = selector(element);
+                if (comparer.Equals(selected, comparand))
+                {
+                    return element;
+                }
+            }
+
+            //// we have a suppression required even if we write it outselves and don't leverage tryfindby (meaning tryfindby isn't propogating the issue or something weird like that)
+            return null;
+        }
+
+        public static RavudetNullable<TSource> TryFindBy4<TSource, TSelected>(this IEnumerable<TSource> source, Func<TSource, TSelected> selector, TSelected comparand, IEqualityComparer<TSelected> comparer)
+        {
+            if (source.TryFindBy(selector, comparand, comparer, out var value))
+            {
+                return new RavudetNullable<TSource>(value);
+            }
+            else
+            {
+                return new RavudetNullable<TSource>();
+            }
+        }
+
+        public struct RavudetNullable<T>
+        {
+            public RavudetNullable(T value)
+            {
+                this.Value = value;
+
+                this.HasValue = true;
+            }
+
+            public T Value { get; }
+
+            public bool HasValue { get; }
+        }
+
+        public static RavudetNullable<TSource> TryFindBy5<TSource, TSelected>(this IEnumerable<TSource> source, Func<TSource, TSelected> selector, TSelected comparand, IEqualityComparer<TSelected> comparer)
+        {
+            //// adding this implementation just to prove that tryfindby4 doesn't *have* to dependon tryfindby (which required a suppression)
+            foreach (var element in source)
+            {
+                var selected = selector(element);
+                if (comparer.Equals(selected, comparand))
+                {
+                    return new RavudetNullable<TSource>(element);
+                }
+            }
+
+            return new RavudetNullable<TSource>();
+        }
+    }
 }
