@@ -122,7 +122,7 @@
         }
 
         /// <summary>
-        /// Creates a <see cref="TodoListService"/> with a <see langword="null"/> azure blob client
+        /// Creates a <see cref="TodoListService"/> with a <see langword="null"/> service settings
         /// </summary>
         [TestMethod]
         public void NullSettings()
@@ -546,7 +546,7 @@
         }
 
         /// <summary>
-        /// Retrieves the todo list when the todo list blob is null
+        /// Retrieves the todo list when the todo list blob is <see langword="null">
         /// </summary>
         /// <returns></returns>
         [TestMethod]
@@ -1378,8 +1378,8 @@ some data
 some data
 some data
 """
-                    , 
-                    todoListResult.TodoList, 
+                    ,
+                    todoListResult.TodoList,
                     true);
                 Assert.AreEqual(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc), todoListResult.StartTimestamp);
                 Assert.AreEqual(DateTime.SpecifyKind(DateTime.Parse("2024-05-17T23:30:00.0000000"), DateTimeKind.Utc), todoListResult.EndTimestamp);
@@ -1471,7 +1471,7 @@ some data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var format = 
+                var format =
 """
 {
     "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
@@ -1728,7 +1728,7 @@ some data
                 StringContent? stringContent = null;
                 try
                 {
-                    stringContent = new StringContent(nameof(RetrieveTodoListGraphFailureOnFirstPage));
+                    stringContent = new StringContent(nameof(RetrieveTodoListGraphFailureOnSecondPage));
                     HttpResponseMessage? responseMessage = null;
                     try
                     {
@@ -3258,7 +3258,7 @@ some more data
                 throw new NotImplementedException();
             }
         }
-        
+
         /// <summary>
         /// Retrieves the todo list where an event has a null subject
         /// </summary>
@@ -3375,7 +3375,7 @@ some more data
                         }
                     }
                 }
- 
+
                 throw new NotImplementedException();
             }
 
@@ -3809,7 +3809,7 @@ some more data
         {
             using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
             {
-                var graphClient = new MockRetrieveTodoListMalformedStartDateTimeGraphClient();
+                var graphClient = new MockRetrieveTodoListStartDateTimeNoTimeZoneGraphClient();
                 var azureBlobClient = new MemoryBlobClient();
                 var todoListService = new TodoListService(memoryCache, graphClient, azureBlobClient);
                 var todoListResult = await todoListService.RetrieveTodoList().ConfigureAwait(false);
@@ -3936,7 +3936,7 @@ some more data
         }
 
         /// <summary>
-        /// Retrieves the todo list where an event has a malformed start date time
+        /// Retrieves the todo list where an event has <see langword="null"/>
         /// </summary>
         /// <returns></returns>
         [TestMethod]
