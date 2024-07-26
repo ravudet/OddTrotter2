@@ -6,8 +6,10 @@ OddTrotter.AspNetCoreHttpInteractionLibrary
 OddTrotter.MemoryCachingInteractionLibrary
 OddTrotterPortal
 Fx.Games.Core
-Fx.Games
+Fx.Games <-- TODO why does this exist?
 FxGamesConsoleApplication
+
+TODO how do you want to separate Db stuff?
 
 * doesn't exist yet
 
@@ -33,4 +35,6 @@ graph TD;
     OddTrotter.Core-->OddTrotterPortal;
     OddTrotter.AspNetCoreHttpInteractionLibrary-->OddTrotterPortal;
     OddTrotter.MemoryCachingInteractionLibrary-->OddTrotterPortal;
+
+    Fx.Games.Core
 ```
