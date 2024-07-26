@@ -12,7 +12,7 @@ FxGamesConsoleApplication
 TODO how do you want to separate Db stuff?
 
 * doesn't exist yet
-
+* 
 ```mermaid
 graph TD;
     Fx.Core-->Fx.AspNetCoreHttpInteractionLibrary*;
