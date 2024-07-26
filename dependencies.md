@@ -13,13 +13,15 @@ FxGamesConsoleApplication
 
 ```mermaid
 graph TD;
-    Fx.Core-->OddTrotter.Core;
     Fx.Core-->Fx.AspNetCoreHttpInteractionLibrary*;
+
     Fx.Core-->Fx.MemoryCachingInteractionLibrary*;
 
     Fx.Core-->OddTrotter.Core;
     Fx.AspNetCoreHttpInteractionLibrary*-->OddTrotter.AspNetCoreHttpInteractionLibrary;
     Fx.MemoryCachingInteractionLibrary*-->OddTrotter.MemoryCachingInteractionLibrary;
+    OddTrotter.Core-->OddTrotter.AspNetCoreHttpInteractionLibrary;
+    OddTrotter.Core-->OddTrotter.MemoryCachingInteractionLibrary;
     OddTrotter.Core-->OddTrotterPortal;
     OddTrotter.AspNetCoreHttpInteractionLibrary-->OddTrotterPortal;
     OddTrotter.MemoryCachingInteractionLibrary-->OddTrotterPortal;
