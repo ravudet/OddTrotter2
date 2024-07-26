@@ -19,4 +19,8 @@ graph TD;
 
     Fx.Core-->OddTrotter.Core;
     Fx.AspNetCoreHttpInteractionLibrary*-->OddTrotter.AspNetCoreHttpInteractionLibrary;
+    Fx.MemoryCachingInteractionLibrary*-->OddTrotter.MemoryCachingInteractionLibrary;
+    OddTrotter.Core-->OddTrotterPortal;
+    OddTrotter.AspNetCoreHttpInteractionLibrary-->OddTrotterPortal;
+    OddTrotter.MemoryCachingInteractionLibrary-->OddTrotterPortal;
 ```
