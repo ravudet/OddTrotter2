@@ -36,5 +36,12 @@ graph TD;
     OddTrotter.AspNetCoreHttpInteractionLibrary-->OddTrotterPortal;
     OddTrotter.MemoryCachingInteractionLibrary-->OddTrotterPortal;
 
-    Fx.Games.Core
+    Fx.Core-->Fx.Games.Core;
+
+    Fx.Core-->Fx.Games;
+    Fx.Games.Core-->Fx.Games;
+
+    Fx.Core-->FxGamesConsoleApplication;
+    Fx.Games.Core-->FxGamesConsoleApplication;
+    Fx.Games-->FxGamesConsoleApplication;
 ```
