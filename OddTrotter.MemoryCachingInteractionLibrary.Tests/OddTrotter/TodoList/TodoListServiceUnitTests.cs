@@ -307,10 +307,11 @@
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -579,10 +580,11 @@
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -809,10 +811,11 @@ some data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -2307,10 +2310,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -2447,10 +2451,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -2615,10 +2620,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -2777,10 +2783,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -2939,10 +2946,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -3107,10 +3115,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -3288,10 +3297,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -3424,10 +3434,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -3557,10 +3568,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -3693,10 +3705,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -3829,10 +3842,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -3964,10 +3978,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -4097,10 +4112,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -4250,10 +4266,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -4384,10 +4401,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -4531,10 +4549,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -4678,10 +4697,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -4847,10 +4867,11 @@ some more data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -5062,10 +5083,11 @@ a todo list item
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var path = GetPath(relativeUri);
+                var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
                 if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryParameters = GetQuery(relativeUri)
+                    var queryParameters = relativeUri
+                        .GetComponents(RelativeUriComponents.Query, UriFormat.SafeUnescaped)
                         .Split('&', StringSplitOptions.RemoveEmptyEntries)
                         .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
                     if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
@@ -5167,23 +5189,6 @@ a todo list item
             {
                 throw new NotImplementedException();
             }
-        }
-
-
-        private static string GetQuery(RelativeUri relativeUri)
-        {
-            //// TODO
-            var absoluteUri = new Uri(new Uri("https://localhost/"), relativeUri);
-            var query = absoluteUri.GetComponents(UriComponents.Query, UriFormat.SafeUnescaped);
-            return query;
-        }
-
-        private static string GetPath(RelativeUri relativeUri)
-        {
-            //// TODO
-            var absoluteUri = new Uri(new Uri("https://localhost/"), relativeUri);
-            var path = absoluteUri.GetComponents(UriComponents.Path | UriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
-            return path;
         }
 
         private static bool TryFindBy<TSource, TSelected>(IEnumerable<TSource> source, Func<TSource, TSelected> selector, TSelected comparison, IEqualityComparer<TSelected> comparer, out TSource found)
