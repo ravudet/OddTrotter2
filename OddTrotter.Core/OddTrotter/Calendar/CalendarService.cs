@@ -32,7 +32,7 @@
             //// TODO refactor commonalities between this and todolistservice
             var startTime = DateTime.UtcNow;
             var events = GetEvents(this.graphClient, startTime, startTime + TimeSpan.FromDays(365), 50);
-            events.Elements.Where(calendarEvent => calendarEvent.)
+            var notResponsedEvents = events.Elements.Where(calendarEvent => string.Equals(calendarEvent.ResponseStatus?.Response, "notResponded", StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -135,7 +135,7 @@
         {
             //// TODO make the calendar that's used configurable?
             var url = $"/me/calendar/events?" +
-                $"$select=body,start,subject&" +
+                $"$select=body,start,subject,responseStatus&" +
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
@@ -156,7 +156,7 @@
         private static async Task<IEnumerable<CalendarEvent>?> GetFirstSeriesInstanceInRange(IGraphClient graphClient, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
         {
             //// TODO this method would be much better as some sort of "TryGet" variant (though it does still have exceptions that it throws...), but being async, we can't have the needed out parameters
-            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body&$filter=isCancelled eq false";
+            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body,responseStatus&$filter=isCancelled eq false";
             HttpResponseMessage? httpResponse = null;
             try
             {

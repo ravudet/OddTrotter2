@@ -15,6 +15,18 @@
 
         [JsonPropertyName("body")]
         public BodyStructure? Body { get; set; }
+
+        [JsonPropertyName("responseStatus")]
+        public ResponseStatusStructure? ResponseStatus { get; set; }
+    }
+
+    public sealed class ResponseStatusStructure
+    {
+        [JsonPropertyName("response")]
+        public string? Response { get; set; }
+
+        [JsonPropertyName("time")]
+        public string? Time { get; set; }
     }
 
     public sealed class BodyStructure
