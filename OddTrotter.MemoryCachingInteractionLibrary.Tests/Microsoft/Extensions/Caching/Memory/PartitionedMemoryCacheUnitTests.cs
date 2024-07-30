@@ -39,6 +39,21 @@
         }
 
         /// <summary>
+        /// Creates a <see cref="PartitionedMemoryCache{T}"/> with <see langword="null"/> settings
+        /// </summary>
+        [TestMethod]
+        public void NullSettings()
+        {
+            Assert.ThrowsException<ArgumentNullException>(() => new PartitionedMemoryCache<string>(
+                new MemoryCache(new MemoryCacheOptions()),
+                string.Empty,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ).Dispose());
+        }
+
+        /// <summary>
         /// Retrieves a cache entry that doesn't exist
         /// </summary>
         [TestMethod]
@@ -83,6 +98,38 @@
                 {
                     var entryKey = "test";
                     Assert.IsFalse(partitionedMemoryCache.TryGetValue(entryKey, out _));
+
+                    partitionedMemoryCache.GetOrCreate(entryKey, entry => "somevalue");
+                    Assert.IsTrue(partitionedMemoryCache.TryGetValue(entryKey, out _));
+
+                    partitionedMemoryCache.Remove(entryKey);
+                    Assert.IsFalse(partitionedMemoryCache.TryGetValue(entryKey, out _));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a cache entry and retrieves it, then does the same using a partition ID with a different case
+        /// </summary>
+        [TestMethod]
+        public void CreateRetrieveAndRemoveWithComparer()
+        {
+            using (var memoryCache = new MemoryCache(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromDays(1) }))
+            {
+                var partitionId = nameof(RemoveNonexistentEntry);
+                using (var partitionedMemoryCache = new PartitionedMemoryCache<string>(memoryCache, partitionId, new PartitionedMemoryCacheSettings<string>.Builder() { Comparer = StringComparer.OrdinalIgnoreCase }.Build()))
+                {
+                    var entryKey = "test";
+                    Assert.IsFalse(partitionedMemoryCache.TryGetValue(entryKey, out _));
+
+                    partitionedMemoryCache.GetOrCreate(entryKey, entry => "somevalue");
+                    Assert.IsTrue(partitionedMemoryCache.TryGetValue(entryKey, out _));
+                }
+
+                using (var partitionedMemoryCache = new PartitionedMemoryCache<string>(memoryCache, partitionId.ToUpperInvariant(), new PartitionedMemoryCacheSettings<string>.Builder() { Comparer = StringComparer.OrdinalIgnoreCase }.Build()))
+                {
+                    var entryKey = "test";
+                    Assert.IsTrue(partitionedMemoryCache.TryGetValue(entryKey, out _));
 
                     partitionedMemoryCache.GetOrCreate(entryKey, entry => "somevalue");
                     Assert.IsTrue(partitionedMemoryCache.TryGetValue(entryKey, out _));

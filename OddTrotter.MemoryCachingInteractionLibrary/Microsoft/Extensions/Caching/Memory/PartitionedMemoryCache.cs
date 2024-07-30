@@ -1,12 +1,15 @@
 ﻿namespace Microsoft.Extensions.Caching.Memory
 {
     using System;
+    using System.Collections.Generic;
 
     public sealed class PartitionedMemoryCache<T> : IMemoryCache
     {
         private readonly IMemoryCache delegateMemoryCache;
 
         private readonly T partitionId;
+
+        private readonly IEqualityComparer<T> comparer;
 
         /// <summary>
         /// 
@@ -15,6 +18,17 @@
         /// <param name="partitionId"></param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="delegateMemoryCache"/> or <paramref name="partitionId"/> is <see langword="null"/></exception>
         public PartitionedMemoryCache(IMemoryCache delegateMemoryCache, T partitionId)
+            : this(delegateMemoryCache, partitionId, PartitionedMemoryCacheSettings<T>.Default)
+        {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="delegateMemoryCache"></param>
+        /// <param name="partitionId"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="delegateMemoryCache"/> or <paramref name="partitionId"/> or <paramref name="settings"/> is <see langword="null"/></exception>
+        public PartitionedMemoryCache(IMemoryCache delegateMemoryCache, T partitionId, PartitionedMemoryCacheSettings<T> settings)
         {
             if (delegateMemoryCache == null)
             {
@@ -26,14 +40,20 @@
                 throw new ArgumentNullException(nameof(partitionId));
             }
 
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
             this.delegateMemoryCache = delegateMemoryCache;
             this.partitionId = partitionId;
+            this.comparer = settings.Comparer;
         }
 
         /// <inheritdoc/>
         public ICacheEntry CreateEntry(object key)
         {
-            var keyContainer = new KeyContainer(this.partitionId, key);
+            var keyContainer = new KeyContainer(this.partitionId, key, this.comparer);
             return this.delegateMemoryCache.CreateEntry(keyContainer);
         }
 
@@ -45,23 +65,26 @@
         /// <inheritdoc/>
         public void Remove(object key)
         {
-            var keyContainer = new KeyContainer(this.partitionId, key);
+            var keyContainer = new KeyContainer(this.partitionId, key, this.comparer);
             this.delegateMemoryCache.Remove(keyContainer);
         }
 
         /// <inheritdoc/>
         public bool TryGetValue(object key, out object? value)
         {
-            var keyContainer = new KeyContainer(this.partitionId, key);
+            var keyContainer = new KeyContainer(this.partitionId, key, this.comparer);
             return this.delegateMemoryCache.TryGetValue(keyContainer, out value);
         }
 
         private sealed class KeyContainer : IEquatable<KeyContainer>
         {
-            public KeyContainer(T partitionId, object key)
+            private readonly IEqualityComparer<T> comparer;
+
+            public KeyContainer(T partitionId, object key, IEqualityComparer<T> comparer)
             {
-                PartitionId = partitionId;
-                Key = key;
+                this.PartitionId = partitionId;
+                this.Key = key;
+                this.comparer = comparer;
             }
 
             public T PartitionId { get; }
@@ -82,10 +105,7 @@
                 }
 
                 return
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                    //// TODO
-                    this.PartitionId.Equals(other.PartitionId) &&
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                    this.comparer.Equals(this.PartitionId, other.PartitionId) &&
                     this.Key.Equals(other.Key);
             }
 
@@ -104,10 +124,7 @@
             public override int GetHashCode()
             {
                 return
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                    //// TODO
-                    this.PartitionId.GetHashCode() ^
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                    (this.PartitionId == null ? 0 : this.comparer.GetHashCode(this.PartitionId)) ^
                     this.Key.GetHashCode();
             }
         }
