@@ -18,6 +18,9 @@
 
         [JsonPropertyName("responseStatus")]
         public ResponseStatusStructure? ResponseStatus { get; set; }
+
+        [JsonPropertyName("webLink")]
+        public string? WebLink { get; set; }
     }
 
     public sealed class ResponseStatusStructure

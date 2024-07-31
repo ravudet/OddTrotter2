@@ -138,7 +138,7 @@
         {
             //// TODO make the calendar that's used configurable?
             var url = $"/me/calendar/events?" +
-                $"$select=body,start,subject,responseStatus&" +
+                $"$select=body,start,subject,responseStatus,webLink&" +
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
@@ -159,7 +159,7 @@
         private static async Task<IEnumerable<CalendarEvent>?> GetFirstSeriesInstanceInRange(IGraphClient graphClient, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
         {
             //// TODO this method would be much better as some sort of "TryGet" variant (though it does still have exceptions that it throws...), but being async, we can't have the needed out parameters
-            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body,responseStatus&$filter=isCancelled eq false";
+            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body,responseStatus,webLink&$filter=isCancelled eq false";
             HttpResponseMessage? httpResponse = null;
             try
             {
@@ -207,7 +207,7 @@
             //// TODO make the calendar that's used configurable?
             var url =
                 $"/me/calendar/events?" +
-                $"$select=body,start,subject,responseStatus&" +
+                $"$select=body,start,subject,responseStatus,webLink&" +
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
