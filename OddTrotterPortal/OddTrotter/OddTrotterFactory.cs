@@ -78,6 +78,9 @@
             var partitionedMemoryCache = PartitionedMemoryCacheFactory.Create(httpRequestData.Id, memoryCache);
             var todoListService = new TodoListService(partitionedMemoryCache, graphClient, encryptedAzureBlobClient);
 
+            var calendarService = new global::OddTrotter.Calendar.CalendarService(graphClient);
+            await calendarService.RetrieveTentativeCalendar();
+
             return new OddTrotter(todoListService);
         }
     }

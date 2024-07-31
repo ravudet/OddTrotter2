@@ -32,7 +32,10 @@
             //// TODO refactor commonalities between this and todolistservice
             var startTime = DateTime.UtcNow;
             var events = GetEvents(this.graphClient, startTime, startTime + TimeSpan.FromDays(365), 50);
-            var notResponsedEvents = events.Elements.Where(calendarEvent => string.Equals(calendarEvent.ResponseStatus?.Response, "notResponded", StringComparison.OrdinalIgnoreCase));
+            var allEvents = events.Elements.ToList();
+            var notResponsedEvents = allEvents
+                .Where(calendarEvent => string.Equals(calendarEvent.ResponseStatus?.Response, "notResponded", StringComparison.OrdinalIgnoreCase));
+            return await Task.FromResult(new TentativeCalendarResult());
         }
 
         /// <summary>
@@ -204,7 +207,7 @@
             //// TODO make the calendar that's used configurable?
             var url =
                 $"/me/calendar/events?" +
-                $"$select=body,start,subject&" +
+                $"$select=body,start,subject,responseStatus&" +
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
