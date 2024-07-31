@@ -183,24 +183,6 @@ else
             Please go <a href="/Settings">here</a> to configure your extension.
         </div>
     }
-    catch (InvalidSasTokenException invalidSasTokenException)
-    {
-        <div>
-            The decrypted settings in the OddTrotter user extension data contained a SAS token that results in malformed blob URLs. The configured SAS token was '@invalidSasTokenException.Token'.
-            @if (invalidSasTokenException.InnerException != null)
-            {
-                <span>
-                    The observed error was:
-                    <div>
-                        @invalidSasTokenException.InnerException.ToString()
-                    </div>
-                </span>
-                <br />
-            }
-            
-            Please go <a href="/Settings">here</a> to configure your extension.
-        </div>
-    }
 
     if (oddTrotter != null)
     {
@@ -472,11 +454,7 @@ else
             //// - using statements (unused, ordering, inside namespace declaration, etc.)
             //// - sealed
             ////
-            //// test iapplyaggreationenumerble once the fx.core tests are written
             //// should include the username in the graphclientintegrationtests.json instructions?
-            //// invalidblobname doesn't seem to be throwable from azureblobclient.getasync; either remove this check or write  a unit test
-            //// invalidsastoken doesn't seem to be throwable from azureblobclient constructor; either remove this check from the constructor, or add unit tests for it
-            //// invalidblobname doesn't seem to be throwable from azureblobclient.putasync; either remove this check or write a unit test
             //// not putting "bearer" at the beginning of an MSA token results in an uncaught exception
             //// make sure documentation using statements are included
             //// use inheritdoc where available
@@ -526,6 +504,7 @@ else
             //// do you want to move the oddtrotter class to core? doing this means that each service needs to have an interface and that those interfaces need to have well-defined exception documentation
             //// implement a proper plugin model and mark main.razor, settings.razor instances as private
             //// add integration tests for todolistservice
+            //// test iapplyaggreationenumerble once the fx.core tests are written
         }
     }
 }

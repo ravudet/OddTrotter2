@@ -24,7 +24,6 @@
         /// Thrown if <paramref name="containerUri"/> or <paramref name="sasToken"/> or <paramref name="apiVersion"/> is <see langword="null"/>
         /// </exception>
         /// <exception cref="ArgumentException">Thrown if <paramref name="apiVersion"/> is empty</exception>
-        /// <exception cref="InvalidSasTokenException">Thrown if <paramref name="sasToken"/> results in malformed blob URLs</exception>
         public AzureBlobClient(AbsoluteUri containerUri, string sasToken, string apiVersion)
             : this(containerUri, sasToken, apiVersion, new AzureBlobClientSettings.Builder().Build())
         {
@@ -39,7 +38,6 @@
         /// Thrown if <paramref name="containerUri"/> or <paramref name="sasToken"/> or <paramref name="apiVersion"/> or <paramref name="settings"/> is <see langword="null"/>
         /// </exception>
         /// <exception cref="ArgumentException">Thrown if <paramref name="apiVersion"/> is empty</exception>
-        /// <exception cref="InvalidSasTokenException">Thrown if <paramref name="sasToken"/> results in malformed blob URLs</exception>
         public AzureBlobClient(AbsoluteUri containerUri, string sasToken, string apiVersion, AzureBlobClientSettings settings)
         {
             if (containerUri == null)
@@ -69,14 +67,6 @@
 
             this.containerUri = containerUri.OriginalString.TrimEnd('/');
             this.sasToken = sasToken;
-            try
-            {
-                GenerateBlobUrl("blobName");
-            }
-            catch (InvalidBlobNameException e)
-            {
-                throw new InvalidSasTokenException(sasToken, e);
-            }
 
             this.apiVersion = apiVersion;
             this.blobType = settings.BlobType;
@@ -181,17 +171,10 @@
         /// </summary>
         /// <param name="blobName"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidBlobNameException">Thrown if <paramref name="blobName"/> results in an invalid URL</exception>
         private Uri GenerateBlobUrl(string blobName)
         {
-            try
-            {
-                return new Uri($"{this.containerUri}/{blobName}?{this.sasToken}");
-            }
-            catch (UriFormatException e)
-            {
-                throw new InvalidBlobNameException(blobName, e);
-            }
+            // this may be the source of a bug, but i can't figure out any case that UriFormatException is thrown, so we are not catching it and handling it in any way; if we discover a case where the exception is thrown, we should use that exception to validate blob names and SAS tokens
+            return new Uri($"{this.containerUri}/{blobName}?{this.sasToken}");
         }
     }
 }

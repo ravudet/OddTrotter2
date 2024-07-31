@@ -50,9 +50,6 @@
         /// <exception cref="MalformedSettingsException">
         /// Thrown if the decrypted <see cref="AzureBlobClientFactory.OddTrotterUserExtension.Data"/> is a malformed <see cref="AzureBlobClientFactory.OddTrotterSettings"/>
         /// </exception>
-        /// <exception cref="InvalidSasTokenException">
-        /// Thrown if the SAS token in the <see cref="AzureBlobClientFactory.OddTrotterBlobSettings"/> results in malformed blob URLs
-        /// </exception>
         public static async Task<OddTrotter> Create(IMemoryCache memoryCache, HttpRequestData httpRequestData, IConfiguration configuration)
         {
             if (memoryCache == null)

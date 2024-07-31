@@ -38,7 +38,6 @@
         /// <exception cref="MalformedSettingsException">
         /// Thrown if the decrypted <see cref="OddTrotterUserExtension.Data"/> is a malformed <see cref="OddTrotterBlobSettings"/>
         /// </exception>
-        /// <exception cref="InvalidSasTokenException">Thrown if the SAS token in the <see cref="OddTrotterBlobSettings"/> results in malformed blob URLs</exception>
         public static async Task<AzureBlobClient> Create(IGraphClient graphClient, Encryptor encryptor)
         {
             if (graphClient == null)
