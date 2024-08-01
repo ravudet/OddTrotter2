@@ -87,7 +87,7 @@
                 if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
                 {
                     var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    throw new InvalidAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                    throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
                 }
             }
             catch
