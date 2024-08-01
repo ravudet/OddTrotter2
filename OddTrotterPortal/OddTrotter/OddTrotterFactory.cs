@@ -6,6 +6,7 @@
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using global::OddTrotter.AzureBlobClient;
+    using global::OddTrotter.Calendar;
     using global::OddTrotter.Encryptor;
     using global::OddTrotter.GraphClient;
     using global::OddTrotter.TodoList;
@@ -78,10 +79,9 @@
             var partitionedMemoryCache = PartitionedMemoryCacheFactory.Create(httpRequestData.Id, memoryCache);
             var todoListService = new TodoListService(partitionedMemoryCache, graphClient, encryptedAzureBlobClient);
 
-            var calendarService = new global::OddTrotter.Calendar.CalendarService(graphClient);
-            var tentativeCalendarEvents = await calendarService.RetrieveTentativeCalendar();
+            var calendarService = new CalendarService(graphClient);
 
-            return new OddTrotter(todoListService);
+            return new OddTrotter(todoListService, calendarService);
         }
     }
 }

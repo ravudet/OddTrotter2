@@ -8,6 +8,7 @@
 @using Microsoft.Extensions.Configuration
 @using OddTrotter;
 @using OddTrotter.AzureBlobClient;
+@using OddTrotter.Calendar;
 @using OddTrotter.Encryptor;
 @using OddTrotter.GraphClient;
 @using OddTrotter.TodoList;
@@ -460,6 +461,30 @@ else
                 </div>
             }
 
+            TentativeCalendarResult? tentativeCalendarResult = null;
+            try
+            {
+                tentativeCalendarResult = oddTrotter.CalendarService.RetrieveTentativeCalendar().ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+            catch
+            {
+                //// TODO
+                <h2>ERROR!</h2>
+            }
+
+            if (tentativeCalendarResult != null)
+            {
+                <div id="tentativeCalendarHeader" class="expandableHeader expandedHeader sectionHeader" onclick="expand('tentativeCalendar')">Tentative calendar</div>
+                <div id="tentativeCalendarDiv" class="section">
+                    <table>
+                        <tr>
+                            <th></th>
+                        </tr>
+                    </table>
+                </div>
+            }
+        }
+
             //// TODO future work:
             //// you need to come up with your productization checklist and then follow it
             //// - configure await
@@ -529,6 +554,5 @@ else
             //// EncryptionException doesn't seem throwable from ConfigureUserExtension; either remove it or write a test
             //// factor userextensionserviceextersniosn.configureuserextension into another method that generates the settings from the request data and leveages that new method
             //// todolistserviceunittests has a suppressed warning about a null reference in TryFindBy; fix this
-        }
     }
 }
