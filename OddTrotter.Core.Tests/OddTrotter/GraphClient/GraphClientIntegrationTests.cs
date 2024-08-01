@@ -136,7 +136,7 @@
                 await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.GetAsync(new Uri("/servicePrincipals", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
             }
         }
-        
+
         /// <summary>
         /// Updates a user that does not exist
         /// </summary>
@@ -615,7 +615,7 @@
 
                 [JsonPropertyName("GetUserWithNoPermissionsRelativeUri")]
                 public string? GetUserWithNoPermissionsRelativeUri { get; set; }
-                
+
                 [JsonPropertyName("PatchNonexistentUser")]
                 public string? PatchNonexistentUser { get; set; }
 
