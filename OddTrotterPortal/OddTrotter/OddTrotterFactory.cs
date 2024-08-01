@@ -79,7 +79,7 @@
             var todoListService = new TodoListService(partitionedMemoryCache, graphClient, encryptedAzureBlobClient);
 
             var calendarService = new global::OddTrotter.Calendar.CalendarService(graphClient);
-            await calendarService.RetrieveTentativeCalendar();
+            var tentativeCalendarEvents = await calendarService.RetrieveTentativeCalendar();
 
             return new OddTrotter(todoListService);
         }

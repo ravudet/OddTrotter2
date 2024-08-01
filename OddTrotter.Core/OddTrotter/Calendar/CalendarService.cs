@@ -35,7 +35,18 @@
             var allEvents = events.Elements.ToList();
             var notResponsedEvents = allEvents
                 .Where(calendarEvent => string.Equals(calendarEvent.ResponseStatus?.Response, "notResponded", StringComparison.OrdinalIgnoreCase));
-            return await Task.FromResult(new TentativeCalendarResult());
+            //// TODO you need to return the malformed calendar events
+            var finalEvents = notResponsedEvents
+                .Select(calendarEvent =>
+                    calendarEvent.Id == null || calendarEvent.Subject == null || calendarEvent.WebLink == null ?
+                        null :
+                        new TentativeCalendarEvent(calendarEvent.Id, calendarEvent.Subject, calendarEvent.WebLink))
+                .Where(calendarEvent => calendarEvent != null);
+            return await Task.FromResult(new TentativeCalendarResult(
+#pragma warning disable CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
+                finalEvents
+#pragma warning restore CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
+                ));
         }
 
         /// <summary>
