@@ -17,11 +17,23 @@
     {
         private readonly IGraphClient graphClient;
 
+        private readonly TimeSpan lookAhead;
+
         public CalendarService(IGraphClient graphClient)
+            : this(graphClient, new CalendarServiceSettings.Builder().Build())
+        {
+        }
+
+        public CalendarService(IGraphClient graphClient, CalendarServiceSettings settings)
         {
             if (graphClient == null)
             {
                 throw new ArgumentNullException(nameof(graphClient));
+            }
+
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
             }
 
             this.graphClient = graphClient;
@@ -30,8 +42,10 @@
         public async Task<TentativeCalendarResult> RetrieveTentativeCalendar()
         {
             //// TODO refactor commonalities between this and todolistservice
+            
+            //// TODO leverage a cache?
             var startTime = DateTime.UtcNow;
-            var events = GetEvents(this.graphClient, startTime, startTime + TimeSpan.FromDays(365), 50);
+            var events = GetEvents(this.graphClient, startTime, startTime + TimeSpan.FromDays(365), 50); //// TODO configure these values
             var allEvents = events.Elements.ToList();
             var notResponsedEvents = allEvents
                 .Where(calendarEvent => string.Equals(calendarEvent.ResponseStatus?.Response, "notResponded", StringComparison.OrdinalIgnoreCase));
