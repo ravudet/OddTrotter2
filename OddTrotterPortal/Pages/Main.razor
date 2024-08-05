@@ -478,8 +478,16 @@ else
                 <div id="tentativeCalendarDiv" class="section">
                     <table>
                         <tr>
-                            <th></th>
+                            <th>Subject</th>
+                            <th>Id</th>
                         </tr>
+                        @foreach (var calendarEvent in tentativeCalendarResult.TentativeCalendarEvents)
+                        {
+                            <tr>
+                                <td><a href="@calendarEvent.WebLink" target="_blank">@calendarEvent.Subject</a></td>
+                                <td>@calendarEvent.Id</td>
+                            </tr>
+                        }
                     </table>
                 </div>
             }
