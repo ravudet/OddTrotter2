@@ -196,6 +196,8 @@
 
             public IV2Queryable<GraphCalendarEvent> Where(Expression<Func<GraphCalendarEvent, bool>> predicate)
             {
+                //// TODO have a sequence of expressions and predicates to later do joins
+
                 var parsedFilter = ParsePredicateExpression(predicate);
 
                 string? newFilter;
