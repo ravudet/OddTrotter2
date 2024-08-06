@@ -3,6 +3,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq.Expressions;
     using System.Linq.V2;
     using System.Net.Http;
     using System.Text.Json;
@@ -24,7 +25,7 @@
         //// TODO add *all* of the properties here
     }
 
-    public sealed class GraphCalendar : IV2Enumerable<GraphCalendarEvent>
+    public sealed class GraphCalendar : IV2Queryable<GraphCalendarEvent>
     {
         private readonly IGraphClient graphClient;
 
@@ -138,6 +139,74 @@
 
             [JsonPropertyName("@odata.nextLink")]
             public string? NextLink { get; set; }
+        }
+    }
+
+    public static class Driver
+    {
+        public static void DoWork()
+        {
+            var graphCalendar = new GraphCalendar(null, null, null);
+
+            graphCalendar.Where(calendarEvent => calendarEvent.Id == "Asdf");
+
+            var events = graphCalendar.AsV2Enumerable().Where(calendarEvent =>
+            {
+                var value = calendarEvent.Id == "asdf";
+                return value;
+            });
+        }
+    }
+
+    public interface IV2Queryable<out T> : IV2Enumerable<T>
+    {
+    }
+
+    public interface IWhereQueryable<TSource> : IV2Queryable<TSource>
+    {
+        public IV2Queryable<TSource> Where(Expression<Func<TSource, bool>> predicate)
+        {
+            return this.WhereDefault(predicate);
+        }
+    }
+
+    public static class QueryableExtensions
+    {
+        public static IV2Queryable<TSource> Where<TSource>(this IV2Queryable<TSource> queryable, Expression<Func<TSource, bool>> predicate)
+        {
+            if (queryable is IWhereQueryable<TSource> where)
+            {
+                return where.Where(predicate);
+            }
+
+            return queryable.WhereDefault(predicate);
+        }
+
+        internal static IV2Queryable<TSource> WhereDefault<TSource>(this IV2Queryable<TSource> queryable, Expression<Func<TSource, bool>> predicate)
+        {
+            //// TODO monad check
+
+            return new QueryableAdapter<TSource>(queryable.AsV2Enumerable().Where(predicate.Compile()));
+        }
+
+        private sealed class QueryableAdapter<T> : IV2Queryable<T>
+        {
+            private readonly IV2Enumerable<T> enumerable;
+
+            public QueryableAdapter(IV2Enumerable<T> enumerable)
+            {
+                this.enumerable = enumerable;
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                return this.enumerable.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
         }
     }
 }
