@@ -68,7 +68,7 @@ namespace OddTrotter.Calendar
         ODataResult<TResult> Evaluate<TResult>(Func<IEnumerable<TEnclosedType>, TResult> projection);
     }
 
-    public sealed class ODataGraphCalendar : IV2Queryable<OData<GraphCalendarEvent>>, IODataEvaluator<GraphCalendarEvent>
+    public sealed class ODataGraphCalendar : IV2Queryable<OData<GraphCalendarEvent>>, IODataEvaluator<GraphCalendarEvent>, IWhereQueryable<OData<GraphCalendarEvent>>
     {
         public ODataResult<TResult> Evaluate<TResult>(Func<IEnumerable<GraphCalendarEvent>, TResult> projection)
         {
