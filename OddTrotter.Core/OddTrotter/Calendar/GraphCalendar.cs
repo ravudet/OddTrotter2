@@ -130,7 +130,7 @@
                                     //// left side is the start, how about the right side?
                                     //// TODO the only binary operations we are supporting will make sure that the return type of the right side is a datetime, but is this true for non-graph calendar event cases with other binary operations?
                                     
-                                    if (binaryExpression.Right is UnaryExpression rightConvertExpression)
+                                    if (binaryExpression.Right is UnaryExpression rightConvertExpression) //// TODO the "convert" expression is because the right side is datetime and the left side is nullable<datetime>
                                     {
                                         //// this is a datetime.parse
                                         if (rightConvertExpression.Operand is MethodCallExpression rightDateTimeParseExpression)
