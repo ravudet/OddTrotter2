@@ -15,6 +15,10 @@
     using OddTrotter.GraphClient;
     using OddTrotter.TodoList;
 
+    public sealed class ODataSelectedProperty<TEnclosingType>
+    {
+    }
+
     public class GraphCalendarEvent
     {
         [JsonPropertyName("id")]
