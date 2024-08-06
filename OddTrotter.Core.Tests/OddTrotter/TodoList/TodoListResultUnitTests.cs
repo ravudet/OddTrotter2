@@ -18,8 +18,19 @@
         public void Test()
         {
             var graphCalendar = new GraphCalendar(null, null, null);
-            graphCalendar.Where(calendarEvent => calendarEvent.Start.DateTime > DateTime.Parse("2024-08-04"));
+            var whered = graphCalendar.Where(calendarEvent => calendarEvent.Start.DateTime > DateTime.Parse("2024-08-04"));
+
+            var dateTime = DateTime.Parse("2024-08-05");
+            var whered2 = graphCalendar.Where(calendarEvent => calendarEvent.Start.DateTime > dateTime);
+
+            var whered3 = graphCalendar.Where(calendarEvent => calendarEvent.Start.DateTime > SomeTime);
+
+            var whered4 = graphCalendar.Where(calendarEvent => calendarEvent.Start.DateTime > AnotherDateTime);
         }
+
+        public DateTime AnotherDateTime = DateTime.Parse("2024-08-07");
+
+        public static DateTime SomeTime = DateTime.Parse("2024-08-06");
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 

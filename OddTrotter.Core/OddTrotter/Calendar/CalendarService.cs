@@ -37,6 +37,7 @@
             }
 
             this.graphClient = graphClient;
+            this.lookAhead = settings.LookAhead;
         }
 
         public async Task<TentativeCalendarResult> RetrieveTentativeCalendar()
@@ -45,7 +46,7 @@
             
             //// TODO leverage a cache?
             var startTime = DateTime.UtcNow;
-            var events = GetEvents(this.graphClient, startTime, startTime + TimeSpan.FromDays(365), 50); //// TODO configure these values
+            var events = GetEvents(this.graphClient, startTime, startTime + this.lookAhead, 50); //// TODO configure these values
             var allEvents = events.Elements.ToList();
             var notResponsedEvents = allEvents
                 .Where(calendarEvent => string.Equals(calendarEvent.ResponseStatus?.Response, "notResponded", StringComparison.OrdinalIgnoreCase));

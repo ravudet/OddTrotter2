@@ -3,6 +3,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Linq.V2;
     using System.Net.Http;
@@ -88,6 +89,85 @@
 
             private static string? ParsePredicateExpression(Expression<Func<GraphCalendarEvent, bool>> predicate)
             {
+                if (predicate.Body is BinaryExpression binaryExpression)
+                {
+                    //// TODO we actually "know" it's binary here, right? because it's a func<t,bool>?
+
+                    //// TODO which binary operation?
+                    if (binaryExpression.Left is MemberExpression leftMemberExpression)
+                    {
+                        var leftMember = leftMemberExpression.Member;
+                        if (string.Equals(leftMember.Name, nameof(TimeStructure.DateTime), StringComparison.Ordinal))
+                        {
+                            if (leftMemberExpression.Expression is MemberExpression dateTimeMemberExpression)
+                            {
+                                var dateTimeMember = dateTimeMemberExpression.Member;
+                                if (string.Equals(dateTimeMember.Name, nameof(CalendarEvent.Start), StringComparison.Ordinal))
+                                {
+                                    //// left side is the start, how about the right side?
+                                    //// TODO the only binary operations we are supporting will make sure that the return type of the right side is a datetime, but is this true for non-graph calendar event cases with other binary operations?
+                                    
+                                    if (binaryExpression.Right is UnaryExpression rightConvertExpression)
+                                    {
+                                        //// this is a datetime.parse
+                                        if (rightConvertExpression.Operand is MethodCallExpression rightDateTimeParseExpression)
+                                        {
+                                            var dateTimeParseMethod = rightDateTimeParseExpression.Method;
+                                            if (string.Equals(dateTimeParseMethod.Name, nameof(DateTime.Parse), StringComparison.Ordinal) && typeof(DateTime).GetMethods().Contains(dateTimeParseMethod))
+                                            {
+                                                //// TODO can you rely on a reference equality check? you can, surprisingly...i wonder if that's *actually* reliable
+
+                                                //// TODO if it doesn't equal one, that's really something hugely invalid, and we are swallowing it; is that ok?
+                                                if (rightDateTimeParseExpression.Arguments.Count == 1)
+                                                {
+                                                    if (rightDateTimeParseExpression.Arguments[0] is ConstantExpression dateTimeConstantExpression)
+                                                    {
+                                                        //// TODO do you want to do a manual formatting of dateTimeConstantExpression.Value? do you want to actually call datetime.parse on it?
+
+                                                        //// TODO use jsonpropertyname attributes to get the start and datetime strings (you should actually use brand new attributes)
+                                                        return $"start/dateTime gt '{dateTimeConstantExpression.Value}'";
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else if (rightConvertExpression.Operand is MemberExpression closureMemberExpression) //// this is a closure access
+                                        {
+                                            var rightMember = closureMemberExpression.Member;
+                                            if (closureMemberExpression.Expression == null) //// this is a "static" closure
+                                            {
+                                                var fieldInfo = rightMember.DeclaringType?.GetField(rightMember.Name);
+                                                var dateTimeValue = fieldInfo?.GetValue(null);
+                                                //// TODO what about property accesses instead of field accesses? can you use getmember for that?
+                                                //// TODO can you combine this branch with the below branch?
+
+                                                //// TODO do you want to do a manual formatting of dateTimeConstantExpression.Value? do you want to actually call datetime.parse on it?
+
+                                                //// TODO use jsonpropertyname attributes to get the start and datetime strings (you should actually use brand new attributes)
+                                                return $"start/dateTime gt '{dateTimeValue}'";
+                                            }
+                                            else if (closureMemberExpression.Expression is ConstantExpression dateTimeConstantExpression) //// this is a "dynamic" closure (both instance accesses, and locally scoped variable accesses)
+                                            {
+                                                //// TODO null checks
+                                                var fieldInfo = dateTimeConstantExpression.Value?.GetType().GetField(rightMember.Name);
+                                                var dateTimeValue = fieldInfo?.GetValue(dateTimeConstantExpression.Value);
+
+
+
+                                                //// TODO do you want to do a manual formatting of dateTimeConstantExpression.Value? do you want to actually call datetime.parse on it?
+
+                                                //// TODO use jsonpropertyname attributes to get the start and datetime strings (you should actually use brand new attributes)
+                                                return $"start/dateTime gt '{dateTimeValue}'";
+                                            }
+                                        }
+                                    }
+                                }
+
+                                //// TODO you can implement checks for 'end' property here
+                            }
+                        }
+                    }
+                }
+
                 if (predicate.Body is MemberExpression memberExpression)
                 {
                     var member = memberExpression.Member;
@@ -208,6 +288,7 @@
 
     public static class Driver
     {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         public static void DoWork()
         {
             var graphCalendar = new GraphCalendar(null, null, null);
@@ -220,6 +301,7 @@
                 return value;
             });
         }
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
     }
 
     public interface IV2Queryable<out T> : IV2Enumerable<T>
