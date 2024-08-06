@@ -13,6 +13,7 @@ namespace OddTrotter.Calendar
     {
         internal OData(TEnclodedType enclosedElement)
         {
+            //// TODO make this a struct so that you can't create default instances?
             this.EnclosedElement = enclosedElement;
         }
 
