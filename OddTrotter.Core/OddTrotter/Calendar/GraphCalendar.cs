@@ -83,6 +83,8 @@
                 }
                 else
                 {
+                    //// currently, the filter parsing is either all or nothing
+                    //// TODO return (predicate, string?) with the predicate being the things that didn't get converted to a filter?
                     this.predicate = _ => true; //// TODO singleton
                 }
             }
