@@ -26,6 +26,16 @@
             var whered3 = graphCalendar.Where(calendarEvent => calendarEvent.Start.DateTime > SomeTime);
 
             var whered4 = graphCalendar.Where(calendarEvent => calendarEvent.Start.DateTime > AnotherDateTime);
+
+            var whered5 = graphCalendar
+                .Where(calendarEvent => calendarEvent.End.DateTime < DateTime.Parse("2024-09-01"))
+                .Where(calendarEvent => calendarEvent.Start.DateTime > dateTime)
+                .Where(calendarEvent => calendarEvent.Subject.Contains("todo list"));
+
+            foreach (var element in whered5)
+            {
+
+            }
         }
 
         public DateTime AnotherDateTime = DateTime.Parse("2024-08-07");

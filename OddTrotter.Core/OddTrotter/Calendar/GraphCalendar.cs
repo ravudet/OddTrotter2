@@ -7,6 +7,7 @@
     using System.Linq.Expressions;
     using System.Linq.V2;
     using System.Net.Http;
+    using System.Reflection.Metadata.Ecma335;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
@@ -21,6 +22,12 @@
 
         [JsonPropertyName("start")]
         public TimeStructure? Start { get; set; }
+
+        [JsonPropertyName("end")]
+        public TimeStructure? End { get; set; }
+
+        [JsonPropertyName("subject")]
+        public string? Subject { get; set; }
 
         //// TODO add *all* of the properties here
     }
@@ -48,7 +55,7 @@
 
         public IEnumerator<GraphCalendarEvent> GetEnumerator()
         {
-            return GetEvents(calendarUri, string.Empty).ToBlockingEnumerable().GetEnumerator();
+            return GetEvents(this.graphClient, calendarUri, string.Empty).ToBlockingEnumerable().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -61,7 +68,7 @@
             return new Whered(this.graphClient, this.calendarUri, predicate);
         }
 
-        private sealed class Whered : IV2Queryable<GraphCalendarEvent>
+        private sealed class Whered : IV2Queryable<GraphCalendarEvent>, IWhereQueryable<GraphCalendarEvent>
         {
             private readonly IGraphClient graphClient;
 
@@ -87,6 +94,16 @@
                     //// TODO return (predicate, string?) with the predicate being the things that didn't get converted to a filter?
                     this.predicate = _ => true; //// TODO singleton
                 }
+
+                //// TODO consolidate constructors
+            }
+
+            private Whered(IGraphClient graphClient, RelativeUri calendarUri, string? filter, Func<GraphCalendarEvent, bool> predicate)
+            {
+                this.graphClient = graphClient;
+                this.calendarUri = calendarUri;
+                this.filter = filter;
+                this.predicate = predicate;
             }
 
             private static string? ParsePredicateExpression(Expression<Func<GraphCalendarEvent, bool>> predicate)
@@ -173,28 +190,51 @@
                 return null;
             }
 
+            public IV2Queryable<GraphCalendarEvent> Where(Expression<Func<GraphCalendarEvent, bool>> predicate)
+            {
+                var parsedFilter = ParsePredicateExpression(predicate);
+
+                string? newFilter;
+                Func<GraphCalendarEvent, bool> newPredicate;
+                if (parsedFilter == null)
+                {
+                    newFilter = this.filter;
+                    newPredicate = (calendarEvent) => this.predicate(calendarEvent) && predicate.Compile()(calendarEvent);
+                }
+                else
+                {
+                    newFilter = this.filter == null ? parsedFilter : $"{this.filter} and {parsedFilter}";
+                    newPredicate = this.predicate;
+                }
+
+                return new Whered(this.graphClient, this.calendarUri, newFilter, newPredicate);
+            }
+
             public IEnumerator<GraphCalendarEvent> GetEnumerator()
             {
-                throw new NotImplementedException();
+                return GetEvents(this.graphClient, this.calendarUri, this.filter == null ? string.Empty : $"and {filter}")
+                    .ToBlockingEnumerable() //// TODO this isn't a v2 enumerable
+                    .Where(this.predicate)
+                    .GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                throw new NotImplementedException();
+                return this.GetEnumerator();
             }
         }
 
-        private IAsyncEnumerable<GraphCalendarEvent> GetEvents(RelativeUri calendarUri, string filter)
+        private static IAsyncEnumerable<GraphCalendarEvent> GetEvents(IGraphClient graphClient, RelativeUri calendarUri, string filter)
         {
-            var instanceEvents = GetInstanceEvents(calendarUri, filter); //// TODO configureawait somehow?
+            var instanceEvents = GetInstanceEvents(graphClient, calendarUri, filter); //// TODO configureawait somehow?
             //// TODO also get series event instances and merge them
             return instanceEvents;
         }
 
-        private async IAsyncEnumerable<GraphCalendarEvent> GetInstanceEvents(RelativeUri calendarUri, string filter)
+        private static async IAsyncEnumerable<GraphCalendarEvent> GetInstanceEvents(IGraphClient graphClient, RelativeUri calendarUri, string filter)
         {
             var instanceEventsUri = new Uri(calendarUri, $"?$filter=type eq 'singleInstance'{filter}").ToRelativeUri();
-            await foreach (var instanceEvent in GetCollection<GraphCalendarEvent>(instanceEventsUri).ConfigureAwait(false))
+            await foreach (var instanceEvent in GetCollection<GraphCalendarEvent>(graphClient, instanceEventsUri).ConfigureAwait(false))
             {
                 yield return instanceEvent;
             }
@@ -208,9 +248,9 @@
             }
         }*/
 
-        private async IAsyncEnumerable<T> GetCollection<T>(RelativeUri collectionUri)
+        private static async IAsyncEnumerable<T> GetCollection<T>(IGraphClient graphClient, RelativeUri collectionUri)
         {
-            var page = await GetFirstPage<T>(collectionUri).ConfigureAwait(false); //// TODO handle exceptions
+            var page = await GetFirstPage<T>(graphClient, collectionUri).ConfigureAwait(false); //// TODO handle exceptions
             foreach (var element in page.Value!) //// TODO nullable
             {
                 yield return element;
@@ -219,7 +259,7 @@
             while (page.NextLink != null)
             {
                 var nextLinkUri = new Uri(page.NextLink, UriKind.Absolute).ToAbsoluteUri(); //// TODO handle exceptions
-                page = await GetSubsequentPage<T>(nextLinkUri).ConfigureAwait(false); //// TODO handle exceptions
+                page = await GetSubsequentPage<T>(graphClient, nextLinkUri).ConfigureAwait(false); //// TODO handle exceptions
                 foreach (var element in page.Value!) //// TODO nullable
                 {
                     yield return element;
@@ -227,23 +267,23 @@
             }
         }
 
-        private async Task<ODataCollectionPage<T>> GetFirstPage<T>(RelativeUri collectionUri)
+        private static async Task<ODataCollectionPage<T>> GetFirstPage<T>(IGraphClient graphClient, RelativeUri collectionUri)
         {
-            using (var httpResponseMessage = await this.graphClient.GetAsync(collectionUri).ConfigureAwait(false))
+            using (var httpResponseMessage = await graphClient.GetAsync(collectionUri).ConfigureAwait(false))
             {
                 return await ReadPage<T>(httpResponseMessage).ConfigureAwait(false);
             }
         }
 
-        private async Task<ODataCollectionPage<T>> GetSubsequentPage<T>(AbsoluteUri pageUri)
+        private static async Task<ODataCollectionPage<T>> GetSubsequentPage<T>(IGraphClient graphClient, AbsoluteUri pageUri)
         {
-            using (var httpResponseMessage = await this.graphClient.GetAsync(pageUri).ConfigureAwait(false))
+            using (var httpResponseMessage = await graphClient.GetAsync(pageUri).ConfigureAwait(false))
             {
                 return await ReadPage<T>(httpResponseMessage).ConfigureAwait(false);
             }
         }
 
-        private async Task<ODataCollectionPage<T>> ReadPage<T>(HttpResponseMessage httpResponseMessage)
+        private static async Task<ODataCollectionPage<T>> ReadPage<T>(HttpResponseMessage httpResponseMessage)
         {
             var httpResponseContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
             try
