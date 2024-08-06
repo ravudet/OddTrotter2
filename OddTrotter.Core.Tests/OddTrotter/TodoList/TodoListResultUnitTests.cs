@@ -2,8 +2,9 @@
 {
     using System;
     using System.Linq;
-
+    using System.Security.Cryptography.X509Certificates;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using OddTrotter.Calendar;
 
     /// <summary>
     /// Unit tests for <see cref="TodoListResult"/>
@@ -11,6 +12,17 @@
     [TestClass]
     public sealed class TodoListResultUnitTests
     {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+        [TestMethod]
+        public void Test()
+        {
+            var graphCalendar = new GraphCalendar(null, null, null);
+            graphCalendar.Where(calendarEvent => calendarEvent.Start.DateTime > DateTime.Parse("2024-08-04"));
+        }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+
         /// <summary>
         /// Creates a <see cref="TodoListResult"/> with a <see langword="null"/> todo list
         /// </summary>

@@ -15,17 +15,25 @@
 
     public class GraphCalendarEvent
     {
-        public GraphCalendarEvent(string id)
-        {
-            this.Id = id;   
-        }
+        [JsonPropertyName("id")]
+        public string? Id { get; set; }
 
-        public string Id { get; }
+        [JsonPropertyName("start")]
+        public TimeStructure? Start { get; set; }
 
         //// TODO add *all* of the properties here
     }
 
-    public sealed class GraphCalendar : IV2Queryable<GraphCalendarEvent>
+    public sealed class TimeStructure
+    {
+        [JsonPropertyName("dateTime")]
+        public DateTime? DateTime { get; set; } //// TODO can you trust this will be parsed correctly?
+
+        [JsonPropertyName("timeZone")]
+        public string? TimeZone { get; set; }
+    }
+
+    public sealed class GraphCalendar : IV2Queryable<GraphCalendarEvent>, IWhereQueryable<GraphCalendarEvent>
     {
         private readonly IGraphClient graphClient;
 
@@ -45,6 +53,62 @@
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
+        }
+
+        public IV2Queryable<GraphCalendarEvent> Where(Expression<Func<GraphCalendarEvent, bool>> predicate)
+        {
+            return new Whered(this.graphClient, this.calendarUri, predicate);
+        }
+
+        private sealed class Whered : IV2Queryable<GraphCalendarEvent>
+        {
+            private readonly IGraphClient graphClient;
+
+            private readonly RelativeUri calendarUri;
+
+            private readonly string? filter;
+
+            private readonly Func<GraphCalendarEvent, bool> predicate;
+
+            public Whered(IGraphClient graphClient, RelativeUri calendarUri, Expression<Func<GraphCalendarEvent, bool>> predicate)
+            {
+                this.graphClient = graphClient;
+                this.calendarUri = calendarUri;
+
+                this.filter = ParsePredicateExpression(predicate);
+                if (this.filter == null)
+                {
+                    this.predicate = predicate.Compile();
+                }
+                else
+                {
+                    this.predicate = _ => true; //// TODO singleton
+                }
+            }
+
+            private static string? ParsePredicateExpression(Expression<Func<GraphCalendarEvent, bool>> predicate)
+            {
+                if (predicate.Body is MemberExpression memberExpression)
+                {
+                    var member = memberExpression.Member;
+                    if (string.Equals(member.Name, "start", StringComparison.Ordinal))
+                    {
+
+                    }
+                }
+
+                return null;
+            }
+
+            public IEnumerator<GraphCalendarEvent> GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private IAsyncEnumerable<GraphCalendarEvent> GetEvents(RelativeUri calendarUri)
