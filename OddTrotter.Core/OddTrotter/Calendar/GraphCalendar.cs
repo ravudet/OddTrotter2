@@ -48,7 +48,7 @@
 
         public IEnumerator<GraphCalendarEvent> GetEnumerator()
         {
-            return GetEvents(calendarUri).ToBlockingEnumerable().GetEnumerator();
+            return GetEvents(calendarUri, string.Empty).ToBlockingEnumerable().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -170,15 +170,6 @@
                     }
                 }
 
-                if (predicate.Body is MemberExpression memberExpression)
-                {
-                    var member = memberExpression.Member;
-                    if (string.Equals(member.Name, "start", StringComparison.Ordinal))
-                    {
-
-                    }
-                }
-
                 return null;
             }
 
@@ -193,16 +184,16 @@
             }
         }
 
-        private IAsyncEnumerable<GraphCalendarEvent> GetEvents(RelativeUri calendarUri)
+        private IAsyncEnumerable<GraphCalendarEvent> GetEvents(RelativeUri calendarUri, string filter)
         {
-            var instanceEvents = GetInstanceEvents(calendarUri); //// TODO configureawait somehow?
+            var instanceEvents = GetInstanceEvents(calendarUri, filter); //// TODO configureawait somehow?
             //// TODO also get series event instances and merge them
             return instanceEvents;
         }
 
-        private async IAsyncEnumerable<GraphCalendarEvent> GetInstanceEvents(RelativeUri calendarUri)
+        private async IAsyncEnumerable<GraphCalendarEvent> GetInstanceEvents(RelativeUri calendarUri, string filter)
         {
-            var instanceEventsUri = new Uri(calendarUri, "?$filter=type eq 'singleInstance'").ToRelativeUri();
+            var instanceEventsUri = new Uri(calendarUri, $"?$filter=type eq 'singleInstance'{filter}").ToRelativeUri();
             await foreach (var instanceEvent in GetCollection<GraphCalendarEvent>(instanceEventsUri).ConfigureAwait(false))
             {
                 yield return instanceEvent;
