@@ -11,7 +11,7 @@ namespace OddTrotter.Calendar
 {
     public sealed class OData<TEnclodedType>
     {
-        public OData(TEnclodedType enclosedElement)
+        internal OData(TEnclodedType enclosedElement)
         {
             this.EnclosedElement = enclosedElement;
         }
