@@ -17,6 +17,9 @@
 
     public sealed class ODataSelectedProperty<TEnclosingType>
     {
+        public TEnclosingType EnclodedElement { get; }
+
+        internal IList<string> SelectedProperties { get; set; }
     }
 
     public class GraphCalendarEvent
