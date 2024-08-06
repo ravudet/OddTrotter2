@@ -64,7 +64,7 @@ namespace OddTrotter.Calendar
         public Exception? Exception { get; }
     }
 
-    public interface IODataEvaluator<TEnclosedType>
+    internal interface IODataEvaluator<TEnclosedType>
     {
         ODataResult<TResult> Evaluate<TResult>(Func<IEnumerable<TEnclosedType>, TResult> projection);
     }
