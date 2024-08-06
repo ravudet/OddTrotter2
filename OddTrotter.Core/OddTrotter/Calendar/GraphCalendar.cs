@@ -38,15 +38,18 @@
 
         public IEnumerator<GraphCalendarEvent> GetEnumerator()
         {
-            using (var httpResponse = this.graphClient.GetAsync(this.calendarUri).ConfigureAwait(false).GetAwaiter().GetResult())
-            {
-
-            }
+            return GetEvents(calendarUri).ToBlockingEnumerable().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
+        }
+
+        private IAsyncEnumerable<GraphCalendarEvent> GetEvents(RelativeUri calendarUri)
+        {
+            var instanceEvents = GetInstanceEvents(calendarUri); //// TODO configureawait somehow?
+            return instanceEvents;
         }
 
         private async IAsyncEnumerable<GraphCalendarEvent> GetInstanceEvents(RelativeUri calendarUri)
