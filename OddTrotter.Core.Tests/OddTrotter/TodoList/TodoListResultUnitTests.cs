@@ -32,6 +32,9 @@
                 .Where(calendarEvent => calendarEvent.Start.DateTime > dateTime)
                 .Where(calendarEvent => calendarEvent.Subject.Contains("todo list"));
 
+            var odataGraphCalendar = new ODataGraphCalendar();
+            var joined = odataGraphCalendar.Evaluate(enumerable => string.Join(",", enumerable.Select(_ => _.Id)));
+
             foreach (var element in whered5)
             {
 
