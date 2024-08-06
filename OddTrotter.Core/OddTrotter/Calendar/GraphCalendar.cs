@@ -49,17 +49,26 @@
         private IAsyncEnumerable<GraphCalendarEvent> GetEvents(RelativeUri calendarUri)
         {
             var instanceEvents = GetInstanceEvents(calendarUri); //// TODO configureawait somehow?
+            //// TODO also get series event instances and merge them
             return instanceEvents;
         }
 
         private async IAsyncEnumerable<GraphCalendarEvent> GetInstanceEvents(RelativeUri calendarUri)
         {
             var instanceEventsUri = new Uri(calendarUri, "?$filter=type eq 'singleInstance'").ToRelativeUri();
-            await foreach (var graphCalendarEvent in GetCollection<GraphCalendarEvent>(instanceEventsUri).ConfigureAwait(false))
+            await foreach (var instanceEvent in GetCollection<GraphCalendarEvent>(instanceEventsUri).ConfigureAwait(false))
             {
-                yield return graphCalendarEvent;
+                yield return instanceEvent;
             }
         }
+
+        /*private async IAsyncEnumerable<GraphCalendarEvent> GetSeriesEvents(RelativeUri calendarUri)
+        {
+            var seriesEventsUri = new Uri(calendarUri, "?$filter=type eq 'seriesMaster'").ToRelativeUri();
+            await foreach (var seriesEvent in GetCollection<GraphCalendarEvent>(seriesEventsUri).ConfigureAwait(false))
+            {
+            }
+        }*/
 
         private async IAsyncEnumerable<T> GetCollection<T>(RelativeUri collectionUri)
         {
