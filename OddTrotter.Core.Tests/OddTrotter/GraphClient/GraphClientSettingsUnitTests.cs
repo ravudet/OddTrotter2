@@ -64,7 +64,7 @@
             {
                 HttpClientTimeout = TimeSpan.FromDays(-1),
             };
-            Assert.ThrowsException<ArgumentException>(() => builder.Build());
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => builder.Build());
         }
     }
 }

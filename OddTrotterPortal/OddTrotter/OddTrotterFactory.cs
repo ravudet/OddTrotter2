@@ -1,6 +1,7 @@
 ﻿namespace OddTrotter
 {
     using System;
+    using System.Net.Http;
     using System.Threading.Tasks;
 
     using Microsoft.Extensions.Caching.Memory;
@@ -9,6 +10,7 @@
     using global::OddTrotter.Encryptor;
     using global::OddTrotter.GraphClient;
     using global::OddTrotter.TodoList;
+    using global::OddTrotter.UserExtension;
 
     public static class OddTrotterFactory
     {
@@ -39,17 +41,17 @@
         /// <exception cref="ExtensionNotConfiguredException">Thrown if the oddtrotter user extension has not been configured for the current user</exception>
         /// <exception cref="GraphException">Thrown if graph produced an error while reading the oddtrotter user extension</exception>
         /// <exception cref="MalformedExtensionException">
-        /// Thrown if the oddtrotter user extension is a malformed <see cref="AzureBlobClientFactory.OddTrotterUserExtension"/>
+        /// Thrown if the oddtrotter user extension is a malformed <see cref="OddTrotterUserExtension"/>
         /// </exception>
         /// <exception cref="MalformedExtensionDataException">
-        /// Thrown if the <see cref="AzureBlobClientFactory.OddTrotterUserExtension.Data"/> in the oddtrotter user extension is malformed or <see langword="null"/>
+        /// Thrown if the <see cref="OddTrotterUserExtension.Data"/> in the oddtrotter user extension is malformed or <see langword="null"/>
         /// </exception>
         /// <exception cref="EncryptionException">
         /// Thrown if the password provided in the form data in <paramref name="httpRequestData"/> was not used to encrypt the
-        /// <see cref="AzureBlobClientFactory.OddTrotterUserExtension.Data"/>
+        /// <see cref="OddTrotterUserExtension.Data"/>
         /// </exception>
         /// <exception cref="MalformedSettingsException">
-        /// Thrown if the decrypted <see cref="AzureBlobClientFactory.OddTrotterUserExtension.Data"/> is a malformed <see cref="AzureBlobClientFactory.OddTrotterSettings"/>
+        /// Thrown if the decrypted <see cref="OddTrotterUserExtension.Data"/> is a malformed <see cref="OddTrotterBlobSettings"/>
         /// </exception>
         public static async Task<OddTrotter> Create(IMemoryCache memoryCache, HttpRequestData httpRequestData, IConfiguration configuration)
         {

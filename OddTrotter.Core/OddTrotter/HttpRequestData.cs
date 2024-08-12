@@ -30,7 +30,7 @@
         public Guid Id { get; }
 
         /// <summary>
-        /// adapted from the underlying <see cref="HttpRequest.Form"/>
+        /// adapted from the underlying <see cref="Microsoft.AspNetCore.Http.HttpRequest.Form"/>
         /// </summary>
         public IReadOnlyDictionary<string, IReadOnlyList<string>> Form { get; }
     }
