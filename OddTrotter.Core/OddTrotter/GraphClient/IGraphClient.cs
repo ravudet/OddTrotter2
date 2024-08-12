@@ -15,7 +15,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
         Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri);
 
         /// <summary>
@@ -27,7 +27,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout.
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
         Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri);
 
         /// <summary>
@@ -40,7 +40,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout.
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
         Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent);
 
         /// <summary>
@@ -53,7 +53,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout.
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
         Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent);
     }
 }

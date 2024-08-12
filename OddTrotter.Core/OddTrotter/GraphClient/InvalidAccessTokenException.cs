@@ -4,14 +4,11 @@
 
     public sealed class InvalidAccessTokenException : Exception
     {
-        public InvalidAccessTokenException(string url, string accessToken, string message)
-            : base(message)
+        public InvalidAccessTokenException(string accessToken, string message, Exception innerException)
+            : base(message, innerException)
         {
-            Url = url;
             AccessToken = accessToken;
         }
-
-        public string Url { get; }
 
         public string AccessToken { get; }
     }

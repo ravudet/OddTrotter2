@@ -21,7 +21,8 @@
         /// <param name="rootUrl"></param>
         /// <param name="accessToken"></param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="accessToken"/> or <paramref name="settings"/> is <see langword="null"/></exception>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="accessToken"/> whitespace-only characters or is not a valid header value</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="accessToken"/> is whitespace-only characters</exception>
+        /// <exception cref="InvalidAccessTokenException">Thrown if <paramref name="accessToken"/> is not a valid HTTP authorization header value</exception>
         public GraphClient(string accessToken, GraphClientSettings settings)
         {
             if (accessToken == null)
@@ -53,7 +54,7 @@
                 }
                 catch (FormatException e)
                 {
-                    throw new ArgumentException($"'{nameof(accessToken)}' had a value of '{accessToken}' which is not a valid 'Authorization' header value", e);
+                    throw new InvalidAccessTokenException(accessToken, $"'{nameof(accessToken)}' had a value of '{accessToken}' which is not a valid 'Authorization' header value", e);
                 }
             }
             catch
@@ -110,7 +111,7 @@
                 if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
                 {
                     var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    throw new InvalidAccessTokenException(absoluteUri.OriginalString, this.accessToken, httpResponseContent);
+                    throw new UnauthorizedAccessTokenException(absoluteUri.OriginalString, this.accessToken, httpResponseContent);
                 }
             }
             catch
@@ -150,7 +151,7 @@
                 if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
                 {
                     var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    throw new InvalidAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                    throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
                 }
             }
             catch
@@ -190,7 +191,7 @@
                 if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
                 {
                     var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    throw new InvalidAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                    throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
                 }
             }
             catch

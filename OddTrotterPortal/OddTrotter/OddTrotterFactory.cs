@@ -27,11 +27,12 @@
         /// </exception>
         /// <exception cref="MissingFormDataException">Thrown if the form data in <paramref name="httpRequestData"/> contained missing fields</exception>
         /// <exception cref="InvalidFormDataException">Thrown if the form data in <paramref name="httpRequestData"/> contained fields with invalid data</exception>
+        /// <exception cref="InvalidAccessTokenException">Thrown if the access token in <paramref name="httpRequestData"/> is not a valid HTTP authorization header (for example, if it is a Bearer token, but is not prefixed with 'Bearer')</exception>
         /// <exception cref="HttpRequestException">
         /// Thrown if retrieving the oddtrotter user extension from graph failed due to an underlying issue such as network connectivity, DNS failure, server certificate
         /// validation or timeout
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token provided in the form data in <paramref name="httpRequestData"/> is invalid or provides insufficient privileges to retrieve the oddtrotter
         /// user extension
         /// </exception>

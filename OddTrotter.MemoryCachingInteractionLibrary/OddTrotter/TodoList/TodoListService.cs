@@ -147,7 +147,7 @@
         /// </exception>
         /// <exception cref="AzureStorageException">Thrown if azure storage produced an error while reading the blob contents or writing back the blob content</exception>
         /// <exception cref="MalformedBlobDataException">Thrown if the contents of the todo list blob were not in the expected format</exception>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on the provided <see cref="IGraphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
         /// <exception cref="SasTokenNoWritePrivilegesException">
@@ -183,7 +183,7 @@
         /// </exception>
         /// <exception cref="AzureStorageException">Thrown if azure storage produced an error while reading the blob contents or writing back the blob content</exception>
         /// <exception cref="MalformedBlobDataException">Thrown if the contents of the todo list blob were not in the expected format</exception>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on the provided <see cref="IGraphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
         /// <exception cref="SasTokenNoWritePrivilegesException">
@@ -351,7 +351,7 @@
         /// <param name="endTime"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
         /// <remarks>
@@ -378,7 +378,7 @@
         /// <param name="endTime"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
         private static ODataCollection<CalendarEvent> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
@@ -414,7 +414,7 @@
         /// <param name="endTime"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
         /// <remarks>
@@ -454,7 +454,7 @@
         /// <param name="graphClient"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
         private static ODataCollection<CalendarEvent> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
@@ -476,7 +476,7 @@
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <returns>The first instance of the <paramref name="seriesMaster"/> event, or <see langword="null"/> if an error occurred while retrieveing the first instance</returns>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
         private static async Task<IEnumerable<CalendarEvent>?> GetFirstSeriesInstanceInRange(IGraphClient graphClient, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
@@ -637,7 +637,7 @@
         /// <param name="graphClient"></param>
         /// <param name="uri"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
         private static ODataCollection<T> GetCollection<T>(IGraphClient graphClient, RelativeUri uri)
@@ -695,7 +695,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request
         /// </exception>
         /// <exception cref="GraphException">Thrown if graph produced an error while retrieving the page</exception>
@@ -718,7 +718,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request
         /// </exception>
         /// <exception cref="GraphException">Thrown if graph produced an error while retrieving the page</exception>

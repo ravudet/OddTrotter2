@@ -23,7 +23,7 @@
         /// Thrown if retrieving the oddtrotter user extension from graph failed due to an underlying issue such as network connectivity, DNS failure, server certificate
         /// validation or timeout
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured in <paramref name="graphClient"/> is invalid or provides insufficient privileges to retrieve the oddtrotter user extension
         /// </exception>
         /// <exception cref="ExtensionNotConfiguredException">Thrown if the oddtrotter user extension has not been configured for the current user</exception>

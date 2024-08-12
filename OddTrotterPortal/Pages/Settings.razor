@@ -62,6 +62,14 @@
 
         Instance = null;
     }
+    catch (InvalidAccessTokenException invalidAccessTokenException)
+    {
+        <div>
+            The provided access token was not a valid HTTP authorization header value (for example, it may be a Bearer token but not be prefixed with the "Bearer" string). The provided token was @invalidAccessTokenException.AccessToken. 
+        </div>
+
+        Instance = null;
+    }
 
     if (userExtensionService != null)
     {
@@ -119,7 +127,7 @@
                 </div>
             </div>
         }
-        catch (InvalidAccessTokenException invalidAccessTokenException)
+        catch (UnauthorizedAccessTokenException invalidAccessTokenException)
         {
             <div>
                 The access token provided to update the OddTrotter user extension was invalid or did not provide sufficient privileges to read, write, and create the user extension at '@invalidAccessTokenException.Url'. The observed error was:

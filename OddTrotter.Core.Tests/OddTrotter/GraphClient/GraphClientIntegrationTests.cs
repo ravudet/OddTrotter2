@@ -61,7 +61,7 @@
             var testConfiguration = GetAndValidateTestConfiguration();
             using (var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build()))
             {
-                await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/users/00000000-0000-0000-000000000000", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/users/00000000-0000-0000-000000000000", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
             }
         }
 
@@ -74,7 +74,7 @@
             var testConfiguration = GetAndValidateTestConfiguration();
             using (var graphClient = new GraphClient(testConfiguration.GetUserWithNoPermissionsAbsoluteUri, new GraphClientSettings.Builder().Build()))
             {
-                await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/servicePrincipals", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/servicePrincipals", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
             }
         }
 
@@ -120,7 +120,7 @@
             var testConfiguration = GetAndValidateTestConfiguration();
             using (var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build()))
             {
-                await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
             }
         }
 
@@ -133,7 +133,7 @@
             var testConfiguration = GetAndValidateTestConfiguration();
             using (var graphClient = new GraphClient(testConfiguration.GetUserWithNoPermissionsRelativeUri, new GraphClientSettings.Builder().Build()))
             {
-                await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.GetAsync(new Uri("/servicePrincipals", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("/servicePrincipals", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
             }
         }
         
@@ -205,7 +205,7 @@
 """,
                     new MediaTypeHeaderValue("application/json")))
                 {
-                    await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
                 }
             }
         }
@@ -227,7 +227,7 @@
 """,
                     new MediaTypeHeaderValue("application/json")))
                 {
-                    await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.PatchAsync(new Uri("/servicePrincipals(appId='00000003-0000-0000-c000-000000000000')", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PatchAsync(new Uri("/servicePrincipals(appId='00000003-0000-0000-c000-000000000000')", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
                 }
             }
         }
@@ -300,7 +300,7 @@
 """,
                     new MediaTypeHeaderValue("application/json")))
                 {
-                    await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.PostAsync(new Uri("/users", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PostAsync(new Uri("/users", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
                 }
             }
         }
@@ -322,7 +322,7 @@
 """,
                     new MediaTypeHeaderValue("application/json")))
                 {
-                    await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => graphClient.PostAsync(new Uri("/applications", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
+                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PostAsync(new Uri("/applications", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
                 }
             }
         }
