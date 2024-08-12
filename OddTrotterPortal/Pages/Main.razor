@@ -66,6 +66,12 @@ else
             An invalid value for the '@invalidFormDataException.FormFieldName' field was provided during login. Please <a href="/Login">login</a>
         </div>
     }
+    catch (InvalidAccessTokenException invalidAccessTokenException)
+    {
+        <div>
+            The provided access token was not a valid HTTP authorization header value (for example, it may be a Bearer token but not be prefixed with the "Bearer" string). The provided token was @invalidAccessTokenException.AccessToken. 
+        </div>
+    }
     catch (HttpRequestException httpRequestException)
     {
         //// TODO log this to service log
@@ -76,7 +82,7 @@ else
             </div>
         </div>
     }
-    catch (InvalidAccessTokenException invalidAccessTokenException)
+    catch (UnauthorizedAccessTokenException invalidAccessTokenException)
     {
         <div>
             The access token provided during login was invalid or did not provide sufficient privileges to read the OddTrotter user extension at '@invalidAccessTokenException.Url'. The observed error was:
@@ -281,7 +287,7 @@ else
                 </ol>
             </div>
         }
-        catch (InvalidAccessTokenException invalidAccessTokenException)
+        catch (UnauthorizedAccessTokenException invalidAccessTokenException)
         {
             <div>
                 The access token provided during login was invalid or did not provide sufficient privileges to read the calendar events at '@invalidAccessTokenException.Url'. The observed error was:
@@ -453,9 +459,12 @@ else
             //// - project with min dependencies
             //// - using statements (unused, ordering, inside namespace declaration, etc.)
             //// - sealed
+            //// - use this.
+            //// - check for todos
+            //// - suppression justifications are given
             ////
             //// should include the username in the graphclientintegrationtests.json instructions?
-            //// not putting "bearer" at the beginning of an MSA token results in an uncaught exception
+            ////
             //// make sure documentation using statements are included
             //// use inheritdoc where available
             //// change builder/default settings pattern to have a default instance that the builder leverages

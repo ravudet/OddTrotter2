@@ -57,9 +57,24 @@
         [TestMethod]
         public void InvalidAccessToken()
         {
-            Assert.ThrowsException<ArgumentException>(() => new GraphClient(
+            Assert.ThrowsException<InvalidAccessTokenException>(() => new GraphClient(
                 Environment.NewLine + "sometoken",
                 new GraphClientSettings.Builder().Build()).Dispose());
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="GraphClient"/> using an invalid bearer token
+        /// </summary>
+        [TestMethod]
+        public void InvalidBearerToken()
+        {
+            var bearerToken = "1/mZ1edKKACtPAb7zGlwSzvs72PvhAbGmB8K1ZrGxpcNM";
+            var factory = (string token) => new GraphClient(token, new GraphClientSettings.Builder().Build());
+
+            Assert.ThrowsException<InvalidAccessTokenException>(() => factory(bearerToken));
+
+            bearerToken = $"Bearer {bearerToken}";
+            factory(bearerToken);
         }
 
         /// <summary>

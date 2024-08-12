@@ -219,7 +219,7 @@ namespace OddTrotter.UserExtension
                 BlobContainerUrl = "https://someurl.com",
                 SasToken = "sometoken",
             }.Build();
-            var invalidAccessTokenException = await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => userExtensionService.ConfigureUserExtension(blobSettings)).ConfigureAwait(false);
+            var invalidAccessTokenException = await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => userExtensionService.ConfigureUserExtension(blobSettings)).ConfigureAwait(false);
             Assert.AreEqual(MockConfigureExistingUserExtensionInvalidAccessTokenGraphClient.ExceptionMessage, invalidAccessTokenException.Message);
         }
 
@@ -239,7 +239,7 @@ namespace OddTrotter.UserExtension
 
             public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
             {
-                throw new InvalidAccessTokenException("the url", "the accesstoken", ExceptionMessage);
+                throw new UnauthorizedAccessTokenException("the url", "the accesstoken", ExceptionMessage);
             }
 
             public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
@@ -475,7 +475,7 @@ namespace OddTrotter.UserExtension
                 BlobContainerUrl = "https://someurl.com",
                 SasToken = "sometoken",
             }.Build();
-            var invalidAccessTokenException = await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => userExtensionService.ConfigureUserExtension(blobSettings)).ConfigureAwait(false);
+            var invalidAccessTokenException = await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => userExtensionService.ConfigureUserExtension(blobSettings)).ConfigureAwait(false);
             Assert.AreEqual(MockConfigureNewUserExtensionInvalidAccessTokenGraphClient.ExceptionMessage, invalidAccessTokenException.Message);
         }
 
@@ -521,7 +521,7 @@ namespace OddTrotter.UserExtension
 
             public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
             {
-                throw new InvalidAccessTokenException("the url", "the token", ExceptionMessage);
+                throw new UnauthorizedAccessTokenException("the url", "the token", ExceptionMessage);
             }
         }
 

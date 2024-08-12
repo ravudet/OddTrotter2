@@ -989,7 +989,7 @@ some data
                 var graphClient = new MockRetrieveTodoListInvalidAccessTokenOnFirstPageGraphClient();
                 var azureBlobClient = new MemoryBlobClient();
                 var todoListService = new TodoListService(memoryCache, graphClient, azureBlobClient);
-                await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => todoListService.RetrieveTodoList()).ConfigureAwait(false);
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => todoListService.RetrieveTodoList()).ConfigureAwait(false);
             }
         }
 
@@ -997,7 +997,7 @@ some data
         {
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                throw new InvalidAccessTokenException("the url", "the access token", "a message");
+                throw new UnauthorizedAccessTokenException("the url", "the access token", "a message");
             }
 
             public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
@@ -1466,7 +1466,7 @@ some data
                 var graphClient = new MockRetrieveTodoListInvalidAccessTokenOnSecondPageGraphClient();
                 var azureBlobClient = new MemoryBlobClient();
                 var todoListService = new TodoListService(memoryCache, graphClient, azureBlobClient);
-                await Assert.ThrowsExceptionAsync<InvalidAccessTokenException>(() => todoListService.RetrieveTodoList()).ConfigureAwait(false);
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => todoListService.RetrieveTodoList()).ConfigureAwait(false);
             }
         }
 
@@ -1524,7 +1524,7 @@ some data
 
             public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
             {
-                throw new InvalidAccessTokenException("the url", "the access token", "a message");
+                throw new UnauthorizedAccessTokenException("the url", "the access token", "a message");
             }
 
             public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)

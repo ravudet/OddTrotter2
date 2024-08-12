@@ -48,7 +48,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout.
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">
+        /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on the provided <see cref="IGraphClient"/> is invalid or provides insufficient privileges for the requests</exception>
         /// <exception cref="GraphException">Thrown if graph produced an error when writing the oddtrotter user extension</exception>
         public async Task ConfigureUserExtension(OddTrotterBlobSettings oddTrotterBlobSettings)
@@ -86,7 +86,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout.
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">Thrown if the access token configured in <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token configured in <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request</exception>
         /// <exception cref="GraphException">Thrown if graph produced an error when writing the oddtrotter user extension</exception>
         private static async Task UpdateUserExtension(IGraphClient graphClient, OddTrotterUserExtension extensionData)
         {
@@ -132,7 +132,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout.
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">Thrown if the access token configured in <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token configured in <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request</exception>
         private static async Task<HttpResponseMessage> PatchUserExtension(IGraphClient graphClient, RelativeUri patchUrl, RelativeUri postUrl, HttpContent httpContent)
         {
             HttpResponseMessage? httpResponse = null;
@@ -166,7 +166,7 @@
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout.
         /// </exception>
-        /// <exception cref="InvalidAccessTokenException">Thrown if the access token configured in <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token configured in <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request</exception>
         private static async Task<HttpResponseMessage> PostUserExtension(IGraphClient graphClient, RelativeUri patchUrl, RelativeUri postUrl, HttpContent httpContent)
         {
             HttpResponseMessage? httpResponse = null;

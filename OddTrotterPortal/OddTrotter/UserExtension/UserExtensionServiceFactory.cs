@@ -21,6 +21,7 @@
         /// </exception>
         /// <exception cref="MissingFormDataException">Thrown if the form data in <paramref name="httpRequestData"/> contained missing fields</exception>
         /// <exception cref="InvalidFormDataException">Thrown if the form data in <paramref name="httpRequestData"/> contained fields with invalid data</exception>
+        /// <exception cref="InvalidAccessTokenException">Thrown if the access token in <paramref name="httpRequestData"/> is not a valid HTTP authorization header (for example, if it is a Bearer token, but is not prefixed with 'Bearer')</exception>
         public static UserExtensionService Create(HttpRequestData httpRequestData, IConfiguration configuration)
         {
             if (httpRequestData == null)
