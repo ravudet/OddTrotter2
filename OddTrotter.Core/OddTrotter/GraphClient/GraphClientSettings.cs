@@ -27,6 +27,7 @@
             /// <returns></returns>
             /// <exception cref="ArgumentNullException">Thrown if <see cref="GraphRootUri"/> is <see langword="null"/></exception>
             /// <exception cref="ArgumentException">Thrown if <see cref="GraphRootUri"/> is not an absolute URI</exception>
+            /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="HttpClientTimeout"/> is not a positive value</exception>
             public GraphClientSettings Build()
             {
                 if (this.GraphRootUri == null)
@@ -41,7 +42,7 @@
 
                 if (this.HttpClientTimeout.Ticks < 0 && this.HttpClientTimeout != Timeout.InfiniteTimeSpan)
                 {
-                    throw new ArgumentException($"'{nameof(this.HttpClientTimeout)} must be positive or must be infinite");
+                    throw new ArgumentOutOfRangeException($"'{nameof(this.HttpClientTimeout)} must be positive or must be infinite");
                 }
 
                 return new GraphClientSettings(this.GraphRootUri, this.HttpClientTimeout);

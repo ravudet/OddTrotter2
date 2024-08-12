@@ -4,6 +4,9 @@
     using System.Linq;
     using System.Threading.Tasks;
 
+    using OddTrotter.AzureBlobClient;
+    using OddTrotter.GraphClient;
+
     /// <summary>
     /// Extension methods for <see cref="UserExtensionService"/>
     /// </summary>

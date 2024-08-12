@@ -2755,7 +2755,7 @@ some more data
         }
 
         /// <summary>
-        /// Retrieves the todo list while the first instance of a series event is null
+        /// Retrieves the todo list while the first instance of a series event is <see langword="null"/>
         /// </summary>
         /// <returns></returns>
         [TestMethod]
@@ -3269,7 +3269,7 @@ some more data
         }
 
         /// <summary>
-        /// Retrieves the todo list where an event has a null subject
+        /// Retrieves the todo list where an event has a <see langword="null"/> subject
         /// </summary>
         /// <returns></returns>
         [TestMethod]
@@ -3406,7 +3406,7 @@ some more data
         }
 
         /// <summary>
-        /// Retrieves the todo list where an event has a null start
+        /// Retrieves the todo list where an event has a <see langword="null"/> start
         /// </summary>
         /// <returns></returns>
         [TestMethod]
