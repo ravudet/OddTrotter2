@@ -465,8 +465,9 @@ else
             //// - check for todos
             //// - suppression justifications are given
             ////
-            //// should include the username in the graphclientintegrationtests.json instructions?
-            ////
+            //// update all graphclientintegrationtests to use the new test harness
+            //// update test configuration and instructions for graphclientintegrationtests
+
             //// use inheritdoc where available
             //// change builder/default settings pattern to have a default instance that the builder leverages
             //// document the storage account requirements
@@ -482,6 +483,7 @@ else
             //// don't overload exception messages
             //// graphclient is disposable but is not disposed
             //// blob urls are not exposed often enough
+            //// full urls should be exposed in error messages wherever possible
             //// revisit the applyaggregation design and write tests for it
             //// graphclientsettings.graphrooturi probably should have been of type absoluteuri
             //// create an extension method for graph exceptions "(string Content) EnsureSuccessfulGraphStatus(HttpResponseMessage) throws GraphException" (note that, because we know it's graph, we know that the response is a string); re-evaluate the exception namespace and the namespace of the extension
@@ -513,9 +515,29 @@ else
             //// todolistserviceunittests has a suppressed warning about a null reference in TryFindBy; fix this
             //// do you want to move the oddtrotter class to core? doing this means that each service needs to have an interface and that those interfaces need to have well-defined exception documentation
             //// implement a proper plugin model and mark main.razor, settings.razor instances as private
+            //// use a shareable lock for the graphclientintegrationtests (you have branch ravudet/lock)
+            //// remove the need for manual steps when running the azureblobclient integration tests
             //// add integration tests for todolistservice
             //// test iapplyaggreationenumerble once the fx.core tests are written
             //// add integration tests for graphclient.deleteasync
+            //// you probably should have some settings for tokenissuer, there are a number of hard-coded values
+            //// in tokenissuer, you translate the tokenissuerequest object into application/x-www-form-urlencoded; it would be good to have a utility that does this in a general way, similar to a serializer; FormUrlEncodedContent might be a good place to look
+            //// should you use an enum for the issuedtoken tokentype? how would that work when new tokentypes are introduced? maybe have it be a string, but then have constant strings of the known token types? at this point, are the constants different from an enum? so maybe the property type is a string, but an enum is provided for clarity? how about teh enum  has an "unknown" and there's a string property *and* an enum property? maybe a nullable neum property then?
+            //// use a proper ilogger in the GraphClientIntegrationTestHarnessFactory to log the test resource display name prefix
+            //// use json serialziation instead of string formats in the actorprovisioner class
+            //// ActorProvisioner.CreateApplication TODO about ActorProvisioningException
+            //// actorprovisioner has the microsoft graph appid constant; well-known values like this should be factored out and put somewhere else
+            //// notice how in actorprovisioner the use of the graphclient has a very definitive pattern; can you factor this out in some way?
+            //// in actorprovisioner, when we instantiate the actor object, we use a field that contains the tenant domain; we could instead get it from the publisherdomain property in the application creation response; this would guarantee that we have a *consistent* domain, but what if the initializer of the actorprovisioner wants to have actors that are *issued tokens* in a different domain? does that case even make sense? if it does, then does using the field as it currently is actually work for that?
+            //// iprovisionedactor probably should not use idisposable; the implementations *are* able to throw exceptions, and idisposable gives the impression that we are managing memory; you should use the disposition pattern, but declare your own method
+            //// if only part of actor provisioning succeeds, you'll end up with dnalging resources; should background tasks handle that, or do you want the code to try to clean up?
+            //// strongly type the error conditions that require the tokenissuer.issuetoken(provisionedactor) extension
+            //// document the eventual consistency stuff that requires the tokenissuer.issuetoken(provisionedactor) extension
+            //// implement a graphclient that automatically renews it's tokens (you have branch ravudet/automatictokenrewnewal)
+            //// write tests for automatictokenrenewalgraphclient
+            //// write tests for actorprovisioning
+            //// write tests for tokenissuance
+            //// move to the next stage of graphclientintegrationtests (delete secrets.json when you get to the stage that you don't need it anymore)
         }
     }
 }
