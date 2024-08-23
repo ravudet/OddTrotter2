@@ -24,7 +24,7 @@ namespace System.Threading
 
         public ShareableLock()
         {
-            this.categoryLock = 0;
+            this.categoryLock = CategoryLockValues.NoLockTaken;
             this.sharedLockCount = 1; //// TODO starting at 1 is *very* important
         }
 
