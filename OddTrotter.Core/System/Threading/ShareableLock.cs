@@ -11,6 +11,13 @@ namespace System.Threading
     /// </summary>
     public sealed class ShareableLock
     {
+        private static class CategoryLockValues
+        {
+            public const int ExclusiveLockTaken = -1;
+            public const int NoLockTaken = 0;
+            public const int SharedLockTaken = 1;
+        }
+
         private int categoryLock; //// TODO readWriteLock
 
         private int sharedLockCount;
@@ -26,12 +33,12 @@ namespace System.Threading
             Interlocked.Increment(ref this.sharedLockCount);
             while (true)
             {
-                if (Interlocked.CompareExchange(ref this.categoryLock, 1, 0) == 0)
+                if (Interlocked.CompareExchange(ref this.categoryLock, CategoryLockValues.SharedLockTaken, 0) == 0)
                 {
                     // no one has the lock yet, be the first aligned test to take it
                     break;
                 }
-                else if (Interlocked.CompareExchange(ref this.categoryLock, 1, 1) == 1)
+                else if (Interlocked.CompareExchange(ref this.categoryLock, CategoryLockValues.SharedLockTaken, 1) == 1)
                 {
                     // another aligned test has the lock, increment the count of aligned tests
                     break;
@@ -60,14 +67,14 @@ thread b: if 1, give up shared lock; this needs to not break anything that's hap
             // if the lock is 0, then another aligned test already released the lock, so we don't need to release it
             // if the lock is -1, then another aligned test already released the lock and allowed a non-aligned test to acquire it, meaning we don't need to release the lock
             // if the lock is 1, then we either succeed in releasing because alignedcount has remained 1 (meaning we don't need to re-release), or alignedcount is more than 1 because another aligned test has acquired the lock (meaning that we *shouldn't* release the lock)
-            Interlocked.CompareExchange(ref this.categoryLock, 0, this.sharedLockCount); // if sharedlock and categorylock are 1, make category lock 0
+            Interlocked.CompareExchange(ref this.categoryLock, CategoryLockValues.NoLockTaken, this.sharedLockCount); // if sharedlock and categorylock are 1, make category lock 0
         }
 
         public void EnterWriteLock() //// TODO enterexclusive
         {
             while (true)
             {
-                if (Interlocked.CompareExchange(ref this.categoryLock, -1, 0) == 0)
+                if (Interlocked.CompareExchange(ref this.categoryLock, CategoryLockValues.ExclusiveLockTaken, 0) == 0)
                 {
                     break;
                 }
@@ -76,7 +83,7 @@ thread b: if 1, give up shared lock; this needs to not break anything that's hap
 
         public void ExitWriteLock()
         {
-            Interlocked.Exchange(ref this.categoryLock, 0);
+            Interlocked.Exchange(ref this.categoryLock, CategoryLockValues.NoLockTaken);
             //// TODO debug.asserts?
         }
     }
