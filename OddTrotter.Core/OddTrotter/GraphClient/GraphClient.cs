@@ -64,6 +64,41 @@
             }
         }
 
+        /// <inheritdoc/>
+        public async Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+        {
+            if (relativeUri == null)
+            {
+                throw new ArgumentNullException(nameof(relativeUri));
+            }
+
+            HttpResponseMessage? httpResponse = null;
+            try
+            {
+                try
+                {
+                    httpResponse = await this.httpClient.DeleteAsync(this.rootUrl + '/' + relativeUri.ToString()).ConfigureAwait(false);
+                }
+                catch (HttpRequestException e)
+                {
+                    throw new HttpRequestException($"An error occurred during the DELETE request to {relativeUri.OriginalString}", e);
+                }
+
+                if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new InvalidAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                }
+            }
+            catch
+            {
+                httpResponse?.Dispose();
+                throw;
+            }
+
+            return httpResponse;
+        }
+
         public void Dispose()
         {
             if (this.disposed)

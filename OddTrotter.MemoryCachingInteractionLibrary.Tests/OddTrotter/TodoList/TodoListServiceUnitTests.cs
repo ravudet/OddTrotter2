@@ -142,6 +142,11 @@
 
         private sealed class MockGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new NotImplementedException();
@@ -305,6 +310,11 @@
 
         private sealed class MockRetrieveTodoListGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -578,6 +588,11 @@
 
         private sealed class MockRetrieveTodoListNullBlobGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -809,6 +824,11 @@ some data
 
         private sealed class MockRetrieveTodoListWithExistingBlobDataGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -995,6 +1015,11 @@ some data
 
         private sealed class MockRetrieveTodoListInvalidAccessTokenOnFirstPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new UnauthorizedAccessTokenException("the url", "the access token", "a message");
@@ -1045,6 +1070,11 @@ some data
 
         private sealed class MockRetrieveTodoListGraphNetworkErrorOnFirstPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new HttpRequestException();
@@ -1095,6 +1125,11 @@ some data
 
         private sealed class MockRetrieveTodoListGraphFailureOnFirstPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 StringContent? stringContent = null;
@@ -1166,6 +1201,11 @@ some data
 
         private sealed class MockRetrieveTodoListMalformedFirstPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 StringContent? stringContent = null;
@@ -1237,6 +1277,11 @@ some data
 
         private sealed class MockRetrieveTodoListNullFirstPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 StringContent? stringContent = null;
@@ -1308,6 +1353,11 @@ some data
 
         private sealed class MockRetrieveTodoListNullCollectionFirstPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 StringContent? stringContent = null;
@@ -1391,6 +1441,11 @@ some data
 
         private sealed class MockRetrieveTodoListInvalidNextLinkGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var content =
@@ -1472,6 +1527,11 @@ some data
 
         private sealed class MockRetrieveTodoListInvalidAccessTokenOnSecondPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var format =
@@ -1574,6 +1634,11 @@ some data
 
         private sealed class MockRetrieveTodoListGraphNetworkErrorOnSecondPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var format =
@@ -1676,6 +1741,11 @@ some data
 
         private sealed class MockRetrieveTodoListGraphFailureOnSecondPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var format =
@@ -1799,6 +1869,11 @@ some data
 
         private sealed class MockRetrieveTodoListMalformedSecondPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var format =
@@ -1922,6 +1997,11 @@ some data
 
         private sealed class MockRetrieveTodoListNullSecondPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var format =
@@ -2045,6 +2125,11 @@ some data
 
         private sealed class MockRetrieveTodoListNullCollectionSecondPageGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var format =
@@ -2174,6 +2259,11 @@ some more data
 
         private sealed class MockRetrieveTodoListMultiplePagesGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var format =
@@ -2308,6 +2398,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNetworkErrorInFirstInstanceOfSeriesGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -2449,6 +2544,11 @@ some more data
 
         private sealed class MockRetrieveTodoListGraphErrorInFirstInstanceOfSeriesGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -2618,6 +2718,11 @@ some more data
 
         private sealed class MockRetrieveTodoListMalformedFirstInstanceOfSeriesGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -2781,6 +2886,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNullFirstInstanceOfSeriesGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -2944,6 +3054,11 @@ some more data
 
         private sealed class MockRetrieveTodoListSeriesWithoutFutureInstancesGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -3113,6 +3228,11 @@ some more data
 
         private sealed class MockRetrieveTodoListSeriesWithFutureInstancesGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -3295,6 +3415,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNullSubjectGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -3432,6 +3557,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNullStartGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -3566,6 +3696,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNullStartDateTimeGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -3703,6 +3838,11 @@ some more data
 
         private sealed class MockRetrieveTodoListMalformedStartDateTimeGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -3840,6 +3980,11 @@ some more data
 
         private sealed class MockRetrieveTodoListStartDateTimeNoTimeZoneGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -3976,6 +4121,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNullContentGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -4110,6 +4260,11 @@ some more data
 
         private sealed class MockRetrieveTodoListMalformedContentGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -4264,6 +4419,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNoNewEventsGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -4399,6 +4559,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNetworkErrorWritingToBlobGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -4547,6 +4712,11 @@ some more data
 
         private sealed class MockRetrieveTodoListNoBlobWritePermissionsGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -4695,6 +4865,11 @@ some more data
 
         private sealed class MockRetrieveTodoListInvalidBlobDataOnWriteGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -4865,6 +5040,11 @@ some more data
 
         private sealed class MockRetrieveTodoListBlobWriteErrorGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
@@ -5081,6 +5261,11 @@ a todo list item
 
         private sealed class MockRetrieveTodoListNewEventsGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var path = relativeUri.GetComponents(RelativeUriComponents.Path | RelativeUriComponents.KeepDelimiter, UriFormat.SafeUnescaped);

@@ -46,6 +46,11 @@ namespace OddTrotter.UserExtension
 
         private sealed class MockGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new NotImplementedException();
@@ -121,6 +126,11 @@ namespace OddTrotter.UserExtension
         {
             public int PatchCalled { get; private set; } = 0;
 
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new NotImplementedException();
@@ -185,6 +195,11 @@ namespace OddTrotter.UserExtension
         {
             public static string ExceptionMessage { get; } = nameof(ConfigureExistingUserExtensionNoNetwork);
 
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new NotImplementedException();
@@ -227,6 +242,11 @@ namespace OddTrotter.UserExtension
         {
             public static string ExceptionMessage { get; } = nameof(ConfigureExistingUserExtensionInvalidAccessToken);
 
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new NotImplementedException();
@@ -268,6 +288,11 @@ namespace OddTrotter.UserExtension
         private sealed class MockConfigureExistingUserExtensionGraphFailureGraphClient : IGraphClient
         {
             public static string ExceptionMessage { get; } = nameof(ConfigureExistingUserExtensionGraphFailure);
+
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
 
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
@@ -333,6 +358,11 @@ namespace OddTrotter.UserExtension
         {
             public int PatchCalled { get; private set; } = 0;
             public int PostCalled { get; private set; } = 0;
+
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
 
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
@@ -420,6 +450,11 @@ namespace OddTrotter.UserExtension
         {
             public static string ExceptionMessage { get; } = nameof(ConfigureNewUserExtensionNoNetwork);
 
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new NotImplementedException();
@@ -483,6 +518,11 @@ namespace OddTrotter.UserExtension
         {
             public static string ExceptionMessage { get; } = nameof(ConfigureNewUserExtensionNoNetwork);
 
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new NotImplementedException();
@@ -545,6 +585,11 @@ namespace OddTrotter.UserExtension
         private sealed class MockConfigureNewUserExtensionGraphFailureGraphClient : IGraphClient
         {
             public static string ExceptionMessage { get; } = nameof(ConfigureNewUserExtensionGraphFailure);
+
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
 
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
@@ -631,6 +676,11 @@ namespace OddTrotter.UserExtension
         {
             public int PatchCalled { get; private set; } = 0;
             public int PostCalled { get; private set; } = 0;
+
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
 
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {

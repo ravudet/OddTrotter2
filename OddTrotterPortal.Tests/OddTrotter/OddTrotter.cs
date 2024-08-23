@@ -46,6 +46,11 @@
 
         private sealed class MockGraphClient : IGraphClient
         {
+            public Task<HttpResponseMessage> DeleteAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 throw new NotImplementedException();
