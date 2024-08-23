@@ -38,7 +38,8 @@ namespace System.Threading
                 }
 
                 // the lock is acquired by non-aligned tests, wait until they are done
-                //// TODO spinwait?
+                //// TODO thread.sleep or spinlock
+                //// TODO you should probably have a separate class if async is needed
             }
         }
 
