@@ -176,7 +176,34 @@ else
         <div>
             <span id="oddTrotterBlobContainerUrlHeader" class="expandableHeader collapsedHeader" onclick="expand('oddTrotterBlobContainerUrl')">OddTrotter blob container URL: </span><input id="oddTrotterBlobContainerUrl" name="oddTrotterBlobContainerUrl" type="text" />
             <div id="oddTrotterBlobContainerUrlDiv" hidden="true">
-                The URL of the Azure Blob Container that OddTrotter will use to store state information. OddTrotter will create a variety of blobs in this container. TODO write out the "minimum" requirements for the container.
+                The URL of the Azure Blob Container that OddTrotter will use to store state information. OddTrotter will create a variety of blobs in this container. The storage account that holds this container should have the following configuration:
+                <ul>
+                    <li>region: west us</li>
+                    <li>primary service: unselected</li>
+                    <li>performance: standard</li>
+                    <li>redundancy: geo-redundant storage with "make read access to data available in the event of regional unavailability"</li>
+                    <li>require secure transfer for rest api operations: checked</li>
+                    <li>allow enabling anonymous access on individual containers: unchecked</li>
+                    <li>enable storage account key access: checked</li>
+                    <li>default to microsoft entra authorization in azure portal: unchecked</li>
+                    <li>minimum tls version: version 1.2</li>
+                    <li>permitted scope for copy operaetions: from any storage account</li>
+                    <li>enable hierarchical namespaces: unchecked</li>
+                    <li>enable sftp: unchecked</li>
+                    <li>enable network file system v3: unchecked</li>
+                    <li>network access: enable public access from all networks</li>
+                    <li>routing preference: microsoft network routing</li>
+                    <li>enable point-in-time restore for containers: unchecked</li>
+                    <li>enable soft delete for blobs: unchecked</li>
+                    <li>enable soft delete for containers: unchecked</li>
+                    <li>enable soft delete for file shares: checked</li>
+                    <li>enable versioning for blobs: unchecked</li>
+                    <li>enable blob change feed: unchecked</li>
+                    <li>enable version-level immutability support: unchecked</li>
+                    <li>encryption type: microsoft-managed keys</li>
+                    <li>enable support for customer-managed keys: blobs and files only</li>
+                    <li>enable infrastructure encryption: unchecked</li>
+                </ul>
             </div>
         </div>
 
