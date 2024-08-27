@@ -13,7 +13,7 @@
     public static class AzureBlobClientFactory
     {
         /// <summary>
-        /// 
+        /// Reads the OddTrotter user extension data from Microsoft Graph using <paramref name="graphClient"/> and creates an azure blob client using the <see cref="OddTrotterBlobSettings"/> found in the user extension.
         /// </summary>
         /// <param name="graphClient"></param>
         /// <param name="encryptor"></param>

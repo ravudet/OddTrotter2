@@ -5,6 +5,34 @@
     using System.Net.Http;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// A client for azure blob storage. The azure storage account that the blob container is in can have the following "known-good" configuration:
+    /// - region: west us
+    /// - primary service: unselected
+    /// - performance: standard
+    /// - redundancy: geo-redundant storage with "make read access to data available in the event of regional unavailability"
+    /// - require secure transfer for rest api operations: checked
+    /// - allow enabling anonymous access on individual containers: unchecked
+    /// - enable storage account key access: checked
+    /// - default to microsoft entra authorization in azure portal: unchecked
+    /// - minimum tls version: version 1.2
+    /// - permitted scope for copy operaetions: from any storage account
+    /// - enable hierarchical namespaces: unchecked
+    /// - enable sftp: unchecked
+    /// - enable network file system v3: unchecked
+    /// - network access: enable public access from all networks
+    /// - routing preference: microsoft network routing
+    /// - enable point-in-time restore for containers: unchecked
+    /// - enable soft delete for blobs: unchecked
+    /// - enable soft delete for containers: unchecked
+    /// - enable soft delete for file shares: checked
+    /// - enable versioning for blobs: unchecked
+    /// - enable blob change feed: unchecked
+    /// - enable version-level immutability support: unchecked
+    /// - encryption type: microsoft-managed keys
+    /// - enable support for customer-managed keys: blobs and files only
+    /// - enable infrastructure encryption: unchecked
+    /// </summary>
     public sealed class AzureBlobClient : IAzureBlobClient
     {
         private readonly string containerUri;
@@ -18,8 +46,35 @@
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="containerUri"></param>
-        /// <param name="sasToken"></param>
+        /// <param name="containerUri">
+        /// The URI for an azure blob container that is in a storage account with the following configuration:
+        /// - region: west us
+        /// - primary service: unselected
+        /// - performance: standard
+        /// - redundancy: geo-redundant storage with "make read access to data available in the event of regional unavailability"
+        /// - require secure transfer for rest api operations: checked
+        /// - allow enabling anonymous access on individual containers: unchecked
+        /// - enable storage account key access: checked
+        /// - default to microsoft entra authorization in azure portal: unchecked
+        /// - minimum tls version: version 1.2
+        /// - permitted scope for copy operaetions: from any storage account
+        /// - enable hierarchical namespaces: unchecked
+        /// - enable sftp: unchecked
+        /// - enable network file system v3: unchecked
+        /// - network access: enable public access from all networks
+        /// - routing preference: microsoft network routing
+        /// - enable point-in-time restore for containers: unchecked
+        /// - enable soft delete for blobs: unchecked
+        /// - enable soft delete for containers: unchecked
+        /// - enable soft delete for file shares: checked
+        /// - enable versioning for blobs: unchecked
+        /// - enable blob change feed: unchecked
+        /// - enable version-level immutability support: unchecked
+        /// - encryption type: microsoft-managed keys
+        /// - enable support for customer-managed keys: blobs and files only
+        /// - enable infrastructure encryption: unchecked
+        /// </param>
+        /// <param name="sasToken">A SAS token that has read, create, and write permissions for the azure storage account at <paramref name="containerUri"/></param>
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="containerUri"/> or <paramref name="sasToken"/> or <paramref name="apiVersion"/> is <see langword="null"/>
         /// </exception>
@@ -32,8 +87,35 @@
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="containerUri"></param>
-        /// <param name="sasToken"></param>
+        /// <param name="containerUri">
+        /// The URI for an azure blob container that is in a storage account with the following configuration:
+        /// - region: west us
+        /// - primary service: unselected
+        /// - performance: standard
+        /// - redundancy: geo-redundant storage with "make read access to data available in the event of regional unavailability"
+        /// - require secure transfer for rest api operations: checked
+        /// - allow enabling anonymous access on individual containers: unchecked
+        /// - enable storage account key access: checked
+        /// - default to microsoft entra authorization in azure portal: unchecked
+        /// - minimum tls version: version 1.2
+        /// - permitted scope for copy operaetions: from any storage account
+        /// - enable hierarchical namespaces: unchecked
+        /// - enable sftp: unchecked
+        /// - enable network file system v3: unchecked
+        /// - network access: enable public access from all networks
+        /// - routing preference: microsoft network routing
+        /// - enable point-in-time restore for containers: unchecked
+        /// - enable soft delete for blobs: unchecked
+        /// - enable soft delete for containers: unchecked
+        /// - enable soft delete for file shares: checked
+        /// - enable versioning for blobs: unchecked
+        /// - enable blob change feed: unchecked
+        /// - enable version-level immutability support: unchecked
+        /// - encryption type: microsoft-managed keys
+        /// - enable support for customer-managed keys: blobs and files only
+        /// - enable infrastructure encryption: unchecked
+        /// </param>
+        /// <param name="sasToken">A SAS token that has read, create, and write permissions for the azure storage account at <paramref name="containerUri"/></param>
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="containerUri"/> or <paramref name="sasToken"/> or <paramref name="apiVersion"/> or <paramref name="settings"/> is <see langword="null"/>
         /// </exception>
