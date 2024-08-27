@@ -14,7 +14,7 @@
         private readonly Encoding encoding;
 
         public Encryptor()
-            : this(new EncryptorSettings.Builder().Build())
+            : this(EncryptorSettings.Default)
         {
         }
 

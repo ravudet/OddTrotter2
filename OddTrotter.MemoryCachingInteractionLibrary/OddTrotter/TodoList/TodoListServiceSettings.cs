@@ -10,15 +10,17 @@
             this.CalendarEventPageSize = calendarEventPageSize;
         }
 
+        public static TodoListServiceSettings Default { get; } = new TodoListServiceSettings("todoListData", 50);
+
         public string TodoListDataBlobName { get; }
 
         public int CalendarEventPageSize { get; }
 
         public sealed class Builder
         {
-            public string TodoListDataBlobName { get; set; } = "todoListData";
+            public string TodoListDataBlobName { get; set; } = TodoListServiceSettings.Default.TodoListDataBlobName;
 
-            public int CalendarEventPageSize { get; set; } = 50;
+            public int CalendarEventPageSize { get; set; } = TodoListServiceSettings.Default.CalendarEventPageSize;
 
             /// <summary>
             /// 

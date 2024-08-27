@@ -11,15 +11,17 @@
             this.HttpClientTimeout = httpClientTimeout;
         }
 
+        public static GraphClientSettings Default { get; } = new GraphClientSettings(new Uri("https://graph.microsoft.com/v1.0/"), Timeout.InfiniteTimeSpan);
+
         public Uri GraphRootUri { get; }
 
         public TimeSpan HttpClientTimeout { get; }
 
         public sealed class Builder
         {
-            public Uri GraphRootUri { get; set; } = new Uri("https://graph.microsoft.com/v1.0/");
+            public Uri GraphRootUri { get; set; } = GraphClientSettings.Default.GraphRootUri;
 
-            public TimeSpan HttpClientTimeout { get; set; } = Timeout.InfiniteTimeSpan;
+            public TimeSpan HttpClientTimeout { get; set; } = GraphClientSettings.Default.HttpClientTimeout;
 
             /// <summary>
             /// 

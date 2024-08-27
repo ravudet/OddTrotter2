@@ -11,15 +11,17 @@
             this.Encoding = encoding;
         }
 
+        public static EncryptorSettings Default { get; } = new EncryptorSettings(string.Empty, Encoding.UTF8);
+
         public string Password { get; }
 
         public Encoding Encoding { get; }
 
         public sealed class Builder
         {
-            public string Password { get; set; } = string.Empty;
+            public string Password { get; set; } = EncryptorSettings.Default.Password;
 
-            public Encoding Encoding { get; set; } = Encoding.UTF8;
+            public Encoding Encoding { get; set; } = EncryptorSettings.Default.Encoding;
 
             /// <summary>
             /// 
