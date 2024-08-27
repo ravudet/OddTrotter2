@@ -25,7 +25,7 @@
         /// </exception>
         /// <exception cref="ArgumentException">Thrown if <paramref name="apiVersion"/> is empty</exception>
         public AzureBlobClient(AbsoluteUri containerUri, string sasToken, string apiVersion)
-            : this(containerUri, sasToken, apiVersion, new AzureBlobClientSettings.Builder().Build())
+            : this(containerUri, sasToken, apiVersion, AzureBlobClientSettings.Default)
         {
         }
 

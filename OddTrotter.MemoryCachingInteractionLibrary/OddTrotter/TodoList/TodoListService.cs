@@ -35,7 +35,7 @@
         /// Thrown if <paramref name="memoryCache"/> or <paramref name="graphClient"/> or <paramref name="azureBlobClient"/> is <see langword="null"/>
         /// </exception>
         public TodoListService(IMemoryCache memoryCache, IGraphClient graphClient, IAzureBlobClient azureBlobClient)
-            : this(memoryCache, graphClient, azureBlobClient, new TodoListServiceSettings.Builder().Build())
+            : this(memoryCache, graphClient, azureBlobClient, TodoListServiceSettings.Default)
         {
         }
 

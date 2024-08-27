@@ -10,11 +10,13 @@
             this.BlobType = blobType;
         }
 
+        public static AzureBlobClientSettings Default { get; } = new AzureBlobClientSettings("BlockBlob");
+
         public string BlobType { get; }
 
         public sealed class Builder
         {
-            public string BlobType { get; set; } = "BlockBlob";
+            public string BlobType { get; set; } = AzureBlobClientSettings.Default.BlobType;
 
             /// <summary>
             /// 
