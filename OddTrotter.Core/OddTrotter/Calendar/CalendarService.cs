@@ -104,6 +104,9 @@
         /// </exception>
         private static ODataCollection<CalendarEvent> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            graphCalendarContext.Events.Select(calendarEvent => calendarEvent.Id).Select(calendarEvent => calendarEvent.Subject).Values;
+
             //// TODO starttime and endtime should be done through a queryable
             var url = GetInstanceEventsUrl(startTime, pageSize) + $" and start/dateTime lt '{endTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}'";
             return GetCollection<CalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri());

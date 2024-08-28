@@ -259,7 +259,7 @@ how to generate? .../calendar?$expand=events($filter={fitler})
 
         ODataCollection<T> Values { get; }
 
-        IODataCollectionContext<T> Select();
+        IODataCollectionContext<T> Select<TProperty>(Func<T, TProperty> selector);
 
         IODataCollectionContext<T> Filter();
 
