@@ -5,15 +5,13 @@
     using System.Net.Http;
     using System.Threading.Tasks;
 
-    public sealed class GraphClient : IGraphClient, IDisposable
+    public sealed class GraphClient : IGraphClient
     {
         private readonly string rootUrl;
 
         private readonly string accessToken;
 
-        private readonly HttpClient httpClient;
-
-        private bool disposed;
+        private readonly TimeSpan httpClientTimeout;
 
         /// <summary>
         /// 
@@ -42,24 +40,39 @@
 
             this.rootUrl = settings.GraphRootUri.OriginalString.TrimEnd('/');
             this.accessToken = accessToken;
+            this.httpClientTimeout = settings.HttpClientTimeout;
 
-            this.disposed = false;
-            this.httpClient = new HttpClient();
             try
             {
-                this.httpClient.Timeout = settings.HttpClientTimeout;
-                try
-                {
-                    this.httpClient.DefaultRequestHeaders.Add("Authorization", accessToken);
-                }
-                catch (FormatException e)
-                {
-                    throw new InvalidAccessTokenException(accessToken, $"'{nameof(accessToken)}' had a value of '{accessToken}' which is not a valid 'Authorization' header value", e);
-                }
+                CreateHttpClient().Dispose();
+            }
+            catch (FormatException e)
+            {
+                throw new InvalidAccessTokenException(accessToken, $"'{nameof(this.accessToken)}' had a value of '{accessToken}' which is not a valid 'Authorization' header value", e);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="FormatException">Thrown if <see cref="accessToken"/> is not a valid HTTP authorization header value; only thrown during initialization because <see cref="accessToken"/> is validated in the constructor</exception>
+        private HttpClient CreateHttpClient()
+        {
+            HttpClient? httpClient = null;
+            try
+            {
+                httpClient = new HttpClient();
+                httpClient.Timeout = this.httpClientTimeout;
+
+                // formatexception won't be thrown normally because we already validated accessToken in the constructor
+                httpClient.DefaultRequestHeaders.Add("Authorization", this.accessToken);
+
+                return httpClient;
             }
             catch
             {
-                this.Dispose();
+                httpClient?.Dispose();
                 throw;
             }
         }
@@ -72,43 +85,34 @@
                 throw new ArgumentNullException(nameof(relativeUri));
             }
 
-            HttpResponseMessage? httpResponse = null;
-            try
+            using (var httpClient = CreateHttpClient())
             {
+                HttpResponseMessage? httpResponse = null;
                 try
                 {
-                    httpResponse = await this.httpClient.DeleteAsync(this.rootUrl + '/' + relativeUri.ToString()).ConfigureAwait(false);
+                    try
+                    {
+                        httpResponse = await httpClient.DeleteAsync(this.rootUrl + '/' + relativeUri.ToString()).ConfigureAwait(false);
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        throw new HttpRequestException($"An error occurred during the DELETE request to {relativeUri.OriginalString}", e);
+                    }
+
+                    if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
+                    {
+                        var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                    }
                 }
-                catch (HttpRequestException e)
+                catch
                 {
-                    throw new HttpRequestException($"An error occurred during the DELETE request to {relativeUri.OriginalString}", e);
+                    httpResponse?.Dispose();
+                    throw;
                 }
 
-                if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
-                }
+                return httpResponse;
             }
-            catch
-            {
-                httpResponse?.Dispose();
-                throw;
-            }
-
-            return httpResponse;
-        }
-
-        public void Dispose()
-        {
-            if (this.disposed)
-            {
-                return;
-            }
-
-            this.httpClient.Dispose();
-
-            this.disposed = true;
         }
 
         /// <inheritdoc/>
@@ -131,31 +135,34 @@
                 throw new ArgumentNullException(nameof(absoluteUri));
             }
 
-            HttpResponseMessage? httpResponse = null;
-            try
+            using (var httpClient = CreateHttpClient())
             {
+                HttpResponseMessage? httpResponse = null;
                 try
                 {
-                    httpResponse = await this.httpClient.GetAsync(absoluteUri).ConfigureAwait(false);
+                    try
+                    {
+                        httpResponse = await httpClient.GetAsync(absoluteUri).ConfigureAwait(false);
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        throw new HttpRequestException($"An error occurred during the GET request to {absoluteUri.OriginalString}", e);
+                    }
+
+                    if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
+                    {
+                        var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        throw new UnauthorizedAccessTokenException(absoluteUri.OriginalString, this.accessToken, httpResponseContent);
+                    }
                 }
-                catch (HttpRequestException e)
+                catch
                 {
-                    throw new HttpRequestException($"An error occurred during the GET request to {absoluteUri.OriginalString}", e);
+                    httpResponse?.Dispose();
+                    throw;
                 }
 
-                if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    throw new UnauthorizedAccessTokenException(absoluteUri.OriginalString, this.accessToken, httpResponseContent);
-                }
+                return httpResponse;
             }
-            catch
-            {
-                httpResponse?.Dispose();
-                throw;
-            }
-
-            return httpResponse;
         }
 
         /// <inheritdoc/>
@@ -171,31 +178,34 @@
                 throw new ArgumentNullException(nameof(httpContent));
             }
 
-            HttpResponseMessage? httpResponse = null;
-            try
+            using (var httpClient = CreateHttpClient())
             {
+                HttpResponseMessage? httpResponse = null;
                 try
                 {
-                    httpResponse = await this.httpClient.PatchAsync(this.rootUrl + '/' + relativeUri.ToString(), httpContent).ConfigureAwait(false);
+                    try
+                    {
+                        httpResponse = await httpClient.PatchAsync(this.rootUrl + '/' + relativeUri.ToString(), httpContent).ConfigureAwait(false);
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        throw new HttpRequestException($"An error occurred during the PATCH request to {relativeUri.OriginalString}", e);
+                    }
+
+                    if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
+                    {
+                        var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                    }
                 }
-                catch (HttpRequestException e)
+                catch
                 {
-                    throw new HttpRequestException($"An error occurred during the PATCH request to {relativeUri.OriginalString}", e);
+                    httpResponse?.Dispose();
+                    throw;
                 }
 
-                if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
-                }
+                return httpResponse;
             }
-            catch
-            {
-                httpResponse?.Dispose();
-                throw;
-            }
-
-            return httpResponse;
         }
 
         /// <inheritdoc/>
@@ -211,31 +221,34 @@
                 throw new ArgumentNullException(nameof(httpContent));
             }
 
-            HttpResponseMessage? httpResponse = null;
-            try
+            using (var httpClient = CreateHttpClient())
             {
+                HttpResponseMessage? httpResponse = null;
                 try
                 {
-                    httpResponse = await this.httpClient.PostAsync(this.rootUrl + '/' + relativeUri.ToString(), httpContent).ConfigureAwait(false);
+                    try
+                    {
+                        httpResponse = await httpClient.PostAsync(this.rootUrl + '/' + relativeUri.ToString(), httpContent).ConfigureAwait(false);
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        throw new HttpRequestException($"An error occurred during the POST request to {relativeUri.OriginalString}", e);
+                    }
+
+                    if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
+                    {
+                        var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
+                    }
                 }
-                catch (HttpRequestException e)
+                catch
                 {
-                    throw new HttpRequestException($"An error occurred during the POST request to {relativeUri.OriginalString}", e);
+                    httpResponse?.Dispose();
+                    throw;
                 }
 
-                if (httpResponse.StatusCode == HttpStatusCode.Unauthorized || httpResponse.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    throw new UnauthorizedAccessTokenException(relativeUri.OriginalString, this.accessToken, httpResponseContent);
-                }
+                return httpResponse;
             }
-            catch
-            {
-                httpResponse?.Dispose();
-                throw;
-            }
-
-            return httpResponse;
         }
     }
 }

@@ -168,7 +168,7 @@ I am planning 7 stages on that journey:
                 return new GraphClientIntegrationTestHarnessFactory(
                     DateTime.UtcNow.ToString("O"), // we are using 'O' as defined [here](https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings) so that we can easily find resources provisioned by the test run using requests like `GET https://graph.microsoft.com/v1.0/applications?$filter=startswith(displayName, '2024')`. This also allows finding test runs by the date that they ran and things along those lines
                     testRunActor.TenantDomain,
-                    tokenIssuer, 
+                    tokenIssuer,
                     testRunGraphClient);
             }
 
@@ -302,7 +302,7 @@ I am planning 7 stages on that journey:
             /// </summary>
             private sealed class InvalidSecretsException : Exception
             {
-                public InvalidSecretsException(string message) 
+                public InvalidSecretsException(string message)
                     : base(message)
                 {
                 }
@@ -328,7 +328,7 @@ I am planning 7 stages on that journey:
         /// </summary>
         [TestMethod]
         public async Task GetNonexistentUserAbsoluteUri()
-        { 
+        {
             var testHarness = await TestHarnessFactory.CreateTestHarnessAsync().ConfigureAwait(false);
 
             await using (var testApplication = await testHarness.ActorProvisioner.ProvisionApplication(
@@ -339,12 +339,10 @@ I am planning 7 stages on that journey:
                 }).ConfigureAwait(false))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                using (var httpResponse = await graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/users/00000000-0000-0000-000000000000", UriKind.Absolute).ToAbsoluteUri()).ConfigureAwait(false))
                 {
-                    using (var httpResponse = await graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/users/00000000-0000-0000-000000000000", UriKind.Absolute).ToAbsoluteUri()).ConfigureAwait(false))
-                    {
-                        Assert.AreEqual(HttpStatusCode.NotFound, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
-                    }
+                    Assert.AreEqual(HttpStatusCode.NotFound, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
                 }
             }
         }
@@ -358,14 +356,12 @@ I am planning 7 stages on that journey:
             var testHarness = await TestHarnessFactory.CreateTestHarnessAsync().ConfigureAwait(false);
 
             await using (var testApplication = await testHarness.ActorProvisioner.ProvisionApplication(
-                nameof(GetUserWithNoNetworkAbsoluteUri), 
+                nameof(GetUserWithNoNetworkAbsoluteUri),
                 Enumerable.Empty<AppRole>()))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
-                {
-                    await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.GetAsync(new Uri("https://0.0.0.0/v1.0/users/00000000-0000-0000-000000000000", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
-                }
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.GetAsync(new Uri("https://0.0.0.0/v1.0/users/00000000-0000-0000-000000000000", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
             }
         }
 
@@ -382,10 +378,8 @@ I am planning 7 stages on that journey:
                 Enumerable.Empty<AppRole>()).ConfigureAwait(false))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
-                {
-                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/users/00000000-0000-0000-000000000000", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
-                }
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/users/00000000-0000-0000-000000000000", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
             }
         }
 
@@ -402,10 +396,8 @@ I am planning 7 stages on that journey:
                 Enumerable.Empty<AppRole>()).ConfigureAwait(false))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
-                {
-                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/servicePrincipals", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
-                }
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("https://graph.microsoft.com/v1.0/servicePrincipals", UriKind.Absolute).ToAbsoluteUri())).ConfigureAwait(false);
             }
         }
 
@@ -425,12 +417,10 @@ I am planning 7 stages on that journey:
                 }).ConfigureAwait(false))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                using (var httpResponse = await graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri()).ConfigureAwait(false))
                 {
-                    using (var httpResponse = await graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri()).ConfigureAwait(false))
-                    {
-                        Assert.AreEqual(HttpStatusCode.NotFound, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
-                    }
+                    Assert.AreEqual(HttpStatusCode.NotFound, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
                 }
             }
         }
@@ -444,7 +434,7 @@ I am planning 7 stages on that journey:
             var testHarness = await TestHarnessFactory.CreateTestHarnessAsync().ConfigureAwait(false);
 
             await using (var testApplication = await testHarness.ActorProvisioner.ProvisionApplication(
-                nameof(GetUserWithNoNetworkAbsoluteUri), 
+                nameof(GetUserWithNoNetworkAbsoluteUri),
                 Enumerable.Empty<AppRole>()))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
@@ -452,10 +442,8 @@ I am planning 7 stages on that journey:
                 {
                     GraphRootUri = new Uri("https://0.0.0.0/v1.0"),
                 }.Build();
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, graphClientSettings))
-                {
-                    await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
-                }
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, graphClientSettings);
+                await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
             }
         }
 
@@ -465,10 +453,8 @@ I am planning 7 stages on that journey:
         [TestMethod]
         public async Task GetUserWithInvalidAccessTokenRelativeUri()
         {
-            using (var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build()))
-            {
-                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
-            }
+            var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build());
+            await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -480,14 +466,12 @@ I am planning 7 stages on that journey:
             var testHarness = await TestHarnessFactory.CreateTestHarnessAsync().ConfigureAwait(false);
 
             await using (var testApplication = await testHarness.ActorProvisioner.ProvisionApplication(
-                nameof(GetUserWithNoNetworkAbsoluteUri), 
+                nameof(GetUserWithNoNetworkAbsoluteUri),
                 Enumerable.Empty<AppRole>()))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
-                {
-                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("/servicePrincipals", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
-                }
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.GetAsync(new Uri("/servicePrincipals", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
             }
         }
 
@@ -507,20 +491,18 @@ I am planning 7 stages on that journey:
                 }))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
-                {
-                    using (var content = new StringContent(
-    """
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                using (var content = new StringContent(
+"""
 {
   "displayName": "test"
 }
 """,
-                        new MediaTypeHeaderValue("application/json")))
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    using (var httpResponse = await graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content).ConfigureAwait(false))
                     {
-                        using (var httpResponse = await graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content).ConfigureAwait(false))
-                        {
-                            Assert.AreEqual(HttpStatusCode.NotFound, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
-                        }
+                        Assert.AreEqual(HttpStatusCode.NotFound, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
                     }
                 }
             }
@@ -543,18 +525,16 @@ I am planning 7 stages on that journey:
                 {
                     GraphRootUri = new Uri("https://0.0.0.0/v1.0"),
                 }.Build();
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, graphClientSettings))
-                {
-                    using (var content = new StringContent(
-    """
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, graphClientSettings);
+                using (var content = new StringContent(
+"""
 {
   "displayName": "test"
 }
 """,
-                        new MediaTypeHeaderValue("application/json")))
-                    {
-                        await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
-                    }
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
                 }
             }
         }
@@ -565,18 +545,16 @@ I am planning 7 stages on that journey:
         [TestMethod]
         public async Task PatchUserWithInvalidAccessToken()
         {
-            using (var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build()))
-            {
-                using (var content = new StringContent(
+            var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build());
+            using (var content = new StringContent(
 """
 {
   "displayName": "test"
 }
 """,
-                    new MediaTypeHeaderValue("application/json")))
-                {
-                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
-                }
+                new MediaTypeHeaderValue("application/json")))
+            {
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PatchAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
             }
         }
 
@@ -593,18 +571,16 @@ I am planning 7 stages on that journey:
                 Enumerable.Empty<AppRole>()))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
-                {
-                    using (var content = new StringContent(
-    """
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                using (var content = new StringContent(
+"""
 {
   "displayName": "test"
 }
 """,
-                        new MediaTypeHeaderValue("application/json")))
-                    {
-                        await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PatchAsync(new Uri("/servicePrincipals(appId='00000003-0000-0000-c000-000000000000')", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
-                    }
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PatchAsync(new Uri("/servicePrincipals(appId='00000003-0000-0000-c000-000000000000')", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
                 }
             }
         }
@@ -625,20 +601,18 @@ I am planning 7 stages on that journey:
                 }))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
-                {
-                    using (var content = new StringContent(
-    """
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                using (var content = new StringContent(
+"""
 {
   "displayName": "testing"
 }
 """,
-                        new MediaTypeHeaderValue("application/json")))
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    using (var httpResponse = await graphClient.PostAsync(new Uri("/applications", UriKind.Relative).ToRelativeUri(), content).ConfigureAwait(false))
                     {
-                        using (var httpResponse = await graphClient.PostAsync(new Uri("/applications", UriKind.Relative).ToRelativeUri(), content).ConfigureAwait(false))
-                        {
-                            Assert.AreEqual(HttpStatusCode.Created, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
-                        }
+                        Assert.AreEqual(HttpStatusCode.Created, httpResponse.StatusCode, await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
                     }
                 }
             }
@@ -654,18 +628,16 @@ I am planning 7 stages on that journey:
             {
                 GraphRootUri = new Uri("https://0.0.0.0/v1.0"),
             }.Build();
-            using (var graphClient = new GraphClient("sometoken", graphClientSettings))
-            {
-                using (var content = new StringContent(
+            var graphClient = new GraphClient("sometoken", graphClientSettings);
+            using (var content = new StringContent(
 """
 {
   "displayName": "test"
 }
 """,
-                    new MediaTypeHeaderValue("application/json")))
-                {
-                    await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.PostAsync(new Uri("/users", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
-                }
+                new MediaTypeHeaderValue("application/json")))
+            {
+                await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.PostAsync(new Uri("/users", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
             }
         }
 
@@ -675,18 +647,16 @@ I am planning 7 stages on that journey:
         [TestMethod]
         public async Task PostUserWithInvalidAccessToken()
         {
-            using (var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build()))
-            {
-                using (var content = new StringContent(
+            var graphClient = new GraphClient("sometoken", new GraphClientSettings.Builder().Build());
+            using (var content = new StringContent(
 """
 {
   "displayName": "test"
 }
 """,
-                    new MediaTypeHeaderValue("application/json")))
-                {
-                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PostAsync(new Uri("/users", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
-                }
+                new MediaTypeHeaderValue("application/json")))
+            {
+                await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PostAsync(new Uri("/users", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
             }
         }
 
@@ -703,18 +673,16 @@ I am planning 7 stages on that journey:
                 Enumerable.Empty<AppRole>()))
             {
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
-                using (var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build()))
-                {
-                    using (var content = new StringContent(
-    """
+                var graphClient = new GraphClient(testApplicationToken.AccessToken, new GraphClientSettings.Builder().Build());
+                using (var content = new StringContent(
+"""
 {
   "displayName": "testing"
 }
 """,
-                        new MediaTypeHeaderValue("application/json")))
-                    {
-                        await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PostAsync(new Uri("/applications", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
-                    }
+                    new MediaTypeHeaderValue("application/json")))
+                {
+                    await Assert.ThrowsExceptionAsync<UnauthorizedAccessTokenException>(() => graphClient.PostAsync(new Uri("/applications", UriKind.Relative).ToRelativeUri(), content)).ConfigureAwait(false);
                 }
             }
         }
