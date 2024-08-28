@@ -73,7 +73,7 @@ var url =
                 throw new NotImplementedException();
             }
 
-            public ODataCollection<GraphCalendarEvent> Values
+            public ODataCollection<GraphCalendarEvent> Values //// TODO shouldn't this return type be something odata-y? like, the properties need to be marked as selected and stuff, right?
             {
                 get
                 {
