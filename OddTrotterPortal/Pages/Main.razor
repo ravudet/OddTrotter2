@@ -469,20 +469,16 @@ else
 
             //// idatastore so you can use onedrive intead of blob storage?
             //// encrypted data store or encrypted blob storage?
-            //// the unit tests use Assert.ThrowsException which allows for inheritance (for example, Assert.ThrowsException<ArgumentException>(() => throw new ArgumentNullException("name")) will pass); they should be updated to use a custom assertion that is more strict
-            //// do you want to separate OddTrotter.Core and OddTrotter.Common? it might make it easier to distinguish what things can go in fx.core in the future
             //// the encryptor can't really throw cryptogarphic exception during encyrption; also, the outofrangeexception can be avoided if you use a stream instead of an array
             //// if the encryptor really can throw during encryption, then you should add unit tests for all of the consumers of that api to cover the cases where it throws
             //// you chose not to use blob storage for the todo list itself, only the timestamp, because the timestamp could sometimes lead you to either duplicating or leaving out events; if you store the timestamp *and* the event ID, this can probably be avoided
             //// don't overload exception messages
-            //// graphclient is disposable but is not disposed
             //// blob urls are not exposed often enough
             //// full urls should be exposed in error messages wherever possible
             //// revisit the applyaggregation design and write tests for it
             //// graphclientsettings.graphrooturi probably should have been of type absoluteuri
             //// create an extension method for graph exceptions "(string Content) EnsureSuccessfulGraphStatus(HttpResponseMessage) throws GraphException" (note that, because we know it's graph, we know that the response is a string); re-evaluate the exception namespace and the namespace of the extension
             //// the todo list items come back not in chronological order because we retrieve instance events and then series events and concatenate; we should merge instead of concatenate
-            //// a new httpclient should not be created for every azureblobclient request
             //// create a memorycache interface for todolistservice to use that doesn't allow for null cache values; you should probably avoid imemorycache entirely: it doesn't document its exceptions and it throws quite a number of them
             //// implement a service log that is used for supportability in both main and settings pages
             //// would it make sense to have a method like "bool TryGetPage(IGraphClient, RelativeUri, out ODataCollectionPage, out ODataCollection)"  in todolistservice?
