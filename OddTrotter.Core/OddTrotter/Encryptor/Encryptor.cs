@@ -126,7 +126,8 @@
                 throw new ArgumentNullException(nameof(data));
             }
 
-            if (data.Length >= StringUtilities.MaxLength - initializationVectorLengthInBytes)
+            var maxLength = StringUtilities.MaxLength - initializationVectorLengthInBytes;
+            if (data.Length >= maxLength)
             {
                 // we use memory streams later; reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
                 // we can see that IOException is thrown if the payload overflows the postition, which is stored as an int; we know that the data fits in a string, which uses an
@@ -134,7 +135,7 @@
                 // 
                 // using a chunkedmemorystream was explored in order to avoid this suggestion, but ultimately a byte[] is returned and it has a length with an integer value
                 throw new ArgumentOutOfRangeException(
-                    $"The length of '{nameof(data)}' must not be larger than '{int.MaxValue}' combined with '{initializationVectorLengthInBytes}'");
+                    $"The length of '{nameof(data)}' must not be larger than '{maxLength}'");
             }
 
             var initializationVector = RandomNumberGenerator.GetBytes(initializationVectorLengthInBytes);

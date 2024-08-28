@@ -469,8 +469,6 @@ else
 
             //// idatastore so you can use onedrive intead of blob storage?
             //// encrypted data store or encrypted blob storage?
-            //// fix encryptor.encrypt length error message
-            //// create itodolistservice in oddtrotter.core; do you actually want this, or are you taking a hard dependency on graph? maybe just have a custom interface for the cache
             //// the unit tests use Assert.ThrowsException which allows for inheritance (for example, Assert.ThrowsException<ArgumentException>(() => throw new ArgumentNullException("name")) will pass); they should be updated to use a custom assertion that is more strict
             //// do you want to separate OddTrotter.Core and OddTrotter.Common? it might make it easier to distinguish what things can go in fx.core in the future
             //// the encryptor can't really throw cryptogarphic exception during encyrption; also, the outofrangeexception can be avoided if you use a stream instead of an array
