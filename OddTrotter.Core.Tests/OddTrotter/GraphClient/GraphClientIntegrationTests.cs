@@ -440,7 +440,7 @@ I am planning 7 stages on that journey:
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
                 var graphClientSettings = new GraphClientSettings.Builder()
                 {
-                    GraphRootUri = new Uri("https://0.0.0.0/v1.0"),
+                    GraphRootUri = new Uri("https://0.0.0.0/v1.0", UriKind.Absolute).ToAbsoluteUri(),
                 }.Build();
                 var graphClient = new GraphClient(testApplicationToken.AccessToken, graphClientSettings);
                 await Assert.ThrowsExceptionAsync<HttpRequestException>(() => graphClient.GetAsync(new Uri("/users/00000000-0000-0000-000000000000", UriKind.Relative).ToRelativeUri())).ConfigureAwait(false);
@@ -523,7 +523,7 @@ I am planning 7 stages on that journey:
                 var testApplicationToken = await testHarness.TokenIssuer.IssueToken(testApplication).ConfigureAwait(false);
                 var graphClientSettings = new GraphClientSettings.Builder()
                 {
-                    GraphRootUri = new Uri("https://0.0.0.0/v1.0"),
+                    GraphRootUri = new Uri("https://0.0.0.0/v1.0", UriKind.Absolute).ToAbsoluteUri(),
                 }.Build();
                 var graphClient = new GraphClient(testApplicationToken.AccessToken, graphClientSettings);
                 using (var content = new StringContent(
@@ -626,7 +626,7 @@ I am planning 7 stages on that journey:
         {
             var graphClientSettings = new GraphClientSettings.Builder()
             {
-                GraphRootUri = new Uri("https://0.0.0.0/v1.0"),
+                GraphRootUri = new Uri("https://0.0.0.0/v1.0", UriKind.Absolute).ToAbsoluteUri(),
             }.Build();
             var graphClient = new GraphClient("sometoken", graphClientSettings);
             using (var content = new StringContent(

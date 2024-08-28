@@ -59,14 +59,9 @@
                 var graphUriException = new GraphUriException(graphRootUrl);
                 try
                 {
-                    graphClientSettingsBuilder.GraphRootUri = new Uri(graphRootUrl);
+                    graphClientSettingsBuilder.GraphRootUri = new Uri(graphRootUrl, UriKind.Absolute).ToAbsoluteUri();
                 }
                 catch (UriFormatException)
-                {
-                    throw graphUriException;
-                }
-
-                if (!graphClientSettingsBuilder.GraphRootUri.IsAbsoluteUri)
                 {
                     throw graphUriException;
                 }

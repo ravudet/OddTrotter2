@@ -476,7 +476,6 @@ else
             //// blob urls are not exposed often enough
             //// full urls should be exposed in error messages wherever possible
             //// revisit the applyaggregation design and write tests for it
-            //// graphclientsettings.graphrooturi probably should have been of type absoluteuri
             //// create an extension method for graph exceptions "(string Content) EnsureSuccessfulGraphStatus(HttpResponseMessage) throws GraphException" (note that, because we know it's graph, we know that the response is a string); re-evaluate the exception namespace and the namespace of the extension
             //// the todo list items come back not in chronological order because we retrieve instance events and then series events and concatenate; we should merge instead of concatenate
             //// create a memorycache interface for todolistservice to use that doesn't allow for null cache values; you should probably avoid imemorycache entirely: it doesn't document its exceptions and it throws quite a number of them
@@ -528,6 +527,7 @@ else
             //// write tests for actorprovisioning
             //// write tests for tokenissuance
             //// move to the next stage of graphclientintegrationtests (delete secrets.json when you get to the stage that you don't need it anymore)
+            //// tests should be run in parallel
         }
     }
 }

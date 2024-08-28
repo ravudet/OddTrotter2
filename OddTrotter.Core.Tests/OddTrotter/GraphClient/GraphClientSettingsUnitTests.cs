@@ -42,19 +42,6 @@
         }
 
         /// <summary>
-        /// Creates <see cref="GraphClientSettings"/> with a relative root URI
-        /// </summary>
-        [TestMethod]
-        public void RelativeGraphRootUri()
-        {
-            var builder = new GraphClientSettings.Builder()
-            {
-                GraphRootUri = new Uri("/some/uri", UriKind.Relative),
-            };
-            Assert.ThrowsException<ArgumentException>(() => builder.Build());
-        }
-
-        /// <summary>
         /// Creates <see cref="GraphClientSettings"/> with a negative timeout
         /// </summary>
         [TestMethod]
