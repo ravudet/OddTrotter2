@@ -70,7 +70,7 @@
             var encryptor = new Encryptor();
             Assert.ThrowsException<ArgumentNullException>(() => encryptor.Encrypt(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                null
+                (string?)null
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                 ));
         }

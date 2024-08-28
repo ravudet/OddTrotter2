@@ -58,7 +58,7 @@
             if (data.Length < initializationVectorLengthInBytes)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(data), 
+                    nameof(data),
                     $"The data length must be at least {initializationVectorLengthInBytes} bytes to have been encrypted with the configured password.");
             }
 
@@ -66,7 +66,7 @@
             {
                 var initializationVector = new byte[initializationVectorLengthInBytes];
                 memoryStream.Read(initializationVector, 0, initializationVector.Length); //// TODO because it's a memory stream, i'm assuming a full read; these below methods should be used instead
-                
+
                 using (var aes = Aes.Create())
                 {
                     aes.Key = this.key;
@@ -109,6 +109,68 @@
             }
         }
         */
+
+        public Stream Encrypt(Stream data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            var maxLength = StringUtilities.MaxLength - initializationVectorLengthInBytes;
+            if (data.Length >= maxLength)
+            {
+                // we use memory streams later; reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
+                // we can see that IOException is thrown if the payload overflows the postition, which is stored as an int; we know that the data fits in a string, which uses an
+                // int length, so we must check if we can fit the data *and* the initialization vector at the same time
+                // 
+                // using a chunkedmemorystream was explored in order to avoid this suggestion, but ultimately a byte[] is returned and it has a length with an integer value
+                throw new ArgumentOutOfRangeException(
+                    $"The length of '{nameof(data)}' must not be larger than '{maxLength}'");
+            }
+
+            var initializationVector = RandomNumberGenerator.GetBytes(initializationVectorLengthInBytes);
+            using (var aes = Aes.Create())
+            {
+                aes.Key = this.key;
+                aes.IV = initializationVector;
+                using (var decryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                {
+                    MemoryStream? memoryStream = null;
+                    try
+                    {
+                        memoryStream = new MemoryStream();
+
+                        // reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
+                        // we can see that IOException is thrown if the payload overflows the postition, which is stored as an int; we know the size of the initialization vector,
+                        // so we know that it fits
+                        memoryStream.Write(initializationVector, 0, initializationVector.Length);
+
+                        using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write))
+                        {
+                            try
+                            {
+                                // not using async here since everything is in-memory
+                             //
+                             // we've previously assert that the data length cannot be too large, so IOException won't be thrown here
+                                data.CopyTo(cryptoStream);
+                            }
+                            catch (CryptographicException e)
+                            {
+                                throw new EncryptionException("TODO", e);
+                            }
+                        }
+
+                        return memoryStream;
+                    }
+                    catch
+                    {
+                        memoryStream?.Dispose();
+                        throw;
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// 
