@@ -2,12 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
-    using OddTrotter.AzureBlobClient;
+    using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text.Json;
-    using OddTrotter.GraphClient;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
+
+    using OddTrotter.AzureBlobClient;
+    using OddTrotter.GraphClient;
 
 /*
 how to generate? .../calendar?$expand=events($filter={fitler})
@@ -66,7 +68,7 @@ var url =
                 throw new NotImplementedException();
             }
 
-            public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Func<GraphCalendarEvent, TProperty> selector)
+            public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
             {
                 throw new NotImplementedException();
             }
@@ -267,7 +269,7 @@ var url =
 
         ODataCollection<T> Values { get; }
 
-        IODataCollectionContext<T> Select<TProperty>(Func<T, TProperty> selector);
+        IODataCollectionContext<T> Select<TProperty>(Expression<Func<T, TProperty>> selector);
 
         IODataCollectionContext<T> Filter();
 
