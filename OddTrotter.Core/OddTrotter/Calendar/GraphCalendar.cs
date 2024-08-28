@@ -27,6 +27,9 @@
         [JsonPropertyName("id")]
         public string? Id { get; set; }
 
+        [JsonPropertyName("body")]
+        public BodyStructure? Body { get; set; }
+
         [JsonPropertyName("start")]
         public TimeStructure? Start { get; set; }
 
@@ -36,7 +39,28 @@
         [JsonPropertyName("subject")]
         public string? Subject { get; set; }
 
+        [JsonPropertyName("responseStatus")]
+        public ResponseStatusStructure? ResponseStatus { get; set; }
+
+        [JsonPropertyName("webLink")]
+        public string? WebLink { get; set; }
+
         //// TODO add *all* of the properties here
+    }
+
+    public sealed class ResponseStatusStructure
+    {
+        [JsonPropertyName("response")]
+        public string? Response { get; set; }
+
+        [JsonPropertyName("time")]
+        public string? Time { get; set; }
+    }
+
+    public sealed class BodyStructure
+    {
+        [JsonPropertyName("content")]
+        public string? Content { get; set; }
     }
 
     public sealed class TimeStructure

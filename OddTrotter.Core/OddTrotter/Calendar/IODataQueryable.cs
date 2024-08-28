@@ -33,32 +33,40 @@ how to generate? .../calendar?$expand=events($filter={fitler})
         {
             private readonly IGraphClient graphClient;
 
-            private readonly RelativeUri calendarUri;
+            private readonly RelativeUri eventsUri;
 
             private readonly string? filter;
 
             private readonly string? select;
 
             public CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri calendarUri)
+                : this(graphClient, calendarUri, null, null)
             {
-                this.graphClient = graphClient;
-                this.calendarUri = calendarUri;
             }
 
-            private CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri calendarUri, string filter, string select)
+            private CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri calendarUri, string? filter, string? select)
             {
                 this.graphClient = graphClient;
-                this.calendarUri = calendarUri;
+                this.eventsUri = new Uri(calendarUri.OriginalString.TrimEnd('/') + "/events", UriKind.Relative).ToRelativeUri();
                 this.filter = filter;
                 this.select = select;
             }
+
+/*
+var url =
+    $"/me/calendar/events?" +
+    $"$select=body,start,subject,responseStatus,webLink&" +
+    $"$top={pageSize}&" +
+    $"$orderBy=start/dateTime&" +
+    $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
+*/
 
             public IODataCollectionContext<GraphCalendarEvent> Filter()
             {
                 throw new NotImplementedException();
             }
 
-            public IODataCollectionContext<GraphCalendarEvent> Select()
+            public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Func<GraphCalendarEvent, TProperty> selector)
             {
                 throw new NotImplementedException();
             }
@@ -67,7 +75,7 @@ how to generate? .../calendar?$expand=events($filter={fitler})
             {
                 get
                 {
-                    return GetCollection<GraphCalendarEvent>(this.graphClient, this.calendarUri);
+                    return GetCollection<GraphCalendarEvent>(this.graphClient, this.eventsUri);
                 }
             }
 
