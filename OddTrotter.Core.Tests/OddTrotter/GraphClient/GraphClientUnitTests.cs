@@ -1,10 +1,12 @@
 ﻿namespace OddTrotter.GraphClient
 {
     using System;
+    using System.ComponentModel.DataAnnotations;
     using System.Net.Http;
     using System.Threading.Tasks;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using OddTrotter.Calendar;
 
     /// <summary>
     /// Unit tests for <see cref="GraphClient"/>
@@ -12,6 +14,45 @@
     [TestClass]
     public sealed class GraphClientUnitTests
     {
+        private sealed class MockGraphClient : IGraphClient
+        {
+            public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [TestMethod]
+        public void Test()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = graphCalendarContext.Events;
+            events = events
+                .Select(calendarEvent => calendarEvent.Id)
+                .Select(calendarEvent => calendarEvent.Body)
+                .Select(calendarEvent => calendarEvent.Start)
+                .Select(calendarEvent => calendarEvent.Subject)
+                .Select(calendarEvent => calendarEvent.ResponseStatus)
+                .Select(calendarEvent => calendarEvent.WebLink);
+            var values = events.Values;
+        }
+
         /// <summary>
         /// Creates a new <see cref="GraphClient"/> with a <see langword="null"> access token
         /// </summary>

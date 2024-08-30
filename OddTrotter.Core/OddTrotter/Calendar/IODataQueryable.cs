@@ -70,6 +70,10 @@ var url =
 
             public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
             {
+                if (selector.Body is MemberExpression)
+                {
+                }
+
                 throw new NotImplementedException();
             }
 
