@@ -117,7 +117,7 @@
                 throw new ArgumentNullException(nameof(data));
             }
 
-            var maxLength = StringUtilities.MaxLength - initializationVectorLengthInBytes;
+            /*var maxLength = StringUtilities.MaxLength - initializationVectorLengthInBytes;
             if (data.Length >= maxLength)
             {
                 // we use memory streams later; reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
@@ -127,7 +127,7 @@
                 // using a chunkedmemorystream was explored in order to avoid this suggestion, but ultimately a byte[] is returned and it has a length with an integer value
                 throw new ArgumentOutOfRangeException(
                     $"The length of '{nameof(data)}' must not be larger than '{maxLength}'");
-            }
+            }*/
 
             var initializationVector = RandomNumberGenerator.GetBytes(initializationVectorLengthInBytes);
             using (var aes = Aes.Create())

@@ -1,7 +1,7 @@
 ﻿namespace OddTrotter.Encryptor
 {
     using System;
-
+    using System.IO;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     /// <summary>
@@ -128,6 +128,15 @@
             var plaintext = "some data";
             var cipherText = encryptor.Encrypt(plaintext);
             Assert.ThrowsException<EncryptionException>(() => defaultEncryptor.Decrypt(cipherText));
+        }
+
+        [TestMethod]
+        public void EncryptLongData()
+        {
+            using (var memoryStream = new ChunkedMemoryStream(new byte[int.MaxValue], true))
+            {
+                memoryStream.Write()
+            }
         }
     }
 }
