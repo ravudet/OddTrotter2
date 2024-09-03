@@ -1,6 +1,7 @@
 ﻿namespace OddTrotter.AzureBlobClient
 {
     using System;
+    using System.IO;
     using System.Net.Http;
     using System.Threading.Tasks;
 
@@ -120,10 +121,10 @@
                 throw new ArgumentNullException(nameof(httpContent));
             }
 
-            byte[] encryptedContent;
+            Stream encryptedContent;
             try
             {
-                encryptedContent = this.encryptor.Encrypt(await httpContent.ReadAsStringAsync().ConfigureAwait(false));
+                encryptedContent = this.encryptor.Encrypt(await httpContent.ReadAsStreamAsync().ConfigureAwait(false));
             }
             catch (ArgumentOutOfRangeException e)
             {
@@ -134,7 +135,7 @@
                 throw new InvalidBlobDataException($"An error occurred while encrypting '{nameof(httpContent)}'", e);
             }
 
-            using (var byteArrayContent = new ByteArrayContent(encryptedContent))
+            using (var byteArrayContent = new StreamContent(encryptedContent))
             {
                 return await this.delegateClient.PutAsync(blobName, byteArrayContent).ConfigureAwait(false);
             }

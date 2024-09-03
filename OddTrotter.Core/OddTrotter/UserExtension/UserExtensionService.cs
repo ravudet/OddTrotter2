@@ -1,6 +1,7 @@
 ﻿namespace OddTrotter.UserExtension
 {
     using System;
+    using System.IO;
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -58,22 +59,35 @@
                 throw new ArgumentNullException(nameof(oddTrotterBlobSettings));
             }
 
-            var serializedSettings = JsonSerializer.Serialize(oddTrotterBlobSettings);
-            byte[] encrypted;
-            try
-            {
-                encrypted = encryptor.Encrypt(serializedSettings);
-            }
-            catch (ArgumentOutOfRangeException e)
-            {
-                throw new UserExtensionEncryptionException($"An error occurred while encrypting the OddTrotter user extension because the extension data was too long", serializedSettings, e);
-            }
+            /////var serializedSettings = JsonSerializer.Serialize(oddTrotterBlobSettings);
 
-            var extension = new OddTrotterUserExtension()
+            using (var serializedSettings = new MemoryStream())
             {
-                Data = Convert.ToBase64String(encrypted),
-            };
-            await UpdateUserExtension(this.graphClient, extension).ConfigureAwait(false);
+                JsonSerializer.Serialize(serializedSettings, oddTrotterBlobSettings);
+
+                Stream encrypted;
+                try
+                {
+                    encrypted = encryptor.Encrypt(serializedSettings);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    throw;
+                    ////throw new UserExtensionEncryptionException($"An error occurred while encrypting the OddTrotter user extension because the extension data was too long", serializedSettings, e);
+                }
+
+                var extension = new OddTrotterUserExtension()
+                {
+                    Data = ToBase64String(encrypted),
+                };
+                await UpdateUserExtension(this.graphClient, extension).ConfigureAwait(false);
+            }
+        }
+
+
+        private static string ToBase64String(Stream stream)
+        {
+            return null;
         }
 
         /// <summary>
