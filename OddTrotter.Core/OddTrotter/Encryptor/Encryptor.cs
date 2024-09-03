@@ -136,17 +136,17 @@
                 aes.IV = initializationVector;
                 using (var decryptor = aes.CreateEncryptor(aes.Key, aes.IV))
                 {
-                    MemoryStream? memoryStream = null;
+                    ChunkedMemoryStream? memoryStream = null;
                     try
                     {
-                        memoryStream = new MemoryStream();
+                        memoryStream = new ChunkedMemoryStream();
 
                         // reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
                         // we can see that IOException is thrown if the payload overflows the postition, which is stored as an int; we know the size of the initialization vector,
                         // so we know that it fits
                         memoryStream.Write(initializationVector, 0, initializationVector.Length);
 
-                        using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write))
+                        using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write, true))
                         {
                             try
                             {
@@ -161,6 +161,7 @@
                             }
                         }
 
+                        memoryStream.Position = 0;
                         return memoryStream;
                     }
                     catch
@@ -183,57 +184,14 @@
         /// <exception cref="EncryptionException">Thrown if an error occurred while encrypting <paramref name="data"/> using the configured password</exception>
         public byte[] Encrypt(string data)
         {
-            if (data == null)
+            var bytes = Encoding.UTF8.GetBytes(data);
+            using (var memoryStream = new MemoryStream(bytes, false))
             {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            var maxLength = StringUtilities.MaxLength - initializationVectorLengthInBytes;
-            if (data.Length >= maxLength)
-            {
-                // we use memory streams later; reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
-                // we can see that IOException is thrown if the payload overflows the postition, which is stored as an int; we know that the data fits in a string, which uses an
-                // int length, so we must check if we can fit the data *and* the initialization vector at the same time
-                // 
-                // using a chunkedmemorystream was explored in order to avoid this suggestion, but ultimately a byte[] is returned and it has a length with an integer value
-                throw new ArgumentOutOfRangeException(
-                    $"The length of '{nameof(data)}' must not be larger than '{maxLength}'");
-            }
-
-            var initializationVector = RandomNumberGenerator.GetBytes(initializationVectorLengthInBytes);
-            using (var aes = Aes.Create())
-            {
-                aes.Key = this.key;
-                aes.IV = initializationVector;
-                using (var decryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                var encrypted = this.Encrypt(memoryStream);
+                using (var returned = new MemoryStream())
                 {
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        // reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
-                        // we can see that IOException is thrown if the payload overflows the postition, which is stored as an int; we know the size of the initialization vector,
-                        // so we know that it fits
-                        memoryStream.Write(initializationVector, 0, initializationVector.Length);
-
-                        using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write))
-                        {
-                            using (var streamWriter = new StreamWriter(cryptoStream, this.encoding))
-                            {
-                                try
-                                {
-                                    // not using async here since everything is in-memory
-                                    //
-                                    // we've previously assert that the data length cannot be too large, so IOException won't be thrown here
-                                    streamWriter.Write(data);
-                                }
-                                catch (CryptographicException e)
-                                {
-                                    throw new EncryptionException(data, e);
-                                }
-                            }
-                        }
-
-                        return memoryStream.ToArray();
-                    }
+                    encrypted.CopyTo(returned);
+                    return returned.ToArray();
                 }
             }
         }
