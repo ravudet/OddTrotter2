@@ -70,11 +70,21 @@ var url =
 
             public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
             {
-                if (selector.Body is MemberExpression)
+                if (selector.Body is MemberExpression memberExpression)
                 {
-                }
+                    if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Id))
+                    {
 
-                throw new NotImplementedException();
+                    }
+                    else
+                    {
+                        throw new Exception("TODO not a known member; do you really want to be strict about this? well, actually, you probably *should* be consistent about ti because even if they select a property, you won't deserialiez it if you don't know about; at the same time, though, you're efectively doing what the odata webapi stuff does and hide things; m,aybe you should expose the url somewhere, and if you do that, then it might make sense to allow properties that you're not aware of");
+                    }
+                }
+                else
+                {
+                    throw new Exception("TODO only member expressions are allowed");
+                }
             }
 
             public ODataCollection<GraphCalendarEvent> Values //// TODO shouldn't this return type be something odata-y? like, the properties need to be marked as selected and stuff, right?

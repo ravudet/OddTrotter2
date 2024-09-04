@@ -22,7 +22,7 @@
         internal IList<string>? SelectedProperties { get; set; }
     }
 
-    public class GraphCalendarEvent
+    public class GraphCalendarEvent //// TODO deal with property nullability
     {
         [JsonPropertyName("id")]
         public string? Id { get; set; }
