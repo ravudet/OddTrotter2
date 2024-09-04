@@ -133,9 +133,16 @@
         [TestMethod]
         public void EncryptLongData()
         {
-            using (var memoryStream = new ChunkedMemoryStream(new byte[int.MaxValue], true))
+            var data = new byte[int.MaxValue >> 1];
+            using (var memoryStream = new ChunkedMemoryStream(data, true))
             {
-                memoryStream.Write()
+                memoryStream.Write(data, 0, data.Length);
+                memoryStream.Write(data, 0, data.Length);
+                memoryStream.Position = 0;
+
+                var encryptor = new Encryptor();
+
+                var encrypted = encryptor.Encrypt(memoryStream);
             }
         }
     }
