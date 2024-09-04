@@ -101,12 +101,28 @@
                 $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
             */
 
-            public IODataCollectionContext<GraphCalendarEvent> Filter()
+            public IODataCollectionContext<GraphCalendarEvent> Filter(Expression<Func<GraphCalendarEvent, bool>> predicate)
             {
+                //// TODO how do you go about making this more complete? and is there a way to make it able to validate according to what graph actually supports?
+
+                var filterBuilder = new StringBuilder();
+                if (predicate.Body is BinaryExpression binaryExpression)
+                {
+                    if (binaryExpression.Left is MemberExpression leftMemberExpression)
+                    {
+                        filterBuilder.Append(TraverseMemberExpression(leftMemberExpression, Enumerable.Empty<MemberExpression>()));
+                    }
+                }
+
+                if (filterBuilder.Length == 0)
+                {
+                    throw new Exception("TODO");
+                }
+
                 return new CalendarEventCollectionContext(
                     this.graphClient,
                     this.eventsUri,
-                    "$filter=id eq 'asdf'",
+                    $"$filter={filterBuilder}",
                     this.select,
                     this.top,
                     this.orderBy);
