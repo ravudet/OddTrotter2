@@ -4,9 +4,10 @@
     using System.ComponentModel.DataAnnotations;
     using System.Net.Http;
     using System.Threading.Tasks;
-
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client.Payloads;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using OddTrotter.Calendar;
+    using OddTrotter.TodoList;
 
     /// <summary>
     /// Unit tests for <see cref="GraphClient"/>
@@ -66,6 +67,7 @@
                 .Top(5)
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
                 .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+                .Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03"))
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
                 ;
             var values = events.Values;

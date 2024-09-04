@@ -45,6 +45,9 @@
         [JsonPropertyName("webLink")]
         public string? WebLink { get; set; }
 
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
         //// TODO add *all* of the properties here
     }
 

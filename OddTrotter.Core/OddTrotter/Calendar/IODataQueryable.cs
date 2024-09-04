@@ -6,6 +6,8 @@
     using System.Linq;
     using System.Linq.Expressions;
     using System.Net.Http;
+    using System.Net.Quic;
+    using System.Reflection;
     using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
@@ -101,31 +103,193 @@
                 $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
             */
 
+#pragma warning disable IDE1006 // Naming Styles
+            public static bool op_Equality(string first, string second)
+#pragma warning restore IDE1006 // Naming Styles
+            {
+                return true;
+            }
+
             public IODataCollectionContext<GraphCalendarEvent> Filter(Expression<Func<GraphCalendarEvent, bool>> predicate)
             {
                 //// TODO how do you go about making this more complete? and is there a way to make it able to validate according to what graph actually supports?
 
                 var filterBuilder = new StringBuilder();
-                if (predicate.Body is BinaryExpression binaryExpression)
+                /*if (predicate.Body is BinaryExpression binaryExpression)
                 {
+                    TraverseBinaryExpression(binaryExpression, filterBuilder);
+
                     if (binaryExpression.Left is MemberExpression leftMemberExpression)
                     {
                         filterBuilder.Append(TraverseMemberExpression(leftMemberExpression, Enumerable.Empty<MemberExpression>()));
+                    }
+
+                    if (binaryExpression.Left.Type == typeof(DateTime))
+                    {
+                        // we support some parsing methods for datetime
+                        //// TODO also add support for guid?
+                        //// TODO for anything that's not a literal, can you compile it and evaluate? maybe, but what about cases where you hvae a method that uses the predicate parameter as an argument (e.g. event => DoSomething(event))
+                    }
+                    else
+                    {
+
+
+                        Expression<Func<string, string, bool>> expression = (first, second) => first == second;
+                        var stringOperatorEquals = ((BinaryExpression)expression.Body).Method;
+
+                        if (binaryExpression.Method == stringOperatorEquals)
+                        {
+                        }
                     }
                 }
 
                 if (filterBuilder.Length == 0)
                 {
                     throw new Exception("TODO");
-                }
+                }*/
+
+                TraverseFilter(predicate.Body, filterBuilder);
 
                 return new CalendarEventCollectionContext(
                     this.graphClient,
                     this.eventsUri,
-                    $"$filter={filterBuilder}",
+                    this.filter == null ? $"$filter={filterBuilder}" : $"{this.filter} and {filterBuilder}",
                     this.select,
                     this.top,
                     this.orderBy);
+            }
+
+            private void TraverseBinaryExpression(BinaryExpression expression, StringBuilder queryParameter)
+            {
+                Expression<Func<bool, bool, bool>> andEpression = (first, second) => first && second;
+                Expression<Func<bool, bool, bool>> orEpression = (first, second) => first && second;
+
+                TraverseFilter(expression.Left, queryParameter);
+
+                if (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_Equality")
+                {
+                    queryParameter.Append(" eq ");
+                }
+                else if (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_GreaterThan")
+                {
+                    queryParameter.Append(" gt ");
+                }
+                else if (expression.Method == ((BinaryExpression)andEpression.Body).Method)
+                {
+                    queryParameter.Append(" and ");
+                }
+                else if (expression.Method == ((BinaryExpression)orEpression.Body).Method)
+                {
+                    queryParameter.Append(" or ");
+                }
+                else
+                {
+                    //// TODO other operators
+                    throw new Exception("TODO");
+                }
+
+                TraverseFilter(expression.Right, queryParameter);
+            }
+
+            private void TraverseConstantExpression(ConstantExpression expression, StringBuilder queryParameter)
+            {
+                var quotes = false;
+                if (expression.Type == typeof(string))
+                {
+                    quotes = true;
+                }
+                else if (expression.Type == typeof(DateTime))
+                {
+                    quotes = true;
+                }
+                else
+                {
+                    //// TODO other constants that need quoted here
+                    throw new Exception("TODO");
+                }
+
+                if (quotes)
+                {
+                    queryParameter.Append("'");
+                }
+
+                queryParameter.Append(expression.Value);
+
+                if (quotes)
+                {
+                    queryParameter.Append("'");
+                }
+            }
+
+            private void TraverseMethodCallExpression(MethodCallExpression expression, StringBuilder queryParameter)
+            {
+                Expression<Func<DateTime>> dateTimeParseEpression = () => DateTime.Parse(string.Empty);
+
+                var dateTimeParseMethodInfo = ((MethodCallExpression)dateTimeParseEpression.Body).Method;
+
+                if (expression.Method == dateTimeParseMethodInfo)
+                {
+                    //// TODO if it doesn't equal one, that's really something hugely invalid, and we are swallowing it; is that ok?
+                    if (expression.Arguments.Count == 1)
+                    {
+                        if (expression.Arguments[0] is ConstantExpression dateTimeConstantExpression)
+                        {
+                            //// TODO do you want to do a manual formatting of dateTimeConstantExpression.Value? do you want to actually call datetime.parse on it?
+
+                            if (!(dateTimeConstantExpression.Value is string dateTimeConstantExpressionValue))
+                            {
+                                //// TODO do you want to just assume that it's a string?
+                                throw new Exception("TODO");
+                            }
+
+                            var dateTime = DateTime.Parse(dateTimeConstantExpressionValue);
+
+                            //// TODO use jsonpropertyname attributes to get the start and datetime strings (you should actually use brand new attributes)
+                            queryParameter.Append("'");
+                            queryParameter.Append(dateTimeConstantExpression.Value);
+                            queryParameter.Append("'");
+                        }
+                        else
+                        {
+                            //// TODO you are oinly supporting constants for this convenience method call, right? maybe also support a closure?
+                            throw new Exception("TODO");
+                        }
+                    }
+                }
+                else
+                {
+                    //// TODO other conveinece method calls here, like guid.parse
+                    throw new Exception("tODO");
+                }
+            }
+
+            private void TraverseFilter(Expression expression, StringBuilder queryParameter)
+            {
+                if (expression is ConstantExpression constantExpression)
+                {
+                    TraverseConstantExpression(constantExpression, queryParameter);
+                }
+                else if (expression is MemberExpression memberExpression)
+                {
+                    queryParameter.Append(TraverseMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>()));
+                }
+                else if (expression is BinaryExpression binaryExpression)
+                {
+                    TraverseBinaryExpression(binaryExpression, queryParameter);
+                }
+                else if (expression.NodeType == ExpressionType.Convert && expression is UnaryExpression unaryExpression)
+                {
+                    //// TODO a "convert" expression is the result of a nullable casting
+                    TraverseFilter(unaryExpression.Operand, queryParameter);
+                }
+                else if (expression is MethodCallExpression methodCallExpression)
+                {
+                    TraverseMethodCallExpression(methodCallExpression, queryParameter);
+                }
+                else
+                {
+                    throw new Exception("TODO");
+                }
             }
 
             public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
@@ -189,7 +353,7 @@
                         {
                             propertyPath.Append("/dateTime");
                         }
-                        if (previousExpression.Member.Name == nameof(TimeStructure.TimeZone))
+                        else if (previousExpression.Member.Name == nameof(TimeStructure.TimeZone))
                         {
                             propertyPath.Append("/timeZone");
                         }
@@ -210,7 +374,7 @@
                         {
                             propertyPath.Append("/dateTime");
                         }
-                        if (previousExpression.Member.Name == nameof(TimeStructure.TimeZone))
+                        else if (previousExpression.Member.Name == nameof(TimeStructure.TimeZone))
                         {
                             propertyPath.Append("/timeZone");
                         }
@@ -235,7 +399,7 @@
                         {
                             propertyPath.Append("/response");
                         }
-                        if (previousExpression.Member.Name == nameof(ResponseStatusStructure.Time))
+                        else if (previousExpression.Member.Name == nameof(ResponseStatusStructure.Time))
                         {
                             propertyPath.Append("/time");
                         }
@@ -250,6 +414,10 @@
                 else if (expression.Member.Name == nameof(GraphCalendarEvent.WebLink))
                 {
                     return "webLink";
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.Type))
+                {
+                    return "type";
                 }
 
                 throw new Exception("TODO not a known member; do you really want to be strict about this? well, actually, you probably *should* be consistent about ti because even if they select a property, you won't deserialiez it if you don't know about; at the same time, though, you're efectively doing what the odata webapi stuff does and hide things; m,aybe you should expose the url somewhere, and if you do that, then it might make sense to allow properties that you're not aware of");
@@ -505,7 +673,7 @@
 
         IODataCollectionContext<T> OrderBy<TProperty>(Expression<Func<T, TProperty>> selector);
 
-        IODataCollectionContext<T> Filter();
+        IODataCollectionContext<T> Filter(Expression<Func<GraphCalendarEvent, bool>> predicate);
 
         //// TODO T this[somekey?] { get; }
     }
