@@ -68,7 +68,7 @@
                 Stream encrypted;
                 try
                 {
-                    encrypted = encryptor.Encrypt(serializedSettings);
+                    encrypted = await encryptor.Encrypt(serializedSettings);
                 }
                 catch (ArgumentOutOfRangeException)
                 {

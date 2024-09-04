@@ -4,6 +4,7 @@
     using System.IO;
     using System.Security.Cryptography;
     using System.Text;
+    using System.Threading.Tasks;
 
     public sealed class Encryptor
     {
@@ -12,6 +13,8 @@
         private readonly byte[] key;
 
         private readonly Encoding encoding;
+
+        private readonly long chunkSize;
 
         public Encryptor()
             : this(EncryptorSettings.Default)
@@ -31,6 +34,7 @@
             }
 
             this.encoding = settings.Encoding;
+            this.chunkSize = settings.ChunkSize;
 
             var passwordBytes = this.encoding.GetBytes(settings.Password);
             using (var sha256 = SHA256.Create())
@@ -177,24 +181,24 @@
         }
         */
 
-        public Stream Encrypt(Stream data)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="data"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="data"/> is not a readable stream</exception>
+        public async Task<Stream> Encrypt(Stream data)
         {
             if (data == null)
             {
                 throw new ArgumentNullException(nameof(data));
             }
 
-            /*var maxLength = StringUtilities.MaxLength - initializationVectorLengthInBytes;
-            if (data.Length >= maxLength)
+            if (!data.CanRead)
             {
-                // we use memory streams later; reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
-                // we can see that IOException is thrown if the payload overflows the postition, which is stored as an int; we know that the data fits in a string, which uses an
-                // int length, so we must check if we can fit the data *and* the initialization vector at the same time
-                // 
-                // using a chunkedmemorystream was explored in order to avoid this suggestion, but ultimately a byte[] is returned and it has a length with an integer value
-                throw new ArgumentOutOfRangeException(
-                    $"The length of '{nameof(data)}' must not be larger than '{maxLength}'");
-            }*/
+                throw new ArgumentException($"'{nameof(data)}' is not a readable stream", nameof(data));
+            }
 
             var initializationVector = RandomNumberGenerator.GetBytes(initializationVectorLengthInBytes);
             using (var aes = Aes.Create())
@@ -206,26 +210,11 @@
                     ChunkedMemoryStream? memoryStream = null;
                     try
                     {
-                        memoryStream = new ChunkedMemoryStream();
-
-                        // reading the source code for memory stream here: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/IO/MemoryStream.cs,a27df287b28d9a2a,references
-                        // we can see that IOException is thrown if the payload overflows the postition, which is stored as an int; we know the size of the initialization vector,
-                        // so we know that it fits
+                        memoryStream = new ChunkedMemoryStream(this.chunkSize);
                         memoryStream.Write(initializationVector, 0, initializationVector.Length);
-
                         using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write, true))
                         {
-                            try
-                            {
-                                // not using async here since everything is in-memory
-                                //
-                                // we've previously assert that the data length cannot be too large, so IOException won't be thrown here
-                                data.CopyTo(cryptoStream);
-                            }
-                            catch (CryptographicException e)
-                            {
-                                throw new EncryptionException("TODO", e);
-                            }
+                            await data.CopyToAsync(cryptoStream).ConfigureAwait(false);
                         }
 
                         memoryStream.Position = 0;
@@ -254,7 +243,7 @@
             var bytes = Encoding.Default.GetBytes(data);
             using (var memoryStream = new ChunkedMemoryStream(bytes, false))
             {
-                var encrypted = this.Encrypt(memoryStream);
+                var encrypted = this.Encrypt(memoryStream).GetAwaiter().GetResult(); ;
                 using (var returned = new ChunkedMemoryStream())
                 {
                     encrypted.CopyTo(returned);

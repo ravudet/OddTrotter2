@@ -124,7 +124,7 @@
             Stream encryptedContent;
             try
             {
-                encryptedContent = this.encryptor.Encrypt(await httpContent.ReadAsStreamAsync().ConfigureAwait(false));
+                encryptedContent = await this.encryptor.Encrypt(await httpContent.ReadAsStreamAsync().ConfigureAwait(false));
             }
             catch (ArgumentOutOfRangeException e)
             {
