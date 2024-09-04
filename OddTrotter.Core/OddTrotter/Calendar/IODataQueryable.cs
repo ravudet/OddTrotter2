@@ -135,6 +135,7 @@
 
             private string TraverseMemberExpression(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
             {
+                //// TODO should this "replace" with a constant expression of the property path?
                 if (expression.Expression?.NodeType != ExpressionType.Parameter)
                 {
                     if (expression.Expression is MemberExpression memberExpression)
