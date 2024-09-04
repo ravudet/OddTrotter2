@@ -252,10 +252,10 @@
         public byte[] Encrypt(string data)
         {
             var bytes = Encoding.Default.GetBytes(data);
-            using (var memoryStream = new MemoryStream(bytes, false))
+            using (var memoryStream = new ChunkedMemoryStream(bytes, false))
             {
                 var encrypted = this.Encrypt(memoryStream);
-                using (var returned = new MemoryStream())
+                using (var returned = new ChunkedMemoryStream())
                 {
                     encrypted.CopyTo(returned);
                     return returned.ToArray();
