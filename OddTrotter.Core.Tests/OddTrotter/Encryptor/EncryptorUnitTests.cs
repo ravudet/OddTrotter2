@@ -93,11 +93,13 @@
         public void DecryptNullData()
         {
             var encryptor = new Encryptor();
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
             Assert.ThrowsException<ArgumentNullException>(() => encryptor.Decrypt(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                null
+                (Stream)null
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                 ));
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
         }
 
         /// <summary>

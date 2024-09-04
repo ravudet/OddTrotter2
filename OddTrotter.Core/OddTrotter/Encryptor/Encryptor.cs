@@ -48,7 +48,7 @@
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="data"/> is <see langword="null"/></exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="data"/> is not long enough to have been encrypted with the configured password</exception>
         /// <exception cref="EncryptionException">Thrown if the configured password was not used to encrypt <paramref name="data"/></exception>
-        public string Decrypt(byte[] data)
+        /*public string Decrypt(byte[] data)
         {
             if (data == null)
             {
@@ -88,6 +88,73 @@
                                     throw new EncryptionException(base64, e);
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }*/
+
+        public string Decrypt(byte[] data)
+        {
+            using (var dataMemoryStream = new ChunkedMemoryStream(data, false))
+            {
+                var decrypted = this.Decrypt(dataMemoryStream);
+                using (var decryptedMemoryStream = new ChunkedMemoryStream())
+                {
+                    decrypted.CopyTo(decryptedMemoryStream);
+                    var decryptedBytes = decryptedMemoryStream.ToArray();
+                    return Encoding.Default.GetString(decryptedBytes);
+                }
+            }
+        }
+
+        public Stream Decrypt(Stream data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            if (data.Length < initializationVectorLengthInBytes)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(data),
+                    $"The data length must be at least {initializationVectorLengthInBytes} bytes to have been encrypted with the configured password.");
+            }
+
+            var initializationVector = new byte[initializationVectorLengthInBytes];
+            data.Read(initializationVector, 0, initializationVector.Length); //// TODO because it's a memory stream, i'm assuming a full read; these below methods should be used instead
+
+            using (var aes = Aes.Create())
+            {
+                aes.Key = this.key;
+                aes.IV = initializationVector;
+                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                {
+                    using (var cryptoStream = new CryptoStream(data, decryptor, CryptoStreamMode.Read))
+                    {
+                        ChunkedMemoryStream? memoryStream = null;
+                        try
+                        {
+                            memoryStream = new ChunkedMemoryStream();
+
+                            try
+                            {
+                                // not using async here since everything is in-memory
+                                cryptoStream.CopyTo(memoryStream);
+                                memoryStream.Position = 0;
+                                return memoryStream;
+                            }
+                            catch (CryptographicException e)
+                            {
+                                ////var base64 = Convert.ToBase64String(data);
+                                throw new EncryptionException("TODO", e);
+                            }
+                        }
+                        catch
+                        {
+                            memoryStream?.Dispose();
+                            throw;
                         }
                     }
                 }
@@ -151,8 +218,8 @@
                             try
                             {
                                 // not using async here since everything is in-memory
-                             //
-                             // we've previously assert that the data length cannot be too large, so IOException won't be thrown here
+                                //
+                                // we've previously assert that the data length cannot be too large, so IOException won't be thrown here
                                 data.CopyTo(cryptoStream);
                             }
                             catch (CryptographicException e)
@@ -184,7 +251,7 @@
         /// <exception cref="EncryptionException">Thrown if an error occurred while encrypting <paramref name="data"/> using the configured password</exception>
         public byte[] Encrypt(string data)
         {
-            var bytes = Encoding.UTF8.GetBytes(data);
+            var bytes = Encoding.Default.GetBytes(data);
             using (var memoryStream = new MemoryStream(bytes, false))
             {
                 var encrypted = this.Encrypt(memoryStream);
