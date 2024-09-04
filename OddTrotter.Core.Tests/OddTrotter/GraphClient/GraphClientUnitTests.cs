@@ -40,11 +40,25 @@
         [TestMethod]
         public void Test()
         {
+            /*
+            var url =
+                $"/me/calendar/events?" +
+                $"$select=body,start,subject,responseStatus,webLink&" +
+                $"$top={pageSize}&" +
+                $"$orderBy=start/dateTime&" +
+                $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
+            */
+
             var graphClient = new MockGraphClient();
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events;
-            events = events
-                .Select(calendarEvent => calendarEvent.Id)
+
+
+            var eventsIdSelected = events
+                .Select(calendarEvent => calendarEvent.Id);
+
+            events = eventsIdSelected
+                .Filter()
                 .Select(calendarEvent => calendarEvent.Body)
                 .Select(calendarEvent => calendarEvent.Start)
                 .Select(calendarEvent => calendarEvent.Subject)

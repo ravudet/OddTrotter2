@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text.Json;
@@ -11,9 +12,9 @@
     using OddTrotter.AzureBlobClient;
     using OddTrotter.GraphClient;
 
-/*
-how to generate? .../calendar?$expand=events($filter={fitler})
-*/
+    /*
+    how to generate? .../calendar?$expand=events($filter={fitler})
+    */
 
     public sealed class GraphCalendarContext : IODataInstanceContext
     {
@@ -42,44 +43,83 @@ how to generate? .../calendar?$expand=events($filter={fitler})
             private readonly string? select;
 
             public CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri calendarUri)
-                : this(graphClient, calendarUri, null, null)
+                : this(graphClient, new Uri(calendarUri.OriginalString.TrimEnd('/') + "/events", UriKind.Relative).ToRelativeUri(), null, null)
             {
             }
 
-            private CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri calendarUri, string? filter, string? select)
+            private CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri eventsUri, string? filter, string? select)
             {
                 this.graphClient = graphClient;
-                this.eventsUri = new Uri(calendarUri.OriginalString.TrimEnd('/') + "/events", UriKind.Relative).ToRelativeUri();
+                this.eventsUri = eventsUri;
                 this.filter = filter;
                 this.select = select;
             }
 
-/*
-var url =
-    $"/me/calendar/events?" +
-    $"$select=body,start,subject,responseStatus,webLink&" +
-    $"$top={pageSize}&" +
-    $"$orderBy=start/dateTime&" +
-    $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
-*/
+            /*
+            var url =
+                $"/me/calendar/events?" +
+                $"$select=body,start,subject,responseStatus,webLink&" +
+                $"$top={pageSize}&" +
+                $"$orderBy=start/dateTime&" +
+                $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
+            */
 
             public IODataCollectionContext<GraphCalendarEvent> Filter()
             {
-                throw new NotImplementedException();
+                return new CalendarEventCollectionContext(
+                    this.graphClient,
+                    this.eventsUri,
+                    "$filter=id eq 'asdf'",
+                    this.select);
             }
 
             public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
             {
                 if (selector.Body is MemberExpression memberExpression)
                 {
+                    string propertyName;
                     if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Id))
                     {
-
+                        propertyName = "id"; //// TODO you should generalize at some point and pull this from a c# attribute
+                    }
+                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Body))
+                    {
+                        //// TODO sub-expressions
+                        propertyName = "body";
+                    }
+                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Start))
+                    {
+                        //// TODO sub-expressions
+                        propertyName = "start";
+                    }
+                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.End))
+                    {
+                        //// TODO sub-expressions
+                        propertyName = "end";
+                    }
+                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Subject))
+                    {
+                        propertyName = "subject";
+                    }
+                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.ResponseStatus))
+                    {
+                        //// TODO sub-expressions
+                        propertyName = "responseStatus";
+                    }
+                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.WebLink))
+                    {
+                        propertyName = "webLink";
                     }
                     else
                     {
                         throw new Exception("TODO not a known member; do you really want to be strict about this? well, actually, you probably *should* be consistent about ti because even if they select a property, you won't deserialiez it if you don't know about; at the same time, though, you're efectively doing what the odata webapi stuff does and hide things; m,aybe you should expose the url somewhere, and if you do that, then it might make sense to allow properties that you're not aware of");
                     }
+
+                    return new CalendarEventCollectionContext(
+                        this.graphClient,
+                        this.eventsUri, 
+                        this.filter, 
+                        this.select == null ? $"$select={propertyName}" : $"{this.select},{propertyName}");
                 }
                 else
                 {
@@ -91,7 +131,18 @@ var url =
             {
                 get
                 {
-                    return GetCollection<GraphCalendarEvent>(this.graphClient, this.eventsUri);
+                    var queryOptionsList = new[]
+                    {
+                        this.select,
+                        this.filter,
+                    }.Where(option => option != null);
+
+                    var queryOptions = string.Join("&", queryOptionsList);
+
+                    var requestUri = string.IsNullOrEmpty(queryOptions) ? 
+                        this.eventsUri : 
+                        new Uri($"{this.eventsUri.OriginalString}?{queryOptions}", UriKind.Relative).ToRelativeUri();
+                    return GetCollection<GraphCalendarEvent>(this.graphClient, requestUri);
                 }
             }
 
