@@ -119,6 +119,9 @@
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="data"/> is <see langword="null"/></exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="data"/> is not long enough to have been encrypted with the configured password</exception>
+        /// <exception cref="NotSupportedException">Thrown if <paramref name="data"/> does not support reading</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if <paramref name="data"/> is disposed</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <paramref name="data"/> is currently in use by a previous read operation</exception>
         public async Task<Stream> Decrypt(Stream data)
         {
             if (data == null)
@@ -133,9 +136,17 @@
                     $"The data length must be at least {initializationVectorLengthInBytes} bytes to have been encrypted with the configured password.");
             }
 
+            if (!data.CanRead)
+            {
+                throw new NotSupportedException($"'{nameof(data)}' does not support reading");
+            }
+
             var initializationVector = new byte[initializationVectorLengthInBytes];
+            //// TODO you have a bucnh of new code; make sure to unit test it all
+            //// TODO do chunked memory stream...
             await data.ReadBufferAsync(initializationVector);
 
+            //// TODO you are here
             using (var aes = Aes.Create())
             {
                 aes.Key = this.key;
