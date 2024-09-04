@@ -57,13 +57,16 @@
             var eventsIdSelected = events
                 .Select(calendarEvent => calendarEvent.Id);
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             events = eventsIdSelected
                 .Filter()
                 .Select(calendarEvent => calendarEvent.Body)
                 .Select(calendarEvent => calendarEvent.Start)
                 .Select(calendarEvent => calendarEvent.Subject)
                 .Select(calendarEvent => calendarEvent.ResponseStatus)
-                .Select(calendarEvent => calendarEvent.WebLink);
+                .Select(calendarEvent => calendarEvent.WebLink)
+                .Select(calendarEvent => calendarEvent.Body.Content);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             var values = events.Values;
         }
 

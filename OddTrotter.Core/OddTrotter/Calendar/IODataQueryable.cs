@@ -2,11 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Net.Http;
+    using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using OddTrotter.AzureBlobClient;
@@ -38,8 +41,16 @@
 
             private readonly RelativeUri eventsUri;
 
+            /// <summary>
+            /// TODO properly document
+            /// prefixed with '$filter' if not null
+            /// </summary>
             private readonly string? filter;
 
+            /// <summary>
+            /// TODO properly document
+            /// prefixed with '$select' if not null
+            /// </summary>
             private readonly string? select;
 
             public CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri calendarUri)
@@ -75,56 +86,126 @@
 
             public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
             {
+                //// TODO prevent two selects of the same property
+                //// TODO do any other validations needed for the spec to be accureate
                 if (selector.Body is MemberExpression memberExpression)
                 {
-                    string propertyName;
-                    if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Id))
-                    {
-                        propertyName = "id"; //// TODO you should generalize at some point and pull this from a c# attribute
-                    }
-                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Body))
-                    {
-                        //// TODO sub-expressions
-                        propertyName = "body";
-                    }
-                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Start))
-                    {
-                        //// TODO sub-expressions
-                        propertyName = "start";
-                    }
-                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.End))
-                    {
-                        //// TODO sub-expressions
-                        propertyName = "end";
-                    }
-                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.Subject))
-                    {
-                        propertyName = "subject";
-                    }
-                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.ResponseStatus))
-                    {
-                        //// TODO sub-expressions
-                        propertyName = "responseStatus";
-                    }
-                    else if (memberExpression.Member.Name == nameof(GraphCalendarEvent.WebLink))
-                    {
-                        propertyName = "webLink";
-                    }
-                    else
-                    {
-                        throw new Exception("TODO not a known member; do you really want to be strict about this? well, actually, you probably *should* be consistent about ti because even if they select a property, you won't deserialiez it if you don't know about; at the same time, though, you're efectively doing what the odata webapi stuff does and hide things; m,aybe you should expose the url somewhere, and if you do that, then it might make sense to allow properties that you're not aware of");
-                    }
-
+                    var propertyPath = TraverseSelect(memberExpression, Enumerable.Empty<MemberExpression>());
                     return new CalendarEventCollectionContext(
                         this.graphClient,
-                        this.eventsUri, 
-                        this.filter, 
-                        this.select == null ? $"$select={propertyName}" : $"{this.select},{propertyName}");
+                        this.eventsUri,
+                        this.filter,
+                        this.select == null ? $"$select={propertyPath}" : $"{this.select},{propertyPath}");
                 }
                 else
                 {
                     throw new Exception("TODO only member expressions are allowed");
                 }
+            }
+
+            private string TraverseSelect(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
+            {
+                if (expression.Expression?.NodeType != ExpressionType.Parameter)
+                {
+                    if (expression.Expression is MemberExpression memberExpression)
+                    {
+                        return TraverseSelect(memberExpression, previousExpressions.Append(expression));
+                    }
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.Id))
+                {
+                    return "id"; //// TODO you should generalize at some point and pull this from a c# attribute
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.Body))
+                {
+                    var propertyPath = new StringBuilder("body");
+                    foreach (var previousExpression in previousExpressions)
+                    {
+                        if (previousExpression.Member.Name == nameof(BodyStructure.Content))
+                        {
+                            propertyPath.Append("/content");
+                        }
+                        else
+                        {
+                            throw new Exception("tODO");
+                        }
+                    }
+
+                    return propertyPath.ToString();
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.Start))
+                {
+                    var propertyPath = new StringBuilder("start");
+                    foreach (var previousExpression in previousExpressions)
+                    {
+                        if (previousExpression.Member.Name == nameof(TimeStructure.DateTime))
+                        {
+                            propertyPath.Append("/dateTime");
+                        }
+                        if (previousExpression.Member.Name == nameof(TimeStructure.TimeZone))
+                        {
+                            propertyPath.Append("/timeZone");
+                        }
+                        else
+                        {
+                            throw new Exception("tODO");
+                        }
+                    }
+
+                    return propertyPath.ToString();
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.End))
+                {
+                    var propertyPath = new StringBuilder("end");
+                    foreach (var previousExpression in previousExpressions)
+                    {
+                        if (previousExpression.Member.Name == nameof(TimeStructure.DateTime))
+                        {
+                            propertyPath.Append("/dateTime");
+                        }
+                        if (previousExpression.Member.Name == nameof(TimeStructure.TimeZone))
+                        {
+                            propertyPath.Append("/timeZone");
+                        }
+                        else
+                        {
+                            throw new Exception("tODO");
+                        }
+                    }
+
+                    return propertyPath.ToString();
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.Subject))
+                {
+                    return "subject";
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.ResponseStatus))
+                {
+                    var propertyPath = new StringBuilder("responseStatus");
+                    foreach (var previousExpression in previousExpressions)
+                    {
+                        if (previousExpression.Member.Name == nameof(ResponseStatusStructure.Response))
+                        {
+                            propertyPath.Append("/response");
+                        }
+                        if (previousExpression.Member.Name == nameof(ResponseStatusStructure.Time))
+                        {
+                            propertyPath.Append("/time");
+                        }
+                        else
+                        {
+                            throw new Exception("tODO");
+                        }
+                    }
+
+                    return propertyPath.ToString();
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.WebLink))
+                {
+                    return "webLink";
+                }
+
+                throw new Exception("TODO not a known member; do you really want to be strict about this? well, actually, you probably *should* be consistent about ti because even if they select a property, you won't deserialiez it if you don't know about; at the same time, though, you're efectively doing what the odata webapi stuff does and hide things; m,aybe you should expose the url somewhere, and if you do that, then it might make sense to allow properties that you're not aware of");
             }
 
             public ODataCollection<GraphCalendarEvent> Values //// TODO shouldn't this return type be something odata-y? like, the properties need to be marked as selected and stuff, right?
@@ -139,8 +220,8 @@
 
                     var queryOptions = string.Join("&", queryOptionsList);
 
-                    var requestUri = string.IsNullOrEmpty(queryOptions) ? 
-                        this.eventsUri : 
+                    var requestUri = string.IsNullOrEmpty(queryOptions) ?
+                        this.eventsUri :
                         new Uri($"{this.eventsUri.OriginalString}?{queryOptions}", UriKind.Relative).ToRelativeUri();
                     return GetCollection<GraphCalendarEvent>(this.graphClient, requestUri);
                 }
