@@ -102,7 +102,7 @@
         {
             using (var dataMemoryStream = new ChunkedMemoryStream(data, false))
             {
-                var decrypted = this.Decrypt(dataMemoryStream);
+                var decrypted = this.Decrypt(dataMemoryStream).GetAwaiter().GetResult();
                 using (var decryptedMemoryStream = new ChunkedMemoryStream())
                 {
                     decrypted.CopyTo(decryptedMemoryStream);
@@ -112,7 +112,14 @@
             }
         }
 
-        public Stream Decrypt(Stream data)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="data"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="data"/> is not long enough to have been encrypted with the configured password</exception>
+        public async Task<Stream> Decrypt(Stream data)
         {
             if (data == null)
             {
@@ -127,7 +134,7 @@
             }
 
             var initializationVector = new byte[initializationVectorLengthInBytes];
-            data.Read(initializationVector, 0, initializationVector.Length); //// TODO because it's a memory stream, i'm assuming a full read; these below methods should be used instead
+            await data.ReadBufferAsync(initializationVector);
 
             using (var aes = Aes.Create())
             {
@@ -165,7 +172,6 @@
             }
         }
 
-        /*
         //// TODO move these to extensions
         private static void Read(Stream stream, byte[] buffer)
         {
@@ -179,7 +185,6 @@
             {
             }
         }
-        */
 
         /// <summary>
         /// 
