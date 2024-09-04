@@ -53,17 +53,43 @@
             /// </summary>
             private readonly string? select;
 
+            /// <summary>
+            /// TODO properly document
+            /// prefixed with '$top' if not null
+            /// </summary>
+            private readonly string? top;
+
+            /// <summary>
+            /// TODO properly document
+            /// prefixed with '$orderBy' if not null
+            /// </summary>
+            private readonly string? orderBy;
+
             public CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri calendarUri)
-                : this(graphClient, new Uri(calendarUri.OriginalString.TrimEnd('/') + "/events", UriKind.Relative).ToRelativeUri(), null, null)
+                : this(
+                      graphClient, 
+                      new Uri(calendarUri.OriginalString.TrimEnd('/') + "/events", UriKind.Relative).ToRelativeUri(), 
+                      null,
+                      null,
+                      null,
+                      null)
             {
             }
 
-            private CalendarEventCollectionContext(IGraphClient graphClient, RelativeUri eventsUri, string? filter, string? select)
+            private CalendarEventCollectionContext(
+                IGraphClient graphClient, 
+                RelativeUri eventsUri, 
+                string? filter, 
+                string? select,
+                string? top,
+                string? orderBy)
             {
                 this.graphClient = graphClient;
                 this.eventsUri = eventsUri;
                 this.filter = filter;
                 this.select = select;
+                this.top = top;
+                this.orderBy = orderBy;
             }
 
             /*
@@ -81,7 +107,9 @@
                     this.graphClient,
                     this.eventsUri,
                     "$filter=id eq 'asdf'",
-                    this.select);
+                    this.select,
+                    this.top,
+                    this.orderBy);
             }
 
             public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
@@ -90,12 +118,14 @@
                 //// TODO do any other validations needed for the spec to be accureate
                 if (selector.Body is MemberExpression memberExpression)
                 {
-                    var propertyPath = TraverseSelect(memberExpression, Enumerable.Empty<MemberExpression>());
+                    var propertyPath = TraverseMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
                     return new CalendarEventCollectionContext(
                         this.graphClient,
                         this.eventsUri,
                         this.filter,
-                        this.select == null ? $"$select={propertyPath}" : $"{this.select},{propertyPath}");
+                        this.select == null ? $"$select={propertyPath}" : $"{this.select},{propertyPath}",
+                        this.top,
+                        this.orderBy);
                 }
                 else
                 {
@@ -103,13 +133,13 @@
                 }
             }
 
-            private string TraverseSelect(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
+            private string TraverseMemberExpression(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
             {
                 if (expression.Expression?.NodeType != ExpressionType.Parameter)
                 {
                     if (expression.Expression is MemberExpression memberExpression)
                     {
-                        return TraverseSelect(memberExpression, previousExpressions.Append(expression));
+                        return TraverseMemberExpression(memberExpression, previousExpressions.Append(expression));
                     }
                 }
                 else if (expression.Member.Name == nameof(GraphCalendarEvent.Id))
@@ -208,6 +238,42 @@
                 throw new Exception("TODO not a known member; do you really want to be strict about this? well, actually, you probably *should* be consistent about ti because even if they select a property, you won't deserialiez it if you don't know about; at the same time, though, you're efectively doing what the odata webapi stuff does and hide things; m,aybe you should expose the url somewhere, and if you do that, then it might make sense to allow properties that you're not aware of");
             }
 
+            public IODataCollectionContext<GraphCalendarEvent> Top(int count)
+            {
+                if (this.top != null)
+                {
+                    throw new Exception("tODO");
+                }
+
+                return new CalendarEventCollectionContext(
+                    this.graphClient,
+                    this.eventsUri,
+                    this.filter,
+                    this.select,
+                    $"$top={count}",
+                    this.orderBy);
+            }
+
+            public IODataCollectionContext<GraphCalendarEvent> OrderBy<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
+            {
+                //// TODO validate that you only allow expressions that are supported by graph?
+                if (selector.Body is MemberExpression memberExpression)
+                {
+                    var propertyPath = TraverseMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
+                    return new CalendarEventCollectionContext(
+                        this.graphClient,
+                        this.eventsUri,
+                        this.filter,
+                        this.select,
+                        this.top,
+                        $"$orderby={propertyPath}");
+                }
+                else
+                {
+                    throw new Exception("TODO only member expressions are allowed");
+                }
+            }
+
             public ODataCollection<GraphCalendarEvent> Values //// TODO shouldn't this return type be something odata-y? like, the properties need to be marked as selected and stuff, right?
             {
                 get
@@ -216,6 +282,7 @@
                     {
                         this.select,
                         this.filter,
+                        this.top,
                     }.Where(option => option != null);
 
                     var queryOptions = string.Join("&", queryOptionsList);
@@ -416,6 +483,10 @@
         ODataCollection<T> Values { get; }
 
         IODataCollectionContext<T> Select<TProperty>(Expression<Func<T, TProperty>> selector);
+
+        IODataCollectionContext<T> Top(int count);
+
+        IODataCollectionContext<T> OrderBy<TProperty>(Expression<Func<T, TProperty>> selector);
 
         IODataCollectionContext<T> Filter();
 

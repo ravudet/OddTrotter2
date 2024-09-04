@@ -53,20 +53,21 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events;
 
-
-            var eventsIdSelected = events
-                .Select(calendarEvent => calendarEvent.Id);
-
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-            events = eventsIdSelected
-                .Filter()
+            events = events
+                .Select(calendarEvent => calendarEvent.Id)
                 .Select(calendarEvent => calendarEvent.Body)
                 .Select(calendarEvent => calendarEvent.Start)
                 .Select(calendarEvent => calendarEvent.Subject)
                 .Select(calendarEvent => calendarEvent.ResponseStatus)
                 .Select(calendarEvent => calendarEvent.WebLink)
-                .Select(calendarEvent => calendarEvent.Body.Content);
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                .Select(calendarEvent => calendarEvent.Body.Content)
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
+                .Top(5)
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                ;
             var values = events.Values;
         }
 
