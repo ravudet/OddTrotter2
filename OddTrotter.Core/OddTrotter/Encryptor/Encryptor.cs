@@ -144,9 +144,8 @@
             var initializationVector = new byte[initializationVectorLengthInBytes];
             //// TODO you have a bucnh of new code; make sure to unit test it all
             //// TODO do chunked memory stream...
-            await data.ReadBufferAsync(initializationVector);
+            await data.ReadBufferAsync(initializationVector).ConfigureAwait(false);
 
-            //// TODO you are here
             using (var aes = Aes.Create())
             {
                 aes.Key = this.key;
@@ -162,8 +161,8 @@
 
                             try
                             {
-                                // not using async here since everything is in-memory
-                                cryptoStream.CopyTo(memoryStream);
+                                //// TODO you are here
+                                await cryptoStream.CopyToAsync(memoryStream).ConfigureAwait(false);
                                 memoryStream.Position = 0;
                                 return memoryStream;
                             }
