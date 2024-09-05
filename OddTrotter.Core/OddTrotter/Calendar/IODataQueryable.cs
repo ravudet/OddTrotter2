@@ -519,6 +519,10 @@
                     {
                         return TraverseCalendarEventMemberExpression(memberExpression, previousExpressions.Append(expression));
                     }
+                    else
+                    {
+                        throw new Exception("TODO i don't think you can actually get here");
+                    }
                 }
                 else if (expression.Member.Name == nameof(GraphCalendarContextEvent.Id))
                 {
@@ -873,7 +877,7 @@
         //// TODO
     }
 
-    public interface IODataCollectionContext<T>
+    public interface IODataCollectionContext<T> //// TODO make this take a TGame style typeparam?
     {
         //// TODO do you want this? IEnumerator<T> GetEnumerator();
 
