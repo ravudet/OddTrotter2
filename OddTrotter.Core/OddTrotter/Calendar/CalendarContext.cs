@@ -51,13 +51,13 @@
 
         private sealed class CalendarEventContext : IV2Queryable<CalendarContextCalendarEvent>
         {
-            private readonly IODataCollectionContext<GraphCalendarEvent> graphCalendarEventsContext;
+            private readonly IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext;
 
-            private readonly DateTime startTime; //// TODO configure these fields
+            private readonly DateTime startTime = DateTime.UtcNow; //// TODO configure these fields
 
-            private readonly DateTime endTime;
+            private readonly DateTime endTime = DateTime.UtcNow;
 
-            public CalendarEventContext(IODataCollectionContext<GraphCalendarEvent> graphCalendarEventsContext)
+            public CalendarEventContext(IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext)
             {
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
             }
@@ -88,6 +88,7 @@
 
             private IEnumerable<CalendarContextCalendarEvent> GetInstanceEvents()
             {
+                //// TODO you need to check that lastpage url
                 return this.graphCalendarEventsContext
                     .Filter(calendarEvent => calendarEvent.Type == "singleInstance")
                     .Values
@@ -97,6 +98,9 @@
 
             private IEnumerable<CalendarContextCalendarEvent> GetSeriesEvents()
             {
+                //// TODO you need to check that lastpage url
+                var seriesMasters = this.graphCalendarEventsContext.Filter(calendarEvent => calendarEvent.Type == "seriesMaster").Values;
+
                 //// TODO
                 return Enumerable.Empty<CalendarContextCalendarEvent>();
             }
@@ -106,7 +110,7 @@
                 return this.GetEnumerator();
             }
 
-            private static CalendarContextCalendarEvent ToCalendarContextCalendarEvent(GraphCalendarEvent graphCalendarEvent)
+            private static CalendarContextCalendarEvent ToCalendarContextCalendarEvent(GraphCalendarContextEvent graphCalendarEvent)
             {
                 return new CalendarContextCalendarEvent(
                     graphCalendarEvent.Id!,

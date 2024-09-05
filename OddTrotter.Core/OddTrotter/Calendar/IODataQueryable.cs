@@ -8,9 +8,11 @@
     using System.Net.Http;
     using System.Net.Quic;
     using System.Reflection;
+    using System.Reflection.Emit;
     using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -20,6 +22,97 @@
     /*
     how to generate? .../calendar?$expand=events($filter={fitler})
     */
+
+    public class GraphCalendarContextEvent //// TODO deal with property nullability
+    {
+        private readonly IGraphClient graphClient;
+
+        private readonly RelativeUri eventUri;
+
+        public GraphCalendarContextEvent(IGraphClient graphClient, RelativeUri eventUri, GraphCalendarContextEvent graphCalendarContextEvent) //// TODO it would be nice if this were private...
+        {
+            this.graphClient = graphClient;
+            this.eventUri = eventUri;
+
+            this.Id = graphCalendarContextEvent.Id;
+            this.Body = graphCalendarContextEvent.Body; //// TODO these also need copy constructors
+            this.Start = graphCalendarContextEvent.Start;
+            this.End = graphCalendarContextEvent.End;
+            this.Subject = graphCalendarContextEvent.Subject;
+            this.ResponseStatus = graphCalendarContextEvent.ResponseStatus;
+            this.WebLink = graphCalendarContextEvent.WebLink;
+            this.Type = graphCalendarContextEvent.Type;
+            this.IsCancelled = graphCalendarContextEvent.IsCancelled;
+
+            this.Instances = new InstancesContext(graphClient, eventUri);
+        }
+
+        [JsonPropertyName("id")]
+        public string? Id { get; set; }
+
+        [JsonPropertyName("body")]
+        public BodyStructure? Body { get; set; }
+
+        [JsonPropertyName("start")]
+        public TimeStructure? Start { get; set; }
+
+        [JsonPropertyName("end")]
+        public TimeStructure? End { get; set; }
+
+        [JsonPropertyName("subject")]
+        public string? Subject { get; set; }
+
+        [JsonPropertyName("responseStatus")]
+        public ResponseStatusStructure? ResponseStatus { get; set; }
+
+        [JsonPropertyName("webLink")]
+        public string? WebLink { get; set; }
+
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
+        [JsonPropertyName("isCancelled")]
+        public bool? IsCancelled { get; set; }
+
+        //// TODO add *all* of the properties here
+
+        public IODataCollectionContext<GraphCalendarContextEvent> Instances { get; } //// TODO what if a caller whats to filter events based on instances?
+
+        private sealed class InstancesContext : IODataCollectionContext<GraphCalendarContextEvent>
+        {
+            private readonly IGraphClient graphClient;
+
+            private readonly RelativeUri instancesUri;
+
+            public InstancesContext(IGraphClient graphClient, RelativeUri eventUri)
+            {
+                this.graphClient = graphClient;
+                this.instancesUri = new Uri(eventUri.OriginalString.TrimEnd('/') + "/instances", UriKind.Relative).ToRelativeUri();
+            }
+
+            public ODataCollection<GraphCalendarContextEvent> Values => throw new NotImplementedException();
+
+            public IODataCollectionContext<GraphCalendarContextEvent> Filter(Expression<Func<GraphCalendarContextEvent, bool>> predicate)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IODataCollectionContext<GraphCalendarContextEvent> OrderBy<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IODataCollectionContext<GraphCalendarContextEvent> Select<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IODataCollectionContext<GraphCalendarContextEvent> Top(int count)
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
 
     public sealed class GraphCalendarContext : IODataInstanceContext
     {
@@ -35,9 +128,9 @@
             this.Events = new CalendarEventCollectionContext(this.graphClient, this.calendarUri);
         }
 
-        public IODataCollectionContext<GraphCalendarEvent> Events { get; }
+        public IODataCollectionContext<GraphCalendarContextEvent> Events { get; }
 
-        private sealed class CalendarEventCollectionContext : IODataCollectionContext<GraphCalendarEvent>
+        private sealed class CalendarEventCollectionContext : IODataCollectionContext<GraphCalendarContextEvent>
         {
             private readonly IGraphClient graphClient;
 
@@ -110,7 +203,7 @@
                 return true;
             }
 
-            public IODataCollectionContext<GraphCalendarEvent> Filter(Expression<Func<GraphCalendarEvent, bool>> predicate)
+            public IODataCollectionContext<GraphCalendarContextEvent> Filter(Expression<Func<GraphCalendarContextEvent, bool>> predicate)
             {
                 //// TODO how do you go about making this more complete? and is there a way to make it able to validate according to what graph actually supports?
 
@@ -307,7 +400,7 @@
                 }
             }
 
-            public IODataCollectionContext<GraphCalendarEvent> Select<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
+            public IODataCollectionContext<GraphCalendarContextEvent> Select<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
             {
                 //// TODO prevent two selects of the same property
                 //// TODO do any other validations needed for the spec to be accureate
@@ -387,11 +480,11 @@
                         return TraverseCalendarEventMemberExpression(memberExpression, previousExpressions.Append(expression));
                     }
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.Id))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.Id))
                 {
                     return "id"; //// TODO you should generalize at some point and pull this from a c# attribute
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.Body))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.Body))
                 {
                     var propertyPath = new StringBuilder("body");
                     foreach (var previousExpression in previousExpressions)
@@ -408,7 +501,7 @@
 
                     return propertyPath.ToString();
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.Start))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.Start))
                 {
                     var propertyPath = new StringBuilder("start");
                     foreach (var previousExpression in previousExpressions)
@@ -429,7 +522,7 @@
 
                     return propertyPath.ToString();
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.End))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.End))
                 {
                     var propertyPath = new StringBuilder("end");
                     foreach (var previousExpression in previousExpressions)
@@ -450,11 +543,11 @@
 
                     return propertyPath.ToString();
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.Subject))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.Subject))
                 {
                     return "subject";
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.ResponseStatus))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.ResponseStatus))
                 {
                     var propertyPath = new StringBuilder("responseStatus");
                     foreach (var previousExpression in previousExpressions)
@@ -475,15 +568,15 @@
 
                     return propertyPath.ToString();
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.WebLink))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.WebLink))
                 {
                     return "webLink";
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.Type))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.Type))
                 {
                     return "type";
                 }
-                else if (expression.Member.Name == nameof(GraphCalendarEvent.IsCancelled))
+                else if (expression.Member.Name == nameof(GraphCalendarContextEvent.IsCancelled))
                 {
                     return "isCancelled";
                 }
@@ -491,7 +584,7 @@
                 throw new Exception("TODO not a known member; do you really want to be strict about this? well, actually, you probably *should* be consistent about ti because even if they select a property, you won't deserialiez it if you don't know about; at the same time, though, you're efectively doing what the odata webapi stuff does and hide things; m,aybe you should expose the url somewhere, and if you do that, then it might make sense to allow properties that you're not aware of");
             }
 
-            public IODataCollectionContext<GraphCalendarEvent> Top(int count)
+            public IODataCollectionContext<GraphCalendarContextEvent> Top(int count)
             {
                 if (this.top != null)
                 {
@@ -507,7 +600,7 @@
                     this.orderBy);
             }
 
-            public IODataCollectionContext<GraphCalendarEvent> OrderBy<TProperty>(Expression<Func<GraphCalendarEvent, TProperty>> selector)
+            public IODataCollectionContext<GraphCalendarContextEvent> OrderBy<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
             {
                 //// TODO validate that you only allow expressions that are supported by graph?
                 if (selector.Body is MemberExpression memberExpression)
@@ -527,10 +620,11 @@
                 }
             }
 
-            public ODataCollection<GraphCalendarEvent> Values //// TODO shouldn't this return type be something odata-y? like, the properties need to be marked as selected and stuff, right?
+            public ODataCollection<GraphCalendarContextEvent> Values //// TODO shouldn't this return type be something odata-y? like, the properties need to be marked as selected and stuff, right?
             {
                 get
                 {
+                    //// TODO it would be very good to make this lazy
                     var queryOptionsList = new[]
                     {
                         this.select,
@@ -544,7 +638,16 @@
                     var requestUri = string.IsNullOrEmpty(queryOptions) ?
                         this.eventsUri :
                         new Uri($"{this.eventsUri.OriginalString}?{queryOptions}", UriKind.Relative).ToRelativeUri();
-                    return GetCollection<GraphCalendarEvent>(this.graphClient, requestUri);
+                    var deserializedResponse = GetCollection<GraphCalendarContextEvent>(this.graphClient, requestUri);
+
+                    var queryableResponse = new ODataCollection<GraphCalendarContextEvent>(
+                        deserializedResponse.Elements.Select(element => new GraphCalendarContextEvent(
+                            this.graphClient,
+                            new Uri(this.eventsUri.OriginalString.TrimEnd('/') + $"/{element.Id}", UriKind.Relative).ToRelativeUri(),
+                            element)),
+                        deserializedResponse.LastRequestedPageUrl);
+
+                    return queryableResponse;
                 }
             }
 
@@ -742,7 +845,7 @@
 
         IODataCollectionContext<T> OrderBy<TProperty>(Expression<Func<T, TProperty>> selector);
 
-        IODataCollectionContext<T> Filter(Expression<Func<GraphCalendarEvent, bool>> predicate);
+        IODataCollectionContext<T> Filter(Expression<Func<GraphCalendarContextEvent, bool>> predicate);
 
         //// TODO T this[somekey?] { get; }
     }
