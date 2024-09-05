@@ -41,6 +41,8 @@
         [TestMethod]
         public void Test()
         {
+            //// TODO before you make an updates based on the topics, you should write some basic unit tests
+
             //// TODO topic 1
             //// i think what i should do is have an adapter from linq AST (expression) to odata AST, and then have something that converts an odata AST to a string
             //// this will need to have an extension point for the "property path" traversal
@@ -62,21 +64,18 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events;
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             events = events
-                .Select(calendarEvent => calendarEvent.Id)
+                /*.Select(calendarEvent => calendarEvent.Id)
                 .Select(calendarEvent => calendarEvent.Body)
                 .Select(calendarEvent => calendarEvent.Start)
                 .Select(calendarEvent => calendarEvent.Subject)
                 .Select(calendarEvent => calendarEvent.ResponseStatus)
                 .Select(calendarEvent => calendarEvent.WebLink)
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
                 .Select(calendarEvent => calendarEvent.Body.Content)
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
                 .Top(5)
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
-                ////.Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03"))
-                .Filter(calendarEvent => calendarEvent.IsCancelled == false)
+                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)*/
+                .Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03") && calendarEvent.IsCancelled == false)
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
                 ;
             var values = events.Values;

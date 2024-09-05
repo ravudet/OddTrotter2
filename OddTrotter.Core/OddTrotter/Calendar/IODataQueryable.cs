@@ -161,24 +161,27 @@
 
             private void TraverseBinaryExpression(BinaryExpression expression, StringBuilder queryParameter)
             {
-                Expression<Func<bool, bool, bool>> andEpression = (first, second) => first && second;
-                Expression<Func<bool, bool, bool>> orEpression = (first, second) => first && second;
-
                 TraverseFilter(expression.Left, queryParameter);
 
-                if (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_Equality")
+                if (
+                    (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_Equality") // 'operator ==' overload
+                    || (expression.NodeType == ExpressionType.Equal) // primitive equality provided by the compiler
+                    )
                 {
                     queryParameter.Append(" eq ");
                 }
-                else if (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_GreaterThan")
+                else if (
+                    (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_GreaterThan") // 'operator >' overload
+                    || (expression.NodeType == ExpressionType.GreaterThan) // primitive comparison provided by the compiler
+                    )
                 {
                     queryParameter.Append(" gt ");
                 }
-                else if (expression.Method == ((BinaryExpression)andEpression.Body).Method)
+                else if (expression.NodeType == ExpressionType.AndAlso)
                 {
                     queryParameter.Append(" and ");
                 }
-                else if (expression.Method == ((BinaryExpression)orEpression.Body).Method)
+                else if (expression.NodeType == ExpressionType.OrElse)
                 {
                     queryParameter.Append(" or ");
                 }
@@ -208,12 +211,24 @@
                     throw new Exception("TODO");
                 }
 
+                var value = expression.Value;
+
+                // handle literals
+                if (expression.Type == typeof(bool))
+                {
+                    value = (bool)value! ? "true" : "false";
+                }
+                else if (false)
+                {
+                    //// TODO other literals here
+                }
+
                 if (quotes)
                 {
                     queryParameter.Append("'");
                 }
 
-                queryParameter.Append(expression.Value);
+                queryParameter.Append(value);
 
                 if (quotes)
                 {
