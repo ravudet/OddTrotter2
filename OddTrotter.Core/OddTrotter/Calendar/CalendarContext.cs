@@ -100,7 +100,7 @@
                         //// TODO you're not even checking which side needs to be casted...
                         return
                             Expression.Equal(
-                                Expression.Constant(true, typeof(bool?)),
+                                this.Visit(node.Left),
                                 this.Visit(node.Right));
                                 /*Expression.Convert(
                                     Expression.Constant(false, typeof(bool)), typeof(bool?)));*/
@@ -121,9 +121,11 @@
                 {
                     if (IsParameter(node))
                     {
+                        return Expression.Constant(true, typeof(bool?));
+
                         //// TODO the get member call is a bit hacky
                         //// TODO you may need to traverse and translate node.Expression yourself...
-                        return Expression.MakeMemberAccess(this.Visit(node.Expression), typeof(GraphCalendarContextEvent).GetMember(node.Member.Name)[0]);
+                        ////return Expression.MakeMemberAccess(this.Visit(node.Expression), typeof(GraphCalendarContextEvent).GetMember(node.Member.Name)[0]);
                     }
 
                     return base.VisitMember(node);
