@@ -224,6 +224,18 @@
             var calendarContext = new CalendarContext(graphCalendarContext);
             var events = calendarContext.Events.ToArray();
         }
+
+        [TestMethod]
+        public void Test2()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var calendarContext = new CalendarContext(graphCalendarContext);
+            var events = calendarContext
+                .Events
+                .Where(calendarEvent => calendarEvent.IsCancelled == false);
+            var eventsArray = events.ToArray();
+        }
     }
 
 #pragma warning restore CS8602 // Dereference of a possibly null reference.

@@ -4,6 +4,7 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Linq.Expressions;
 
     public sealed class CalendarContextCalendarEvent
     {
@@ -49,7 +50,7 @@
 
         public IV2Queryable<CalendarContextCalendarEvent> Events { get; }
 
-        private sealed class CalendarEventContext : IV2Queryable<CalendarContextCalendarEvent>
+        private sealed class CalendarEventContext : IV2Queryable<CalendarContextCalendarEvent>, IWhereQueryable<CalendarContextCalendarEvent>
         {
             private readonly IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext;
 
@@ -60,6 +61,79 @@
             public CalendarEventContext(IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext)
             {
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
+            }
+
+            public IV2Queryable<CalendarContextCalendarEvent> Where(Expression<Func<CalendarContextCalendarEvent, bool>> predicate)
+            {
+                Expression<Func<GraphCalendarContextEvent, bool>> equivalentPredicate = calendarEvent => calendarEvent.IsCancelled == false;
+
+                var translated = new Visitor().Visit(predicate);
+
+                /*var lambda = Expression.Lambda<Func<GraphCalendarContextEvent, bool>>(
+                    translated, 
+                    predicate.Parameters.Select(parameterExpression => Expression.Parameter(typeof(GraphCalendarContextEvent), parameterExpression.Name)));*/
+                var lambda = translated as Expression<Func<GraphCalendarContextEvent, bool>>;
+
+                return new CalendarEventContext(this.graphCalendarEventsContext.Filter(lambda!));
+            }
+
+            private sealed class Visitor : ExpressionVisitor
+            {
+                /*protected override Expression VisitParameter(ParameterExpression node)
+                {
+                    return Expression.Parameter(typeof(GraphCalendarContextEvent), node.Name);
+                }*/
+
+                protected override Expression VisitLambda<T>(Expression<T> node)
+                {
+                    //// TODO should the parametesr be "visited" instead?
+                    return Expression.Lambda<Func<GraphCalendarContextEvent, bool>>(
+                        this.Visit(node.Body),
+                        node.Parameters.Select(parameterExpression => Expression.Parameter(typeof(GraphCalendarContextEvent), parameterExpression.Name)));
+                }
+
+                protected override Expression VisitBinary(BinaryExpression node)
+                {
+                    //// TODO this is just hyper-specific; you need to generalize
+                    if (node.NodeType == ExpressionType.Equal)
+                    {
+                        //// TODO you're not even checking which side needs to be casted...
+                        return 
+                            Expression.Equal(
+                                Expression.Constant(true, typeof(bool?)), 
+                                Expression.Convert(
+                                    Expression.Constant(false, typeof(bool)), typeof(bool?))
+                            );
+                    }
+
+                    return base.VisitBinary(node);
+                }
+
+                /*protected override Expression VisitConstant(ConstantExpression node)
+                {
+                    //// TODO make sure this is a constant that's part a binary operation where one of the sides is a memberaccess on the parameter
+                    return Expression.Convert(node, typeof(bool?));
+
+                    ////return base.VisitConstant(node);
+                }
+
+                protected override Expression VisitMember(MemberExpression node)
+                {
+                    if (IsParameter(node))
+                    {
+                        //// TODO the get member call is a bit hacky
+                        //// TODO you may need to traverse and translate node.Expression yourself...
+                        return Expression.MakeMemberAccess(this.Visit(node.Expression), typeof(GraphCalendarContextEvent).GetMember(node.Member.Name)[0]);
+                    }
+
+                    return base.VisitMember(node);
+                }
+
+                private static bool IsParameter(MemberExpression memberExpression)
+                {
+                    //// TODO you need to know that the member access is on the parameter and not on something else
+                    return true;
+                }*/
             }
 
             public IEnumerator<CalendarContextCalendarEvent> GetEnumerator()
