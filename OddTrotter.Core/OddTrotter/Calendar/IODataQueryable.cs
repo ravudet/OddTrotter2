@@ -394,7 +394,7 @@
 
                             //// TODO use jsonpropertyname attributes to get the start and datetime strings (you should actually use brand new attributes)
                             queryParameter.Append("'");
-                            queryParameter.Append(dateTimeConstantExpression.Value);
+                            queryParameter.Append(dateTimeConstantExpressionValue);
                             queryParameter.Append("'");
                         }
                         else
