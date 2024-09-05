@@ -102,8 +102,6 @@
                             Expression.Equal(
                                 this.Visit(node.Left),
                                 this.Visit(node.Right));
-                                /*Expression.Convert(
-                                    Expression.Constant(false, typeof(bool)), typeof(bool?)));*/
                     }
 
                     return base.VisitBinary(node);
