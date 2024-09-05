@@ -23,11 +23,19 @@
     how to generate? .../calendar?$expand=events($filter={fitler})
     */
 
+    public delegate IODataCollectionContext<GraphCalendarContextEvent> Instances(DateTime startTime, DateTime endTime);
+
     public class GraphCalendarContextEvent //// TODO deal with property nullability
     {
         private readonly IGraphClient graphClient;
 
         private readonly RelativeUri eventUri;
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public GraphCalendarContextEvent()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        {
+        }
 
         public GraphCalendarContextEvent(IGraphClient graphClient, RelativeUri eventUri, GraphCalendarContextEvent graphCalendarContextEvent) //// TODO it would be nice if this were private...
         {
@@ -44,7 +52,7 @@
             this.Type = graphCalendarContextEvent.Type;
             this.IsCancelled = graphCalendarContextEvent.IsCancelled;
 
-            this.Instances = new InstancesContext(graphClient, eventUri);
+            this.Instances = (startTime, endTime) => new InstancesContext(graphClient, eventUri, startTime, endTime);
         }
 
         [JsonPropertyName("id")]
@@ -76,7 +84,7 @@
 
         //// TODO add *all* of the properties here
 
-        public IODataCollectionContext<GraphCalendarContextEvent> Instances { get; } //// TODO what if a caller whats to filter events based on instances?
+        public Instances Instances { get; } //// TODO what if a caller whats to filter events based on instances?
 
         private sealed class InstancesContext : IODataCollectionContext<GraphCalendarContextEvent>
         {
@@ -84,32 +92,64 @@
 
             private readonly RelativeUri instancesUri;
 
-            public InstancesContext(IGraphClient graphClient, RelativeUri eventUri)
+            private readonly DateTime startTime;
+
+            private readonly DateTime endTime;
+
+            public InstancesContext(IGraphClient graphClient, RelativeUri eventUri, DateTime startTime, DateTime endTime)
             {
                 this.graphClient = graphClient;
                 this.instancesUri = new Uri(eventUri.OriginalString.TrimEnd('/') + "/instances", UriKind.Relative).ToRelativeUri();
+                this.startTime = startTime;
+                this.endTime = endTime;
             }
 
-            public ODataCollection<GraphCalendarContextEvent> Values => throw new NotImplementedException();
+            public ODataCollection<GraphCalendarContextEvent> Values
+            {
+                get
+                {
+                    //// TODO
+                    return new ODataCollection<GraphCalendarContextEvent>(
+                        new[]
+                        {
+                            new GraphCalendarContextEvent()
+                            {
+                                Body = new BodyStructure(),
+                                End = new TimeStructure(),
+                                Start = new TimeStructure(),
+                                Id = "asdf",
+                                IsCancelled = false,
+                                ResponseStatus = new ResponseStatusStructure(),
+                                Subject = "asfd",
+                                Type = "instanceEvent",
+                                WebLink = "a link",
+                            },
+                        });
+                }
+            }
 
             public IODataCollectionContext<GraphCalendarContextEvent> Filter(Expression<Func<GraphCalendarContextEvent, bool>> predicate)
             {
-                throw new NotImplementedException();
+                //// TODO
+                return this;
             }
 
             public IODataCollectionContext<GraphCalendarContextEvent> OrderBy<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
             {
-                throw new NotImplementedException();
+                //// TODO
+                return this;
             }
 
             public IODataCollectionContext<GraphCalendarContextEvent> Select<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
             {
-                throw new NotImplementedException();
+                //// TODO
+                return this;
             }
 
             public IODataCollectionContext<GraphCalendarContextEvent> Top(int count)
             {
-                throw new NotImplementedException();
+                //// TODO
+                return this;
             }
         }
     }

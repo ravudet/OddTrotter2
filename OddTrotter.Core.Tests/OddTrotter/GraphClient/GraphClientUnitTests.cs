@@ -1,7 +1,9 @@
 ﻿namespace OddTrotter.GraphClient
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -148,6 +150,82 @@
             Assert.AreEqual("/me/calendar/events?$filter=start/dateTime gt '2024-09-03'", graphClient.CalledUri);
         }
     }
+
+    [TestClass]
+    public sealed class CalendarContextUnitTests
+    {
+        private sealed class MockGraphClient : IGraphClient
+        {
+            public List<string> CalledUris { get; } = new List<string>();
+
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                this.CalledUris.Add(relativeUri.OriginalString);
+
+                var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_id",
+            "subject": "testing",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>some data</p></body></html>"
+            },
+            "start": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
+        }
+    ]
+}
+""";
+
+                var httpContent = new StringContent(content);
+                var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                responseMessage.Content = httpContent;
+                return await Task.FromResult(responseMessage);
+            }
+
+            public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [TestMethod]
+        public void Test()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var calendarContext = new CalendarContext(graphCalendarContext);
+            var events = calendarContext.Events.ToArray();
+        }
+    }
+
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 
     /// <summary>

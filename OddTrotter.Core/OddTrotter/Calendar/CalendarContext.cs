@@ -101,8 +101,37 @@
                 //// TODO you need to check that lastpage url
                 var seriesMasters = this.graphCalendarEventsContext.Filter(calendarEvent => calendarEvent.Type == "seriesMaster").Values;
 
-                //// TODO
-                return Enumerable.Empty<CalendarContextCalendarEvent>();
+                var seriesInstanceEvents = seriesMasters
+                    .Elements
+                    .Select(seriesMaster => (seriesMaster, GetFirstSeriesInstanceInRange(seriesMaster)))
+                    .Select(tuple =>
+                    {
+                        tuple.seriesMaster.Start = tuple.Item2.Start;
+                        var result = ToCalendarContextCalendarEvent(tuple.seriesMaster);
+                        return result;
+                    });
+
+                return seriesInstanceEvents;
+            }
+
+            private GraphCalendarContextEvent GetFirstSeriesInstanceInRange(GraphCalendarContextEvent graphCalendarContextEvent)
+            {
+                //// TODO error handling
+                var graphEvents = graphCalendarContextEvent
+                    .Instances(this.startTime, this.endTime)
+                    .Top(1)
+                    .Select(calendarEvent => calendarEvent.Id)
+                    .Select(calendarEvent => calendarEvent.Start)
+                    .Select(calendarEvent => calendarEvent.Subject)
+                    .Select(calendarEvent => calendarEvent.Body)
+                    .Select(calendarEvent => calendarEvent.ResponseStatus)
+                    .Select(calendarEvent => calendarEvent.WebLink)
+                    .Filter(calendarEvent => calendarEvent.IsCancelled == false);
+                    
+                return graphEvents
+                    .Values
+                    .Elements
+                    .First();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
