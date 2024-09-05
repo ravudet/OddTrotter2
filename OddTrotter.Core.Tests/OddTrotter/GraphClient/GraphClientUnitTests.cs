@@ -2,12 +2,79 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client.Payloads;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using OddTrotter.Calendar;
     using OddTrotter.TodoList;
+
+    //// TODO remove the need for this directive
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+    [TestClass]
+    public sealed class ODataQueryableUnitTests
+    {
+        private sealed class MockGraphClient : IGraphClient
+        {
+            public string CalledUri { get; private set; } = string.Empty;
+
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                this.CalledUri = relativeUri.OriginalString;
+
+                var content = new StringContent("{\"value\":[]}");
+                var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                responseMessage.Content = content;
+                return await Task.FromResult(responseMessage);
+            }
+
+            public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [TestMethod]
+        public void Selects()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = graphCalendarContext.Events
+                .Select(calendarEvent => calendarEvent.Id)
+                .Select(calendarEvent => calendarEvent.Body)
+                .Select(calendarEvent => calendarEvent.Start)
+                .Select(calendarEvent => calendarEvent.Subject)
+                .Select(calendarEvent => calendarEvent.ResponseStatus)
+                .Select(calendarEvent => calendarEvent.WebLink)
+                .Values;
+
+            Assert.AreEqual("/me/calendar/events?$select=id,body,start,subject,responseStatus,webLink", graphClient.CalledUri);
+        }
+
+        [TestMethod]
+        public void NestedSelect()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = graphCalendarContext.Events
+                .Select(calendarEvent => calendarEvent.Body.Content)
+                .Values;
+
+            Assert.AreEqual("/me/calendar/events?$select=body/content", graphClient.CalledUri);
+        }
+    }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
     /// <summary>
     /// Unit tests for <see cref="GraphClient"/>
@@ -47,7 +114,7 @@
             //// i think what i should do is have an adapter from linq AST (expression) to odata AST, and then have something that converts an odata AST to a string
             //// this will need to have an extension point for the "property path" traversal
             //// this will also need to have extension points for things that aren't supported; for example, we want to have a way to allow datetime.parse be converted into the odata '{the_datetime}'; we should allow the caller to specify *additional* things like this that they want to support by convention
-            
+
             //// TODO topic 2
             //// i think i should force the use of closures at the moment for an convention-based convenience, and then extend this later (meaning, get rid of datetime.parse and force someone to set a local variable with the parsed datetime)
             //// maybe keep the datetime.parse code just so you can remember where it goes and how it looks?
@@ -55,7 +122,7 @@
 
             //// TODO topic 3
             //// what does the code look like that would accept or reject a specific filter?
-            
+
             /*
             var url =
                 $"/me/calendar/events?" +
