@@ -182,8 +182,6 @@
         [TestMethod]
         public void Test()
         {
-            //// TODO before you make an updates based on the topics, you should write some basic unit tests
-
             //// TODO topic 1
             //// i think what i should do is have an adapter from linq AST (expression) to odata AST, and then have something that converts an odata AST to a string
             //// this will need to have an extension point for the "property path" traversal
