@@ -73,7 +73,7 @@
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
             events = events
-                /*.Select(calendarEvent => calendarEvent.Id)
+                .Select(calendarEvent => calendarEvent.Id)
                 .Select(calendarEvent => calendarEvent.Body)
                 .Select(calendarEvent => calendarEvent.Start)
                 .Select(calendarEvent => calendarEvent.Subject)
@@ -81,9 +81,8 @@
                 .Select(calendarEvent => calendarEvent.WebLink)
                 .Select(calendarEvent => calendarEvent.Body.Content)
                 .Top(5)
-                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)*/
-                ////.Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03") && calendarEvent.IsCancelled == false)
-                .Filter(calendarEvent => calendarEvent.Start.DateTime > startTime)
+                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+                .Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > startTime && calendarEvent.IsCancelled == false)
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
                 ;
             var values = events.Values;
