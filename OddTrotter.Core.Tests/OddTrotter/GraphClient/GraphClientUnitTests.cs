@@ -265,10 +265,19 @@
             //// this will need to have an extension point for the "property path" traversal
             //// this will also need to have extension points for things that aren't supported; for example, we want to have a way to allow datetime.parse be converted into the odata '{the_datetime}'; we should allow the caller to specify *additional* things like this that they want to support by convention
 
+            //// conslusions:
+            //// yes, use ASTs
+            //// also use a visitor for the external extensibility; these are actually "hooks" and have clear hook points (the places where you throw the exceptions in the esles branches)
+            //// have a different confiurable visitor for each query parameter
+
             //// TODO topic 2
             //// i think i should force the use of closures at the moment for an convention-based convenience, and then extend this later (meaning, get rid of datetime.parse and force someone to set a local variable with the parsed datetime)
             //// maybe keep the datetime.parse code just so you can remember where it goes and how it looks?
             //// i should also add support for non-local variable closures before adding support for datetime.parse kind of things
+
+            //// conclusions:
+            //// i should not implement any convenience methods, but instead should have *only* the extensibility mechanism; a third party can release a set of "useful" or "common" extensions, but it should not be the odata parser
+            //// for completeness, go ahead and implement static closures too
 
             //// TODO topic 3
             //// what does the code look like that would accept or reject a specific filter?
@@ -281,6 +290,9 @@
                 $"$orderBy=start/dateTime&" +
                 $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}' and isCancelled eq false";
             */
+
+
+            //// TODO use an anonymous type to do multiple selects in one method call?
 
             var graphClient = new MockGraphClient();
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
