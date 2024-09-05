@@ -286,7 +286,7 @@
                 }
                 else if (expression is MemberExpression memberExpression)
                 {
-                    queryParameter.Append(TraverseMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>()));
+                    TraverseMemberExpression(memberExpression, queryParameter);
                 }
                 else if (expression is BinaryExpression binaryExpression)
                 {
@@ -313,7 +313,7 @@
                 //// TODO do any other validations needed for the spec to be accureate
                 if (selector.Body is MemberExpression memberExpression)
                 {
-                    var propertyPath = TraverseMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
+                    var propertyPath = TraverseCalendarEventMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
                     return new CalendarEventCollectionContext(
                         this.graphClient,
                         this.eventsUri,
@@ -328,14 +328,63 @@
                 }
             }
 
-            private string TraverseMemberExpression(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
+            private void TraverseMemberExpression(MemberExpression memberExpression, StringBuilder queryParameter)
             {
+                var traversed = TraverseCalendarEventMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
+                if (traversed == null)
+                {
+                    TraverseClosureMemberExpression(memberExpression, queryParameter);
+                }
+                else
+                {
+                    queryParameter.Append(traversed);
+                }
+            }
+
+            private void TraverseClosureMemberExpression(MemberExpression memberExpression, StringBuilder queryParameter)
+            {
+                if (memberExpression.Expression is ConstantExpression constantExpression) //// this is a "dynamic" closure (both instance accesses, and locally scoped variable accesses)
+                {
+                    //// TODO null checks
+                    var fieldInfo = constantExpression.Value?.GetType().GetField(memberExpression.Member.Name);
+                    var value = fieldInfo?.GetValue(constantExpression.Value);
+
+                    if (fieldInfo?.FieldType == typeof(DateTime))
+                    {
+                        queryParameter.Append($"'{((DateTime)value!).ToString("yyyy-MM-ddThh:mm:ss.000000")}");
+                    }
+                    else
+                    {
+                        //// TODO support other EDM primitives
+                        throw new Exception("tODO");
+                    }
+
+                    //// TODO do you want to do a manual formatting of dateTimeConstantExpression.Value? do you want to actually call datetime.parse on it?
+
+                    //// TODO use jsonpropertyname attributes to get the start and datetime strings (you should actually use brand new attributes)
+                    ////return $"start/dateTime gt '{dateTimeValue}'";
+                }
+                else
+                {
+                    //// TODO support other kinds of closures here
+                    throw new Exception("tODO");
+                }
+            }
+
+            private string? TraverseCalendarEventMemberExpression(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
+            {
+                if (expression.Expression?.NodeType == ExpressionType.Constant)
+                {
+                    //// TODO make this a "try" method instead of null here
+                    return null;
+                }
+
                 //// TODO should this "replace" with a constant expression of the property path?
                 if (expression.Expression?.NodeType != ExpressionType.Parameter)
                 {
                     if (expression.Expression is MemberExpression memberExpression)
                     {
-                        return TraverseMemberExpression(memberExpression, previousExpressions.Append(expression));
+                        return TraverseCalendarEventMemberExpression(memberExpression, previousExpressions.Append(expression));
                     }
                 }
                 else if (expression.Member.Name == nameof(GraphCalendarEvent.Id))
@@ -463,7 +512,7 @@
                 //// TODO validate that you only allow expressions that are supported by graph?
                 if (selector.Body is MemberExpression memberExpression)
                 {
-                    var propertyPath = TraverseMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
+                    var propertyPath = TraverseCalendarEventMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
                     return new CalendarEventCollectionContext(
                         this.graphClient,
                         this.eventsUri,

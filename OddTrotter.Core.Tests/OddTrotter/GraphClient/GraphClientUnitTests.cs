@@ -49,6 +49,11 @@
             //// this will also need to have extension points for things that aren't supported; for example, we want to have a way to allow datetime.parse be converted into the odata '{the_datetime}'; we should allow the caller to specify *additional* things like this that they want to support by convention
             
             //// TODO topic 2
+            //// i think i should force the use of closures at the moment for an convention-based convenience, and then extend this later (meaning, get rid of datetime.parse and force someone to set a local variable with the parsed datetime)
+            //// maybe keep the datetime.parse code just so you can remember where it goes and how it looks?
+            //// i should also add support for non-local variable closures before adding support for datetime.parse kind of things
+
+            //// TODO topic 3
             //// what does the code look like that would accept or reject a specific filter?
             
             /*
@@ -64,6 +69,8 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events;
 
+            var startTime = DateTime.Now.ToUniversalTime();
+
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
             events = events
                 /*.Select(calendarEvent => calendarEvent.Id)
@@ -75,7 +82,8 @@
                 .Select(calendarEvent => calendarEvent.Body.Content)
                 .Top(5)
                 .OrderBy(calendarEvent => calendarEvent.Start.DateTime)*/
-                .Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03") && calendarEvent.IsCancelled == false)
+                ////.Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03") && calendarEvent.IsCancelled == false)
+                .Filter(calendarEvent => calendarEvent.Start.DateTime > startTime)
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
                 ;
             var values = events.Values;
