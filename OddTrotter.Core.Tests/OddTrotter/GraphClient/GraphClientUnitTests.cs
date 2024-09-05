@@ -73,6 +73,80 @@
 
             Assert.AreEqual("/me/calendar/events?$select=body/content", graphClient.CalledUri);
         }
+
+        [TestMethod]
+        public void Top()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = graphCalendarContext.Events
+                .Top(5)
+                .Values;
+
+            Assert.AreEqual("/me/calendar/events?$top=5", graphClient.CalledUri);
+        }
+
+        [TestMethod]
+        public void OrderBy()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = graphCalendarContext.Events
+                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+                .Values;
+
+            Assert.AreEqual("/me/calendar/events?$orderby=start/dateTime", graphClient.CalledUri);
+        }
+
+        [TestMethod]
+        public void Filter()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = graphCalendarContext.Events
+                .Filter(calendarEvent => calendarEvent.Type == "singleInstance")//// && calendarEvent.Start.DateTime > startTime && calendarEvent.IsCancelled == false)
+                .Values;
+
+            Assert.AreEqual("/me/calendar/events?$filter=type eq 'singleInstance'", graphClient.CalledUri);
+        }
+
+        [TestMethod]
+        public void FluentFilter()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = graphCalendarContext.Events
+                .Filter(calendarEvent => calendarEvent.Type == "singleInstance")
+                .Filter(calendarEvent => calendarEvent.IsCancelled == false)
+                .Values;
+
+            Assert.AreEqual("/me/calendar/events?$filter=type eq 'singleInstance' and isCancelled eq false", graphClient.CalledUri);
+        }
+
+        [TestMethod]
+        public void FilterWithDateTimeClosure()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var startTime = DateTime.Parse("2024-09-03");
+            var events = graphCalendarContext.Events
+                .Filter(calendarEvent => calendarEvent.Start.DateTime > startTime)
+                .Values;
+
+            Assert.AreEqual("/me/calendar/events?$filter=start/dateTime gt '2024-09-03T12:00:00.000000'", graphClient.CalledUri);
+        }
+
+        [TestMethod]
+        public void FilterWithDateTimeParse()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = graphCalendarContext.Events
+                .Filter(calendarEvent => calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03"))
+                .Values;
+
+            Assert.AreEqual("/me/calendar/events?$filter=start/dateTime gt '2024-09-03'", graphClient.CalledUri);
+        }
     }
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 

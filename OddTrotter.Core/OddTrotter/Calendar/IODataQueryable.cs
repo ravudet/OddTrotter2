@@ -351,7 +351,7 @@
 
                     if (fieldInfo?.FieldType == typeof(DateTime))
                     {
-                        queryParameter.Append($"'{((DateTime)value!).ToString("yyyy-MM-ddThh:mm:ss.000000")}");
+                        queryParameter.Append($"'{((DateTime)value!).ToString("yyyy-MM-ddThh:mm:ss.000000")}'");
                     }
                     else
                     {
@@ -535,6 +535,7 @@
                     {
                         this.select,
                         this.filter,
+                        this.orderBy,
                         this.top,
                     }.Where(option => option != null);
 
