@@ -53,6 +53,10 @@
         {
             private readonly IODataCollectionContext<GraphCalendarEvent> graphCalendarEventsContext;
 
+            private readonly DateTime startTime; //// TODO configure these fields
+
+            private readonly DateTime endTime;
+
             public CalendarEventContext(IODataCollectionContext<GraphCalendarEvent> graphCalendarEventsContext)
             {
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
@@ -84,8 +88,11 @@
 
             private IEnumerable<CalendarContextCalendarEvent> GetInstanceEvents()
             {
-                //// TODO
-                return Enumerable.Empty<CalendarContextCalendarEvent>();
+                return this.graphCalendarEventsContext
+                    .Filter(calendarEvent => calendarEvent.Type == "singleInstance")
+                    .Values
+                    .Elements
+                    .Select(ToCalendarContextCalendarEvent);
             }
 
             private IEnumerable<CalendarContextCalendarEvent> GetSeriesEvents()
@@ -97,6 +104,20 @@
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return this.GetEnumerator();
+            }
+
+            private static CalendarContextCalendarEvent ToCalendarContextCalendarEvent(GraphCalendarEvent graphCalendarEvent)
+            {
+                return new CalendarContextCalendarEvent(
+                    graphCalendarEvent.Id!,
+                    graphCalendarEvent.Body!,
+                    graphCalendarEvent.Start!,
+                    graphCalendarEvent.End!,
+                    graphCalendarEvent.Subject!,
+                    graphCalendarEvent.ResponseStatus!,
+                    graphCalendarEvent.WebLink!,
+                    graphCalendarEvent.Type!,
+                    graphCalendarEvent.IsCancelled!.Value);
             }
         }
     }
