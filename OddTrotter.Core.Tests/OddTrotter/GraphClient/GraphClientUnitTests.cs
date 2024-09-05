@@ -41,10 +41,13 @@
         [TestMethod]
         public void Test()
         {
-            //// TODO 
+            //// TODO topic 1
             //// i think what i should do is have an adapter from linq AST (expression) to odata AST, and then have something that converts an odata AST to a string
             //// this will need to have an extension point for the "property path" traversal
             //// this will also need to have extension points for things that aren't supported; for example, we want to have a way to allow datetime.parse be converted into the odata '{the_datetime}'; we should allow the caller to specify *additional* things like this that they want to support by convention
+            
+            //// TODO topic 2
+            //// what does the code look like that would accept or reject a specific filter?
             
             /*
             var url =
