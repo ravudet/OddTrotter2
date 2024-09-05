@@ -98,25 +98,25 @@
                     if (node.NodeType == ExpressionType.Equal)
                     {
                         //// TODO you're not even checking which side needs to be casted...
-                        return 
+                        return
                             Expression.Equal(
-                                Expression.Constant(true, typeof(bool?)), 
-                                Expression.Convert(
-                                    Expression.Constant(false, typeof(bool)), typeof(bool?))
-                            );
+                                Expression.Constant(true, typeof(bool?)),
+                                this.Visit(node.Right));
+                                /*Expression.Convert(
+                                    Expression.Constant(false, typeof(bool)), typeof(bool?)));*/
                     }
 
                     return base.VisitBinary(node);
                 }
 
-                /*protected override Expression VisitConstant(ConstantExpression node)
+                protected override Expression VisitConstant(ConstantExpression node)
                 {
                     //// TODO make sure this is a constant that's part a binary operation where one of the sides is a memberaccess on the parameter
                     return Expression.Convert(node, typeof(bool?));
 
                     ////return base.VisitConstant(node);
                 }
-
+                
                 protected override Expression VisitMember(MemberExpression node)
                 {
                     if (IsParameter(node))
@@ -133,7 +133,7 @@
                 {
                     //// TODO you need to know that the member access is on the parameter and not on something else
                     return true;
-                }*/
+                }
             }
 
             public IEnumerator<CalendarContextCalendarEvent> GetEnumerator()
