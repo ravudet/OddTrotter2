@@ -202,7 +202,7 @@
                 {
                     quotes = true;
                 }
-                else
+                else if (false)
                 {
                     //// TODO other constants that need quoted here
                     throw new Exception("TODO");
@@ -418,6 +418,10 @@
                 else if (expression.Member.Name == nameof(GraphCalendarEvent.Type))
                 {
                     return "type";
+                }
+                else if (expression.Member.Name == nameof(GraphCalendarEvent.IsCancelled))
+                {
+                    return "isCancelled";
                 }
 
                 throw new Exception("TODO not a known member; do you really want to be strict about this? well, actually, you probably *should* be consistent about ti because even if they select a property, you won't deserialiez it if you don't know about; at the same time, though, you're efectively doing what the odata webapi stuff does and hide things; m,aybe you should expose the url somewhere, and if you do that, then it might make sense to allow properties that you're not aware of");

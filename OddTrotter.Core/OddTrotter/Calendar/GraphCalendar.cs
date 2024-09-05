@@ -48,6 +48,9 @@
         [JsonPropertyName("type")]
         public string? Type { get; set; }
 
+        [JsonPropertyName("isCancelled")]
+        public bool? IsCancelled { get; set; }
+
         //// TODO add *all* of the properties here
     }
 

@@ -41,6 +41,11 @@
         [TestMethod]
         public void Test()
         {
+            //// TODO 
+            //// i think what i should do is have an adapter from linq AST (expression) to odata AST, and then have something that converts an odata AST to a string
+            //// this will need to have an extension point for the "property path" traversal
+            //// this will also need to have extension points for things that aren't supported; for example, we want to have a way to allow datetime.parse be converted into the odata '{the_datetime}'; we should allow the caller to specify *additional* things like this that they want to support by convention
+            
             /*
             var url =
                 $"/me/calendar/events?" +
@@ -67,7 +72,8 @@
                 .Top(5)
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
                 .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
-                .Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03"))
+                ////.Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03"))
+                .Filter(calendarEvent => calendarEvent.IsCancelled == false)
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
                 ;
             var values = events.Values;
