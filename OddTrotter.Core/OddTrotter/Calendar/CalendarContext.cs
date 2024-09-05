@@ -60,7 +60,7 @@
 
             public IEnumerator<CalendarContextCalendarEvent> GetEnumerator()
             {
-                return this.graphCalendarEventsContext
+                /*return this.graphCalendarEventsContext
                     .Values
                     .Elements
                     .Select(graphCalendarEvent => new CalendarContextCalendarEvent(
@@ -73,7 +73,25 @@
                         graphCalendarEvent.WebLink!,
                         graphCalendarEvent.Type!,
                         graphCalendarEvent.IsCancelled!.Value))
-                    .GetEnumerator();
+                    .GetEnumerator();*/
+                return GetEvents().GetEnumerator();
+            }
+
+            private IEnumerable<CalendarContextCalendarEvent> GetEvents()
+            {
+                return this.GetInstanceEvents().Concat(this.GetSeriesEvents());
+            }
+
+            private IEnumerable<CalendarContextCalendarEvent> GetInstanceEvents()
+            {
+                //// TODO
+                return Enumerable.Empty<CalendarContextCalendarEvent>();
+            }
+
+            private IEnumerable<CalendarContextCalendarEvent> GetSeriesEvents()
+            {
+                //// TODO
+                return Enumerable.Empty<CalendarContextCalendarEvent>();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
