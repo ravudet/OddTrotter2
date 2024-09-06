@@ -164,6 +164,8 @@
 #pragma warning restore CS8603 // Possible null reference return.
         }
 
+        public static Func<DateTime> Now { get; set; } = () => DateTime.UtcNow;
+
         /// <summary>
         /// 
         /// </summary>
@@ -222,7 +224,7 @@
                 oddTrotterTodoList = SetDefaults(oddTrotterTodoListDataBuilder).Build();
             }
 
-            var instanceEventsCollection = GetEvents(this.graphClient, oddTrotterTodoList.LastRecordedEventTimeStamp, DateTime.UtcNow, this.calendarEventPageSize);
+            var instanceEventsCollection = GetEvents(this.graphClient, oddTrotterTodoList.LastRecordedEventTimeStamp, Now(), this.calendarEventPageSize);
             var instanceEvents = instanceEventsCollection.Elements.ToV2Enumerable();
             var todoListEvents = instanceEvents
                 .Where(instanceEvent => instanceEvent.Subject?.Contains("todo list", StringComparison.OrdinalIgnoreCase) == true);
