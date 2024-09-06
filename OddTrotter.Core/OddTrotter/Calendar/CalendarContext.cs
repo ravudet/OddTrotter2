@@ -80,10 +80,10 @@
 
             private sealed class Visitor : ExpressionVisitor
             {
-                /*protected override Expression VisitParameter(ParameterExpression node)
+                protected override Expression VisitParameter(ParameterExpression node)
                 {
                     return Expression.Parameter(typeof(GraphCalendarContextEvent), node.Name);
-                }*/
+                }
 
                 protected override Expression VisitLambda<T>(Expression<T> node)
                 {
@@ -123,7 +123,7 @@
                         //// TODO the get member call is a bit hacky
                         //// TODO you may need to traverse and translate node.Expression yourself...
                         return Expression.MakeMemberAccess(
-                            Expression.Parameter(typeof(GraphCalendarContextEvent), "calendarEvent"),
+                            this.Visit(node.Expression),
                             typeof(GraphCalendarContextEvent).GetMember(node.Member.Name)[0]);
                         ////return Expression.Constant(true, typeof(bool?));
 
