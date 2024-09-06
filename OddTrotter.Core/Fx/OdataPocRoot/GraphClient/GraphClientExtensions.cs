@@ -8,6 +8,8 @@
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Fx.OdataPocRoot.Odata;
+    using OddTrotter.AzureBlobClient;
+    using OddTrotter.Calendar;
     using OddTrotter.GraphClient;
 
     /// <summary>
@@ -15,23 +17,32 @@
     /// </summary>
     public static class GraphClientExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="graphClient"></param>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidAccessTokenException">
+        /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
+        /// </exception>
         public static async Task<OdataCollection<T>> GetOdataCollection<T>(this IGraphClient graphClient, RelativeUri uri)
         {
-            var elements = Enumerable.Empty<T>();
-
+            //// TODO use linq instead of a list
+            var elements = new List<T>();
             ODataCollectionPage<T> page;
             try
             {
+                //// TODO would it make sense to have a method like "bool TryGetPage(IGraphClient, RelativeUri, out ODataCollectionPage, out ODataCollection)" ?
                 page = await GetPage<T>(graphClient, uri).ConfigureAwait(false);
             }
-            catch (Exception) //// TODO when (e is HttpRequestException || e is GraphException || e is JsonException)
+            catch (Exception e) when (e is HttpRequestException || e is GraphException || e is JsonException)
             {
-                ////return new ODataCollection<T>(elements, uri.OriginalString);
-                throw;
+                return new OdataCollection<T>(elements, uri.OriginalString);
             }
 
-            elements = elements.Concat(page.Value); //// TODO this is a pivotal line; this means that we are concretely enumerating the entire collection, following all pages; we are doing this because we want to have the "lastrequestedurl"; it *might* make sense to change odatacollection to allow the elements to be lazily evaluated and then set "lastrequestedurl" at the time that an error occurs
-            
+            elements.AddRange(page.Value);
             var nextLink = page.NextLink;
             while (nextLink != null)
             {
@@ -47,37 +58,74 @@
 
                 try
                 {
-                    page = GetPage<T>(graphClient, nextLinkUri).ConfigureAwait(false).GetAwaiter().GetResult();
+                    page = await GetPage<T>(graphClient, nextLinkUri).ConfigureAwait(false);
                 }
-                catch (Exception)//// TODO when (e is HttpRequestException || e is GraphException || e is JsonException)
+                catch (Exception e) when (e is HttpRequestException || e is GraphException || e is JsonException)
                 {
-                    ////return new OdataCollection<T>(elements, nextLinkUri.OriginalString);
-                    throw;
+                    return new OdataCollection<T>(elements, nextLinkUri.OriginalString);
                 }
 
-                elements = elements.Concat(page.Value);
+                elements.AddRange(page.Value);
                 nextLink = page.NextLink;
             }
 
             return new OdataCollection<T>(elements);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="graphClient"></param>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        /// <exception cref="HttpRequestException">
+        /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout
+        /// </exception>
+        /// <exception cref="InvalidAccessTokenException">
+        /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request
+        /// </exception>
+        /// <exception cref="GraphException">Thrown if graph produced an error while retrieving the page</exception>
+        /// <exception cref="JsonException">Thrown if the response content was not a valid OData collection payload</exception>
         private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient graphClient, RelativeUri uri)
         {
             using (var httpResponse = await graphClient.GetAsync(uri).ConfigureAwait(false))
             {
-                return await ReadPage<T>(httpResponse).ConfigureAwait(false);
+                return await ReadPage<T>(httpResponse).ConfigureAwait(false); //// TODO add configure await to todolistservice
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="graphClient"></param>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        /// <exception cref="HttpRequestException">
+        /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout
+        /// </exception>
+        /// <exception cref="InvalidAccessTokenException">
+        /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the request
+        /// </exception>
+        /// <exception cref="GraphException">Thrown if graph produced an error while retrieving the page</exception>
+        /// <exception cref="JsonException">Thrown if the response content was not a valid OData collection payload</exception>
         private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient graphClient, AbsoluteUri uri)
         {
             using (var httpResponse = await graphClient.GetAsync(uri).ConfigureAwait(false))
             {
-                return await ReadPage<T>(httpResponse).ConfigureAwait(false);
+                return await ReadPage<T>(httpResponse).ConfigureAwait(false); //// TODO add configure await to todolistservice
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="httpResponse"></param>
+        /// <returns></returns>
+        /// <exception cref="GraphException">Thrown if graph produced an error while retrieving the page</exception>
+        /// <exception cref="JsonException">Thrown if the response content was not a valid OData collection payload</exception>
         private static async Task<ODataCollectionPage<T>> ReadPage<T>(HttpResponseMessage httpResponse)
         {
             var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -85,11 +133,9 @@
             {
                 httpResponse.EnsureSuccessStatusCode();
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException e)
             {
-                //// TODO
-                ////throw new GraphException(httpResponseContent, e);
-                throw;
+                throw new GraphException(httpResponseContent, e);
             }
 
             var odataCollectionPage = JsonSerializer.Deserialize<ODataCollectionPage<T>.Builder>(httpResponseContent);
