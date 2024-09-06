@@ -359,7 +359,8 @@
             var calendarContext = new CalendarContext(graphCalendarContext, startTime, endTime); //// TODO constructor injection
             calendarContext
                 .Events
-                .Take(pageSize);
+                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+                .Where(calendarEvent => calendarEvent.IsCancelled == false);
 
             var instanceEvents = GetInstanceEvents(graphClient, startTime, endTime, pageSize);
             var seriesEvents = GetSeriesEvents(graphClient, startTime, endTime, pageSize);
