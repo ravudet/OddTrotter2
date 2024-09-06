@@ -40,12 +40,14 @@
             this.lookAhead = settings.LookAhead;
         }
 
+        public static Func<DateTime> Now { get; set; } = () => DateTime.UtcNow;
+
         public async Task<TentativeCalendarResult> RetrieveTentativeCalendar()
         {
             //// TODO refactor commonalities between this and todolistservice
             
             //// TODO leverage a cache?
-            var startTime = DateTime.UtcNow;
+            var startTime = Now();
             var events = GetEvents(this.graphClient, startTime, startTime + this.lookAhead, 50); //// TODO configure these values
             var allEvents = events.Elements.ToList();
             var notResponsedEvents = allEvents

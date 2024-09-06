@@ -23,15 +23,16 @@
         {
             var graphClient = new MockGraphClient();
             var calendarService = new CalendarService(graphClient);
+            CalendarService.Now = () => DateTime.Parse("2024-09-03");
             var result = await calendarService.RetrieveTentativeCalendar().ConfigureAwait(false);
 
             CollectionAssert.AreEqual(
                 new[]
                 {
-                        "/me/calendar/events?$select=body,start,subject,responseStatus,webLink&$top=50&$orderBy=start/dateTime&$filter=type eq 'singleInstance' and start/dateTime gt '0001-01-01T08:00:00.000000' and isCancelled eq false and start/dateTime lt '2024-09-06T06:46:54.000000'",
-                        "/me/calendar/events?$select=body,start,subject&$top=50&$orderBy=start/dateTime&$filter=type eq 'seriesMaster' and isCancelled eq false",
-                        "/me/calendar/events/some_id_2/instances?startDateTime=1/1/0001 12:00:00 AM&endDateTime=9/6/2024 6:46:54 PM&$top=1&$select=id,start,subject,body&$filter=isCancelled eq false",
-                        "/me/calendar/events/some_id_2/instances?startDateTime=1/1/0001 12:00:00 AM&endDateTime=9/6/2024 6:46:54 PM&$top=1&$select=id,start,subject,body&$filter=isCancelled eq false",
+                        "/me/calendar/events?$select=body,start,subject,responseStatus,webLink&$top=50&$orderBy=start/dateTime&$filter=type eq 'singleInstance' and start/dateTime gt '2024-09-03T07:00:00.000000' and isCancelled eq false and start/dateTime lt '2025-09-03T07:00:00.000000'",
+                        "/me/calendar/events?$select=body,start,subject,responseStatus,webLink&$top=50&$orderBy=start/dateTime&$filter=type eq 'seriesMaster' and isCancelled eq false",
+                        "/me/calendar/events/some_id_2/instances?startDateTime=9/3/2024 12:00:00 AM&endDateTime=9/3/2025 12:00:00 AM&$top=1&$select=id,start,subject,body,responseStatus,webLink&$filter=isCancelled eq false",
+                        "/me/calendar/events/some_id_2/instances?startDateTime=9/3/2024 12:00:00 AM&endDateTime=9/3/2025 12:00:00 AM&$top=1&$select=id,start,subject,body,responseStatus,webLink&$filter=isCancelled eq false",
                 },
                 graphClient.CalledUris);
         }
