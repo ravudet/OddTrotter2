@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Reflection.Metadata;
 
     public sealed class CalendarContextCalendarEvent
     {
@@ -119,7 +120,12 @@
                 {
                     if (IsParameter(node))
                     {
-                        return Expression.Constant(true, typeof(bool?));
+                        //// TODO the get member call is a bit hacky
+                        //// TODO you may need to traverse and translate node.Expression yourself...
+                        return Expression.MakeMemberAccess(
+                            Expression.Parameter(typeof(GraphCalendarContextEvent), "calendarEvent"),
+                            typeof(GraphCalendarContextEvent).GetMember(node.Member.Name)[0]);
+                        ////return Expression.Constant(true, typeof(bool?));
 
                         //// TODO the get member call is a bit hacky
                         //// TODO you may need to traverse and translate node.Expression yourself...
