@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OddTrotter.TestCore", "OddT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OddTrotter.MemoryCachingInteractionLibrary.Tests", "OddTrotter.MemoryCachingInteractionLibrary.Tests\OddTrotter.MemoryCachingInteractionLibrary.Tests.csproj", "{84020AE6-A68B-4B7A-9665-31796B42B6F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OddTrotterPortal.Tests", "OddTrotterPortal.Tests\OddTrotterPortal.Tests.csproj", "{374BB3F1-BAAA-49D4-913C-5D20A68B431A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OddTrotterPortal.Tests", "OddTrotterPortal.Tests\OddTrotterPortal.Tests.csproj", "{374BB3F1-BAAA-49D4-913C-5D20A68B431A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

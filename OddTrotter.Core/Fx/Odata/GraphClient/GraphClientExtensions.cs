@@ -1,4 +1,4 @@
-﻿namespace Fx.HttpClient
+﻿namespace OddTrotter.GraphClient
 {
     using System;
     using System.Collections.Generic;
@@ -9,21 +9,20 @@
     using System.Threading.Tasks;
 
     using Fx.Odata;
-    using OddTrotter.GraphClient;
 
     /// <summary>
-    /// Extension methods for <see cref="IHttpClient"/>
+    /// Extension methods for <see cref="IGraphClient"/>
     /// </summary>
-    public static class HttpClientExtensions
+    public static class GraphClientExtensions
     {
-        public static async Task<OdataCollection<T>> GetOdataCollection<T>(this IGraphClient httpClient, RelativeUri uri)
+        public static async Task<OdataCollection<T>> GetOdataCollection<T>(this IGraphClient graphClient, RelativeUri uri)
         {
             var elements = Enumerable.Empty<T>();
 
             ODataCollectionPage<T> page;
             try
             {
-                page = await GetPage<T>(httpClient, uri).ConfigureAwait(false);
+                page = await GetPage<T>(graphClient, uri).ConfigureAwait(false);
             }
             catch (Exception) //// TODO when (e is HttpRequestException || e is GraphException || e is JsonException)
             {
@@ -48,7 +47,7 @@
 
                 try
                 {
-                    page = GetPage<T>(httpClient, nextLinkUri).ConfigureAwait(false).GetAwaiter().GetResult();
+                    page = GetPage<T>(graphClient, nextLinkUri).ConfigureAwait(false).GetAwaiter().GetResult();
                 }
                 catch (Exception)//// TODO when (e is HttpRequestException || e is GraphException || e is JsonException)
                 {
@@ -63,17 +62,17 @@
             return new OdataCollection<T>(elements);
         }
 
-        private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient httpClient, RelativeUri uri)
+        private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient graphClient, RelativeUri uri)
         {
-            using (var httpResponse = await httpClient.GetAsync(uri).ConfigureAwait(false))
+            using (var httpResponse = await graphClient.GetAsync(uri).ConfigureAwait(false))
             {
                 return await ReadPage<T>(httpResponse).ConfigureAwait(false);
             }
         }
 
-        private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient httpClient, AbsoluteUri uri)
+        private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient graphClient, AbsoluteUri uri)
         {
-            using (var httpResponse = await httpClient.GetAsync(uri).ConfigureAwait(false))
+            using (var httpResponse = await graphClient.GetAsync(uri).ConfigureAwait(false))
             {
                 return await ReadPage<T>(httpResponse).ConfigureAwait(false);
             }
