@@ -1,4 +1,0 @@
-1. do you want to use mixins for the contexts? this would allow someone to strongly type that they only support select or something like that
-2. can you how should you structure ihttpclient and igraphclient?
-2. you need to stop using the json attributes for serialization and deserialization
-3. can you use lazy evaluation when paging in the httpclientextensions?

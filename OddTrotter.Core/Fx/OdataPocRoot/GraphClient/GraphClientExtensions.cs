@@ -1,4 +1,4 @@
-﻿namespace Fx.Odata.GraphClient
+﻿namespace Fx.OdataPocRoot.GraphClient
 {
     using System;
     using System.Collections.Generic;
@@ -7,8 +7,7 @@
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
-
-    using Fx.Odata;
+    using Fx.OdataPocRoot.Odata;
     using OddTrotter.GraphClient;
 
     /// <summary>

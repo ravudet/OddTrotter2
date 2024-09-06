@@ -1,4 +1,4 @@
-﻿namespace Fx.Odata
+﻿namespace Fx.OdataPocRoot.Odata
 {
     using System.Linq.Expressions;
     using System;

@@ -1,4 +1,4 @@
-﻿namespace Fx.Odata
+﻿namespace Fx.OdataPocRoot.Odata
 {
     using System.Collections.Generic;
 
@@ -11,8 +11,8 @@
 
         public OdataCollection(IEnumerable<T> elements, string? lastRequestedPageUrl)
         {
-            this.Elements = elements;
-            this.LastRequestedPageUrl = lastRequestedPageUrl;
+            Elements = elements;
+            LastRequestedPageUrl = lastRequestedPageUrl;
         }
 
         public IEnumerable<T> Elements { get; }
