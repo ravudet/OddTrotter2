@@ -221,8 +221,17 @@
         {
             var graphClient = new MockGraphClient();
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
-            var calendarContext = new CalendarContext(graphCalendarContext);
+            var calendarContext = new CalendarContext(graphCalendarContext, DateTime.Parse("2024-09-03"), DateTime.Parse("2024-09-30"));
             var events = calendarContext.Events.ToArray();
+
+            CollectionAssert.AreEqual(
+                new[]
+                {
+                    "/me/calendar/events?$filter=type eq 'singleInstance'",
+                    "/me/calendar/events?$filter=type eq 'seriesMaster'",
+                    "/me/calendar/events/some_id/instances?startDateTime=9/3/2024 12:00:00 AM&endDateTime=9/30/2024 12:00:00 AM",
+                },
+                graphClient.CalledUris);
         }
 
         [TestMethod]
@@ -230,15 +239,20 @@
         {
             var graphClient = new MockGraphClient();
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
-            var calendarContext = new CalendarContext(graphCalendarContext);
-            var events = calendarContext
-                .Events;
-            var eventsArray = events.ToArray();
-
+            var calendarContext = new CalendarContext(graphCalendarContext, DateTime.Parse("2024-09-03"), DateTime.Parse("2024-09-30"));
             var uncanceledEvents = calendarContext
                 .Events
-                .Where(calendarEvent => calendarEvent.IsCancelled == false);
-            var uncanceledEventsArray = uncanceledEvents.ToArray();
+                .Where(calendarEvent => calendarEvent.IsCancelled == false)
+                .ToArray();
+
+            CollectionAssert.AreEqual(
+                new[]
+                {
+                    "/me/calendar/events?$filter=type eq 'singleInstance' and isCancelled eq false",
+                    "/me/calendar/events?$filter=type eq 'seriesMaster' and isCancelled eq false",
+                    "/me/calendar/events/some_id/instances?startDateTime=9/3/2024 12:00:00 AM&endDateTime=9/30/2024 12:00:00 AM&$filter=isCancelled eq false",
+                },
+                graphClient.CalledUris);
         }
     }
 

@@ -43,10 +43,13 @@
 
     public sealed class CalendarContext
     {
-        public CalendarContext(GraphCalendarContext graphCalendarContext)
+        public CalendarContext(
+            GraphCalendarContext graphCalendarContext,
+            DateTime startTime,
+            DateTime endTime)
         {
             //// TODO we  should take a IODataInstanceContext, which should be a generic
-            this.Events = new CalendarEventContext(graphCalendarContext.Events);
+            this.Events = new CalendarEventContext(graphCalendarContext.Events, startTime, endTime);
         }
 
         public IV2Queryable<CalendarContextCalendarEvent> Events { get; }
@@ -55,23 +58,29 @@
         {
             private readonly IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext;
 
-            private readonly DateTime startTime = DateTime.UtcNow; //// TODO configure these fields
+            private readonly DateTime startTime;
 
-            private readonly DateTime endTime = DateTime.UtcNow;
+            private readonly DateTime endTime;
 
             private readonly Expression<Func<GraphCalendarContextEvent, bool>>? where;
 
-            public CalendarEventContext(IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext)
-                : this(graphCalendarEventsContext, null)
+            public CalendarEventContext(
+                IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext,
+                DateTime startTime,
+                DateTime endTime)
+                : this(graphCalendarEventsContext, startTime, endTime, null)
             {
-
             }
 
             private CalendarEventContext(
                 IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext,
+                DateTime startTime,
+                DateTime endTime,
                 Expression<Func<GraphCalendarContextEvent, bool>>? where)
             {
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
+                this.startTime = startTime;
+                this.endTime = endTime;
                 this.where = where;
             }
 
@@ -87,7 +96,7 @@
                 var lambda = translated as Expression<Func<GraphCalendarContextEvent, bool>>;
 
                 //// TODO whwat about mutiple where calls?
-                return new CalendarEventContext(this.graphCalendarEventsContext, lambda!);
+                return new CalendarEventContext(this.graphCalendarEventsContext, this.startTime, this.endTime, lambda!);
             }
 
             private sealed class Visitor : ExpressionVisitor

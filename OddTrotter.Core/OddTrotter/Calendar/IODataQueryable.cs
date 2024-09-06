@@ -130,8 +130,8 @@
             public InstancesContext(IGraphClient graphClient, RelativeUri eventsUri, RelativeUri eventUri, DateTime startTime, DateTime endTime)
                 : this(
                       graphClient,
+                      eventsUri,
                       new Uri(eventUri.OriginalString.TrimEnd('/') + "/instances", UriKind.Relative).ToRelativeUri(), 
-                      eventUri,
                       startTime, 
                       endTime, 
                       null, 
