@@ -3,7 +3,6 @@
     using System.Linq.Expressions;
     using System;
 
-    //// TODO write tests for calendarservcice to assert the correct urls are called
     //// TODO update todolistservice to use calendarcontext
     //// TODO update calendarservice to use calendarcontext
     //// transition calendarcontext and its related types to fx.odatapocroot
