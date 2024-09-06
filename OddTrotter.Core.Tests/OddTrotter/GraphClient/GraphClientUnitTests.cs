@@ -59,7 +59,7 @@
                 .Select(calendarEvent => calendarEvent.Subject)
                 .Select(calendarEvent => calendarEvent.ResponseStatus)
                 .Select(calendarEvent => calendarEvent.WebLink)
-                .Values;
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             Assert.AreEqual("/me/calendar/events?$select=id,body,start,subject,responseStatus,webLink", graphClient.CalledUri);
         }
@@ -71,7 +71,7 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events
                 .Select(calendarEvent => calendarEvent.Body.Content)
-                .Values;
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             Assert.AreEqual("/me/calendar/events?$select=body/content", graphClient.CalledUri);
         }
@@ -83,7 +83,7 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events
                 .Top(5)
-                .Values;
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             Assert.AreEqual("/me/calendar/events?$top=5", graphClient.CalledUri);
         }
@@ -95,7 +95,7 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events
                 .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
-                .Values;
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             Assert.AreEqual("/me/calendar/events?$orderby=start/dateTime", graphClient.CalledUri);
         }
@@ -107,7 +107,7 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events
                 .Filter(calendarEvent => calendarEvent.Type == "singleInstance")//// && calendarEvent.Start.DateTime > startTime && calendarEvent.IsCancelled == false)
-                .Values;
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             Assert.AreEqual("/me/calendar/events?$filter=type eq 'singleInstance'", graphClient.CalledUri);
         }
@@ -120,7 +120,7 @@
             var events = graphCalendarContext.Events
                 .Filter(calendarEvent => calendarEvent.Type == "singleInstance")
                 .Filter(calendarEvent => calendarEvent.IsCancelled == false)
-                .Values;
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             Assert.AreEqual("/me/calendar/events?$filter=type eq 'singleInstance' and isCancelled eq false", graphClient.CalledUri);
         }
@@ -133,7 +133,7 @@
             var startTime = DateTime.Parse("2024-09-03");
             var events = graphCalendarContext.Events
                 .Filter(calendarEvent => calendarEvent.Start.DateTime > startTime)
-                .Values;
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             Assert.AreEqual("/me/calendar/events?$filter=start/dateTime gt '2024-09-03T12:00:00.000000'", graphClient.CalledUri);
         }
@@ -145,7 +145,7 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = graphCalendarContext.Events
                 .Filter(calendarEvent => calendarEvent.Start.DateTime > DateTime.Parse("2024-09-03"))
-                .Values;
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             Assert.AreEqual("/me/calendar/events?$filter=start/dateTime gt '2024-09-03'", graphClient.CalledUri);
         }
@@ -284,7 +284,7 @@
             //// conslusions:
             //// yes, use ASTs
             //// also use a visitor for the external extensibility; these are actually "hooks" and have clear hook points (the places where you throw the exceptions in the esles branches)
-            //// have a different confiurable visitor for each query parameter
+            //// each context should have a different confiurable visitor for each query parameter
 
             //// TODO topic 2
             //// i think i should force the use of closures at the moment for an convention-based convenience, and then extend this later (meaning, get rid of datetime.parse and force someone to set a local variable with the parsed datetime)
@@ -330,7 +330,7 @@
                 .Filter(calendarEvent => calendarEvent.Type == "singleInstance" && calendarEvent.Start.DateTime > startTime && calendarEvent.IsCancelled == false)
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
                 ;
-            var values = events.Values;
+            var values = events.GetValues().GetAwaiter().GetResult(); //// TODO make async
         }
 
         /// <summary>

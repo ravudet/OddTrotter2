@@ -171,7 +171,7 @@
                 //// TODO you need to check that lastpage url
                 return this.graphCalendarEventsContext
                     .Filter(calendarEvent => calendarEvent.Type == "singleInstance")
-                    .Values
+                    .GetValues().GetAwaiter().GetResult() //// TODO make this async
                     .Elements
                     .Select(ToCalendarContextCalendarEvent);
             }
@@ -179,7 +179,8 @@
             private IEnumerable<CalendarContextCalendarEvent> GetSeriesEvents()
             {
                 //// TODO you need to check that lastpage url
-                var seriesMasters = this.graphCalendarEventsContext.Filter(calendarEvent => calendarEvent.Type == "seriesMaster").Values;
+                var seriesMasters = this.graphCalendarEventsContext.Filter(calendarEvent => calendarEvent.Type == "seriesMaster")
+                    .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
                 var seriesInstanceEvents = seriesMasters
                     .Elements
@@ -208,7 +209,7 @@
                     .Select(calendarEvent => calendarEvent.WebLink);
                     
                 return graphEvents
-                    .Values
+                    .GetValues().GetAwaiter().GetResult() //// TODO make this async
                     .Elements
                     .First();
             }

@@ -16,6 +16,8 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Fx.HttpClient;
+
     using OddTrotter.AzureBlobClient;
     using OddTrotter.GraphClient;
 
@@ -104,28 +106,25 @@
                 this.endTime = endTime;
             }
 
-            public ODataCollection<GraphCalendarContextEvent> Values
+            public async Task<ODataCollection<GraphCalendarContextEvent>> GetValues()
             {
-                get
-                {
-                    //// TODO
-                    return new ODataCollection<GraphCalendarContextEvent>(
-                        new[]
+                //// TODO
+                return await Task.FromResult(new ODataCollection<GraphCalendarContextEvent>(
+                    new[]
+                    {
+                        new GraphCalendarContextEvent()
                         {
-                            new GraphCalendarContextEvent()
-                            {
-                                Body = new BodyStructure(),
-                                End = new TimeStructure(),
-                                Start = new TimeStructure(),
-                                Id = "asdf",
-                                IsCancelled = false,
-                                ResponseStatus = new ResponseStatusStructure(),
-                                Subject = "asfd",
-                                Type = "instanceEvent",
-                                WebLink = "a link",
-                            },
-                        });
-                }
+                            Body = new BodyStructure(),
+                            End = new TimeStructure(),
+                            Start = new TimeStructure(),
+                            Id = "asdf",
+                            IsCancelled = false,
+                            ResponseStatus = new ResponseStatusStructure(),
+                            Subject = "asfd",
+                            Type = "instanceEvent",
+                            WebLink = "a link",
+                        },
+                    }));
             }
 
             public IODataCollectionContext<GraphCalendarContextEvent> Filter(Expression<Func<GraphCalendarContextEvent, bool>> predicate)
@@ -664,35 +663,32 @@
                 }
             }
 
-            public ODataCollection<GraphCalendarContextEvent> Values //// TODO shouldn't this return type be something odata-y? like, the properties need to be marked as selected and stuff, right?
+            public async Task<ODataCollection<GraphCalendarContextEvent>> GetValues() //// TODO shouldn't this return type be something odata-y? like, the properties need to be marked as selected and stuff, right?
             {
-                get
-                {
                     //// TODO it would be very good to make this lazy
-                    var queryOptionsList = new[]
-                    {
-                        this.select,
-                        this.filter,
-                        this.orderBy,
-                        this.top,
-                    }.Where(option => option != null);
+                var queryOptionsList = new[]
+                {
+                    this.select,
+                    this.filter,
+                    this.orderBy,
+                    this.top,
+                }.Where(option => option != null);
 
-                    var queryOptions = string.Join("&", queryOptionsList);
+                var queryOptions = string.Join("&", queryOptionsList);
 
-                    var requestUri = string.IsNullOrEmpty(queryOptions) ?
-                        this.eventsUri :
-                        new Uri($"{this.eventsUri.OriginalString}?{queryOptions}", UriKind.Relative).ToRelativeUri();
-                    var deserializedResponse = GetCollection<GraphCalendarContextEvent>(this.graphClient, requestUri);
+                var requestUri = string.IsNullOrEmpty(queryOptions) ?
+                    this.eventsUri :
+                    new Uri($"{this.eventsUri.OriginalString}?{queryOptions}", UriKind.Relative).ToRelativeUri();
+                var deserializedResponse = await this.graphClient.GetOdataCollection<GraphCalendarContextEvent>(requestUri).ConfigureAwait(false);
 
-                    var queryableResponse = new ODataCollection<GraphCalendarContextEvent>(
-                        deserializedResponse.Elements.Select(element => new GraphCalendarContextEvent(
-                            this.graphClient,
-                            new Uri(this.eventsUri.OriginalString.TrimEnd('/') + $"/{element.Id}", UriKind.Relative).ToRelativeUri(),
-                            element)),
-                        deserializedResponse.LastRequestedPageUrl);
+                var queryableResponse = new ODataCollection<GraphCalendarContextEvent>(
+                    deserializedResponse.Elements.Select(element => new GraphCalendarContextEvent(
+                        this.graphClient,
+                        new Uri(this.eventsUri.OriginalString.TrimEnd('/') + $"/{element.Id}", UriKind.Relative).ToRelativeUri(),
+                        element)),
+                    deserializedResponse.LastRequestedPageUrl);
 
-                    return queryableResponse;
-                }
+                return queryableResponse;
             }
 
             /// <summary>
@@ -881,7 +877,7 @@
     {
         //// TODO do you want this? IEnumerator<T> GetEnumerator();
 
-        ODataCollection<T> Values { get; }
+        Task<ODataCollection<T>> GetValues();
 
         IODataCollectionContext<T> Select<TProperty>(Expression<Func<T, TProperty>> selector);
 

@@ -113,7 +113,8 @@
                 .Select(calendarEvent => calendarEvent.Subject)
                 .Select(calendarEvent => calendarEvent.ResponseStatus)
                 .Select(calendarEvent => calendarEvent.WebLink);
-            var values = events.Values;
+            var values = events
+                .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
             //// TODO starttime and endtime should be done through a queryable
             var url = GetInstanceEventsUrl(startTime, pageSize) + $" and start/dateTime lt '{endTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}'";
