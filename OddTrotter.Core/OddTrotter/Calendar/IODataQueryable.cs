@@ -31,6 +31,8 @@
     {
         private readonly IGraphClient graphClient;
 
+        private readonly RelativeUri eventsUri;
+
         private readonly RelativeUri eventUri;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -39,9 +41,10 @@
         {
         }
 
-        public GraphCalendarContextEvent(IGraphClient graphClient, RelativeUri eventUri, GraphCalendarContextEvent graphCalendarContextEvent) //// TODO it would be nice if this were private...
+        public GraphCalendarContextEvent(IGraphClient graphClient, RelativeUri eventsUri, RelativeUri eventUri, GraphCalendarContextEvent graphCalendarContextEvent) //// TODO it would be nice if this were private...
         {
             this.graphClient = graphClient;
+            this.eventsUri = eventsUri;
             this.eventUri = eventUri;
 
             this.Id = graphCalendarContextEvent.Id;
@@ -54,7 +57,7 @@
             this.Type = graphCalendarContextEvent.Type;
             this.IsCancelled = graphCalendarContextEvent.IsCancelled;
 
-            this.Instances = (startTime, endTime) => new InstancesContext(graphClient, eventUri, startTime, endTime);
+            this.Instances = (startTime, endTime) => new InstancesContext(graphClient, eventsUri, eventUri, startTime, endTime);
         }
 
         [JsonPropertyName("id")]
@@ -94,13 +97,16 @@
 
             private readonly RelativeUri instancesUri;
 
+            private readonly RelativeUri eventsUri;
+
             private readonly DateTime startTime;
 
             private readonly DateTime endTime;
 
-            public InstancesContext(IGraphClient graphClient, RelativeUri eventUri, DateTime startTime, DateTime endTime)
+            public InstancesContext(IGraphClient graphClient, RelativeUri eventsUri, RelativeUri eventUri, DateTime startTime, DateTime endTime)
             {
                 this.graphClient = graphClient;
+                this.eventsUri = eventsUri;
                 this.instancesUri = new Uri(eventUri.OriginalString.TrimEnd('/') + "/instances", UriKind.Relative).ToRelativeUri();
                 this.startTime = startTime;
                 this.endTime = endTime;
@@ -108,23 +114,19 @@
 
             public async Task<ODataCollection<GraphCalendarContextEvent>> GetValues()
             {
-                //// TODO
-                return await Task.FromResult(new ODataCollection<GraphCalendarContextEvent>(
-                    new[]
-                    {
-                        new GraphCalendarContextEvent()
-                        {
-                            Body = new BodyStructure(),
-                            End = new TimeStructure(),
-                            Start = new TimeStructure(),
-                            Id = "asdf",
-                            IsCancelled = false,
-                            ResponseStatus = new ResponseStatusStructure(),
-                            Subject = "asfd",
-                            Type = "instanceEvent",
-                            WebLink = "a link",
-                        },
-                    }));
+                var requestUri = new Uri($"{this.instancesUri.OriginalString}?startDateTime={this.startTime}&endDateTime={this.endTime}", UriKind.Relative).ToRelativeUri(); //// TODO should this be done in the constructor? no, because there might be an indexer by key that wouldn't have these values
+
+                var deserializedResponse = await this.graphClient.GetOdataCollection<GraphCalendarContextEvent>(requestUri).ConfigureAwait(false);
+
+                var queryableResponse = new ODataCollection<GraphCalendarContextEvent>(
+                    deserializedResponse.Elements.Select(element => new GraphCalendarContextEvent(
+                        this.graphClient,
+                        this.eventsUri,
+                        new Uri(this.eventsUri.OriginalString.TrimEnd('/') + $"/{element.Id}", UriKind.Relative).ToRelativeUri(),
+                        element)),
+                    deserializedResponse.LastRequestedPageUrl);
+
+                return queryableResponse;
             }
 
             public IODataCollectionContext<GraphCalendarContextEvent> Filter(Expression<Func<GraphCalendarContextEvent, bool>> predicate)
@@ -684,6 +686,7 @@
                 var queryableResponse = new ODataCollection<GraphCalendarContextEvent>(
                     deserializedResponse.Elements.Select(element => new GraphCalendarContextEvent(
                         this.graphClient,
+                        this.eventsUri,
                         new Uri(this.eventsUri.OriginalString.TrimEnd('/') + $"/{element.Id}", UriKind.Relative).ToRelativeUri(),
                         element)),
                     deserializedResponse.LastRequestedPageUrl);
