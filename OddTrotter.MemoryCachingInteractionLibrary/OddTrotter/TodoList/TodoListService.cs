@@ -447,7 +447,7 @@
         /// <exception cref="InvalidAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static ODataCollection<CalendarEvent> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
+        private static OdataCollection<CalendarEvent> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
         {
             //// TODO make the calendar that's used configurable?
             var url = $"/me/calendar/events?" + 
@@ -455,7 +455,7 @@
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
-            return GetCollection<CalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri());
+            return graphClient.GetOdataCollection<CalendarEvent>(new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
