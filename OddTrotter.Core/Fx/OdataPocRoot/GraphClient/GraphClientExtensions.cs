@@ -91,7 +91,7 @@
         {
             using (var httpResponse = await graphClient.GetAsync(uri).ConfigureAwait(false))
             {
-                return await ReadPage<T>(httpResponse).ConfigureAwait(false); //// TODO add configure await to todolistservice
+                return await ReadPage<T>(httpResponse).ConfigureAwait(false);
             }
         }
 
@@ -114,7 +114,7 @@
         {
             using (var httpResponse = await graphClient.GetAsync(uri).ConfigureAwait(false))
             {
-                return await ReadPage<T>(httpResponse).ConfigureAwait(false); //// TODO add configure await to todolistservice
+                return await ReadPage<T>(httpResponse).ConfigureAwait(false);
             }
         }
 
