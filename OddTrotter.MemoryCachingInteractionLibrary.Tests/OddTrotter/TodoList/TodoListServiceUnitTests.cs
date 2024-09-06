@@ -14,6 +14,237 @@
     using OddTrotter.AzureBlobClient;
     using OddTrotter.GraphClient;
 
+    [TestClass]
+    public sealed class MigrationTestsTodoListService
+    {
+        [TestMethod]
+        public async Task GetTodoList()
+        {
+            using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                var graphClient = new MockGraphClient();
+                var azureBlobClient = new MemoryBlobClient();
+                var todoListService = new TodoListService(memoryCache, graphClient, azureBlobClient);
+                var todoListResult = await todoListService.RetrieveTodoList().ConfigureAwait(false);
+
+                Assert.IsNull(todoListResult.BrokenNextLink);
+                Assert.IsFalse(todoListResult.EventsWithoutStarts.Any());
+                Assert.IsFalse(todoListResult.EventsWithStartParseFailures.Any());
+                Assert.IsFalse(todoListResult.EventsWithoutBodies.Any());
+                Assert.IsFalse(todoListResult.EventsWithBodyParseFailures.Any());
+                Assert.AreEqual("a todo list item", todoListResult.TodoList, true);
+            }
+        }
+
+        private sealed class MockGraphClient : IGraphClient
+        {
+            public List<string> CalledUris { get; } = new List<string>();
+
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                this.CalledUris.Add(relativeUri.OriginalString);
+
+                var path = GetPath(relativeUri);
+                if (string.Equals(path, "/me/calendar/events", StringComparison.OrdinalIgnoreCase))
+                {
+                    var queryParameters = GetQuery(relativeUri)
+                        .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(option => option.Split('=', StringSplitOptions.RemoveEmptyEntries));
+                    if (TryFindBy(queryParameters, option => option[0], "$filter", StringComparer.OrdinalIgnoreCase, out var filter))
+                    {
+                        if (string.Join('=', filter).Contains("type eq 'singleInstance'", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_id",
+            "subject": "testing",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>some data</p></body></html>"
+            },
+            "start": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            }
+        }
+    ]
+}
+""";
+                            StringContent? stringContent = null;
+                            try
+                            {
+                                stringContent = new StringContent(content);
+                                HttpResponseMessage? responseMessage = null;
+                                try
+                                {
+                                    responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                                    responseMessage.Content = stringContent;
+                                    return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                                }
+                                catch
+                                {
+                                    responseMessage?.Dispose();
+                                    throw;
+                                }
+                            }
+                            catch
+                            {
+                                stringContent?.Dispose();
+                                throw;
+                            }
+                        }
+                        else if (string.Join('=', filter).Contains("type eq 'seriesMaster'", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_id_2",
+            "subject": "todo list",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>a todo list item</p></body></html>"
+            },
+            "start": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            }
+        }
+    ]
+}
+""";
+                            StringContent? stringContent = null;
+                            try
+                            {
+                                stringContent = new StringContent(content);
+                                HttpResponseMessage? responseMessage = null;
+                                try
+                                {
+                                    responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                                    responseMessage.Content = stringContent;
+                                    return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                                }
+                                catch
+                                {
+                                    responseMessage?.Dispose();
+                                    throw;
+                                }
+                            }
+                            catch
+                            {
+                                stringContent?.Dispose();
+                                throw;
+                            }
+                        }
+                    }
+                }
+                else if (path.StartsWith("/me/calendar/events/", StringComparison.OrdinalIgnoreCase) && path.EndsWith("/instances", StringComparison.OrdinalIgnoreCase))
+                {
+                    var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_id_3",
+            "subject": "todo list",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>a todo list item</p></body></html>"
+            },
+            "start": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            }
+        }
+    ]
+}
+""";
+                    StringContent? stringContent = null;
+                    try
+                    {
+                        stringContent = new StringContent(content);
+                        HttpResponseMessage? responseMessage = null;
+                        try
+                        {
+                            responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                            responseMessage.Content = stringContent;
+                            return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                        }
+                        catch
+                        {
+                            responseMessage?.Dispose();
+                            throw;
+                        }
+                    }
+                    catch
+                    {
+                        stringContent?.Dispose();
+                        throw;
+                    }
+                }
+
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+
+            private static string GetQuery(RelativeUri relativeUri)
+            {
+                //// TODO
+                var absoluteUri = new Uri(new Uri("https://localhost/"), relativeUri);
+                var query = absoluteUri.GetComponents(UriComponents.Query, UriFormat.SafeUnescaped);
+                return query;
+            }
+
+            private static string GetPath(RelativeUri relativeUri)
+            {
+                //// TODO
+                var absoluteUri = new Uri(new Uri("https://localhost/"), relativeUri);
+                var path = absoluteUri.GetComponents(UriComponents.Path | UriComponents.KeepDelimiter, UriFormat.SafeUnescaped);
+                return path;
+            }
+
+            private static bool TryFindBy<TSource, TSelected>(IEnumerable<TSource> source, Func<TSource, TSelected> selector, TSelected comparison, IEqualityComparer<TSelected> comparer, out TSource found)
+            {
+                //// TODO
+                foreach (var element in source)
+                {
+                    var selected = selector(element);
+                    if (comparer.Equals(selected, comparison))
+                    {
+                        found = element;
+                        return true;
+                    }
+                }
+
+#pragma warning disable CS8601 // Possible null reference assignment.
+                found = default;
+#pragma warning restore CS8601 // Possible null reference assignment.
+                return false;
+            }
+        }
+    }
+
     /// <summary>
     /// Unit tests for <see cref="TodoListService"/>
     /// </summary>

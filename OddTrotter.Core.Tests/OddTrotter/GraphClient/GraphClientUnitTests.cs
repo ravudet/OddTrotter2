@@ -15,7 +15,7 @@
     //// TODO remove the need for this directive
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
     [TestClass]
-    public sealed class ODataQueryableUnitTests
+    public sealed class MigrationTestsODataQueryableUnitTests
     {
         private sealed class MockGraphClient : IGraphClient
         {
@@ -152,7 +152,7 @@
     }
 
     [TestClass]
-    public sealed class CalendarContextUnitTests
+    public sealed class MigrationTestsCalendarContextUnitTests
     {
         private sealed class MockGraphClient : IGraphClient
         {
