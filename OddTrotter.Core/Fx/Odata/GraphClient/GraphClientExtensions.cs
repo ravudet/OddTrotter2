@@ -1,4 +1,4 @@
-﻿namespace OddTrotter.GraphClient
+﻿namespace Fx.Odata.GraphClient
 {
     using System;
     using System.Collections.Generic;
@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
 
     using Fx.Odata;
+    using OddTrotter.GraphClient;
 
     /// <summary>
     /// Extension methods for <see cref="IGraphClient"/>

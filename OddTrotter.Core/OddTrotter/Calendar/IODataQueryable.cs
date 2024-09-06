@@ -16,7 +16,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Fx.HttpClient;
+    using Fx.Odata.GraphClient;
 
     using OddTrotter.AzureBlobClient;
     using OddTrotter.GraphClient;
