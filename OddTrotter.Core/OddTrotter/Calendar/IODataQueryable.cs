@@ -213,20 +213,68 @@
 
             public IODataCollectionContext<GraphCalendarContextEvent> OrderBy<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
             {
-                //// TODO
-                return this;
+                //// TODO validate that you only allow expressions that are supported by graph?
+                if (selector.Body is MemberExpression memberExpression)
+                {
+                    var propertyPath = RavudetUtilities.TraverseCalendarEventMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
+                    return new InstancesContext(
+                        this.graphClient,
+                        this.eventsUri,
+                        this.instancesUri,
+                        this.startTime,
+                        this.endTime,
+                        this.filter,
+                        this.select,
+                        this.top,
+                        $"$orderby={propertyPath}");
+                }
+                else
+                {
+                    throw new Exception("TODO only member expressions are allowed");
+                }
             }
 
             public IODataCollectionContext<GraphCalendarContextEvent> Select<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
             {
-                //// TODO
-                return this;
+                //// TODO prevent two selects of the same property
+                //// TODO do any other validations needed for the spec to be accureate
+                if (selector.Body is MemberExpression memberExpression)
+                {
+                    var propertyPath = RavudetUtilities.TraverseCalendarEventMemberExpression(memberExpression, Enumerable.Empty<MemberExpression>());
+                    return new InstancesContext(
+                        this.graphClient,
+                        this.eventsUri,
+                        this.instancesUri,
+                        this.startTime,
+                        this.endTime,
+                        this.filter,
+                        this.select == null ? $"$select={propertyPath}" : $"{this.select},{propertyPath}",
+                        this.top,
+                        this.orderBy);
+                }
+                else
+                {
+                    throw new Exception("TODO only member expressions are allowed");
+                }
             }
 
             public IODataCollectionContext<GraphCalendarContextEvent> Top(int count)
             {
-                //// TODO
-                return this;
+                if (this.top != null)
+                {
+                    throw new Exception("tODO");
+                }
+
+                return new InstancesContext(
+                    this.graphClient,
+                    this.eventsUri,
+                    this.instancesUri,
+                    this.startTime,
+                    this.endTime,
+                    this.filter,
+                    this.select,
+                    $"$top={count}",
+                    this.orderBy);
             }
         }
     }

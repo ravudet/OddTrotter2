@@ -250,7 +250,7 @@
                 {
                     "/me/calendar/events?$filter=type eq 'singleInstance' and isCancelled eq false",
                     "/me/calendar/events?$filter=type eq 'seriesMaster' and isCancelled eq false",
-                    "/me/calendar/events/some_id/instances?startDateTime=9/3/2024 12:00:00 AM&endDateTime=9/30/2024 12:00:00 AM&$filter=isCancelled eq false",
+                    "/me/calendar/events/some_id/instances?startDateTime=9/3/2024 12:00:00 AM&endDateTime=9/30/2024 12:00:00 AM&$select=id,start,subject,body,responseStatus,webLink&$filter=isCancelled eq false&$top=1",
                 },
                 graphClient.CalledUris);
         }
