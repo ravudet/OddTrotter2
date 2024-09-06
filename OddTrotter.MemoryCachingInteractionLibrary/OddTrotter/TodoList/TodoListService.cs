@@ -11,6 +11,8 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
 
+    using Fx.OdataPocRoot.GraphClient;
+    using Fx.OdataPocRoot.Odata;
     using Microsoft.Extensions.Caching.Memory;
     using OddTrotter.AzureBlobClient;
     using OddTrotter.GraphClient;
@@ -369,11 +371,11 @@
         /// <exception cref="InvalidAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static ODataCollection<CalendarEvent> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static OdataCollection<CalendarEvent> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             //// TODO starttime and endtime should be done through a queryable
             var url = GetInstanceEventsUrl(startTime, pageSize) + $" and start/dateTime lt '{endTime.ToUniversalTime().ToString("yyyy-MM-ddThh:mm:ss.000000")}'";
-            return GetCollection<CalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri());
+            return graphClient.GetOdataCollection<CalendarEvent>(new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
