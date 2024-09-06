@@ -15,6 +15,7 @@
     using Fx.OdataPocRoot.Odata;
     using Microsoft.Extensions.Caching.Memory;
     using OddTrotter.AzureBlobClient;
+    using OddTrotter.Calendar;
     using OddTrotter.GraphClient;
 
     public sealed class TodoListService
@@ -241,7 +242,7 @@
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
             var todoListEventsAggregatedStartParseFailures = todoListEventsWithPotentiallyParsedStarts
                 .ApplyAggregation(
-                    Enumerable.Empty<(CalendarEvent, Exception)>(), 
+                    Enumerable.Empty<(CalendarEvent, Exception)>(),
                     (failures, tuple) => tuple.Item2.IsError ? failures.Append((tuple.Item1, tuple.Item2.Error)) : failures);
             var todoListEventsTuplesWithParsedStarts = todoListEventsAggregatedStartParseFailures
                 .Where(tuple => !tuple.Item2.IsError)
@@ -267,7 +268,7 @@
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
             var todoListEventsAggregatedBodyParseFailures = todoListEventsWithPotentiallyParsedBodies
                 .ApplyAggregation(
-                    Enumerable.Empty<(CalendarEvent, Exception)>(), 
+                    Enumerable.Empty<(CalendarEvent, Exception)>(),
                     (failures, tuple) => tuple.Item2.IsError ? failures.Append((tuple.Item1, tuple.Item2.Error)) : failures);
             var todoListEventsTuplesWithParsedBodies = todoListEventsAggregatedBodyParseFailures
                 .Where(tuple => !tuple.Item2.IsError)
@@ -352,11 +353,17 @@
         /// </remarks>
         private static ODataCollection<CalendarEvent> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri($"/me/calendar", UriKind.Relative).ToRelativeUri());
+            var calendarContext = new CalendarContext(graphCalendarContext, startTime, endTime); //// TODO constructor injection
+            calendarContext
+                .Events
+                .Take(pageSize);
+
             var instanceEvents = GetInstanceEvents(graphClient, startTime, endTime, pageSize);
             var seriesEvents = GetSeriesEvents(graphClient, startTime, endTime, pageSize);
             //// TODO merge the sorted sequences instead of concat
             return new ODataCollection<CalendarEvent>(
-                instanceEvents.Elements.Concat(seriesEvents.Elements), 
+                instanceEvents.Elements.Concat(seriesEvents.Elements),
                 instanceEvents.LastRequestedPageUrl ?? seriesEvents.LastRequestedPageUrl);
         }
 
@@ -432,9 +439,9 @@
             // first parameter; in this case, we have enumerated the elements because accessing seriesInstanceEventsWithFailures.Aggregation will enumerate enough events to
             // perform the aggregation; in a previous iteration of this method, the elements were enumerated with a .ToList() call
             return new ODataCollection<CalendarEvent>(
-                seriesInstanceEventsWithoutFailures, 
-                seriesInstanceEventsWithFailures.Aggregation == null ? 
-                    seriesEventMasters.LastRequestedPageUrl : 
+                seriesInstanceEventsWithoutFailures,
+                seriesInstanceEventsWithFailures.Aggregation == null ?
+                    seriesEventMasters.LastRequestedPageUrl :
                     $"/me/calendar/events/{seriesInstanceEventsWithFailures.Aggregation}");
         }
 
@@ -450,8 +457,8 @@
         private static OdataCollection<CalendarEvent> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
         {
             //// TODO make the calendar that's used configurable?
-            var url = $"/me/calendar/events?" + 
-                $"$select=body,start,subject&" + 
+            var url = $"/me/calendar/events?" +
+                $"$select=body,start,subject&" +
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
@@ -621,315 +628,316 @@
         }
 
 
-    public sealed class ODataCollectionPage<T>
-    {
-        private ODataCollectionPage(IEnumerable<T> value, string? nextLink)
+        public sealed class ODataCollectionPage<T>
         {
-            this.Value = value;
-            this.NextLink = nextLink;
-        }
+            private ODataCollectionPage(IEnumerable<T> value, string? nextLink)
+            {
+                this.Value = value;
+                this.NextLink = nextLink;
+            }
 
-        public IEnumerable<T> Value { get; }
-
-        /// <summary>
-        /// Gets the URL of the next page in the collection, <see langword="null"/> if there are no more pages in the collection
-        /// </summary>
-        public string? NextLink { get; }
-
-        public sealed class Builder
-        {
-            [JsonPropertyName("value")]
-            public IEnumerable<T>? Value { get; set; }
-
-            [JsonPropertyName("@odata.nextLink")]
-            public string? NextLink { get; set; }
+            public IEnumerable<T> Value { get; }
 
             /// <summary>
-            /// 
+            /// Gets the URL of the next page in the collection, <see langword="null"/> if there are no more pages in the collection
             /// </summary>
-            /// <returns></returns>
-            /// <exception cref="ArgumentNullException">Thrown if <see cref="Value"/> is <see langword="null"/></exception>
-            public ODataCollectionPage<T> Build()
+            public string? NextLink { get; }
+
+            public sealed class Builder
             {
-                if (this.Value == null)
+                [JsonPropertyName("value")]
+                public IEnumerable<T>? Value { get; set; }
+
+                [JsonPropertyName("@odata.nextLink")]
+                public string? NextLink { get; set; }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <see cref="Value"/> is <see langword="null"/></exception>
+                public ODataCollectionPage<T> Build()
                 {
-                    throw new ArgumentNullException(nameof(this.Value));
-                }
-
-                return new ODataCollectionPage<T>(this.Value, this.NextLink);
-            }
-        }
-    }
-
-    /*public interface IAggregatedEnumerable<TElement, TAggregate> : IEnumerable<TElement>
-    {
-        public TAggregate Aggregate { get; }
-    }
-
-    public interface IFurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable> : IAggregatedEnumerable<TElement, TAggregate2> where TEnumerable : IAggregatedEnumerable<TElement, TAggregate1>
-    {
-        public TEnumerable Enumerable { get; }
-    }
-
-    public static class AggregationExtension
-    {
-        public static void DoWork()
-        {
-            var data = new[] { "asdf", "zxcvzxcv" };
-            var aggregatedData = data
-                .ApplyAggregate(0, (aggregate, element) => Math.Max(aggregate, element.Length))
-                .ApplyAggregate2(string.Empty, (aggregate, element) => StringComparer.OrdinalIgnoreCase.Compare(aggregate, element) > 0 ? aggregate : element)
-                .ApplyAggregate2('\0', (aggregate, element) => aggregate > element[0] ? aggregate : element[0]);
-        }
-
-        public static IAggregatedEnumerable<TElement, TAggregate> ApplyAggregate<TElement, TAggregate>(this IEnumerable<TElement> enumerable, TAggregate seed, Func<TAggregate, TElement, TAggregate> aggregator)
-        {
-            return new AggregatedEnumerable<TElement, TAggregate>(enumerable, seed, aggregator);
-        }
-
-        public static IFurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable> ApplyAggregate2<TElement, TAggregate1, TAggregate2, TEnumerable>(this TEnumerable enumerable, TAggregate2 seed, Func<TAggregate2, TElement, TAggregate2> aggregator) where TEnumerable : IAggregatedEnumerable<TElement, TAggregate1>
-        {
-            return new FurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable>(enumerable, seed, aggregator);
-        }
-
-        private sealed class FurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable> : IFurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable> where TEnumerable : IAggregatedEnumerable<TElement, TAggregate1>
-        {
-            public FurtherAggregatedEnumerable(TEnumerable enumerable, TAggregate2 seed, Func<TAggregate2, TElement, TAggregate2> aggregator)
-            {
-                this.enumerable = enumerable;
-                this.seed = seed;
-                this.aggregator = aggregator;
-                this.isAggregated = false;
-            }
-
-            public TEnumerable Enumerable => throw new NotImplementedException();
-
-            public TAggregate2 Aggregate => throw new NotImplementedException();
-
-            public IEnumerator<TElement> GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private sealed class AggregatedEnumerable<TElement, TAggregate> : IAggregatedEnumerable<TElement, TAggregate>
-        {
-            private readonly IEnumerable<TElement> enumerable;
-
-            private readonly TAggregate seed;
-
-            private readonly Func<TAggregate, TElement, TAggregate> aggregator;
-
-            private bool isAggregated;
-
-            private TAggregate aggregate;
-
-            public AggregatedEnumerable(IEnumerable<TElement> enumerable, TAggregate seed, Func<TAggregate, TElement, TAggregate> aggregator)
-            {
-                this.enumerable = enumerable;
-                this.seed = seed;
-                this.aggregator = aggregator;
-                this.isAggregated = false;
-            }
-
-            public TAggregate Aggregate
-            {
-                get
-                {
-                    if (!this.isAggregated)
+                    if (this.Value == null)
                     {
-                        foreach (var element in this)
-                        {
-                        }
+                        throw new ArgumentNullException(nameof(this.Value));
                     }
 
-                    return this.aggregate;
+                    return new ODataCollectionPage<T>(this.Value, this.NextLink);
+                }
+            }
+        }
+
+        /*public interface IAggregatedEnumerable<TElement, TAggregate> : IEnumerable<TElement>
+        {
+            public TAggregate Aggregate { get; }
+        }
+
+        public interface IFurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable> : IAggregatedEnumerable<TElement, TAggregate2> where TEnumerable : IAggregatedEnumerable<TElement, TAggregate1>
+        {
+            public TEnumerable Enumerable { get; }
+        }
+
+        public static class AggregationExtension
+        {
+            public static void DoWork()
+            {
+                var data = new[] { "asdf", "zxcvzxcv" };
+                var aggregatedData = data
+                    .ApplyAggregate(0, (aggregate, element) => Math.Max(aggregate, element.Length))
+                    .ApplyAggregate2(string.Empty, (aggregate, element) => StringComparer.OrdinalIgnoreCase.Compare(aggregate, element) > 0 ? aggregate : element)
+                    .ApplyAggregate2('\0', (aggregate, element) => aggregate > element[0] ? aggregate : element[0]);
+            }
+
+            public static IAggregatedEnumerable<TElement, TAggregate> ApplyAggregate<TElement, TAggregate>(this IEnumerable<TElement> enumerable, TAggregate seed, Func<TAggregate, TElement, TAggregate> aggregator)
+            {
+                return new AggregatedEnumerable<TElement, TAggregate>(enumerable, seed, aggregator);
+            }
+
+            public static IFurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable> ApplyAggregate2<TElement, TAggregate1, TAggregate2, TEnumerable>(this TEnumerable enumerable, TAggregate2 seed, Func<TAggregate2, TElement, TAggregate2> aggregator) where TEnumerable : IAggregatedEnumerable<TElement, TAggregate1>
+            {
+                return new FurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable>(enumerable, seed, aggregator);
+            }
+
+            private sealed class FurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable> : IFurtherAggregatedEnumerable<TElement, TAggregate1, TAggregate2, TEnumerable> where TEnumerable : IAggregatedEnumerable<TElement, TAggregate1>
+            {
+                public FurtherAggregatedEnumerable(TEnumerable enumerable, TAggregate2 seed, Func<TAggregate2, TElement, TAggregate2> aggregator)
+                {
+                    this.enumerable = enumerable;
+                    this.seed = seed;
+                    this.aggregator = aggregator;
+                    this.isAggregated = false;
+                }
+
+                public TEnumerable Enumerable => throw new NotImplementedException();
+
+                public TAggregate2 Aggregate => throw new NotImplementedException();
+
+                public IEnumerator<TElement> GetEnumerator()
+                {
+                    throw new NotImplementedException();
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    throw new NotImplementedException();
                 }
             }
 
-            public IEnumerator<TElement> GetEnumerator()
+            private sealed class AggregatedEnumerable<TElement, TAggregate> : IAggregatedEnumerable<TElement, TAggregate>
             {
-                var aggregate = this.seed;
-                foreach (var element in this.enumerable)
+                private readonly IEnumerable<TElement> enumerable;
+
+                private readonly TAggregate seed;
+
+                private readonly Func<TAggregate, TElement, TAggregate> aggregator;
+
+                private bool isAggregated;
+
+                private TAggregate aggregate;
+
+                public AggregatedEnumerable(IEnumerable<TElement> enumerable, TAggregate seed, Func<TAggregate, TElement, TAggregate> aggregator)
                 {
-                    aggregate = this.aggregator(aggregate, element);
-                    yield return element;
+                    this.enumerable = enumerable;
+                    this.seed = seed;
+                    this.aggregator = aggregator;
+                    this.isAggregated = false;
                 }
 
-                this.aggregate = aggregate;
-                this.isAggregated = true;
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
-        }
-    }*/
-
-    public static class PossibleError
-    {
-        public static PossibleError<TValue, TError>.ConcreteValue Value<TValue, TError>(TValue value)
-        {
-            return new PossibleError<TValue, TError>.ConcreteValue(value);
-        }
-
-        public static PossibleError<TValue, TError>.ConcreteError Error<TValue, TError>(TError error)
-        {
-            return new PossibleError<TValue, TError>.ConcreteError(error);
-        }
-
-        public static (TSource, PossibleError<TTarget, Exception>) FromThrowable<TSource, TTarget>(TSource source, Func<TSource, TTarget> func)
-        {
-            try
-            {
-                return (source, PossibleError.Value<TTarget, Exception>(func(source)));
-            }
-            catch (Exception e)
-            {
-                return (source, PossibleError.Error<TTarget, Exception>(e));
-            }
-        }
-
-        /*public static PossibleError<TValueResult, TErrorResult> Map<TValue, TError, TValueResult, TErrorResult>(
-            this PossibleError<TValue, TError> possibleError, 
-            Func<TValue, TValueResult> valueSelector, 
-            Func<TError, TErrorResult> errorSelector)
-        {
-            if (possibleError.IsError)
-            {
-                return PossibleError.Error<TValueResult, TErrorResult>(errorSelector(possibleError.Error));
-            }
-            else
-            {
-                return PossibleError.Value<TValueResult, TErrorResult>(valueSelector(possibleError.Value));
-            }
-        }
-
-        public static IEnumerable<PossibleError<TValue, TError>> Distribute<TValue, TError>(this PossibleError<IEnumerable<TValue>, TError> possibleError)
-        {
-            if (possibleError.IsError)
-            {
-                return new[] { PossibleError.Error<TValue, TError>(possibleError.Error) };
-            }
-            else
-            {
-                return possibleError.Value.Select(value => PossibleError.Value<TValue, TError>(value));
-            }
-        }
-
-        public static IEnumerable<TValue> Enumerate<TValue, TError>(this IEnumerable<PossibleError<TValue, TError>> self, Action<TError> aggregator)
-        {
-            foreach (var element in self)
-            {
-                if (element.IsError)
+                public TAggregate Aggregate
                 {
-                    aggregator(element.Error);
+                    get
+                    {
+                        if (!this.isAggregated)
+                        {
+                            foreach (var element in this)
+                            {
+                            }
+                        }
+
+                        return this.aggregate;
+                    }
+                }
+
+                public IEnumerator<TElement> GetEnumerator()
+                {
+                    var aggregate = this.seed;
+                    foreach (var element in this.enumerable)
+                    {
+                        aggregate = this.aggregator(aggregate, element);
+                        yield return element;
+                    }
+
+                    this.aggregate = aggregate;
+                    this.isAggregated = true;
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    return this.GetEnumerator();
+                }
+            }
+        }*/
+
+        public static class PossibleError
+        {
+            public static PossibleError<TValue, TError>.ConcreteValue Value<TValue, TError>(TValue value)
+            {
+                return new PossibleError<TValue, TError>.ConcreteValue(value);
+            }
+
+            public static PossibleError<TValue, TError>.ConcreteError Error<TValue, TError>(TError error)
+            {
+                return new PossibleError<TValue, TError>.ConcreteError(error);
+            }
+
+            public static (TSource, PossibleError<TTarget, Exception>) FromThrowable<TSource, TTarget>(TSource source, Func<TSource, TTarget> func)
+            {
+                try
+                {
+                    return (source, PossibleError.Value<TTarget, Exception>(func(source)));
+                }
+                catch (Exception e)
+                {
+                    return (source, PossibleError.Error<TTarget, Exception>(e));
+                }
+            }
+
+            /*public static PossibleError<TValueResult, TErrorResult> Map<TValue, TError, TValueResult, TErrorResult>(
+                this PossibleError<TValue, TError> possibleError, 
+                Func<TValue, TValueResult> valueSelector, 
+                Func<TError, TErrorResult> errorSelector)
+            {
+                if (possibleError.IsError)
+                {
+                    return PossibleError.Error<TValueResult, TErrorResult>(errorSelector(possibleError.Error));
                 }
                 else
                 {
-                    yield return element.Value;
+                    return PossibleError.Value<TValueResult, TErrorResult>(valueSelector(possibleError.Value));
                 }
             }
-        }*/
 
-        /*public static IAggergatorEnumerable<TElement, TAggregate> ApplyAggregation<TElement, TAggregate>(
-            this IEnumerable<TElement> enumerable, 
-            TAggregate seed, 
-            Func<TAggregate, TElement, TAggregate> aggregator) 
-        {
-            return new AggregatorEnumerable<TElement, TAggregate>(enumerable, seed, aggregator);
-        }
-
-        private sealed class AggregatorEnumerable<TElement, TAggregate> : IAggergatorEnumerable<TElement, TAggregate>
-        {
-            private readonly IEnumerable<TElement> enumerable;
-
-            private readonly TAggregate seed;
-
-            private readonly Func<TAggregate, TElement, TAggregate> aggregator;
-
-            public AggregatorEnumerable(
-                IEnumerable<TElement> enumerable,
-                TAggregate seed,
-                Func<TAggregate, TElement, TAggregate> aggregator)
+            public static IEnumerable<PossibleError<TValue, TError>> Distribute<TValue, TError>(this PossibleError<IEnumerable<TValue>, TError> possibleError)
             {
-                this.enumerable = enumerable;
-                this.seed = seed;
-                this.aggregator = aggregator;
-
-                this.IsAggregated = false;
-                this.Aggregation = this.seed;
-            }
-
-            public bool IsAggregated { get; private set; }
-
-            public TAggregate Aggregation { get; private set; }
-
-            public IEnumerator<TElement> GetEnumerator()
-            {
-                var accumulate = this.seed;
-                foreach (var element in this.enumerable)
+                if (possibleError.IsError)
                 {
-                    accumulate = this.aggregator(accumulate, element);
-                    yield return element;
+                    return new[] { PossibleError.Error<TValue, TError>(possibleError.Error) };
+                }
+                else
+                {
+                    return possibleError.Value.Select(value => PossibleError.Value<TValue, TError>(value));
+                }
+            }
+
+            public static IEnumerable<TValue> Enumerate<TValue, TError>(this IEnumerable<PossibleError<TValue, TError>> self, Action<TError> aggregator)
+            {
+                foreach (var element in self)
+                {
+                    if (element.IsError)
+                    {
+                        aggregator(element.Error);
+                    }
+                    else
+                    {
+                        yield return element.Value;
+                    }
+                }
+            }*/
+
+            /*public static IAggergatorEnumerable<TElement, TAggregate> ApplyAggregation<TElement, TAggregate>(
+                this IEnumerable<TElement> enumerable, 
+                TAggregate seed, 
+                Func<TAggregate, TElement, TAggregate> aggregator) 
+            {
+                return new AggregatorEnumerable<TElement, TAggregate>(enumerable, seed, aggregator);
+            }
+
+            private sealed class AggregatorEnumerable<TElement, TAggregate> : IAggergatorEnumerable<TElement, TAggregate>
+            {
+                private readonly IEnumerable<TElement> enumerable;
+
+                private readonly TAggregate seed;
+
+                private readonly Func<TAggregate, TElement, TAggregate> aggregator;
+
+                public AggregatorEnumerable(
+                    IEnumerable<TElement> enumerable,
+                    TAggregate seed,
+                    Func<TAggregate, TElement, TAggregate> aggregator)
+                {
+                    this.enumerable = enumerable;
+                    this.seed = seed;
+                    this.aggregator = aggregator;
+
+                    this.IsAggregated = false;
+                    this.Aggregation = this.seed;
                 }
 
-                this.Aggregation = accumulate;
-                this.IsAggregated = true;
-            }
+                public bool IsAggregated { get; private set; }
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
+                public TAggregate Aggregation { get; private set; }
+
+                public IEnumerator<TElement> GetEnumerator()
+                {
+                    var accumulate = this.seed;
+                    foreach (var element in this.enumerable)
+                    {
+                        accumulate = this.aggregator(accumulate, element);
+                        yield return element;
+                    }
+
+                    this.Aggregation = accumulate;
+                    this.IsAggregated = true;
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    return this.GetEnumerator();
+                }
+            }*/
+        }
+
+        /*public interface IAggergatorEnumerable<TElement, TAggregate> : IEnumerable<TElement>
+        {
+            public bool IsAggregated { get; }
+
+            public TAggregate Aggregation { get; }
         }*/
-    }
 
-    /*public interface IAggergatorEnumerable<TElement, TAggregate> : IEnumerable<TElement>
-    {
-        public bool IsAggregated { get; }
-
-        public TAggregate Aggregation { get; }
-    }*/
-
-    public abstract class PossibleError<TValue, TError>
-    {
+        public abstract class PossibleError<TValue, TError>
+        {
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private PossibleError()
+            private PossibleError()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-        }
-
-        public abstract bool IsError { get; } //// TODO i don't think you need inheritance here
-
-        public TValue Value { get; protected set; }
-
-        public TError Error { get; protected set; }
-
-        public sealed class ConcreteValue : PossibleError<TValue, TError>
-        {
-            public ConcreteValue(TValue value)
             {
-                base.Value = value;
             }
 
-            public override bool IsError => false;
-        }
+            public abstract bool IsError { get; } //// TODO i don't think you need inheritance here
 
-        public sealed class ConcreteError : PossibleError<TValue, TError>
-        {
-            public ConcreteError(TError error)
+            public TValue Value { get; protected set; }
+
+            public TError Error { get; protected set; }
+
+            public sealed class ConcreteValue : PossibleError<TValue, TError>
             {
-                base.Error = error;
+                public ConcreteValue(TValue value)
+                {
+                    base.Value = value;
+                }
+
+                public override bool IsError => false;
             }
 
-            public override bool IsError => true;
+            public sealed class ConcreteError : PossibleError<TValue, TError>
+            {
+                public ConcreteError(TError error)
+                {
+                    base.Error = error;
+                }
+
+                public override bool IsError => true;
+            }
         }
     }
 }

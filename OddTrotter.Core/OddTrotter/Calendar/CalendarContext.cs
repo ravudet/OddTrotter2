@@ -62,6 +62,8 @@
 
             private readonly DateTime endTime;
 
+            private readonly int pageSize = 50; //// TODO configure this
+
             private readonly Expression<Func<GraphCalendarContextEvent, bool>>? where;
 
             public CalendarEventContext(
@@ -191,7 +193,8 @@
             {
                 //// TODO you need to check that lastpage url
                 var events = this.graphCalendarEventsContext
-                    .Filter(calendarEvent => calendarEvent.Type == "singleInstance");
+                    .Filter(calendarEvent => calendarEvent.Type == "singleInstance")
+                    .Top(this.pageSize);
 
                 if (this.where != null)
                 {
@@ -208,7 +211,8 @@
             {
                 //// TODO you need to check that lastpage url
                 var seriesMasters = this.graphCalendarEventsContext
-                    .Filter(calendarEvent => calendarEvent.Type == "seriesMaster");
+                    .Filter(calendarEvent => calendarEvent.Type == "seriesMaster")
+                    .Top(this.pageSize);
 
                 if (this.where != null)
                 {
