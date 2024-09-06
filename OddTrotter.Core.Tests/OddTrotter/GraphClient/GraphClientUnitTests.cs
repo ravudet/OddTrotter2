@@ -229,7 +229,7 @@
                 {
                     "/me/calendar/events?$filter=type eq 'singleInstance'",
                     "/me/calendar/events?$filter=type eq 'seriesMaster'",
-                    "/me/calendar/events/some_id/instances?startDateTime=9/3/2024 12:00:00 AM&endDateTime=9/30/2024 12:00:00 AM",
+                    "/me/calendar/events/some_id/instances?startDateTime=9/3/2024 12:00:00 AM&endDateTime=9/30/2024 12:00:00 AM&$select=id,start,subject,body,responseStatus,webLink&$top=1",
                 },
                 graphClient.CalledUris);
         }
