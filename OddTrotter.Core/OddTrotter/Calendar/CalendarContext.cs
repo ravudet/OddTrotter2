@@ -205,8 +205,7 @@
                     .Select(calendarEvent => calendarEvent.Subject)
                     .Select(calendarEvent => calendarEvent.Body)
                     .Select(calendarEvent => calendarEvent.ResponseStatus)
-                    .Select(calendarEvent => calendarEvent.WebLink)
-                    .Filter(calendarEvent => calendarEvent.IsCancelled == false);
+                    .Select(calendarEvent => calendarEvent.WebLink);
                     
                 return graphEvents
                     .Values

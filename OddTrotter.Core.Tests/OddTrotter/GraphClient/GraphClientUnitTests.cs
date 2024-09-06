@@ -232,9 +232,13 @@
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var calendarContext = new CalendarContext(graphCalendarContext);
             var events = calendarContext
+                .Events;
+            var eventsArray = events.ToArray();
+
+            var uncanceledEvents = calendarContext
                 .Events
                 .Where(calendarEvent => calendarEvent.IsCancelled == false);
-            var eventsArray = events.ToArray();
+            var uncanceledEventsArray = uncanceledEvents.ToArray();
         }
     }
 
