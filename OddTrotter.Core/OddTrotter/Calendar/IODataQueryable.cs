@@ -103,18 +103,82 @@
 
             private readonly DateTime endTime;
 
+            /// <summary>
+            /// TODO properly document
+            /// prefixed with '$filter' if not null
+            /// </summary>
+            private readonly string? filter;
+
+            /// <summary>
+            /// TODO properly document
+            /// prefixed with '$select' if not null
+            /// </summary>
+            private readonly string? select;
+
+            /// <summary>
+            /// TODO properly document
+            /// prefixed with '$top' if not null
+            /// </summary>
+            private readonly string? top;
+
+            /// <summary>
+            /// TODO properly document
+            /// prefixed with '$orderBy' if not null
+            /// </summary>
+            private readonly string? orderBy;
+
             public InstancesContext(IGraphClient graphClient, RelativeUri eventsUri, RelativeUri eventUri, DateTime startTime, DateTime endTime)
+                : this(
+                      graphClient,
+                      new Uri(eventUri.OriginalString.TrimEnd('/') + "/instances", UriKind.Relative).ToRelativeUri(), 
+                      eventUri,
+                      startTime, 
+                      endTime, 
+                      null, 
+                      null,
+                      null, 
+                      null)
+            {
+            }
+
+            private InstancesContext(
+                IGraphClient graphClient, 
+                RelativeUri eventsUri, 
+                RelativeUri instancesUri, 
+                DateTime startTime, 
+                DateTime endTime,
+                string? filter,
+                string? select,
+                string? top,
+                string? orderBy)
             {
                 this.graphClient = graphClient;
                 this.eventsUri = eventsUri;
-                this.instancesUri = new Uri(eventUri.OriginalString.TrimEnd('/') + "/instances", UriKind.Relative).ToRelativeUri();
+                this.instancesUri = instancesUri;
                 this.startTime = startTime;
                 this.endTime = endTime;
+                this.filter = filter;
+                this.select = select;
+                this.top = top;
+                this.orderBy = orderBy;
             }
 
             public async Task<ODataCollection<GraphCalendarContextEvent>> GetValues()
             {
-                var requestUri = new Uri($"{this.instancesUri.OriginalString}?startDateTime={this.startTime}&endDateTime={this.endTime}", UriKind.Relative).ToRelativeUri(); //// TODO should this be done in the constructor? no, because there might be an indexer by key that wouldn't have these values
+                //// TODO it would be very good to make this lazy
+                var queryOptionsList = new[]
+                {
+                    this.select,
+                    this.filter,
+                    this.orderBy,
+                    this.top,
+                }.Where(option => option != null);
+
+                var queryOptions = string.Join("&", queryOptionsList);
+
+                var requestUri = string.IsNullOrEmpty(queryOptions) ?
+                    new Uri($"{this.instancesUri.OriginalString}?startDateTime={this.startTime}&endDateTime={this.endTime}", UriKind.Relative).ToRelativeUri() :
+                    new Uri($"{this.instancesUri.OriginalString}?startDateTime={this.startTime}&endDateTime={this.endTime}&{queryOptions}", UriKind.Relative).ToRelativeUri();
 
                 var deserializedResponse = await this.graphClient.GetOdataCollection<GraphCalendarContextEvent>(requestUri).ConfigureAwait(false);
 
@@ -131,8 +195,20 @@
 
             public IODataCollectionContext<GraphCalendarContextEvent> Filter(Expression<Func<GraphCalendarContextEvent, bool>> predicate)
             {
-                //// TODO
-                return this;
+                var filterBuilder = new StringBuilder();
+
+                RavudetUtilities.TraverseFilter(predicate.Body, filterBuilder);
+
+                return new InstancesContext(
+                    this.graphClient,
+                    this.eventsUri,
+                    this.instancesUri,
+                    this.startTime,
+                    this.endTime,
+                    this.filter == null ? $"$filter={filterBuilder}" : $"{this.filter} and {filterBuilder}",
+                    this.select,
+                    this.top,
+                    this.orderBy);
             }
 
             public IODataCollectionContext<GraphCalendarContextEvent> OrderBy<TProperty>(Expression<Func<GraphCalendarContextEvent, TProperty>> selector)
@@ -403,6 +479,7 @@
 
         public static void TraverseMethodCallExpression(MethodCallExpression expression, StringBuilder queryParameter)
         {
+            //// TODO for anything that's not a literal, can you compile it and evaluate? maybe, but what about cases where you hvae a method that uses the predicate parameter as an argument (e.g. event => DoSomething(event))
             Expression<Func<DateTime>> dateTimeParseEpression = () => DateTime.Parse(string.Empty);
 
             var dateTimeParseMethodInfo = ((MethodCallExpression)dateTimeParseEpression.Body).Method;
@@ -567,39 +644,7 @@
                 //// TODO how do you go about making this more complete? and is there a way to make it able to validate according to what graph actually supports?
 
                 var filterBuilder = new StringBuilder();
-                /*if (predicate.Body is BinaryExpression binaryExpression)
-                {
-                    TraverseBinaryExpression(binaryExpression, filterBuilder);
-
-                    if (binaryExpression.Left is MemberExpression leftMemberExpression)
-                    {
-                        filterBuilder.Append(TraverseMemberExpression(leftMemberExpression, Enumerable.Empty<MemberExpression>()));
-                    }
-
-                    if (binaryExpression.Left.Type == typeof(DateTime))
-                    {
-                        // we support some parsing methods for datetime
-                        //// TODO also add support for guid?
-                        //// TODO for anything that's not a literal, can you compile it and evaluate? maybe, but what about cases where you hvae a method that uses the predicate parameter as an argument (e.g. event => DoSomething(event))
-                    }
-                    else
-                    {
-
-
-                        Expression<Func<string, string, bool>> expression = (first, second) => first == second;
-                        var stringOperatorEquals = ((BinaryExpression)expression.Body).Method;
-
-                        if (binaryExpression.Method == stringOperatorEquals)
-                        {
-                        }
-                    }
-                }
-
-                if (filterBuilder.Length == 0)
-                {
-                    throw new Exception("TODO");
-                }*/
-
+                
                 RavudetUtilities.TraverseFilter(predicate.Body, filterBuilder);
 
                 return new CalendarEventCollectionContext(

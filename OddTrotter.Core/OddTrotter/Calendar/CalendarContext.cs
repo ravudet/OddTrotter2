@@ -59,9 +59,20 @@
 
             private readonly DateTime endTime = DateTime.UtcNow;
 
+            private readonly Expression<Func<GraphCalendarContextEvent, bool>>? where;
+
             public CalendarEventContext(IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext)
+                : this(graphCalendarEventsContext, null)
+            {
+
+            }
+
+            private CalendarEventContext(
+                IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext,
+                Expression<Func<GraphCalendarContextEvent, bool>>? where)
             {
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
+                this.where = where;
             }
 
             public IV2Queryable<CalendarContextCalendarEvent> Where(Expression<Func<CalendarContextCalendarEvent, bool>> predicate)
@@ -75,7 +86,8 @@
                     predicate.Parameters.Select(parameterExpression => Expression.Parameter(typeof(GraphCalendarContextEvent), parameterExpression.Name)));*/
                 var lambda = translated as Expression<Func<GraphCalendarContextEvent, bool>>;
 
-                return new CalendarEventContext(this.graphCalendarEventsContext.Filter(lambda!));
+                //// TODO whwat about mutiple where calls?
+                return new CalendarEventContext(this.graphCalendarEventsContext, lambda!);
             }
 
             private sealed class Visitor : ExpressionVisitor
@@ -169,8 +181,15 @@
             private IEnumerable<CalendarContextCalendarEvent> GetInstanceEvents()
             {
                 //// TODO you need to check that lastpage url
-                return this.graphCalendarEventsContext
-                    .Filter(calendarEvent => calendarEvent.Type == "singleInstance")
+                var events = this.graphCalendarEventsContext
+                    .Filter(calendarEvent => calendarEvent.Type == "singleInstance");
+
+                if (this.where != null)
+                {
+                    events = events.Filter(this.where);
+                }
+
+                return events
                     .GetValues().GetAwaiter().GetResult() //// TODO make this async
                     .Elements
                     .Select(ToCalendarContextCalendarEvent);
@@ -179,10 +198,18 @@
             private IEnumerable<CalendarContextCalendarEvent> GetSeriesEvents()
             {
                 //// TODO you need to check that lastpage url
-                var seriesMasters = this.graphCalendarEventsContext.Filter(calendarEvent => calendarEvent.Type == "seriesMaster")
+                var seriesMasters = this.graphCalendarEventsContext
+                    .Filter(calendarEvent => calendarEvent.Type == "seriesMaster");
+
+                if (this.where != null)
+                {
+                    seriesMasters = seriesMasters.Filter(this.where);
+                }
+
+                var seriesMastersValues = seriesMasters
                     .GetValues().GetAwaiter().GetResult(); //// TODO make this async
 
-                var seriesInstanceEvents = seriesMasters
+                var seriesInstanceEvents = seriesMastersValues
                     .Elements
                     .Select(seriesMaster => (seriesMaster, GetFirstSeriesInstanceInRange(seriesMaster)))
                     .Select(tuple =>
@@ -207,6 +234,11 @@
                     .Select(calendarEvent => calendarEvent.Body)
                     .Select(calendarEvent => calendarEvent.ResponseStatus)
                     .Select(calendarEvent => calendarEvent.WebLink);
+
+                if (this.where != null)
+                {
+                    graphEvents = graphEvents.Filter(this.where);
+                }
                     
                 return graphEvents
                     .GetValues().GetAwaiter().GetResult() //// TODO make this async
