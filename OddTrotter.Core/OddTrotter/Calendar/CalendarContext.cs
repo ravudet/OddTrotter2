@@ -104,6 +104,8 @@
 
             public IV2Queryable<CalendarContextCalendarEvent> Where(Expression<Func<CalendarContextCalendarEvent, bool>> predicate)
             {
+                //// TODO this should check if subject (and others) is being checked and do those in memory; for series masters, it should be done before retrieving the next event in the series
+
                 Expression<Func<GraphCalendarContextEvent, bool>> equivalentPredicate = calendarEvent => calendarEvent.IsCancelled == false;
 
                 var translated = new Visitor<bool>().Visit(predicate);

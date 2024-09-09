@@ -56,7 +56,6 @@
                 Assert.AreEqual("a todo list item", todoListResult.TodoList, true);
 
                 //// TODO there 4 instead of 3 because the 4th call is a duplicate of the third; this is actually a bug
-                //// TODO implement the orderby
 
                 CollectionAssert.AreEqual(
                     new[]
