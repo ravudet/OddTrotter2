@@ -298,6 +298,8 @@
         {
             if (memberExpression.Expression is ConstantExpression constantExpression) //// this is a "dynamic" closure (both instance accesses, and locally scoped variable accesses)
             {
+                //// TODO despite what the above comment says, this actually only supports locally scoped variables
+
                 //// TODO null checks
                 var fieldInfo = constantExpression.Value?.GetType().GetField(memberExpression.Member.Name);
                 var value = fieldInfo?.GetValue(constantExpression.Value);
@@ -462,6 +464,13 @@
             else if (
                 (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_GreaterThan") // 'operator >' overload
                 || (expression.NodeType == ExpressionType.GreaterThan) // primitive comparison provided by the compiler
+                )
+            {
+                queryParameter.Append(" gt ");
+            }
+            else if (
+                (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_LessThan") // 'operator <' overload
+                || (expression.NodeType == ExpressionType.LessThan) // primitive comparison provided by the compiler
                 )
             {
                 queryParameter.Append(" gt ");

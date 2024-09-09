@@ -5,6 +5,8 @@
 
     //// TODO update todolistservice to use calendarcontext
     //// TODO update calendarservice to use calendarcontext
+    //// parse uri and check its parts in tests
+    //// have an "evaluate" method on the contexts?
     //// transition calendarcontext and its related types to fx.odatapocroot
 
     public interface ICollectionContext<T>

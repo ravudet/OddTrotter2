@@ -357,10 +357,11 @@
         {
             var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri($"/me/calendar", UriKind.Relative).ToRelativeUri());
             var calendarContext = new CalendarContext(graphCalendarContext, startTime, endTime); //// TODO constructor injection
-            calendarContext
+            var query = calendarContext
                 .Events
-                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+                ////.OrderBy(calendarEvent => calendarEvent.Start.DateTime)
                 .Where(calendarEvent => calendarEvent.IsCancelled == false);
+            query.ToArray(); //// TODO is there an async queryable?
 
             var instanceEvents = GetInstanceEvents(graphClient, startTime, endTime, pageSize);
             var seriesEvents = GetSeriesEvents(graphClient, startTime, endTime, pageSize);

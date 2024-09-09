@@ -100,7 +100,18 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
@@ -145,7 +156,18 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
@@ -192,7 +214,18 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }

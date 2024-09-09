@@ -191,10 +191,25 @@
 
             private IEnumerable<CalendarContextCalendarEvent> GetInstanceEvents()
             {
+                var startTime = this.startTime;
+                var endTime = this.endTime;
+
                 //// TODO you need to check that lastpage url
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                 var events = this.graphCalendarEventsContext
                     .Filter(calendarEvent => calendarEvent.Type == "singleInstance")
-                    .Top(this.pageSize);
+                    .Filter(calendarEvent => calendarEvent.Start.DateTime > startTime && calendarEvent.Start.DateTime < endTime)
+                    .Top(this.pageSize)
+                    .Select(calendarEvent => calendarEvent.Id)
+                    .Select(calendarEvent => calendarEvent.Body)
+                    .Select(calendarEvent => calendarEvent.Start)
+                    .Select(calendarEvent => calendarEvent.End)
+                    .Select(calendarEvent => calendarEvent.Subject)
+                    .Select(calendarEvent => calendarEvent.ResponseStatus)
+                    .Select(calendarEvent => calendarEvent.WebLink)
+                    .Select(calendarEvent => calendarEvent.Type)
+                    .Select(calendarEvent => calendarEvent.IsCancelled); //// TODO you need to handle that not all values were selected, or you need to always select the values in CalendarContextCalendarEvent; that might actually be pretty reasonable though
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                 if (this.where != null)
                 {
@@ -212,7 +227,16 @@
                 //// TODO you need to check that lastpage url
                 var seriesMasters = this.graphCalendarEventsContext
                     .Filter(calendarEvent => calendarEvent.Type == "seriesMaster")
-                    .Top(this.pageSize);
+                    .Top(this.pageSize)
+                    .Select(calendarEvent => calendarEvent.Id)
+                    .Select(calendarEvent => calendarEvent.Body)
+                    .Select(calendarEvent => calendarEvent.Start)
+                    .Select(calendarEvent => calendarEvent.End)
+                    .Select(calendarEvent => calendarEvent.Subject)
+                    .Select(calendarEvent => calendarEvent.ResponseStatus)
+                    .Select(calendarEvent => calendarEvent.WebLink)
+                    .Select(calendarEvent => calendarEvent.Type)
+                    .Select(calendarEvent => calendarEvent.IsCancelled);
 
                 if (this.where != null)
                 {
@@ -242,11 +266,14 @@
                     .Instances(this.startTime, this.endTime)
                     .Top(1)
                     .Select(calendarEvent => calendarEvent.Id)
-                    .Select(calendarEvent => calendarEvent.Start)
-                    .Select(calendarEvent => calendarEvent.Subject)
                     .Select(calendarEvent => calendarEvent.Body)
+                    .Select(calendarEvent => calendarEvent.Start)
+                    .Select(calendarEvent => calendarEvent.End)
+                    .Select(calendarEvent => calendarEvent.Subject)
                     .Select(calendarEvent => calendarEvent.ResponseStatus)
-                    .Select(calendarEvent => calendarEvent.WebLink);
+                    .Select(calendarEvent => calendarEvent.WebLink)
+                    .Select(calendarEvent => calendarEvent.Type)
+                    .Select(calendarEvent => calendarEvent.IsCancelled);
 
                 if (this.where != null)
                 {
