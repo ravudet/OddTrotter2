@@ -49,12 +49,13 @@
             DateTime endTime)
         {
             //// TODO we  should take a IODataInstanceContext, which should be a generic
-            this.Events = new CalendarEventContext(graphCalendarContext.Events, startTime, endTime);
+            this.Events = new CalendarEventContext<DateTime>(graphCalendarContext.Events, startTime, endTime);
         }
 
         public IV2Queryable<CalendarContextCalendarEvent> Events { get; }
 
-        private sealed class CalendarEventContext : IV2Queryable<CalendarContextCalendarEvent>, IWhereQueryable<CalendarContextCalendarEvent>
+        //// TODO i think a monad will get rid of tkey2?
+        private sealed class CalendarEventContext<TKey2> : IV2Queryable<CalendarContextCalendarEvent>, IWhereQueryable<CalendarContextCalendarEvent>, IOrderByQueryable<CalendarContextCalendarEvent>
         {
             private readonly IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext;
 
@@ -66,11 +67,13 @@
 
             private readonly Expression<Func<GraphCalendarContextEvent, bool>>? where;
 
+            private readonly Expression<Func<GraphCalendarContextEvent, TKey2>>? orderBy;
+
             public CalendarEventContext(
                 IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext,
                 DateTime startTime,
                 DateTime endTime)
-                : this(graphCalendarEventsContext, startTime, endTime, null)
+                : this(graphCalendarEventsContext, startTime, endTime, null, null)
             {
             }
 
@@ -78,12 +81,24 @@
                 IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext,
                 DateTime startTime,
                 DateTime endTime,
-                Expression<Func<GraphCalendarContextEvent, bool>>? where)
+                Expression<Func<GraphCalendarContextEvent, bool>>? where,
+                Expression<Func<GraphCalendarContextEvent, TKey2>>? orderBy)
             {
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
                 this.startTime = startTime;
                 this.endTime = endTime;
                 this.where = where;
+                this.orderBy = orderBy;
+            }
+
+            public IV2Queryable<CalendarContextCalendarEvent> OrderBy<TKey>(Expression<Func<CalendarContextCalendarEvent, TKey>> keySelector)
+            {
+                var translated = new Visitor().Visit(keySelector);
+
+                var lambda = translated as Expression<Func<GraphCalendarContextEvent, TKey>>;
+
+                //// TODO what about multiple orderby calls?
+                return new CalendarEventContext<TKey>(this.graphCalendarEventsContext, this.startTime, this.endTime, this.where, lambda);
             }
 
             public IV2Queryable<CalendarContextCalendarEvent> Where(Expression<Func<CalendarContextCalendarEvent, bool>> predicate)
@@ -98,7 +113,7 @@
                 var lambda = translated as Expression<Func<GraphCalendarContextEvent, bool>>;
 
                 //// TODO whwat about mutiple where calls?
-                return new CalendarEventContext(this.graphCalendarEventsContext, this.startTime, this.endTime, lambda!);
+                return new CalendarEventContext<TKey2>(this.graphCalendarEventsContext, this.startTime, this.endTime, lambda, this.orderBy);
             }
 
             private sealed class Visitor : ExpressionVisitor

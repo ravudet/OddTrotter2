@@ -388,6 +388,14 @@
         }
     }
 
+    public interface IOrderByQueryable<TSource> : IV2Queryable<TSource>
+    {
+        public IV2Queryable<TSource> OrderBy<TKey>(Expression<Func<TSource, TKey>> keySelector)
+        {
+            return this.OrderByDefault(keySelector);
+        }
+    }
+
     public static class QueryableExtensions
     {
         public static IV2Queryable<TSource> Where<TSource>(this IV2Queryable<TSource> queryable, Expression<Func<TSource, bool>> predicate)
@@ -405,6 +413,23 @@
             //// TODO monad check
 
             return new QueryableAdapter<TSource>(queryable.AsV2Enumerable().Where(predicate.Compile()));
+        }
+
+        public static IV2Queryable<TSource> OrderBy<TSource, TKey>(this IV2Queryable<TSource> queryable, Expression<Func<TSource, TKey>> keySelector)
+        {
+            if (queryable is IOrderByQueryable<TSource> orderBy)
+            {
+                return orderBy.OrderBy(keySelector);
+            }
+
+            return queryable.OrderByDefault(keySelector);
+        }
+
+        internal static IV2Queryable<TSource> OrderByDefault<TSource, TKey>(this IV2Queryable<TSource> queryable, Expression<Func<TSource, TKey>> keySelector)
+        {
+            //// TODO monad check
+
+            return new QueryableAdapter<TSource>(queryable.AsV2Enumerable().OrderBy(keySelector.Compile()));
         }
 
         private sealed class QueryableAdapter<T> : IV2Queryable<T>
