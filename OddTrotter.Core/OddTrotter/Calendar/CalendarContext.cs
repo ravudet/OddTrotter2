@@ -191,8 +191,9 @@
 
             private IEnumerable<CalendarContextCalendarEvent> GetInstanceEvents()
             {
-                var startTime = this.startTime;
-                var endTime = this.endTime;
+                //// TODO who should be responsible for calling 'touniversaltime'
+                var startTime = this.startTime.ToUniversalTime();
+                var endTime = this.endTime.ToUniversalTime();
 
                 //// TODO you need to check that lastpage url
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
