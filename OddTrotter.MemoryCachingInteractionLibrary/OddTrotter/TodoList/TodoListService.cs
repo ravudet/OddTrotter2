@@ -359,7 +359,7 @@
             var calendarContext = new CalendarContext(graphCalendarContext, startTime, endTime); //// TODO constructor injection
             var query = calendarContext
                 .Events
-                ////.OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
                 .Where(calendarEvent => calendarEvent.IsCancelled == false);
             query.ToArray(); //// TODO is there an async queryable?
 

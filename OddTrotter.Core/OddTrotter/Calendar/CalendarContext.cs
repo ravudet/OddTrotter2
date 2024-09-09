@@ -3,6 +3,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.ComponentModel.Design;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection.Metadata;
@@ -93,7 +94,7 @@
 
             public IV2Queryable<CalendarContextCalendarEvent> OrderBy<TKey>(Expression<Func<CalendarContextCalendarEvent, TKey>> keySelector)
             {
-                var translated = new Visitor().Visit(keySelector);
+                var translated = new Visitor<TKey>().Visit(keySelector);
 
                 var lambda = translated as Expression<Func<GraphCalendarContextEvent, TKey>>;
 
@@ -105,7 +106,7 @@
             {
                 Expression<Func<GraphCalendarContextEvent, bool>> equivalentPredicate = calendarEvent => calendarEvent.IsCancelled == false;
 
-                var translated = new Visitor().Visit(predicate);
+                var translated = new Visitor<bool>().Visit(predicate);
 
                 /*var lambda = Expression.Lambda<Func<GraphCalendarContextEvent, bool>>(
                     translated, 
@@ -116,7 +117,7 @@
                 return new CalendarEventContext<TKey2>(this.graphCalendarEventsContext, this.startTime, this.endTime, lambda, this.orderBy);
             }
 
-            private sealed class Visitor : ExpressionVisitor
+            private sealed class Visitor<T2> : ExpressionVisitor
             {
                 protected override Expression VisitParameter(ParameterExpression node)
                 {
@@ -126,7 +127,7 @@
                 protected override Expression VisitLambda<T>(Expression<T> node)
                 {
                     //// TODO should the parametesr be "visited" instead?
-                    return Expression.Lambda<Func<GraphCalendarContextEvent, bool>>(
+                    return Expression.Lambda<Func<GraphCalendarContextEvent, T2>>(
                         this.Visit(node.Body),
                         node.Parameters.Select(parameterExpression => Expression.Parameter(typeof(GraphCalendarContextEvent), parameterExpression.Name)));
                 }
@@ -160,9 +161,28 @@
                     {
                         //// TODO the get member call is a bit hacky
                         //// TODO you may need to traverse and translate node.Expression yourself...
+                        var name = node.Member.Name;
+                        var declaringType = node.Member.DeclaringType;
+                        Type translatedType;
+                        if (declaringType == typeof(CalendarContextCalendarEvent))
+                        {
+                            translatedType = typeof(GraphCalendarContextEvent);
+                        }
+                        else if (declaringType == typeof(TimeStructure))
+                        {
+                            translatedType = typeof(TimeStructure);
+                        }
+                        else
+                        {
+                            //// TODO other translated types here
+                            throw new Exception("TODO");
+                        }
+
+                        var members = translatedType.GetMember(name);
+
                         return Expression.MakeMemberAccess(
                             this.Visit(node.Expression),
-                            typeof(GraphCalendarContextEvent).GetMember(node.Member.Name)[0]);
+                            members?.First()!);
                         ////return Expression.Constant(true, typeof(bool?));
 
                         //// TODO the get member call is a bit hacky
@@ -232,6 +252,11 @@
                     events = events.Filter(this.where);
                 }
 
+                if (this.orderBy != null)
+                {
+                    events = events.OrderBy(this.orderBy);
+                }
+
                 return events
                     .GetValues().GetAwaiter().GetResult() //// TODO make this async
                     .Elements
@@ -257,6 +282,11 @@
                 if (this.where != null)
                 {
                     seriesMasters = seriesMasters.Filter(this.where);
+                }
+
+                if (this.orderBy != null)
+                {
+                    seriesMasters = seriesMasters.OrderBy(this.orderBy);
                 }
 
                 var seriesMastersValues = seriesMasters
@@ -295,7 +325,12 @@
                 {
                     graphEvents = graphEvents.Filter(this.where);
                 }
-                    
+
+                if (this.orderBy != null)
+                {
+                    graphEvents = graphEvents.OrderBy(this.orderBy);
+                }
+
                 return graphEvents
                     .GetValues().GetAwaiter().GetResult() //// TODO make this async
                     .Elements
