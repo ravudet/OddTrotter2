@@ -12,14 +12,14 @@
     {
         public CalendarContextCalendarEvent(string id, BodyStructure body, TimeStructure start, TimeStructure end, string subject, ResponseStatusStructure responseStatus, string webLink, string type, bool isCancelled)
         {
-            Id = id ?? throw new ArgumentNullException(nameof(id));
-            Body = body ?? throw new ArgumentNullException(nameof(body));
-            Start = start ?? throw new ArgumentNullException(nameof(start));
-            End = end ?? throw new ArgumentNullException(nameof(end));
-            Subject = subject ?? throw new ArgumentNullException(nameof(subject));
-            ResponseStatus = responseStatus ?? throw new ArgumentNullException(nameof(responseStatus));
-            WebLink = webLink ?? throw new ArgumentNullException(nameof(webLink));
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Id = id;// ?? throw new ArgumentNullException(nameof(id));
+            Body = body;// ?? throw new ArgumentNullException(nameof(body));
+            Start = start;// ?? throw new ArgumentNullException(nameof(start));
+            End = end;// ?? throw new ArgumentNullException(nameof(end));
+            Subject = subject;// ?? throw new ArgumentNullException(nameof(subject));
+            ResponseStatus = responseStatus;// ?? throw new ArgumentNullException(nameof(responseStatus));
+            WebLink = webLink;// ?? throw new ArgumentNullException(nameof(webLink));
+            Type = type;// ?? throw new ArgumentNullException(nameof(type));
             IsCancelled = isCancelled;
         }
 

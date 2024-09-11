@@ -371,18 +371,18 @@
                 {  
                     Body = new BodyStructure() 
                     { 
-                        Content = _.Body.Content 
+                        Content = _.Body?.Content 
                     }, 
                     Id = _.Id, 
                     ResponseStatus = new ResponseStatusStructure()
                     {
-                        Response = _.ResponseStatus.Response,
-                        Time = _.ResponseStatus.Time,
+                        Response = _.ResponseStatus?.Response,
+                        Time = _.ResponseStatus?.Time,
                     },
                     Start = new TimeStructure()
                     {
-                        DateTime = _.Start.DateTime.ToString(),
-                        TimeZone = _.Start.TimeZone,
+                        DateTime = _.Start?.DateTime.ToString(),
+                        TimeZone = _.Start?.TimeZone,
                     },
                     Subject = _.Subject, 
                     WebLink = _.WebLink ,
