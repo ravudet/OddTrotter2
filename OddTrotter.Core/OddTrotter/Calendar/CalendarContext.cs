@@ -55,7 +55,6 @@
 
         public IV2Queryable<CalendarContextCalendarEvent> Events { get; }
 
-        //// TODO i think a monad will get rid of tkey2?
         private sealed class CalendarEventContext : IV2Queryable<CalendarContextCalendarEvent>, IWhereQueryable<CalendarContextCalendarEvent>, IOrderByQueryable<CalendarContextCalendarEvent>
         {
             private readonly IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext;
