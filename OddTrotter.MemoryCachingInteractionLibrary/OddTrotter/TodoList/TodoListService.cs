@@ -361,13 +361,32 @@
                 .Events
                 .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
                 .Where(calendarEvent => calendarEvent.IsCancelled == false);
-            query.ToArray(); //// TODO is there an async queryable?
+            var queried = query.ToArray(); //// TODO is there an async queryable?
 
             var instanceEvents = GetInstanceEvents(graphClient, startTime, endTime, pageSize);
             var seriesEvents = GetSeriesEvents(graphClient, startTime, endTime, pageSize);
             //// TODO merge the sorted sequences instead of concat
             return new ODataCollection<CalendarEvent>(
-                instanceEvents.Elements.Concat(seriesEvents.Elements),
+                queried.Select(_ => new CalendarEvent() 
+                {  
+                    Body = new BodyStructure() 
+                    { 
+                        Content = _.Body.Content 
+                    }, 
+                    Id = _.Id, 
+                    ResponseStatus = new ResponseStatusStructure()
+                    {
+                        Response = _.ResponseStatus.Response,
+                        Time = _.ResponseStatus.Time,
+                    },
+                    Start = new TimeStructure()
+                    {
+                        DateTime = _.Start.DateTime.ToString(),
+                        TimeZone = _.Start.TimeZone,
+                    },
+                    Subject = _.Subject, 
+                    WebLink = _.WebLink ,
+                }),
                 instanceEvents.LastRequestedPageUrl ?? seriesEvents.LastRequestedPageUrl);
         }
 

@@ -626,11 +626,22 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -671,11 +682,22 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -718,11 +740,22 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                     StringContent? stringContent = null;
                     try
                     {
@@ -896,11 +929,22 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -941,11 +985,22 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -988,11 +1043,22 @@
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                     StringContent? stringContent = null;
                     try
                     {
@@ -1122,11 +1188,22 @@ some data
             "start": {
                 "dateTime": "2024-06-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -1167,11 +1244,22 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -1214,11 +1302,22 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+"""; //// TODO from "end" onward, you should probably make this more "real" data
                     StringContent? stringContent = null;
                     try
                     {
@@ -1667,7 +1766,7 @@ some data
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 var content =
-"""
+""""
 {
     "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
     "value": [
@@ -1681,12 +1780,23 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ],
     "@odata.nextLink": "invalid"
 }
-""";
+""""; //// TODO from "end" onward, you should probably make this more "real" data
                 StringContent? stringContent = null;
                 try
                 {
@@ -1747,7 +1857,7 @@ some data
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                var format = 
+                var format =
 """
 {
     "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
@@ -1762,12 +1872,23 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ],
     "@odata.nextLink": "{{0}}"
 }
-""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");
+""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");  //// TODO from "end" onward, you should probably make this more "real" data
                 var content = string.Format(
                     format,
                     $"https://localhost/{relativeUri.OriginalString}&$skip=1");
@@ -1862,12 +1983,23 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ],
     "@odata.nextLink": "{{0}}"
 }
-""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");
+""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");  //// TODO from "end" onward, you should probably make this more "real" data
                 var content = string.Format(
                     format,
                     $"https://localhost/{relativeUri.OriginalString}&$skip=1");
@@ -1962,12 +2094,23 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ],
     "@odata.nextLink": "{{0}}"
 }
-""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");
+""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");//// TODO from "end" onward, you should probably make this more "real" data
                 var content = string.Format(
                     format,
                     $"https://localhost/{relativeUri.OriginalString}&$skip=1");
@@ -2083,12 +2226,23 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ],
     "@odata.nextLink": "{{0}}"
 }
-""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");
+""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");//// TODO from "end" onward, you should probably make this more "real" data
                 var content = string.Format(
                     format,
                     $"https://localhost/{relativeUri.OriginalString}&$skip=1");
@@ -2204,12 +2358,23 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ],
     "@odata.nextLink": "{{0}}"
 }
-""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");
+""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");//// TODO from "end" onward, you should probably make this more "real" data
                 var content = string.Format(
                     format,
                     $"https://localhost/{relativeUri.OriginalString}&$skip=1");
@@ -2325,12 +2490,23 @@ some data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ],
     "@odata.nextLink": "{{0}}"
 }
-""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");
+""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");//// TODO from "end" onward, you should probably make this more "real" data
                 var content = string.Format(
                     format,
                     $"https://localhost/{relativeUri.OriginalString}&$skip=1");
@@ -2452,12 +2628,23 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ],
     "@odata.nextLink": "{{0}}"
 }
-""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");
+""".Replace("{", "{{").Replace("}", "}}").Replace("{{{{", "{").Replace("}}}}", "}");//// TODO from "end" onward, you should probably make this more "real" data
                 var content = string.Format(
                     format,
                     $"https://localhost/{relativeUri.OriginalString}&$skip=1");
@@ -2502,11 +2689,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                 StringContent? stringContent = null;
                 try
                 {
@@ -2626,11 +2824,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -2764,11 +2973,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -2930,11 +3150,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -3090,11 +3321,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -3250,11 +3492,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -3416,11 +3669,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -3463,11 +3727,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                     StringContent? stringContent = null;
                     try
                     {
@@ -3563,11 +3838,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -3694,11 +3980,22 @@ some more data
                 "contentType": "html",
                 "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>a todo list item</p></body></html>"
             },
-            "start": null
+            "start": null,
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -3828,11 +4125,22 @@ some more data
             "start": {
                 "dateTime": null,
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -3962,11 +4270,22 @@ some more data
             "start": {
                 "dateTime": "not a timestamp",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -4093,11 +4412,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -4227,11 +4557,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -4512,11 +4853,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -4659,11 +5011,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -4806,11 +5169,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {
@@ -4975,11 +5349,22 @@ some more data
             "start": {
                 "dateTime": "2024-05-17T23:30:00.0000000",
                 "timeZone": "UTC"
-            }
+            },
+            "end": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            },
+            "responseStatus": {
+                "response": "asdf",
+                "time": "Asdf"
+            },
+            "webLink": "somelinke",
+            "type": "seriesMaster",
+            "isCancelled": false
         }
     ]
 }
-""";
+""";//// TODO from "end" onward, you should probably make this more "real" data
                             StringContent? stringContent = null;
                             try
                             {

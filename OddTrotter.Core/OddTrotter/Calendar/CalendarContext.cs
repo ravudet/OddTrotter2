@@ -285,9 +285,10 @@
                 var seriesInstanceEvents = seriesMastersValues
                     .Elements
                     .Select(seriesMaster => (seriesMaster, GetFirstSeriesInstanceInRange(seriesMaster)))
+                    .Where(tuple => tuple.Item2 != null)
                     .Select(tuple =>
                     {
-                        tuple.seriesMaster.Start = tuple.Item2.Start;
+                        tuple.seriesMaster.Start = tuple.Item2?.Start;
                         var result = ToCalendarContextCalendarEvent(tuple.seriesMaster);
                         return result;
                     });
@@ -295,7 +296,7 @@
                 return seriesInstanceEvents;
             }
 
-            private GraphCalendarContextEvent GetFirstSeriesInstanceInRange(GraphCalendarContextEvent graphCalendarContextEvent)
+            private GraphCalendarContextEvent? GetFirstSeriesInstanceInRange(GraphCalendarContextEvent graphCalendarContextEvent)
             {
                 //// TODO error handling
                 var graphEvents = graphCalendarContextEvent
@@ -319,7 +320,7 @@
                 return graphEvents
                     .GetValues().GetAwaiter().GetResult() //// TODO make this async
                     .Elements
-                    .First();
+                    .FirstOrDefault(); //// TODO throw instead?
             }
 
             IEnumerator IEnumerable.GetEnumerator()
