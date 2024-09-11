@@ -50,13 +50,13 @@
             DateTime endTime)
         {
             //// TODO we  should take a IODataInstanceContext, which should be a generic
-            this.Events = new CalendarEventContext<DateTime>(graphCalendarContext.Events, startTime, endTime);
+            this.Events = new CalendarEventContext(graphCalendarContext.Events, startTime, endTime);
         }
 
         public IV2Queryable<CalendarContextCalendarEvent> Events { get; }
 
         //// TODO i think a monad will get rid of tkey2?
-        private sealed class CalendarEventContext<TKey2> : IV2Queryable<CalendarContextCalendarEvent>, IWhereQueryable<CalendarContextCalendarEvent>, IOrderByQueryable<CalendarContextCalendarEvent>
+        private sealed class CalendarEventContext : IV2Queryable<CalendarContextCalendarEvent>, IWhereQueryable<CalendarContextCalendarEvent>, IOrderByQueryable<CalendarContextCalendarEvent>
         {
             private readonly IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext;
 
@@ -68,13 +68,13 @@
 
             private readonly Expression<Func<GraphCalendarContextEvent, bool>>? where;
 
-            private readonly Expression<Func<GraphCalendarContextEvent, TKey2>>? orderBy;
+            ////private readonly Expression<Func<GraphCalendarContextEvent, TKey2>>? orderBy;
 
             public CalendarEventContext(
                 IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext,
                 DateTime startTime,
                 DateTime endTime)
-                : this(graphCalendarEventsContext, startTime, endTime, null, null)
+                : this(graphCalendarEventsContext, startTime, endTime, null)
             {
             }
 
@@ -82,24 +82,23 @@
                 IODataCollectionContext<GraphCalendarContextEvent> graphCalendarEventsContext,
                 DateTime startTime,
                 DateTime endTime,
-                Expression<Func<GraphCalendarContextEvent, bool>>? where,
-                Expression<Func<GraphCalendarContextEvent, TKey2>>? orderBy)
+                Expression<Func<GraphCalendarContextEvent, bool>>? where)
             {
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
                 this.startTime = startTime;
                 this.endTime = endTime;
                 this.where = where;
-                this.orderBy = orderBy;
             }
 
             public IV2Queryable<CalendarContextCalendarEvent> OrderBy<TKey>(Expression<Func<CalendarContextCalendarEvent, TKey>> keySelector)
             {
+                //// TODO should this do a "thenby"?
                 var translated = new Visitor<TKey>().Visit(keySelector);
 
                 var lambda = translated as Expression<Func<GraphCalendarContextEvent, TKey>>;
 
                 //// TODO what about multiple orderby calls?
-                return new CalendarEventContext<TKey>(this.graphCalendarEventsContext, this.startTime, this.endTime, this.where, lambda);
+                return new CalendarEventContext(this.graphCalendarEventsContext.OrderBy(lambda!), this.startTime, this.endTime, this.where);
             }
 
             public IV2Queryable<CalendarContextCalendarEvent> Where(Expression<Func<CalendarContextCalendarEvent, bool>> predicate)
@@ -116,7 +115,7 @@
                 var lambda = translated as Expression<Func<GraphCalendarContextEvent, bool>>;
 
                 //// TODO whwat about mutiple where calls?
-                return new CalendarEventContext<TKey2>(this.graphCalendarEventsContext, this.startTime, this.endTime, lambda, this.orderBy);
+                return new CalendarEventContext(this.graphCalendarEventsContext, this.startTime, this.endTime, lambda);
             }
 
             private sealed class Visitor<T2> : ExpressionVisitor
@@ -254,11 +253,6 @@
                     events = events.Filter(this.where);
                 }
 
-                if (this.orderBy != null)
-                {
-                    events = events.OrderBy(this.orderBy);
-                }
-
                 return events
                     .GetValues().GetAwaiter().GetResult() //// TODO make this async
                     .Elements
@@ -284,11 +278,6 @@
                 if (this.where != null)
                 {
                     seriesMasters = seriesMasters.Filter(this.where);
-                }
-
-                if (this.orderBy != null)
-                {
-                    seriesMasters = seriesMasters.OrderBy(this.orderBy);
                 }
 
                 var seriesMastersValues = seriesMasters
@@ -328,11 +317,6 @@
                     graphEvents = graphEvents.Filter(this.where);
                 }
 
-                if (this.orderBy != null)
-                {
-                    graphEvents = graphEvents.OrderBy(this.orderBy);
-                }
-
                 return graphEvents
                     .GetValues().GetAwaiter().GetResult() //// TODO make this async
                     .Elements
@@ -356,6 +340,11 @@
                     graphCalendarEvent.WebLink!,
                     graphCalendarEvent.Type!,
                     graphCalendarEvent.IsCancelled!.Value);
+            }
+
+            public Unit<TSource> Unit<TSource>()
+            {
+                throw new NotImplementedException();
             }
         }
     }

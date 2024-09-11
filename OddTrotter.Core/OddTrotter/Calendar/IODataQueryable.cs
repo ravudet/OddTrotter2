@@ -764,7 +764,7 @@
                         this.filter,
                         this.select,
                         this.top,
-                        $"$orderby={propertyPath}");
+                        this.orderBy == null ? $"$orderby={propertyPath}" : $"{this.orderBy},{propertyPath}");
                 }
                 else
                 {

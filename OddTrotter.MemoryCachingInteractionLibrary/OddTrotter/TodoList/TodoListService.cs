@@ -360,6 +360,7 @@
             var query = calendarContext
                 .Events
                 .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+                .OrderBy(calendarEvent => calendarEvent.Subject)
                 .Where(calendarEvent => calendarEvent.IsCancelled == false);
             query.ToArray(); //// TODO is there an async queryable?
 
