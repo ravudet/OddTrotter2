@@ -387,7 +387,7 @@
                     Subject = _.Subject, 
                     WebLink = _.WebLink ,
                 }),
-                instanceEvents.LastRequestedPageUrl ?? seriesEvents.LastRequestedPageUrl);
+                null); //// TODO get the last request page uri
         }
 
         /// <summary>
