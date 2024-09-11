@@ -85,6 +85,14 @@
         /// </remarks>
         private static ODataCollection<CalendarEvent> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
+            var graphCalendarContext = new GraphCalendarContext(graphClient, new Uri($"/me/calendar", UriKind.Relative).ToRelativeUri());
+            var calendarContext = new CalendarContext(graphCalendarContext, startTime, endTime); //// TODO constructor injection
+            var query = calendarContext
+                .Events
+                .OrderBy(calendarEvent => calendarEvent.Start.DateTime)
+                .Where(calendarEvent => calendarEvent.IsCancelled == false);
+            query.ToArray(); //// TODO is there an async queryable?
+
             var instanceEvents = GetInstanceEvents(graphClient, startTime, endTime, pageSize);
             var seriesEvents = GetSeriesEvents(graphClient, startTime, endTime, pageSize);
             //// TODO merge the sorted sequences instead of concat

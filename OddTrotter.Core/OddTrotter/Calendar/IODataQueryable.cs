@@ -473,7 +473,7 @@
                 || (expression.NodeType == ExpressionType.LessThan) // primitive comparison provided by the compiler
                 )
             {
-                queryParameter.Append(" gt ");
+                queryParameter.Append(" lt ");
             }
             else if (expression.NodeType == ExpressionType.AndAlso)
             {
