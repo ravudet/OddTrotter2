@@ -2,6 +2,14 @@
 {
     public sealed class QualifiedActionName
     {
-        //// TODO do this
+        public QualifiedActionName(Namespace @namespace, OdataIdentifier action)
+        {
+            Namespace = @namespace;
+            Action = action;
+        }
+
+        public Namespace Namespace { get; }
+
+        public OdataIdentifier Action { get; }
     }
 }
