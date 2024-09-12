@@ -1,6 +1,6 @@
 ﻿namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Top
 {
-    public sealed class TopNode
+    public sealed class Top
     {
         //// TODO do this
     }

@@ -1,6 +1,6 @@
 ﻿namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Search
 {
-    public sealed class SearchNode
+    public sealed class Search
     {
         //// TODO do this
     }

@@ -21,32 +21,32 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Select
 
         public sealed class ComputeNode : SelectOption
         {
-            public ComputeNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Compute.ComputeNode compute)
+            public ComputeNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Compute.Compute compute)
             {
                 Compute = compute;
             }
 
-            public Fx.OdataPocRoot.Odata.UriExpressionNodes.Compute.ComputeNode Compute { get; }
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.Compute.Compute Compute { get; }
         }
 
         public sealed class SelectNode : SelectOption
         {
-            public SelectNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Select.SelectNode select)
+            public SelectNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Select.Select select)
             {
                 Select = select;
             }
 
-            public Select.SelectNode Select { get; }
+            public UriExpressionNodes.Select.Select Select { get; }
         }
 
         public sealed class ExpandNode : SelectOption
         {
-            public ExpandNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Expand.ExpandNode expand)
+            public ExpandNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Expand.Expand expand)
             {
                 Expand = expand;
             }
 
-            public Expand.ExpandNode Expand { get; }
+            public Expand.Expand Expand { get; }
         }
 
         public sealed class AliasAndValueNode : SelectOption

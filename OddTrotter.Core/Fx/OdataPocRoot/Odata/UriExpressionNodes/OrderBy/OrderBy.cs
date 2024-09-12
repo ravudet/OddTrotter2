@@ -1,6 +1,6 @@
 ﻿namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.OrderBy
 {
-    public sealed class OrderByNode
+    public sealed class OrderBy
     {
         //// TODO do this
     }

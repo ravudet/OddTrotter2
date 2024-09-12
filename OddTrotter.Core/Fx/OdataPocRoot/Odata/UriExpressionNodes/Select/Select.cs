@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public sealed class SelectNode
+    public sealed class Select
     {
         public IReadOnlyList<SelectItem> SelectItems { get; }
     }
