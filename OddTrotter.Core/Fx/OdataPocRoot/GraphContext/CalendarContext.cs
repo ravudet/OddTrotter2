@@ -82,7 +82,7 @@
             {
                 if (expression.Expression is MemberExpression memberExpression)
                 {
-                    return TraverseSelect<TType>(memberExpression, previousExpressions.Append(expression));
+                    return TraverseSelect<TType>(memberExpression, previousExpressions.Prepend(expression));
                 }
                 else
                 {
@@ -151,6 +151,14 @@
                 yield return nameof(Calendar.Id);
                 yield return nameof(Calendar.Events);
                 yield return nameof(Calendar.Foo);
+            }
+            else if (type == typeof(Foo))
+            {
+                yield return nameof(Foo.Bar);
+            }
+            else if (type == typeof(Bar))
+            {
+                yield return nameof(Bar.Test);
             }
             else if (type == typeof(Event))
             {

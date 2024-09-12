@@ -53,7 +53,7 @@
             var events = await graphCalendarContext
                 .Select(calendar => calendar.Id)
                 .Select(calendar => calendar.Events)
-                .Select(calendar => calendar.Foo.DateTime)
+                .Select(calendar => calendar.Foo.Bar.Test)
                 .Evaluate()
                 .ConfigureAwait(false);
 

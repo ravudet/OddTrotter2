@@ -9,13 +9,33 @@
             this.Id = id;
             this.Events = events;
 
-            this.Foo = new DateTimeTimeZone(string.Empty, string.Empty);
+            this.Foo = new Foo(new Bar("sasdf"));
         }
         
         public string Id { get; }
 
-        public DateTimeTimeZone Foo { get; }
+        public Foo Foo { get; }
 
         public IEnumerable<Event> Events { get; }
+    }
+
+    public sealed class Foo
+    {
+        public Foo(Bar bar)
+        {
+            this.Bar = bar;
+        }
+
+        public Bar Bar { get; }
+    }
+
+    public sealed class Bar
+    {
+        public Bar(string test)
+        {
+            Test = test;
+        }
+
+        public string Test { get; }
     }
 }
