@@ -341,11 +341,6 @@
                     graphCalendarEvent.Type!,
                     graphCalendarEvent.IsCancelled!.Value);
             }
-
-            public Unit<TSource> Unit<TSource>()
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }
