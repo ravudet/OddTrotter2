@@ -62,7 +62,7 @@
 
             public sealed class Third : PropertyPath
             {
-                public Third(QualifiedEntityTypeName qualifiedEntityTypeName, OdataUriNode.QualifiedActionName qualifiedActionName)
+                public Third(QualifiedEntityTypeName qualifiedEntityTypeName, QualifiedActionName qualifiedActionName)
                 {
                     QualifiedEntityTypeName = qualifiedEntityTypeName;
                     QualifiedActionName = qualifiedActionName;
@@ -70,22 +70,22 @@
 
                 public QualifiedEntityTypeName QualifiedEntityTypeName { get; }
 
-                public OdataUriNode.QualifiedActionName QualifiedActionName { get; }
+                public QualifiedActionName QualifiedActionName { get; }
             }
 
             public sealed class Fourth : PropertyPath
             {
-                public Fourth(OdataUriNode.QualifiedActionName qualifiedActionName)
+                public Fourth(QualifiedActionName qualifiedActionName)
                 {
                     QualifiedActionName = qualifiedActionName;
                 }
 
-                public OdataUriNode.QualifiedActionName QualifiedActionName { get; }
+                public QualifiedActionName QualifiedActionName { get; }
             }
 
             public sealed class Fifth : PropertyPath
             {
-                public Fifth(QualifiedEntityTypeName qualifiedEntityTypeName, OdataUriNode.QualifiedFunctionName qualifiedFunctionName)
+                public Fifth(QualifiedEntityTypeName qualifiedEntityTypeName, QualifiedFunctionName qualifiedFunctionName)
                 {
                     QualifiedEntityTypeName = qualifiedEntityTypeName;
                     QualifiedFunctionName = qualifiedFunctionName;
@@ -93,17 +93,17 @@
 
                 public QualifiedEntityTypeName QualifiedEntityTypeName { get; }
 
-                public OdataUriNode.QualifiedFunctionName QualifiedFunctionName { get; }
+                public QualifiedFunctionName QualifiedFunctionName { get; }
             }
 
             public sealed class Sixth : PropertyPath
             {
-                public Sixth(OdataUriNode.QualifiedFunctionName qualifiedFunctionName)
+                public Sixth(QualifiedFunctionName qualifiedFunctionName)
                 {
                     QualifiedFunctionName = qualifiedFunctionName;
                 }
 
-                public OdataUriNode.QualifiedFunctionName QualifiedFunctionName { get; }
+                public QualifiedFunctionName QualifiedFunctionName { get; }
             }
 
             public sealed class Seventh : PropertyPath
@@ -131,7 +131,7 @@
 
             public sealed class Ninth : PropertyPath
             {
-                public Ninth(QualifiedComplexTypeName qualifiedComplexTypeName, OdataUriNode.QualifiedActionName qualifiedActionName)
+                public Ninth(QualifiedComplexTypeName qualifiedComplexTypeName, QualifiedActionName qualifiedActionName)
                 {
                     QualifiedComplexTypeName = qualifiedComplexTypeName;
                     QualifiedActionName = qualifiedActionName;
@@ -139,22 +139,22 @@
 
                 public QualifiedComplexTypeName QualifiedComplexTypeName { get; }
 
-                public OdataUriNode.QualifiedActionName QualifiedActionName { get; }
+                public QualifiedActionName QualifiedActionName { get; }
             }
 
             public sealed class Tenth : PropertyPath
             {
-                public Tenth(OdataUriNode.QualifiedActionName qualifiedActionName)
+                public Tenth(QualifiedActionName qualifiedActionName)
                 {
                     QualifiedActionName = qualifiedActionName;
                 }
 
-                public OdataUriNode.QualifiedActionName QualifiedActionName { get; }
+                public QualifiedActionName QualifiedActionName { get; }
             }
 
             public sealed class Eleventh : PropertyPath
             {
-                public Eleventh(QualifiedComplexTypeName qualifiedComplexTypeName, OdataUriNode.QualifiedFunctionName qualifiedFunctionName)
+                public Eleventh(QualifiedComplexTypeName qualifiedComplexTypeName, QualifiedFunctionName qualifiedFunctionName)
                 {
                     QualifiedComplexTypeName = qualifiedComplexTypeName;
 
@@ -163,17 +163,17 @@
 
                 public QualifiedComplexTypeName QualifiedComplexTypeName { get; }
 
-                public OdataUriNode.QualifiedFunctionName QualifiedFunctionName { get; }
+                public QualifiedFunctionName QualifiedFunctionName { get; }
             }
 
             public sealed class Twelfth : PropertyPath
             {
-                public Twelfth(OdataUriNode.QualifiedFunctionName qualifiedFunctionName)
+                public Twelfth(QualifiedFunctionName qualifiedFunctionName)
                 {
                     QualifiedFunctionName = qualifiedFunctionName;
                 }
 
-                public OdataUriNode.QualifiedFunctionName QualifiedFunctionName { get; }
+                public QualifiedFunctionName QualifiedFunctionName { get; }
             }
         }
 
@@ -203,7 +203,7 @@
                 {
                 }
 
-                public PrimitiveCollectionProperty(OdataIdentifier property, FilterExpressionNode? filterExpressionNode) //// TODO add the other expression node types from selectoptionpc in the ABNF; do you want to use derived types for this?
+                public PrimitiveCollectionProperty(OdataIdentifier property, Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode? filterExpressionNode) //// TODO add the other expression node types from selectoptionpc in the ABNF; do you want to use derived types for this?
                 {
                     //// TODO this is where the spaghetti occurs; you now have to pull in all of the required nodes for the rest of the query options
                     Property = property;
@@ -212,7 +212,7 @@
 
                 public OdataIdentifier Property { get; }
 
-                public FilterExpressionNode? FilterExpressionNode { get; }
+                public Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode? FilterExpressionNode { get; }
             }
 
             public sealed class NavigationProperty : SelectPropertyNode
