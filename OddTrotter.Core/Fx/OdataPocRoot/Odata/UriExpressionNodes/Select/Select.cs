@@ -4,6 +4,11 @@
 
     public sealed class Select
     {
-        public IReadOnlyList<SelectItem> SelectItems { get; }
+        public Select(IEnumerable<SelectItem> selectItems)
+        {
+            this.SelectItems = selectItems;
+        }
+
+        public IEnumerable<SelectItem> SelectItems { get; }
     }
 }

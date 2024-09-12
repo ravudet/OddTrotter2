@@ -4,6 +4,11 @@
 
     public sealed class Calendar
     {
-        public IReadOnlyList<Event> Events { get; }
+        public Calendar(IEnumerable<Event> events)
+        {
+            this.Events = events;
+        }
+
+        public IEnumerable<Event> Events { get; }
     }
 }

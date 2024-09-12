@@ -2,6 +2,19 @@
 {
     public sealed class Event
     {
+        public Event(string id, ItemBody body, DateTimeTimeZone end, bool isCancelled, ResponseStatus responseStatus, DateTimeTimeZone start, string subject, string type, string webLink)
+        {
+            Id = id;
+            Body = body;
+            End = end;
+            IsCancelled = isCancelled;
+            ResponseStatus = responseStatus;
+            Start = start;
+            Subject = subject;
+            Type = type;
+            WebLink = webLink;
+        }
+
         public string Id { get; }
 
         public ItemBody Body { get; }
