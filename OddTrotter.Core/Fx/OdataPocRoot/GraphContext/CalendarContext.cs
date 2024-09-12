@@ -1,6 +1,7 @@
 ﻿namespace Fx.OdataPocRoot.GraphContext
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Text.Json;
@@ -17,14 +18,14 @@
 
         private readonly RelativeUri calendarUri;
 
-        private readonly string? select;
+        private readonly Select? select;
 
         public CalendarContext(IGraphClient graphClient, RelativeUri calendarUri)
             : this(graphClient, calendarUri, null)
         {
         }
 
-        private CalendarContext(IGraphClient graphClient, RelativeUri calendarUri, string? select)
+        private CalendarContext(IGraphClient graphClient, RelativeUri calendarUri, Select? select)
         {
             this.graphClient = graphClient;
             this.calendarUri = calendarUri;
@@ -49,7 +50,13 @@
 
         public IInstanceContext<Calendar> Select<TProperty>(Expression<Func<Calendar, TProperty>> selector)
         {
-            throw new System.NotImplementedException();
+            var select = LinqToOdata.Select(selector);
+            if (this.select != null)
+            {
+                select = new Select(this.select.SelectItems.Concat(select.SelectItems));
+            }
+
+            return new CalendarContext(this.graphClient, this.calendarUri, select);
         }
     }
 
@@ -57,7 +64,79 @@
     {
         public static Select Select<TType, TProperty>(Expression<Func<TType, TProperty>> selector)
         {
-            return new Select(Enumerable.Empty<SelectItem>());
+            if (selector.Body is MemberExpression memberExpression)
+            {
+                return TraverseSelect<TType>(memberExpression);
+            }
+            else
+            {
+                throw new Exception("TODO only member expressions are allowed");
+            }
+        }
+
+        private static Select TraverseSelect<TType>(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
+        {
+            if (expression.Expression?.NodeType != ExpressionType.Parameter)
+            {
+                if (expression.Expression is MemberExpression memberExpression)
+                {
+                    return TraverseSelect<TType>(memberExpression, previousExpressions.Append(expression));
+                }
+                else
+                {
+                    throw new Exception("TODO i don't think you can actually get here");
+                }
+            }
+            else
+            {
+                var propertyNames = GetPropertyNames<TType>();
+                if (propertyNames.Contains(expression.Member.Name))
+                {
+                }
+                else
+                {
+                    throw new Exception("TODO property name not found; you shouldn't be able to get here from the expression<Func>, but you could get here if the memberexpression was manually instantiated");
+                }
+            }
+        }
+
+        private static IEnumerable<string> GetPropertyNames<TType>()
+        {
+            if (typeof(TType) == typeof(Calendar))
+            {
+                yield return nameof(Calendar.Id);
+                yield return nameof(Calendar.Events);
+            }
+            else if (typeof(TType) == typeof(Event))
+            {
+                yield return nameof(Event.Id);
+                yield return nameof(Event.Body);
+                yield return nameof(Event.End);
+                yield return nameof(Event.IsCancelled);
+                yield return nameof(Event.ResponseStatus);
+                yield return nameof(Event.Start);
+                yield return nameof(Event.Subject);
+                yield return nameof(Event.Type);
+                yield return nameof(Event.WebLink);
+            }
+            else if (typeof(TType) == typeof(ItemBody))
+            {
+                yield return nameof(ItemBody.Content);
+            }
+            else if (typeof(TType) == typeof(DateTimeTimeZone))
+            {
+                yield return nameof(DateTimeTimeZone.DateTime);
+                yield return nameof(DateTimeTimeZone.TimeZone);
+            }
+            else if (typeof(TType) == typeof(ResponseStatus))
+            {
+                yield return nameof(ResponseStatus.Response);
+                yield return nameof(ResponseStatus.Time);
+            }
+            else
+            {
+                throw new Exception("TODO actually implement this in a general way");
+            }
         }
     }
 }

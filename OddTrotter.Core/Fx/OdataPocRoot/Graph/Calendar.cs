@@ -4,10 +4,13 @@
 
     public sealed class Calendar
     {
-        public Calendar(IEnumerable<Event> events)
+        public Calendar(string id, IEnumerable<Event> events)
         {
+            this.Id = id;
             this.Events = events;
         }
+        
+        public string Id { get; }
 
         public IEnumerable<Event> Events { get; }
     }
