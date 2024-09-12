@@ -203,7 +203,7 @@
                 {
                 }
 
-                public PrimitiveCollectionProperty(OdataIdentifier property, Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode? filterExpressionNode) //// TODO add the other expression node types from selectoptionpc in the ABNF; do you want to use derived types for this?
+                public PrimitiveCollectionProperty(OdataIdentifier property, Fx.OdataPocRoot.Odata.UriExpressionNodes.OrderBy.OrderByNode? filterExpressionNode) //// TODO add the other expression node types from selectoptionpc in the ABNF; do you want to use derived types for this?
                 {
                     //// TODO this is where the spaghetti occurs; you now have to pull in all of the required nodes for the rest of the query options
                     Property = property;
@@ -212,7 +212,7 @@
 
                 public OdataIdentifier Property { get; }
 
-                public Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode? FilterExpressionNode { get; }
+                public Fx.OdataPocRoot.Odata.UriExpressionNodes.OrderBy.OrderByNode? FilterExpressionNode { get; }
             }
 
             public sealed class NavigationProperty : SelectPropertyNode

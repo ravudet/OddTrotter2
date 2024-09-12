@@ -11,40 +11,60 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Select
         {
             public FilterNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode filter)
             {
-                Filter = filter;
+                this.Filter = filter;
             }
 
-            public UriExpressionNodes.Filter.FilterNode Filter { get; }
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode Filter { get; }
         }
 
-        public sealed class FilterNode : SelectOptionPc
+        public sealed class SearchNode : SelectOptionPc
         {
-            public FilterNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode filter)
+            public SearchNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Search.SearchNode search)
             {
-                Filter = filter;
+                this.Search = search;
             }
 
-            public UriExpressionNodes.Filter.FilterNode Filter { get; }
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.Search.SearchNode Search { get; }
         }
 
-        public sealed class FilterNode : SelectOptionPc
+        public sealed class InlineCountNode : SelectOptionPc
         {
-            public FilterNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode filter)
+            public InlineCountNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.InlineCount.InlineCountNode inclineCount)
             {
-                Filter = filter;
+                this.InlineCount = inclineCount;
             }
 
-            public UriExpressionNodes.Filter.FilterNode Filter { get; }
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.InlineCount.InlineCountNode InlineCount { get; }
         }
 
-        public sealed class FilterNode : SelectOptionPc
+        public sealed class OrderByNode : SelectOptionPc
         {
-            public FilterNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter.FilterNode filter)
+            public OrderByNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.OrderBy.OrderByNode orderBy)
             {
-                Filter = filter;
+                this.OrderBy = orderBy;
             }
 
-            public UriExpressionNodes.Filter.FilterNode Filter { get; }
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.OrderBy.OrderByNode OrderBy { get; }
+        }
+
+        public sealed class SkipNode : SelectOptionPc
+        {
+            public SkipNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Skip.SkipNode Skip)
+            {
+                this.Skip = Skip;
+            }
+
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.Skip.SkipNode Skip { get; }
+        }
+
+        public sealed class TopNode : SelectOptionPc
+        {
+            public TopNode(Fx.OdataPocRoot.Odata.UriExpressionNodes.Top.TopNode top)
+            {
+                this.Top = top;
+            }
+
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.Top.TopNode Top { get; }
         }
     }
 }
