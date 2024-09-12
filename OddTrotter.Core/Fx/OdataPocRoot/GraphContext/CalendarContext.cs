@@ -1,12 +1,14 @@
 ﻿namespace Fx.OdataPocRoot.GraphContext
 {
     using System;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Text.Json;
     using System.Threading.Tasks;
 
     using Fx.OdataPocRoot.Graph;
     using Fx.OdataPocRoot.Odata;
+    using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
     using OddTrotter.GraphClient;
 
     public sealed class CalendarContext : IInstanceContext<Calendar>
@@ -48,6 +50,14 @@
         public IInstanceContext<Calendar> Select<TProperty>(Expression<Func<Calendar, TProperty>> selector)
         {
             throw new System.NotImplementedException();
+        }
+    }
+
+    public static class LinqToOdata
+    {
+        public static Select Select<TType, TProperty>(Expression<Func<TType, TProperty>> selector)
+        {
+            return new Select(Enumerable.Empty<SelectItem>());
         }
     }
 }
