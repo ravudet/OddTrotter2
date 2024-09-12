@@ -15,38 +15,6 @@
     using OddTrotter.GraphClient;
     using OddTrotter.TodoList;
 
-    public class GraphCalendarEvent //// TODO deal with property nullability
-    {
-        [JsonPropertyName("id")]
-        public string? Id { get; set; }
-
-        [JsonPropertyName("body")]
-        public BodyStructure? Body { get; set; }
-
-        [JsonPropertyName("start")]
-        public TimeStructure? Start { get; set; }
-
-        [JsonPropertyName("end")]
-        public TimeStructure? End { get; set; }
-
-        [JsonPropertyName("subject")]
-        public string? Subject { get; set; }
-
-        [JsonPropertyName("responseStatus")]
-        public ResponseStatusStructure? ResponseStatus { get; set; }
-
-        [JsonPropertyName("webLink")]
-        public string? WebLink { get; set; }
-
-        [JsonPropertyName("type")]
-        public string? Type { get; set; }
-
-        [JsonPropertyName("isCancelled")]
-        public bool? IsCancelled { get; set; }
-
-        //// TODO add *all* of the properties here
-    }
-
     public sealed class ResponseStatusStructure
     {
         [JsonPropertyName("response")]
