@@ -41,7 +41,7 @@
                 httpResponseMessage.EnsureSuccessStatusCode();
                 var httpResponseContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var calendar = JsonSerializer.Deserialize<Calendar>(httpResponseContent);
-                if (calendar ==null)
+                if (calendar == null)
                 {
                     throw new Exception("TODO null calendar");
                 }
