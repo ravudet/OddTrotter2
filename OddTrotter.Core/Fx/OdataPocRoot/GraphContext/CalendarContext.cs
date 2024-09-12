@@ -36,6 +36,7 @@
 
         public async Task<Calendar> Evaluate()
         {
+            //// TODO generate string from select and append it to uri
             using (var httpResponseMessage = await this.graphClient.GetAsync(this.calendarUri).ConfigureAwait(false))
             {
                 httpResponseMessage.EnsureSuccessStatusCode();
