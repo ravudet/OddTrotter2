@@ -1,7 +1,7 @@
 ﻿namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Select
 {
     using System.Collections.Generic;
-
+    using System.ComponentModel.Design;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
 
     public abstract class SelectItem
@@ -223,8 +223,33 @@
 
             public abstract class FullSelectPath : SelectPropertyNode
             {
-                private FullSelectPath()
+                private FullSelectPath(SelectPath selectPath)
                 {
+                    SelectPath = selectPath;
+                }
+
+                public SelectPath SelectPath { get; }
+
+                public sealed class SelectOption : FullSelectPath
+                {
+                    public SelectOption(SelectPath selectPath, IEnumerable<SelectOption> selectOptions)
+                        : base(selectPath)
+                    {
+                        SelectOptions = selectOptions;
+                    }
+
+                    public IEnumerable<SelectOption> SelectOptions { get; }
+                }
+
+                public sealed class SelectPropertyNode2 : FullSelectPath
+                {
+                    public SelectPropertyNode2(SelectPath selectPath, SelectPropertyNode selectPropertyNode)
+                        : base(selectPath)
+                    {
+                        SelectProperty = selectPropertyNode;
+                    }
+
+                    public SelectPropertyNode SelectProperty { get; }
                 }
             }
         }
