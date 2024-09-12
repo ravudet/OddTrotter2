@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Reflection.Metadata.Ecma335;
     using System.Text.Json;
     using System.Threading.Tasks;
 
@@ -90,56 +91,51 @@
             }
             else
             {
-                //// TODO if you can refactor this to be recursive, it'd probably be more readable
-                var propertyNames = GetPropertyNames<TType>();
-                if (propertyNames.Contains(expression.Member.Name))
+                using (var enumerator = previousExpressions.Prepend(expression).GetEnumerator())
                 {
-                    SelectProperty selectPath =
+                    enumerator.MoveNext();
+                    return
+                        new Select(
+                            new[]
+                            {
+                                new SelectItem.PropertyPath.Second(
+                                    TraversePreviousMembers(enumerator)
+                                ),
+                            });
+                }
+            }
+        }
+
+        private static SelectProperty TraversePreviousMembers(IEnumerator<MemberExpression> expressions)
+        {
+            var expression = expressions.Current;
+            var propertyNames = GetPropertyNames(expression.Member.DeclaringType!); //// TODO nullable
+            if (propertyNames.Contains(expression.Member.Name))
+            {
+                if (!expressions.MoveNext())
+                {
+                    return
                         new SelectProperty.PrimitiveProperty(
                             new PrimitiveProperty.PrimitiveNonKeyProperty(
                                 new OdataIdentifier(expression.Member.Name)
                             )
                         );
-                    if (!previousExpressions.Any())
-                    {
-                        return new Select(
-                            new[] 
-                            { 
-                                new SelectItem.PropertyPath.Second(selectPath),
-                            });
-                    }
-                    else
-                    {
-                        //// TODO the expression ends up with the path backwards...
-                        foreach (var previousExpression in previousExpressions)
-                        {
-                            var subPropertyNames = GetPropertyNames(previousExpression.Member.DeclaringType!); //// TODO nullable declaring type?
-                            if (subPropertyNames.Contains(previousExpression.Member.Name))
-                            {
-                                selectPath = new SelectProperty.FullSelectPath.SelectPropertyNode(
-                                    new SelectPath.First(
-                                        new OdataIdentifier(previousExpression.Member.Name)
-                                    ),
-                                    selectPath);
-                            }
-                            else
-                            {
-                                throw new Exception("TODO property name not found; you could get here if the memberexpression was manually instantiated or if the type has members defined that are not marked as odata properties");
-                            }
-                        }
-
-                        return new Select(
-                            new[]
-                            {
-                                new SelectItem.PropertyPath.Second(selectPath),
-                            });
-                    }
-
                 }
                 else
                 {
-                    throw new Exception("TODO property name not found; you could get here if the memberexpression was manually instantiated or if the type has members defined that are not marked as odata properties");
+                    return
+                        new SelectProperty.FullSelectPath.SelectPropertyNode(
+                            new SelectPath.First(
+                                new OdataIdentifier(expression.Member.Name)
+                            ),
+                            TraversePreviousMembers(expressions)
+                        );
                 }
+
+            }
+            else
+            {
+                throw new Exception("TODO property name not found; you could get here if the memberexpression was manually instantiated or if the type has members defined that are not marked as odata properties");
             }
         }
 
