@@ -5,6 +5,7 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Select
     {
         private SelectOptionPc()
         {
+            //// TODO this is where the spaghetti occurs; you now have to pull in all of the required nodes for the rest of the query options
         }
 
         public sealed class FilterNode : SelectOptionPc

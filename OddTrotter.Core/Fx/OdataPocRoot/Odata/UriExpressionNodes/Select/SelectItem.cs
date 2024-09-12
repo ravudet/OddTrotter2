@@ -1,5 +1,7 @@
 ﻿namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Select
 {
+    using System.Collections.Generic;
+
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
 
     public abstract class SelectItem
@@ -198,21 +200,15 @@
 
             public sealed class PrimitiveCollectionProperty : SelectPropertyNode
             {
-                public PrimitiveCollectionProperty(OdataIdentifier property)
-                    : this(property, null)
+                public PrimitiveCollectionProperty(OdataIdentifier property, IEnumerable<SelectOptionPc> nestedSelects)
                 {
-                }
-
-                public PrimitiveCollectionProperty(OdataIdentifier property, Fx.OdataPocRoot.Odata.UriExpressionNodes.OrderBy.OrderByNode? filterExpressionNode) //// TODO add the other expression node types from selectoptionpc in the ABNF; do you want to use derived types for this?
-                {
-                    //// TODO this is where the spaghetti occurs; you now have to pull in all of the required nodes for the rest of the query options
                     Property = property;
-                    FilterExpressionNode = filterExpressionNode;
+                    NestedSelects = nestedSelects; //// TODO i don't like this name
                 }
 
                 public OdataIdentifier Property { get; }
 
-                public Fx.OdataPocRoot.Odata.UriExpressionNodes.OrderBy.OrderByNode? FilterExpressionNode { get; }
+                public IEnumerable<SelectOptionPc> NestedSelects { get; }
             }
 
             public sealed class NavigationProperty : SelectPropertyNode
