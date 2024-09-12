@@ -51,9 +51,9 @@
             var graphClient = new MockGraphClient();
             var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
             var events = await graphCalendarContext
-                .Select(calendarEvent => calendarEvent.Id)
-                .Select(calendarEvent => calendarEvent.Events)
-                .Select(calendarEvent => calendarEvent.Foo.DateTime)
+                .Select(calendar => calendar.Id)
+                .Select(calendar => calendar.Events)
+                .Select(calendar => calendar.Foo.DateTime)
                 .Evaluate()
                 .ConfigureAwait(false);
 
