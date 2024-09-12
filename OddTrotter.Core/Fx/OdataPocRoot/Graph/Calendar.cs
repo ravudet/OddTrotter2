@@ -14,6 +14,8 @@
         
         public string Id { get; }
 
+        public OdataProperty<string> OdataProp { get; } = new OdataProperty<string>();
+
         public Foo Foo { get; }
 
         public IEnumerable<Event> Events { get; }
@@ -37,5 +39,9 @@
         }
 
         public string Test { get; }
+    }
+
+    public sealed class OdataProperty<T>
+    {
     }
 }

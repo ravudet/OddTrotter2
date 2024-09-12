@@ -147,6 +147,23 @@
 
         private static IEnumerable<string> GetPropertyNames(Type type)
         {
+            var odataProperties = type.GetProperties().Where(property =>
+                {
+                    var propertyType = property.PropertyType;
+                    if (!propertyType.IsGenericType)
+                    {
+                        return false;
+                    }
+
+                    if (propertyType.GetGenericTypeDefinition() != typeof(OdataProperty<>))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .ToArray();
+
             if (type == typeof(Calendar))
             {
                 yield return nameof(Calendar.Id);
