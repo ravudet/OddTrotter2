@@ -1,24 +1,23 @@
 ﻿namespace Fx.OdataPocRoot.Graph
 {
+    using Fx.OdataPocRoot.Odata;
     using System.Collections.Generic;
 
     public sealed class Calendar
     {
         public Calendar(string id, IEnumerable<Event> events)
         {
-            this.Id = id;
-            this.Events = events;
+            this.Id = new OdataProperty<string>(id);
+            this.Events = new OdataProperty<IEnumerable<Event>>(events);
 
             this.Foo = new Foo(new Bar("sasdf"));
         }
         
-        public string Id { get; }
-
-        public OdataProperty<string> OdataProp { get; } = new OdataProperty<string>();
+        public OdataProperty<string> Id { get; }
 
         public Foo Foo { get; }
 
-        public IEnumerable<Event> Events { get; }
+        public OdataProperty<IEnumerable<Event>> Events { get; }
     }
 
     public sealed class Foo
@@ -43,5 +42,11 @@
 
     public sealed class OdataProperty<T>
     {
+        public OdataProperty(T value)
+        {
+            this.Value = value;
+        }
+
+        public T Value { get; set; }
     }
 }

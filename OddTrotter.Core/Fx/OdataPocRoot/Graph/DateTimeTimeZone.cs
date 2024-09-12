@@ -4,12 +4,12 @@
     {
         public DateTimeTimeZone(string dateTime, string timeZone)
         {
-            DateTime = dateTime;
-            TimeZone = timeZone;
+            DateTime = new OdataProperty<string>(dateTime);
+            TimeZone = new OdataProperty<string>(timeZone);
         }
 
-        public string DateTime { get; }
+        public OdataProperty<string> DateTime { get; }
 
-        public string TimeZone { get; }
+        public OdataProperty<string> TimeZone { get; }
     }
 }
