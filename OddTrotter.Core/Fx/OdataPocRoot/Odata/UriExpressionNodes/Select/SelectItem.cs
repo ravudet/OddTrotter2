@@ -41,7 +41,7 @@
             public sealed class First : PropertyPath
             {
 
-                public First(QualifiedEntityTypeName qualifiedEntityTypeName, SelectPropertyNode selectProperty)
+                public First(QualifiedEntityTypeName qualifiedEntityTypeName, SelectProperty selectProperty)
                 {
                     QualifiedEntityTypeName = qualifiedEntityTypeName;
                     SelectProperty = selectProperty;
@@ -49,17 +49,17 @@
 
                 public QualifiedEntityTypeName QualifiedEntityTypeName { get; }
 
-                public SelectPropertyNode SelectProperty { get; }
+                public SelectProperty SelectProperty { get; }
             }
 
             public sealed class Second : PropertyPath
             {
-                public Second(SelectPropertyNode selectProperty)
+                public Second(SelectProperty selectProperty)
                 {
                     SelectProperty = selectProperty;
                 }
 
-                public SelectPropertyNode SelectProperty { get; }
+                public SelectProperty SelectProperty { get; }
             }
 
             public sealed class Third : PropertyPath
@@ -110,7 +110,7 @@
 
             public sealed class Seventh : PropertyPath
             {
-                public Seventh(QualifiedComplexTypeName qualifiedComplexTypeName, SelectPropertyNode selectProperty)
+                public Seventh(QualifiedComplexTypeName qualifiedComplexTypeName, SelectProperty selectProperty)
                 {
                     QualifiedComplexTypeName = qualifiedComplexTypeName;
                     SelectProperty = selectProperty;
@@ -118,17 +118,17 @@
 
                 public QualifiedComplexTypeName QualifiedComplexTypeName { get; }
 
-                public SelectPropertyNode SelectProperty { get; }
+                public SelectProperty SelectProperty { get; }
             }
 
             public sealed class Eighth : PropertyPath
             {
-                public Eighth(SelectPropertyNode selectProperty)
+                public Eighth(SelectProperty selectProperty)
                 {
                     SelectProperty = selectProperty;
                 }
 
-                public SelectPropertyNode SelectProperty { get; }
+                public SelectProperty SelectProperty { get; }
             }
 
             public sealed class Ninth : PropertyPath
@@ -176,81 +176,6 @@
                 }
 
                 public QualifiedFunctionName QualifiedFunctionName { get; }
-            }
-        }
-
-        /// <summary>
-        /// TODO i don't like this class name, but it was confliocting with <see cref="QualifiedEntityTypeName.Namespace"/> and <see cref="QualifiedComplexTypeName.Namespace"/>
-        /// </summary>
-        public abstract class SelectPropertyNode : SelectItem
-        {
-            private SelectPropertyNode()
-            {
-            }
-
-            public sealed class PrimitiveProperty : SelectPropertyNode
-            {
-                public PrimitiveProperty(PrimitiveProperty property)
-                {
-                    Property = property;
-                }
-
-                public PrimitiveProperty Property { get; }
-            }
-
-            public sealed class PrimitiveCollectionProperty : SelectPropertyNode
-            {
-                public PrimitiveCollectionProperty(OdataIdentifier property, IEnumerable<SelectOptionPc> nestedSelects)
-                {
-                    Property = property;
-                    NestedSelects = nestedSelects; //// TODO i don't like this name
-                }
-
-                public OdataIdentifier Property { get; }
-
-                public IEnumerable<SelectOptionPc> NestedSelects { get; }
-            }
-
-            public sealed class NavigationProperty : SelectPropertyNode
-            {
-                public NavigationProperty(NavigationProperty property)
-                {
-                    Property = property;
-                }
-
-                public NavigationProperty Property { get; }
-            }
-
-            public abstract class FullSelectPath : SelectPropertyNode
-            {
-                private FullSelectPath(SelectPath selectPath)
-                {
-                    SelectPath = selectPath;
-                }
-
-                public SelectPath SelectPath { get; }
-
-                public sealed class SelectOption : FullSelectPath
-                {
-                    public SelectOption(SelectPath selectPath, IEnumerable<SelectOption> selectOptions)
-                        : base(selectPath)
-                    {
-                        SelectOptions = selectOptions;
-                    }
-
-                    public IEnumerable<SelectOption> SelectOptions { get; }
-                }
-
-                public sealed class SelectPropertyNode2 : FullSelectPath
-                {
-                    public SelectPropertyNode2(SelectPath selectPath, SelectPropertyNode selectPropertyNode)
-                        : base(selectPath)
-                    {
-                        SelectProperty = selectPropertyNode;
-                    }
-
-                    public SelectPropertyNode SelectProperty { get; }
-                }
             }
         }
     }
