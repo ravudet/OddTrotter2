@@ -2,16 +2,47 @@
 {
     using System;
     using System.Linq.Expressions;
+    using System.Text.Json;
     using System.Threading.Tasks;
 
     using Fx.OdataPocRoot.Graph;
     using Fx.OdataPocRoot.Odata;
+    using OddTrotter.GraphClient;
 
     public sealed class CalendarContext : IInstanceContext<Calendar>
     {
-        public Task<Calendar> Evaluate()
+        private readonly IGraphClient graphClient;
+
+        private readonly RelativeUri calendarUri;
+
+        private readonly string? select;
+
+        public CalendarContext(IGraphClient graphClient, RelativeUri calendarUri)
+            : this(graphClient, calendarUri, null)
         {
-            throw new System.NotImplementedException();
+        }
+
+        private CalendarContext(IGraphClient graphClient, RelativeUri calendarUri, string? select)
+        {
+            this.graphClient = graphClient;
+            this.calendarUri = calendarUri;
+            this.select = select;
+        }
+
+        public async Task<Calendar> Evaluate()
+        {
+            using (var httpResponseMessage = await this.graphClient.GetAsync(this.calendarUri).ConfigureAwait(false))
+            {
+                httpResponseMessage.EnsureSuccessStatusCode();
+                var httpResponseContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var calendar = JsonSerializer.Deserialize<Calendar>(httpResponseContent);
+                if (calendar ==null)
+                {
+                    throw new Exception("TODO null calendar");
+                }
+
+                return calendar;
+            }
         }
 
         public IInstanceContext<Calendar> Select<TProperty>(Expression<Func<Calendar, TProperty>> selector)
