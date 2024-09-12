@@ -2,9 +2,7 @@
 {
     using System;
     using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using OddTrotter.Calendar;
 
     /// <summary>
     /// Unit tests for <see cref="TodoListResult"/>
