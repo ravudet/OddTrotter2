@@ -12,12 +12,12 @@
 
         public sealed class PrimitiveProperty : SelectProperty
         {
-            public PrimitiveProperty(PrimitiveProperty property)
+            public PrimitiveProperty(Fx.OdataPocRoot.Odata.UriExpressionNodes.Common.PrimitiveProperty property)
             {
                 Property = property;
             }
 
-            public PrimitiveProperty Property { get; }
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.Common.PrimitiveProperty Property { get; }
         }
 
         public sealed class PrimitiveCollectionProperty : SelectProperty
@@ -35,12 +35,12 @@
 
         public sealed class NavigationProperty : SelectProperty
         {
-            public NavigationProperty(NavigationProperty property)
+            public NavigationProperty(Fx.OdataPocRoot.Odata.UriExpressionNodes.Common.NavigationProperty property)
             {
                 Property = property;
             }
 
-            public NavigationProperty Property { get; }
+            public Fx.OdataPocRoot.Odata.UriExpressionNodes.Common.NavigationProperty Property { get; }
         }
 
         public abstract class FullSelectPath : SelectProperty

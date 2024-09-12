@@ -12,6 +12,55 @@
     using OddTrotter.Calendar;
     using OddTrotter.TodoList;
 
+    [TestClass]
+    public sealed class MigrationTestsOdataPocRootCalendarContext
+    {
+        private sealed class MockGraphClient : IGraphClient
+        {
+            public string CalledUri { get; private set; } = string.Empty;
+
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                this.CalledUri = relativeUri.OriginalString;
+
+                var content = new StringContent("{\"value\":[]}");
+                var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                responseMessage.Content = content;
+                return await Task.FromResult(responseMessage);
+            }
+
+            public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PatchAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> PostAsync(RelativeUri relativeUri, HttpContent httpContent)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [TestMethod]
+        public async Task SelectsNew()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
+            var events = await graphCalendarContext
+                .Select(calendarEvent => calendarEvent.Id)
+                .Select(calendarEvent => calendarEvent.Events)
+                .Select(calendarEvent => calendarEvent.Foo.DateTime)
+                .Evaluate()
+                .ConfigureAwait(false);
+
+            Assert.AreEqual("/me/calendar?$select=id", graphClient.CalledUri);
+        }
+    }
+
     //// TODO remove the need for this directive
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
     [TestClass]

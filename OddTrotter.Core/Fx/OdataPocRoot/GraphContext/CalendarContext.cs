@@ -9,6 +9,7 @@
 
     using Fx.OdataPocRoot.Graph;
     using Fx.OdataPocRoot.Odata;
+    using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
     using OddTrotter.GraphClient;
 
@@ -66,7 +67,7 @@
         {
             if (selector.Body is MemberExpression memberExpression)
             {
-                return TraverseSelect<TType>(memberExpression);
+                return TraverseSelect<TType>(memberExpression, Enumerable.Empty<MemberExpression>());
             }
             else
             {
@@ -89,25 +90,73 @@
             }
             else
             {
+                //// TODO if you can refactor this to be recursive, it'd probably be more readable
                 var propertyNames = GetPropertyNames<TType>();
                 if (propertyNames.Contains(expression.Member.Name))
                 {
+                    SelectProperty selectPath =
+                        new SelectProperty.PrimitiveProperty(
+                            new PrimitiveProperty.PrimitiveNonKeyProperty(
+                                new OdataIdentifier(expression.Member.Name)
+                            )
+                        );
+                    if (!previousExpressions.Any())
+                    {
+                        return new Select(
+                            new[] 
+                            { 
+                                new SelectItem.PropertyPath.Second(selectPath),
+                            });
+                    }
+                    else
+                    {
+                        //// TODO the expression ends up with the path backwards...
+                        foreach (var previousExpression in previousExpressions)
+                        {
+                            var subPropertyNames = GetPropertyNames(previousExpression.Member.DeclaringType!); //// TODO nullable declaring type?
+                            if (subPropertyNames.Contains(previousExpression.Member.Name))
+                            {
+                                selectPath = new SelectProperty.FullSelectPath.SelectPropertyNode(
+                                    new SelectPath.First(
+                                        new OdataIdentifier(previousExpression.Member.Name)
+                                    ),
+                                    selectPath);
+                            }
+                            else
+                            {
+                                throw new Exception("TODO property name not found; you could get here if the memberexpression was manually instantiated or if the type has members defined that are not marked as odata properties");
+                            }
+                        }
+
+                        return new Select(
+                            new[]
+                            {
+                                new SelectItem.PropertyPath.Second(selectPath),
+                            });
+                    }
+
                 }
                 else
                 {
-                    throw new Exception("TODO property name not found; you shouldn't be able to get here from the expression<Func>, but you could get here if the memberexpression was manually instantiated");
+                    throw new Exception("TODO property name not found; you could get here if the memberexpression was manually instantiated or if the type has members defined that are not marked as odata properties");
                 }
             }
         }
 
         private static IEnumerable<string> GetPropertyNames<TType>()
         {
-            if (typeof(TType) == typeof(Calendar))
+            return GetPropertyNames(typeof(TType));
+        }
+
+        private static IEnumerable<string> GetPropertyNames(Type type)
+        {
+            if (type == typeof(Calendar))
             {
                 yield return nameof(Calendar.Id);
                 yield return nameof(Calendar.Events);
+                yield return nameof(Calendar.Foo);
             }
-            else if (typeof(TType) == typeof(Event))
+            else if (type == typeof(Event))
             {
                 yield return nameof(Event.Id);
                 yield return nameof(Event.Body);
@@ -119,16 +168,16 @@
                 yield return nameof(Event.Type);
                 yield return nameof(Event.WebLink);
             }
-            else if (typeof(TType) == typeof(ItemBody))
+            else if (type == typeof(ItemBody))
             {
                 yield return nameof(ItemBody.Content);
             }
-            else if (typeof(TType) == typeof(DateTimeTimeZone))
+            else if (type == typeof(DateTimeTimeZone))
             {
                 yield return nameof(DateTimeTimeZone.DateTime);
                 yield return nameof(DateTimeTimeZone.TimeZone);
             }
-            else if (typeof(TType) == typeof(ResponseStatus))
+            else if (type == typeof(ResponseStatus))
             {
                 yield return nameof(ResponseStatus.Response);
                 yield return nameof(ResponseStatus.Time);
