@@ -4,9 +4,9 @@
     {
         public ItemBody(string content)
         {
-            Content = content;
+            Content = new OdataProperty<string>(content);
         }
 
-        public string Content { get; }
+        public OdataProperty<string> Content { get; }
     }
 }

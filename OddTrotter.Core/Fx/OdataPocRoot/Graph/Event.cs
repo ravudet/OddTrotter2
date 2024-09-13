@@ -9,10 +9,10 @@
             End = new OdataProperty<DateTimeTimeZone>(end);
             IsCancelled = new OdataProperty<bool>(isCancelled);
             ResponseStatus = new OdataProperty<ResponseStatus>(responseStatus);
-            Start = start;
-            Subject = subject;
-            Type = type;
-            WebLink = webLink;
+            Start = new OdataProperty<DateTimeTimeZone>(start);
+            Subject = new OdataProperty<string>(subject);
+            Type = new OdataProperty<string>(type);
+            WebLink = new OdataProperty<string>(webLink);
         }
 
         public OdataProperty<string> Id { get; }

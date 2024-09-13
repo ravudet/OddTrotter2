@@ -162,9 +162,11 @@
 
                     return true;
                 })
-                .ToArray();
+                .Select(property => property.Name);
 
-            if (type == typeof(Calendar))
+            return odataProperties;
+
+            /*if (type == typeof(Calendar))
             {
                 yield return nameof(Calendar.Id);
                 yield return nameof(Calendar.Events);
@@ -207,7 +209,7 @@
             else
             {
                 throw new Exception("TODO actually implement this in a general way");
-            }
+            }*/
         }
     }
 }

@@ -4,12 +4,12 @@
     {
         public ResponseStatus(string response, string time)
         {
-            Response = response;
-            Time = time;
+            Response = new OdataProperty<string>(response);
+            Time = new OdataProperty<string>(time);
         }
 
-        public string Response { get; }
+        public OdataProperty<string> Response { get; }
 
-        public string Time { get; }
+        public OdataProperty<string> Time { get; }
     }
 }
