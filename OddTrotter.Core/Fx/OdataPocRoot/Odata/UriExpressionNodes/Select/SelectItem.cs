@@ -40,7 +40,6 @@
             /// </summary>
             public sealed class First : PropertyPath
             {
-
                 public First(QualifiedEntityTypeName qualifiedEntityTypeName, SelectProperty selectProperty)
                 {
                     QualifiedEntityTypeName = qualifiedEntityTypeName;
