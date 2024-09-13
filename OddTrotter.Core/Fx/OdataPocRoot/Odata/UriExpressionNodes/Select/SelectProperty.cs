@@ -22,15 +22,15 @@
 
         public sealed class PrimitiveCollectionProperty : SelectProperty
         {
-            public PrimitiveCollectionProperty(OdataIdentifier property, IEnumerable<SelectOptionPc> nestedSelects)
+            public PrimitiveCollectionProperty(OdataIdentifier property, IEnumerable<SelectOptionPc> nestedOptions)
             {
                 Property = property;
-                NestedSelects = nestedSelects; //// TODO i don't like this name
+                NestedOptions = nestedOptions; //// TODO i don't like this name
             }
 
             public OdataIdentifier Property { get; }
 
-            public IEnumerable<SelectOptionPc> NestedSelects { get; }
+            public IEnumerable<SelectOptionPc> NestedOptions { get; }
         }
 
         public sealed class NavigationProperty : SelectProperty
