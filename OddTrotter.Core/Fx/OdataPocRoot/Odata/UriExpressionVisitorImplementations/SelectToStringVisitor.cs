@@ -106,9 +106,9 @@
             }
             else if (node is SelectProperty.FullSelectPath fullSelectPath)
             {
+                Visit(fullSelectPath.SelectPath, builder);
                 if (node is SelectProperty.FullSelectPath.SelectOption selectOption)
                 {
-
                 }
             }
         }
@@ -143,6 +143,21 @@
             {
                 throw new Exception("TODO a proper visitor pattern would prevent this branch");
             }
+        }
+
+        public void Visit(SelectPath node, StringBuilder builder)
+        {
+            if (node is SelectPath.First first)
+            {
+                this.commonToStringVisitor.Visit(first.ComplexProperty, builder);
+            }
+            else if (node is SelectPath.Second second)
+            {
+                this.commonToStringVisitor.Visit(second.ComplexProperty, builder);
+                builder.Append("/");
+                this.commonToStringVisitor.Visit(second.QualifiedComplexTypeName, builder);
+            }
+            else if ()
         }
 
         private sealed class CommonToStringVisitor
@@ -213,6 +228,13 @@
                 {
                     throw new Exception("TODO a proper visitor pattern would prevent this branch");
                 }
+            }
+
+            public void Visit(QualifiedComplexTypeName node, StringBuilder builder)
+            {
+                Visit(node.Namespace, builder);
+                builder.Append(".");
+                Visit(node.EntityTypeName, builder);
             }
         }
     }
