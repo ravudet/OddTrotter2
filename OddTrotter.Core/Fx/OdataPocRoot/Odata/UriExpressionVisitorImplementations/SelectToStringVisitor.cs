@@ -8,6 +8,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading;
+    using System.Xml.Linq;
 
     public sealed class SelectToStringVisitor
     {
@@ -25,7 +26,13 @@
 
         private readonly TopToStringVisitor topToStringVisitor;
 
-        public SelectToStringVisitor(FilterToStringVisitor filterToStringVisitor, SearchToStringVisitor searchToStringVisitor, InlineCountToStringVisitor inlineCountToStringVisitor, OrderByToStringVisitor orderByToStringVisitor, SkipToStringVisitor skipToStringVisitor, TopToStringVisitor topToStringVisitor)
+        private readonly ComputeToStringVisitor computeToStringVisitor;
+
+        private readonly ExpandToStringVisitor expandToStringVisitor;
+
+        private readonly AliasAndValueToStringVisitor aliasAndValueToStringVisitor;
+
+        public SelectToStringVisitor(FilterToStringVisitor filterToStringVisitor, SearchToStringVisitor searchToStringVisitor, InlineCountToStringVisitor inlineCountToStringVisitor, OrderByToStringVisitor orderByToStringVisitor, SkipToStringVisitor skipToStringVisitor, TopToStringVisitor topToStringVisitor, ComputeToStringVisitor computeToStringVisitor, ExpandToStringVisitor expandToStringVisitor, AliasAndValueToStringVisitor aliasAndValueToStringVisitor)
         {
             this.filterToStringVisitor = filterToStringVisitor;
             this.searchToStringVisitor = searchToStringVisitor;
@@ -33,6 +40,9 @@
             this.orderByToStringVisitor = orderByToStringVisitor;
             this.skipToStringVisitor = skipToStringVisitor;
             this.topToStringVisitor = topToStringVisitor;
+            this.computeToStringVisitor = computeToStringVisitor;
+            this.expandToStringVisitor = expandToStringVisitor;
+            this.aliasAndValueToStringVisitor = aliasAndValueToStringVisitor;
         }
 
         public void Visit(Select node, StringBuilder builder)
@@ -109,6 +119,33 @@
                 Visit(fullSelectPath.SelectPath, builder);
                 if (node is SelectProperty.FullSelectPath.SelectOption selectOption)
                 {
+                    var selectOptions = selectOption.SelectOptions.ToList();
+                    if (selectOptions.Count == 0)
+                    {
+                        //// TODO is this actually legal? model it somehow if it's not
+                        return;
+                    }
+
+                    Action<SelectOption, StringBuilder> visit = (SelectOption node, StringBuilder stringBuilder) =>
+                    {
+                        if (node is SelectOption.SelectOptionPcNode selectOptionPcNode)
+                        {
+                            Visit(selectOptionPcNode.SelectOptionPc, stringBuilder);
+                        }
+                        else if (node is SelectOption.ComputeNode computeNode)
+                        {
+                            this.computeToStringVisitor.Visit(computeNode.Compute, stringBuilder);
+                        }
+                        else if (node is SelectOption.SelectNode selectNode)
+                        {
+                            Visit(selectNode.Select, stringBuilder);
+                        }
+                        else if (node is SelectOption.ExpandNode expandNode)
+                        {
+                            this.expandToStringVisitor.Visit(expandNode.Expand, stringBuilder);
+                        }
+                        else if (node is SelectOption.AliasAndValueNode )
+                    };
                 }
             }
         }

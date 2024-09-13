@@ -54,13 +54,13 @@
 
             public sealed class SelectOption : FullSelectPath
             {
-                public SelectOption(SelectPath selectPath, IEnumerable<SelectOption> selectOptions)
+                public SelectOption(SelectPath selectPath, IEnumerable<Fx.OdataPocRoot.Odata.UriExpressionNodes.Select.SelectOption> selectOptions)
                     : base(selectPath)
                 {
                     SelectOptions = selectOptions;
                 }
 
-                public IEnumerable<SelectOption> SelectOptions { get; }
+                public IEnumerable<Fx.OdataPocRoot.Odata.UriExpressionNodes.Select.SelectOption> SelectOptions { get; }
             }
 
             public sealed class SelectPropertyNode : FullSelectPath
