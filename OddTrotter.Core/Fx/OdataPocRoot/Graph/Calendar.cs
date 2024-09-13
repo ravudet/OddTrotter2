@@ -2,15 +2,20 @@
 {
     using Fx.OdataPocRoot.Odata;
     using System.Collections.Generic;
+    using System.Globalization;
 
     public sealed class Calendar
     {
-        public Calendar(string id, IEnumerable<Event> events)
+        /*public Calendar(string id, IEnumerable<Event> events)
+            : this(new OdataProperty<string>(id), new OdataProperty<IEnumerable<Event>>(events), new Foo(new Bar("sasdf")))
         {
-            this.Id = new OdataProperty<string>(id);
-            this.Events = new OdataProperty<IEnumerable<Event>>(events);
+        }*/
 
-            this.Foo = new Foo(new Bar("sasdf"));
+        public Calendar(OdataProperty<string> id, OdataProperty<IEnumerable<Event>> events, Foo foo)
+        {
+            this.Id = id;
+            this.Events = events;
+            this.Foo = foo;
         }
         
         public OdataProperty<string> Id { get; }

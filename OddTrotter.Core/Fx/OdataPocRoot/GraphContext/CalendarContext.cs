@@ -6,12 +6,14 @@
     using System.Linq.Expressions;
     using System.Reflection.Metadata.Ecma335;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
 
     using Fx.OdataPocRoot.Graph;
     using Fx.OdataPocRoot.Odata;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
+    using Microsoft.VisualBasic;
     using OddTrotter.GraphClient;
 
     public sealed class CalendarContext : IInstanceContext<Calendar>
@@ -41,7 +43,10 @@
             {
                 httpResponseMessage.EnsureSuccessStatusCode();
                 var httpResponseContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var calendar = JsonSerializer.Deserialize<Calendar>(httpResponseContent);
+
+                var jsonSerializerOptions = new JsonSerializerOptions();
+                jsonSerializerOptions.Converters.Add(new ConverterFactory());
+                var calendar = JsonSerializer.Deserialize<Calendar>(httpResponseContent, jsonSerializerOptions);
                 if (calendar == null)
                 {
                     throw new Exception("TODO null calendar");
@@ -61,8 +66,46 @@
 
             return new CalendarContext(this.graphClient, this.calendarUri, select);
         }
+
+        private sealed class ConverterFactory : JsonConverterFactory
+        {
+            public override bool CanConvert(Type typeToConvert)
+            {
+                return typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(OdataProperty<>);
+            }
+
+            public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+            {
+                var typeArgument = typeToConvert.GenericTypeArguments[0];
+                var converterType = typeof(Converter<>);
+                var genericConverterType = converterType.MakeGenericType(typeArgument);
+
+                var createdConverter = Activator.CreateInstance(genericConverterType);
+                var converter = createdConverter as JsonConverter;
+
+                return converter;
+            }
+        }
+
+        private sealed class Converter<TProperty> : JsonConverter<OdataProperty<TProperty>>
+        {
+            public override OdataProperty<TProperty>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                var propertyValue = JsonSerializer.Deserialize<TProperty>(ref reader, options);
+                var odataProperty = new OdataProperty<TProperty>(propertyValue!);
+                return odataProperty;
+            }
+
+            public override void Write(Utf8JsonWriter writer, OdataProperty<TProperty> value, JsonSerializerOptions options)
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 
+    /// <summary>
+    /// TODO don't use a statics, use an interface instead?
+    /// </summary>
     public static class LinqToOdata
     {
         public static Select Select<TType, TProperty>(Expression<Func<TType, TProperty>> selector)
@@ -138,11 +181,6 @@
             {
                 throw new Exception("TODO property name not found; you could get here if the memberexpression was manually instantiated or if the type has members defined that are not marked as odata properties");
             }
-        }
-
-        private static IEnumerable<string> GetPropertyNames<TType>()
-        {
-            return GetPropertyNames(typeof(TType));
         }
 
         private static IEnumerable<string> GetPropertyNames(Type type)
