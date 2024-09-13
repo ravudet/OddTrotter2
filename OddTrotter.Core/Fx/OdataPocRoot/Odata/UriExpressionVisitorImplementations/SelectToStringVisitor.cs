@@ -15,9 +15,24 @@
 
         private readonly FilterToStringVisitor filterToStringVisitor;
 
-        public SelectToStringVisitor(FilterToStringVisitor filterToStringVisitor)
+        private readonly SearchToStringVisitor searchToStringVisitor;
+
+        private readonly InlineCountToStringVisitor inlineCountToStringVisitor;
+
+        private readonly OrderByToStringVisitor orderByToStringVisitor;
+
+        private readonly SkipToStringVisitor skipToStringVisitor;
+
+        private readonly TopToStringVisitor topToStringVisitor;
+
+        public SelectToStringVisitor(FilterToStringVisitor filterToStringVisitor, SearchToStringVisitor searchToStringVisitor, InlineCountToStringVisitor inlineCountToStringVisitor, OrderByToStringVisitor orderByToStringVisitor, SkipToStringVisitor skipToStringVisitor, TopToStringVisitor topToStringVisitor)
         {
             this.filterToStringVisitor = filterToStringVisitor;
+            this.searchToStringVisitor = searchToStringVisitor;
+            this.inlineCountToStringVisitor = inlineCountToStringVisitor;
+            this.orderByToStringVisitor = orderByToStringVisitor;
+            this.skipToStringVisitor = skipToStringVisitor;
+            this.topToStringVisitor = topToStringVisitor;
         }
 
         public void Visit(Select node, StringBuilder builder)
@@ -76,8 +91,25 @@
 
                 this.commonToStringVisitor.Visit(primitiveCollectionProperty.Property, builder);
                 builder.Append("(");
-                
+                Visit(nestedOptions[0], builder);
+                for (int i = 1; i < nestedOptions.Count; ++i)
+                {
+                    builder.Append(";");
+                    Visit(nestedOptions[i], builder);
+                }
+
                 builder.Append(")");
+            }
+            else if (node is SelectProperty.NavigationProperty navigationProperty)
+            {
+                this.commonToStringVisitor.Visit(navigationProperty.Property, builder);
+            }
+            else if (node is SelectProperty.FullSelectPath fullSelectPath)
+            {
+                if (node is SelectProperty.FullSelectPath.SelectOption selectOption)
+                {
+
+                }
             }
         }
 
@@ -86,6 +118,30 @@
             if (node is SelectOptionPc.FilterNode filterNode)
             {
                 this.filterToStringVisitor.Visit(filterNode.Filter, builder);
+            }
+            else if (node is SelectOptionPc.SearchNode searchNode)
+            {
+                this.searchToStringVisitor.Visit(searchNode.Search, builder);
+            }
+            else if (node is SelectOptionPc.InlineCountNode inlineCountNode)
+            {
+                this.inlineCountToStringVisitor.Visit(inlineCountNode.InlineCount, builder);
+            }
+            else if (node is SelectOptionPc.OrderByNode orderByNode)
+            {
+                this.orderByToStringVisitor.Visit(orderByNode.OrderBy, builder);
+            }
+            else if (node is SelectOptionPc.SkipNode skipNode)
+            {
+                this.skipToStringVisitor.Visit(skipNode.Skip, builder);
+            }
+            else if (node is SelectOptionPc.TopNode topNode)
+            {
+                this.topToStringVisitor.Visit(topNode.Top, builder);
+            }
+            else
+            {
+                throw new Exception("TODO a proper visitor pattern would prevent this branch");
             }
         }
 
@@ -136,6 +192,22 @@
                 else if (node is PrimitiveProperty.PrimitiveNonKeyProperty primitiveNonKeyProperty)
                 {
                     Visit(primitiveNonKeyProperty.Identifier, builder);
+                }
+                else
+                {
+                    throw new Exception("TODO a proper visitor pattern would prevent this branch");
+                }
+            }
+
+            public void Visit(NavigationProperty node, StringBuilder builder)
+            {
+                if (node is NavigationProperty.EntityNavigationProperty entityNavigationProperty)
+                {
+                    Visit(entityNavigationProperty.Identifier, builder);
+                }
+                else if (node is NavigationProperty.EntityCollectionNavigationProperty entityCollectionNavigationProperty)
+                {
+                    Visit(entityCollectionNavigationProperty.Identifier, builder);
                 }
                 else
                 {
