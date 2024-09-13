@@ -2,17 +2,17 @@
 {
     public sealed class Event
     {
-        public Event(string id, ItemBody body, DateTimeTimeZone end, bool isCancelled, ResponseStatus responseStatus, DateTimeTimeZone start, string subject, string type, string webLink)
+        public Event(OdataProperty<string> id, OdataProperty<ItemBody> body, OdataProperty<DateTimeTimeZone> end, OdataProperty<bool> isCancelled, OdataProperty<ResponseStatus> responseStatus, OdataProperty<DateTimeTimeZone> start, OdataProperty<string> subject, OdataProperty<string> type, OdataProperty<string> webLink)
         {
-            Id = new OdataProperty<string>(id);
-            Body = new OdataProperty<ItemBody>(body);
-            End = new OdataProperty<DateTimeTimeZone>(end);
-            IsCancelled = new OdataProperty<bool>(isCancelled);
-            ResponseStatus = new OdataProperty<ResponseStatus>(responseStatus);
-            Start = new OdataProperty<DateTimeTimeZone>(start);
-            Subject = new OdataProperty<string>(subject);
-            Type = new OdataProperty<string>(type);
-            WebLink = new OdataProperty<string>(webLink);
+            Id = id;
+            Body = body;
+            End = end;
+            IsCancelled = isCancelled;
+            ResponseStatus = responseStatus;
+            Start = start;
+            Subject = subject;
+            Type = type;
+            WebLink = webLink;
         }
 
         public OdataProperty<string> Id { get; }

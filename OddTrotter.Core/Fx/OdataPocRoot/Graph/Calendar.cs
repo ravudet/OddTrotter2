@@ -3,6 +3,7 @@
     using Fx.OdataPocRoot.Odata;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Text.Json.Serialization;
 
     public sealed class Calendar
     {
@@ -17,11 +18,13 @@
             this.Events = events;
             this.Foo = foo;
         }
-        
+
+        [JsonPropertyName("id")]
         public OdataProperty<string> Id { get; }
 
         public Foo Foo { get; }
 
+        [JsonPropertyName("events")]
         public OdataProperty<IEnumerable<Event>> Events { get; }
     }
 

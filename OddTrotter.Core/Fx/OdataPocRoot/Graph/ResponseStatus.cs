@@ -2,10 +2,10 @@
 {
     public sealed class ResponseStatus
     {
-        public ResponseStatus(string response, string time)
+        public ResponseStatus(OdataProperty<string> response, OdataProperty<string> time)
         {
-            Response = new OdataProperty<string>(response);
-            Time = new OdataProperty<string>(time);
+            Response = response;
+            Time = time;
         }
 
         public OdataProperty<string> Response { get; }

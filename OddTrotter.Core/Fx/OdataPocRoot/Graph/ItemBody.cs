@@ -2,9 +2,9 @@
 {
     public sealed class ItemBody
     {
-        public ItemBody(string content)
+        public ItemBody(OdataProperty<string> content)
         {
-            Content = new OdataProperty<string>(content);
+            Content = content;
         }
 
         public OdataProperty<string> Content { get; }

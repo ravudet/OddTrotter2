@@ -2,10 +2,10 @@
 {
     public sealed class DateTimeTimeZone
     {
-        public DateTimeTimeZone(string dateTime, string timeZone)
+        public DateTimeTimeZone(OdataProperty<string> dateTime, OdataProperty<string> timeZone)
         {
-            DateTime = new OdataProperty<string>(dateTime);
-            TimeZone = new OdataProperty<string>(timeZone);
+            DateTime = dateTime;
+            TimeZone = timeZone;
         }
 
         public OdataProperty<string> DateTime { get; }
