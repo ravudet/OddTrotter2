@@ -98,6 +98,7 @@
 
             public override void Write(Utf8JsonWriter writer, OdataProperty<TProperty> value, JsonSerializerOptions options)
             {
+                //// TODO implement this?
                 throw new NotImplementedException();
             }
         }
@@ -185,7 +186,7 @@
 
         private static IEnumerable<string> GetPropertyNames(Type type)
         {
-            var odataProperties = type.GetProperties().Where(property =>
+            return type.GetProperties().Where(property =>
                 {
                     var propertyType = property.PropertyType;
                     if (!propertyType.IsGenericType)
@@ -201,53 +202,6 @@
                     return true;
                 })
                 .Select(property => property.Name);
-
-            return odataProperties;
-
-            /*if (type == typeof(Calendar))
-            {
-                yield return nameof(Calendar.Id);
-                yield return nameof(Calendar.Events);
-                yield return nameof(Calendar.Foo);
-            }
-            else if (type == typeof(Foo))
-            {
-                yield return nameof(Foo.Bar);
-            }
-            else if (type == typeof(Bar))
-            {
-                yield return nameof(Bar.Test);
-            }
-            else if (type == typeof(Event))
-            {
-                yield return nameof(Event.Id);
-                yield return nameof(Event.Body);
-                yield return nameof(Event.End);
-                yield return nameof(Event.IsCancelled);
-                yield return nameof(Event.ResponseStatus);
-                yield return nameof(Event.Start);
-                yield return nameof(Event.Subject);
-                yield return nameof(Event.Type);
-                yield return nameof(Event.WebLink);
-            }
-            else if (type == typeof(ItemBody))
-            {
-                yield return nameof(ItemBody.Content);
-            }
-            else if (type == typeof(DateTimeTimeZone))
-            {
-                yield return nameof(DateTimeTimeZone.DateTime);
-                yield return nameof(DateTimeTimeZone.TimeZone);
-            }
-            else if (type == typeof(ResponseStatus))
-            {
-                yield return nameof(ResponseStatus.Response);
-                yield return nameof(ResponseStatus.Time);
-            }
-            else
-            {
-                throw new Exception("TODO actually implement this in a general way");
-            }*/
         }
     }
 }
