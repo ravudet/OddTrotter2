@@ -66,7 +66,7 @@
         {
             var graphClient = new MockGraphClient();
             var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri());
-            var events = await graphCalendarContext
+            var calendar = await graphCalendarContext
                 .Select(calendar => calendar.Id)
                 .Select(calendar => calendar.Events)
                 ////.Select(calendar => calendar.Foo.Bar.Test)
