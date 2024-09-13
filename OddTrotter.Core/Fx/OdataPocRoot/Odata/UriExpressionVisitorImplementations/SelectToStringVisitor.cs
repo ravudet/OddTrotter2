@@ -157,7 +157,20 @@
                 builder.Append("/");
                 this.commonToStringVisitor.Visit(second.QualifiedComplexTypeName, builder);
             }
-            else if ()
+            else if (node is SelectPath.Third third)
+            {
+                this.commonToStringVisitor.Visit(third.ComplexCollectionProperty, builder);
+            }
+            else if (node is SelectPath.Fourth fourth)
+            {
+                this.commonToStringVisitor.Visit(fourth.ComplexCollectionProperty, builder);
+                builder.Append("/");
+                this.commonToStringVisitor.Visit(fourth.QualifiedComplexTypeName, builder);
+            }
+            else
+            {
+                throw new Exception("TODO a proper visitor pattern would prevent this branch");
+            }
         }
 
         private sealed class CommonToStringVisitor
