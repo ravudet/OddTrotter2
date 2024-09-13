@@ -123,40 +123,20 @@
 
             public sealed class Eighth : PropertyPath
             {
-                public Eighth(SelectProperty selectProperty)
+                public Eighth(QualifiedComplexTypeName qualifiedComplexTypeName, QualifiedActionName qualifiedActionName)
                 {
-                    SelectProperty = selectProperty;
+                    QualifiedComplexTypeName = qualifiedComplexTypeName;
+                    QualifiedActionName = qualifiedActionName;
                 }
 
-                public SelectProperty SelectProperty { get; }
+                public QualifiedComplexTypeName QualifiedComplexTypeName { get; }
+
+                public QualifiedActionName QualifiedActionName { get; }
             }
 
             public sealed class Ninth : PropertyPath
             {
-                public Ninth(QualifiedComplexTypeName qualifiedComplexTypeName, QualifiedActionName qualifiedActionName)
-                {
-                    QualifiedComplexTypeName = qualifiedComplexTypeName;
-                    QualifiedActionName = qualifiedActionName;
-                }
-
-                public QualifiedComplexTypeName QualifiedComplexTypeName { get; }
-
-                public QualifiedActionName QualifiedActionName { get; }
-            }
-
-            public sealed class Tenth : PropertyPath
-            {
-                public Tenth(QualifiedActionName qualifiedActionName)
-                {
-                    QualifiedActionName = qualifiedActionName;
-                }
-
-                public QualifiedActionName QualifiedActionName { get; }
-            }
-
-            public sealed class Eleventh : PropertyPath
-            {
-                public Eleventh(QualifiedComplexTypeName qualifiedComplexTypeName, QualifiedFunctionName qualifiedFunctionName)
+                public Ninth(QualifiedComplexTypeName qualifiedComplexTypeName, QualifiedFunctionName qualifiedFunctionName)
                 {
                     QualifiedComplexTypeName = qualifiedComplexTypeName;
 
@@ -164,16 +144,6 @@
                 }
 
                 public QualifiedComplexTypeName QualifiedComplexTypeName { get; }
-
-                public QualifiedFunctionName QualifiedFunctionName { get; }
-            }
-
-            public sealed class Twelfth : PropertyPath
-            {
-                public Twelfth(QualifiedFunctionName qualifiedFunctionName)
-                {
-                    QualifiedFunctionName = qualifiedFunctionName;
-                }
 
                 public QualifiedFunctionName QualifiedFunctionName { get; }
             }
