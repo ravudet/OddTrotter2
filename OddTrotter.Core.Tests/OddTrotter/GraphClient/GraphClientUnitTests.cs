@@ -23,10 +23,26 @@
             {
                 this.CalledUri = relativeUri.OriginalString;
 
-                var content = new StringContent("{\"value\":[]}");
-                var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
-                responseMessage.Content = content;
-                return await Task.FromResult(responseMessage);
+                var absoluteUri = new AbsoluteUri(new Uri("https://localhost/" + relativeUri.OriginalString.TrimStart('/'), UriKind.Absolute)).ToAbsoluteUri();
+
+                if (string.Equals(absoluteUri.LocalPath, "/me/calendar"))
+                {
+                    var content = new StringContent("{\"id\":\"calendar_id\",\"events\":[{\"id\":\"event_id_1\"}]}");
+                    var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                    responseMessage.Content = content;
+                    return await Task.FromResult(responseMessage);
+                }
+                else if (string.Equals(absoluteUri.LocalPath, "/me/calendar/events"))
+                {
+                    var content = new StringContent("{\"value\":[]}");
+                    var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                    responseMessage.Content = content;
+                    return await Task.FromResult(responseMessage);
+                }
+                else
+                {
+                    throw new NotSupportedException("TODO");
+                }
             }
 
             public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
