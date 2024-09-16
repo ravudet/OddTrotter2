@@ -144,8 +144,22 @@
                         {
                             this.expandToStringVisitor.Visit(expandNode.Expand, stringBuilder);
                         }
-                        else if (node is SelectOption.AliasAndValueNode )
+                        else if (node is SelectOption.AliasAndValueNode aliasAndValueNode)
+                        {
+                            this.commonToStringVisitor.Visit(aliasAndValueNode.AliasAndValue, stringBuilder);
+                        }
+                        else
+                        {
+                            throw new Exception("TODO a proper visitor pattern would prevent this branch");
+                        }
                     };
+
+                    visit(selectOptions[0], builder);
+                    for (int i = 0; i < selectOptions.Count; ++i)
+                    {
+                        builder.Append(";");
+                        visit(selectOptions[i], builder);
+                    }
                 }
             }
         }
@@ -285,6 +299,11 @@
                 Visit(node.Namespace, builder);
                 builder.Append(".");
                 Visit(node.EntityTypeName, builder);
+            }
+
+            public void Visit(AliasAndValue node, StringBuilder builder)
+            {
+                throw new Exception("tODO aliasandvalue is not supported yet")
             }
         }
     }
