@@ -4,16 +4,16 @@
 
     public sealed class ResponseStatus
     {
-        public ResponseStatus(OdataProperty<string> response, OdataProperty<string> time)
+        public ResponseStatus(OdataInstanceProperty<string> response, OdataInstanceProperty<string> time)
         {
             Response = response;
             Time = time;
         }
 
         [PropertyName("response")]
-        public OdataProperty<string> Response { get; }
+        public OdataInstanceProperty<string> Response { get; }
 
         [PropertyName("time")]
-        public OdataProperty<string> Time { get; }
+        public OdataInstanceProperty<string> Time { get; }
     }
 }

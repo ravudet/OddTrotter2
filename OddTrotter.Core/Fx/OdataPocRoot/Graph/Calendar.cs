@@ -7,7 +7,7 @@
 
     public sealed class Calendar
     {
-        public Calendar(OdataProperty<string> id, OdataProperty<IEnumerable<Event>> events, Foo foo)
+        public Calendar(OdataInstanceProperty<string> id, OdataCollectionProperty<Event> events, Foo foo)
         {
             this.Id = id;
             this.Events = events;
@@ -15,12 +15,12 @@
         }
 
         [PropertyName("id")]
-        public OdataProperty<string> Id { get; }
+        public OdataInstanceProperty<string> Id { get; }
 
         public Foo Foo { get; }
 
         [PropertyName("events")]
-        public OdataProperty<IEnumerable<Event>> Events { get; }
+        public OdataCollectionProperty<Event> Events { get; } //// TODO it'd be good if you didn't need to specify ienumerable
     }
 
     public sealed class Foo
@@ -43,13 +43,23 @@
         public string Test { get; }
     }
 
-    public sealed class OdataProperty<T>
+    public sealed class OdataInstanceProperty<T>
     {
-        public OdataProperty(T value)
+        public OdataInstanceProperty(T value)
         {
             this.Value = value;
         }
 
         public T Value { get; set; }
+    }
+
+    public sealed class OdataCollectionProperty<T>
+    {
+        public OdataCollectionProperty(IEnumerable<T> value)
+        {
+            this.Value = value;
+        }
+
+        public IEnumerable<T> Value { get; }
     }
 }

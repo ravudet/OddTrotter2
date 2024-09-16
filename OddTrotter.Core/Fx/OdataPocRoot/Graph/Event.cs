@@ -5,7 +5,7 @@ namespace Fx.OdataPocRoot.Graph
 {
     public sealed class Event
     {
-        public Event(OdataProperty<string> id, OdataProperty<ItemBody> body, OdataProperty<DateTimeTimeZone> end, OdataProperty<bool> isCancelled, OdataProperty<ResponseStatus> responseStatus, OdataProperty<DateTimeTimeZone> start, OdataProperty<string> subject, OdataProperty<string> type, OdataProperty<string> webLink)
+        public Event(OdataInstanceProperty<string> id, OdataInstanceProperty<ItemBody> body, OdataInstanceProperty<DateTimeTimeZone> end, OdataInstanceProperty<bool> isCancelled, OdataInstanceProperty<ResponseStatus> responseStatus, OdataInstanceProperty<DateTimeTimeZone> start, OdataInstanceProperty<string> subject, OdataInstanceProperty<string> type, OdataInstanceProperty<string> webLink)
         {
             Id = id;
             Body = body;
@@ -19,30 +19,30 @@ namespace Fx.OdataPocRoot.Graph
         }
 
         [PropertyName("id")]
-        public OdataProperty<string> Id { get; }
+        public OdataInstanceProperty<string> Id { get; }
 
         [PropertyName("body")]
-        public OdataProperty<ItemBody> Body { get; }
+        public OdataInstanceProperty<ItemBody> Body { get; }
 
         [PropertyName("end")]
-        public OdataProperty<DateTimeTimeZone> End { get; }
+        public OdataInstanceProperty<DateTimeTimeZone> End { get; }
 
         [PropertyName("isCancelled")]
-        public OdataProperty<bool> IsCancelled { get; }
+        public OdataInstanceProperty<bool> IsCancelled { get; }
 
         [PropertyName("responseStatus")]
-        public OdataProperty<ResponseStatus> ResponseStatus { get; }
+        public OdataInstanceProperty<ResponseStatus> ResponseStatus { get; }
 
         [PropertyName("start")]
-        public OdataProperty<DateTimeTimeZone> Start { get; }
+        public OdataInstanceProperty<DateTimeTimeZone> Start { get; }
 
         [PropertyName("subject")]
-        public OdataProperty<string> Subject { get; }
+        public OdataInstanceProperty<string> Subject { get; }
 
         [PropertyName("type")]
-        public OdataProperty<string> Type { get; }
+        public OdataInstanceProperty<string> Type { get; }
 
         [PropertyName("webLink")]
-        public OdataProperty<string> WebLink { get; }
+        public OdataInstanceProperty<string> WebLink { get; }
     }
 }

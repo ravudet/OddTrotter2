@@ -67,6 +67,7 @@
                 var jsonSerializerOptions = new JsonSerializerOptions();
                 jsonSerializerOptions.TypeInfoResolver = new TypeInfoResolver();
                 jsonSerializerOptions.Converters.Add(new ConverterFactory());
+                jsonSerializerOptions.Converters.Add(new CollectionConverterFactory());
                 var calendar = JsonSerializer.Deserialize<Calendar>(httpResponseContent, jsonSerializerOptions);
                 if (calendar == null)
                 {
@@ -86,6 +87,16 @@
             }
 
             return new CalendarContext(this.graphClient, this.calendarUri, this.selectToStringVisitor, select);
+        }
+
+        public IInstanceContext<TProperty> SubContext<TProperty>(Expression<Func<Calendar, OdataInstanceProperty<TProperty>>> selector)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICollectionContext<TProperty> SubContext<TProperty>(Expression<Func<Calendar, OdataCollectionProperty<TProperty>>> selector)
+        {
+            throw new NotImplementedException();
         }
 
         public sealed class TypeInfoResolver : IJsonTypeInfoResolver
@@ -123,12 +134,47 @@
                 return jsonTypeInfo;
             }
         }
+        private sealed class CollectionConverterFactory : JsonConverterFactory
+        {
+            public override bool CanConvert(Type typeToConvert)
+            {
+                return typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(OdataCollectionProperty<>);
+            }
+
+            public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+            {
+                var typeArgument = typeToConvert.GenericTypeArguments[0];
+                var converterType = typeof(CollectionConverter<>);
+                var genericConverterType = converterType.MakeGenericType(typeArgument);
+
+                var createdConverter = Activator.CreateInstance(genericConverterType);
+                var converter = createdConverter as JsonConverter;
+
+                return converter;
+            }
+        }
+
+        private sealed class CollectionConverter<TProperty> : JsonConverter<OdataCollectionProperty<TProperty>>
+        {
+            public override OdataCollectionProperty<TProperty>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                var propertyValue = JsonSerializer.Deserialize<IEnumerable<TProperty>>(ref reader, options);
+                var odataProperty = new OdataCollectionProperty<TProperty>(propertyValue!);
+                return odataProperty;
+            }
+
+            public override void Write(Utf8JsonWriter writer, OdataCollectionProperty<TProperty> value, JsonSerializerOptions options)
+            {
+                //// TODO implement this?
+                throw new NotImplementedException();
+            }
+        }
 
         private sealed class ConverterFactory : JsonConverterFactory
         {
             public override bool CanConvert(Type typeToConvert)
             {
-                return typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(OdataProperty<>);
+                return typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(OdataInstanceProperty<>);
             }
 
             public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
@@ -144,16 +190,16 @@
             }
         }
 
-        private sealed class Converter<TProperty> : JsonConverter<OdataProperty<TProperty>>
+        private sealed class Converter<TProperty> : JsonConverter<OdataInstanceProperty<TProperty>>
         {
-            public override OdataProperty<TProperty>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            public override OdataInstanceProperty<TProperty>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 var propertyValue = JsonSerializer.Deserialize<TProperty>(ref reader, options);
-                var odataProperty = new OdataProperty<TProperty>(propertyValue!);
+                var odataProperty = new OdataInstanceProperty<TProperty>(propertyValue!);
                 return odataProperty;
             }
 
-            public override void Write(Utf8JsonWriter writer, OdataProperty<TProperty> value, JsonSerializerOptions options)
+            public override void Write(Utf8JsonWriter writer, OdataInstanceProperty<TProperty> value, JsonSerializerOptions options)
             {
                 //// TODO implement this?
                 throw new NotImplementedException();
@@ -258,7 +304,8 @@
                         return false;
                     }
 
-                    if (propertyType.GetGenericTypeDefinition() != typeof(OdataProperty<>))
+                    if (propertyType.GetGenericTypeDefinition() != typeof(OdataInstanceProperty<>) &&
+                        propertyType.GetGenericTypeDefinition() != typeof(OdataCollectionProperty<>))
                     {
                         return false;
                     }

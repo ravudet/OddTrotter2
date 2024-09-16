@@ -4,12 +4,12 @@ namespace Fx.OdataPocRoot.Graph
 {
     public sealed class ItemBody
     {
-        public ItemBody(OdataProperty<string> content)
+        public ItemBody(OdataInstanceProperty<string> content)
         {
             Content = content;
         }
 
         [PropertyName("content")]
-        public OdataProperty<string> Content { get; }
+        public OdataInstanceProperty<string> Content { get; }
     }
 }

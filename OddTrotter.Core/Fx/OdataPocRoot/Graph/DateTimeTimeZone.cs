@@ -4,16 +4,16 @@
 
     public sealed class DateTimeTimeZone
     {
-        public DateTimeTimeZone(OdataProperty<string> dateTime, OdataProperty<string> timeZone)
+        public DateTimeTimeZone(OdataInstanceProperty<string> dateTime, OdataInstanceProperty<string> timeZone)
         {
             DateTime = dateTime;
             TimeZone = timeZone;
         }
 
         [PropertyName("dateTime")]
-        public OdataProperty<string> DateTime { get; }
+        public OdataInstanceProperty<string> DateTime { get; }
 
         [PropertyName("timeZone")]
-        public OdataProperty<string> TimeZone { get; }
+        public OdataInstanceProperty<string> TimeZone { get; }
     }
 }
