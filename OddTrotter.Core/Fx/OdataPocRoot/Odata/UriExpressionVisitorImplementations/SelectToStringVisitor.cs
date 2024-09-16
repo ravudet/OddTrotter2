@@ -4,7 +4,6 @@
 
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
-    using Fx.OdataPocRoot.Odata.UriExpressionVisitors;
     using System.Linq;
     using System.Text;
     using System.Threading;
