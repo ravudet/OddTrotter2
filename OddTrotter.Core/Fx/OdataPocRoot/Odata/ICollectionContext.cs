@@ -19,5 +19,7 @@
         ICollectionContext<T> OrderBy<TProperty>(Expression<Func<T, TProperty>> selector);
 
         ICollectionContext<T> Filter(Expression<Func<T, bool>> predicate);
+
+        //// TODO have an indexer; somehow get an instancecontext from it
     }
 }

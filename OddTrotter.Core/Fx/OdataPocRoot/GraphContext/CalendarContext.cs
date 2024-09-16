@@ -15,6 +15,7 @@
     using Fx.OdataPocRoot.Graph;
     using Fx.OdataPocRoot.GraphClient;
     using Fx.OdataPocRoot.Odata;
+    using Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
     using Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations;
     using Microsoft.VisualBasic;
@@ -153,6 +154,8 @@
 
             private readonly Select? select;
 
+            private readonly Filter? filter;
+
             public EventsContext(
                 IGraphClient graphClient,
                 RelativeUri eventsUri, 
@@ -161,6 +164,7 @@
                       graphClient, 
                       eventsUri,
                       selectToStringVisitor, 
+                      null,
                       null)
             {
             }
@@ -169,12 +173,14 @@
                 IGraphClient graphClient, 
                 RelativeUri eventsUri, 
                 SelectToStringVisitor selectToStringVisitor, 
-                Select? select)
+                Select? select,
+                Filter? filter)
             {
                 this.graphClient = graphClient;
                 this.eventsUri = eventsUri;
                 this.selectToStringVisitor = selectToStringVisitor;
                 this.select = select;
+                this.filter = filter;
             }
 
             public async Task<OdataCollection<Event>> Evaluate()
@@ -204,7 +210,16 @@
 
             public ICollectionContext<Event> Filter(Expression<Func<Event, bool>> predicate)
             {
-                throw new NotImplementedException();
+                var filter = LinqToOdata.Filter(predicate);
+
+                //// TODO do an "and" when there's already a filter
+
+                return new EventsContext(
+                    this.graphClient,
+                    this.eventsUri,
+                    this.selectToStringVisitor,
+                    this.select,
+                    filter);
             }
 
             public ICollectionContext<Event> OrderBy<TProperty>(Expression<Func<Event, TProperty>> selector)
@@ -221,7 +236,12 @@
                     select = new Select(this.select.SelectItems.Concat(select.SelectItems));
                 }
 
-                return new EventsContext(this.graphClient, this.eventsUri, this.selectToStringVisitor, select);
+                return new EventsContext(
+                    this.graphClient, 
+                    this.eventsUri,
+                    this.selectToStringVisitor, 
+                    select, 
+                    this.filter);
             }
 
             public ICollectionContext<Event> Top(int count)

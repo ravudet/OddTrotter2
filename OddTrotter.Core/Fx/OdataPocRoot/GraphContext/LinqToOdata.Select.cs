@@ -14,7 +14,7 @@
     /// <summary>
     /// TODO don't use a statics, use an interface instead?
     /// </summary>
-    public static class LinqToOdata
+    public static partial class LinqToOdata
     {
         public static Select Select<TType, TProperty>(Expression<Func<TType, TProperty>> selector)
         {
