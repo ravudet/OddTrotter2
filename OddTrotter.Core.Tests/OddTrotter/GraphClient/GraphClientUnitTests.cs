@@ -73,6 +73,11 @@
                 .ConfigureAwait(false);
 
             Assert.AreEqual("/me/calendar?$select=id,events", graphClient.CalledUri);
+            Assert.AreEqual("calendar_id", calendar.Id.Value);
+            Assert.IsNotNull(calendar.Events);
+            var events = calendar.Events.Value.ToList();
+            Assert.AreEqual(1, events.Count);
+            Assert.AreEqual("event_id_1", events[0].Id.Value);
         }
     }
 

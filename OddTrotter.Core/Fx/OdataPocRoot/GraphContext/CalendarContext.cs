@@ -9,6 +9,7 @@
     using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization.Metadata;
     using System.Threading.Tasks;
 
     using Fx.OdataPocRoot.Graph;
@@ -64,6 +65,7 @@
                 var httpResponseContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 var jsonSerializerOptions = new JsonSerializerOptions();
+                jsonSerializerOptions.TypeInfoResolver = new TypeInfoResolver();
                 jsonSerializerOptions.Converters.Add(new ConverterFactory());
                 var calendar = JsonSerializer.Deserialize<Calendar>(httpResponseContent, jsonSerializerOptions);
                 if (calendar == null)
@@ -84,6 +86,92 @@
             }
 
             return new CalendarContext(this.graphClient, this.calendarUri, this.selectToStringVisitor, select);
+        }
+
+        public sealed class TypeInfoResolver : IJsonTypeInfoResolver
+        {
+            public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
+            {
+                //// TODO is there a default tpyeinforesolver that you can use?
+                
+                var defaultJsonTypeInfoResolver = new DefaultJsonTypeInfoResolver();
+                var jsonTypeInfo = defaultJsonTypeInfoResolver.GetTypeInfo(type, options);
+
+                for (int i = 0; i < jsonTypeInfo.Properties.Count; ++i)
+                {
+                    var members = type.GetMember(jsonTypeInfo.Properties[i].Name);
+                    MemberInfo member;
+                    try
+                    {
+                        member = members.Single();
+                    }
+                    catch
+                    {
+                        //// TODO property handle no matches
+                        //// TODO properly handle multiple matches
+                        return jsonTypeInfo;
+                    }
+
+                    var translatedName = member.Name;
+                    var propertyNameAttribute = member.GetCustomAttribute<PropertyNameAttribute>(false);
+                    if (propertyNameAttribute != null)
+                    {
+                        translatedName = propertyNameAttribute.PropertyName;
+                    }
+
+                    jsonTypeInfo.Properties[i].Name = translatedName;
+                }
+
+                return jsonTypeInfo;
+
+                /*var jsonTypeInfo = JsonTypeInfo.CreateJsonTypeInfo(type, options);
+                if (jsonTypeInfo.Kind == JsonTypeInfoKind.None)
+                {
+                    return jsonTypeInfo;
+                }
+
+                var propertyInfos = type.GetProperties();
+                foreach (var propertyInfo in propertyInfos)
+                {
+                    var jsonPropertyInfo = jsonTypeInfo.CreateJsonPropertyInfo(propertyInfo.PropertyType, propertyInfo.Name);
+
+                    var translatedName = propertyInfo.Name;
+                    var propertyNameAttribute = propertyInfo.GetCustomAttribute<PropertyNameAttribute>(false);
+                    if (propertyNameAttribute != null)
+                    {
+                        translatedName = propertyNameAttribute.PropertyName;
+                    }
+
+                    jsonTypeInfo.Properties.Add(jsonPropertyInfo);
+                }
+
+                return jsonTypeInfo;*/
+            }
+
+            private sealed class CustomAttributeProvider : ICustomAttributeProvider
+            {
+                private readonly JsonPropertyInfo propertyInfo;
+
+                public CustomAttributeProvider(JsonPropertyInfo propertyInfo)
+                {
+                    this.propertyInfo = propertyInfo;
+                }
+
+                public object[] GetCustomAttributes(bool inherit)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public object[] GetCustomAttributes(Type attributeType, bool inherit)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public bool IsDefined(Type attributeType, bool inherit)
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
 
         private sealed class ConverterFactory : JsonConverterFactory

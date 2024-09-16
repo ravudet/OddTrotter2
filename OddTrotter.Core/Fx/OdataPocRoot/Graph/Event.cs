@@ -1,4 +1,6 @@
-﻿namespace Fx.OdataPocRoot.Graph
+﻿using System.Text.Json.Serialization;
+
+namespace Fx.OdataPocRoot.Graph
 {
     public sealed class Event
     {
@@ -15,6 +17,7 @@
             WebLink = webLink;
         }
 
+        [JsonPropertyName("id")]
         public OdataProperty<string> Id { get; }
 
         public OdataProperty<ItemBody> Body { get; }
