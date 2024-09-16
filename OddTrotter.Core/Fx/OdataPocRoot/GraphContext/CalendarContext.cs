@@ -13,6 +13,7 @@
     using System.Threading.Tasks;
 
     using Fx.OdataPocRoot.Graph;
+    using Fx.OdataPocRoot.GraphClient;
     using Fx.OdataPocRoot.Odata;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
@@ -30,12 +31,23 @@
 
         private readonly Select? select;
 
-        public CalendarContext(IGraphClient graphClient, RelativeUri calendarUri, SelectToStringVisitor selectToStringVisitor)
-            : this(graphClient, calendarUri, selectToStringVisitor, null)
+        public CalendarContext(
+            IGraphClient graphClient, 
+            RelativeUri calendarUri, 
+            SelectToStringVisitor selectToStringVisitor)
+            : this(
+                  graphClient, 
+                  calendarUri, 
+                  selectToStringVisitor, 
+                  null)
         {
         }
 
-        private CalendarContext(IGraphClient graphClient, RelativeUri calendarUri, SelectToStringVisitor selectToStringVisitor, Select? select)
+        private CalendarContext(
+            IGraphClient graphClient, 
+            RelativeUri calendarUri,
+            SelectToStringVisitor selectToStringVisitor,
+            Select? select)
         {
             this.graphClient = graphClient;
             this.calendarUri = calendarUri;
@@ -108,9 +120,10 @@
                         translatedName = propertyNameAttribute.PropertyName;
                     }
 
+                    //// TODO generalize this
                     if (string.Equals(translatedName, "events"))
                     {
-                        return (new EventsContext(this.graphClient, new Uri(this.calendarUri.OriginalString.Trim('/') + "/events", UriKind.Relative).ToRelativeUri()) as ICollectionContext<TProperty>)!; //// TODO nullable
+                        return (new EventsContext(this.graphClient, new Uri(this.calendarUri.OriginalString.Trim('/') + "/events", UriKind.Relative).ToRelativeUri(), this.selectToStringVisitor) as ICollectionContext<TProperty>)!; //// TODO nullable
                     }
                     else
                     {
@@ -133,13 +146,77 @@
         /// </summary>
         public sealed class EventsContext : ICollectionContext<Event>
         {
-            public EventsContext(IGraphClient graphClient, RelativeUri calendarUri)
+            private readonly IGraphClient graphClient;
+
+            private readonly RelativeUri eventsUri;
+
+            private readonly SelectToStringVisitor selectToStringVisitor;
+
+            private readonly Select? select;
+
+            public EventsContext(
+                IGraphClient graphClient,
+                RelativeUri eventsUri, 
+                SelectToStringVisitor selectToStringVisitor)
+                : this(
+                      graphClient, 
+                      eventsUri,
+                      selectToStringVisitor, 
+                      null)
             {
             }
 
-            public Task<OdataCollection<Event>> Evaluate()
+            public EventsContext(
+                IGraphClient graphClient, 
+                RelativeUri eventsUri, 
+                SelectToStringVisitor selectToStringVisitor, 
+                Select? select)
             {
-                throw new NotImplementedException();
+                this.graphClient = graphClient;
+                this.eventsUri = eventsUri;
+                this.selectToStringVisitor = selectToStringVisitor;
+                this.select = select;
+            }
+
+            public async Task<OdataCollection<Event>> Evaluate()
+            {
+                var queryOptions = new List<string>();
+                if (this.select != null)
+                {
+                    var stringBuilder = new StringBuilder();
+                    this.selectToStringVisitor.Visit(this.select, stringBuilder);
+                    queryOptions.Add(stringBuilder.ToString());
+                }
+
+                var optionsString = string.Join("&", queryOptions);
+
+                var requestUri =
+                    this.eventsUri.OriginalString.TrimEnd('/') +
+                    (string.IsNullOrEmpty(optionsString) ? string.Empty : $"?{optionsString}");
+
+                var deserializedResponse = await this.graphClient.GetOdataCollection<Event>(new Uri(requestUri, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false); //// TODO pass jsonserializeroptions
+
+                return deserializedResponse;
+
+                /*using (var httpResponseMessage = await this.graphClient.GetAsync(new Uri(requestUri, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false))
+                {
+                    httpResponseMessage.EnsureSuccessStatusCode();
+                    var httpResponseContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                    var jsonSerializerOptions = new JsonSerializerOptions();
+                    jsonSerializerOptions.TypeInfoResolver = new TypeInfoResolver();
+                    jsonSerializerOptions.Converters.Add(new ConverterFactory());
+                    jsonSerializerOptions.Converters.Add(new CollectionConverterFactory());
+                    var events = JsonSerializer.Deserialize<OdataCollection<Event>>(httpResponseContent, jsonSerializerOptions);
+                    if (events == null)
+                    {
+                        throw new Exception("TODO null events");
+                    }
+
+                    //// TODO traverse the pages of the collection?
+
+                    return events;
+                }*/
             }
 
             public ICollectionContext<Event> Filter(Expression<Func<Event, bool>> predicate)
@@ -154,7 +231,14 @@
 
             public ICollectionContext<Event> Select<TProperty>(Expression<Func<Event, TProperty>> selector)
             {
-                throw new NotImplementedException();
+                //// TODO what about multiple selects on the same property?
+                var select = LinqToOdata.Select(selector);
+                if (this.select != null)
+                {
+                    select = new Select(this.select.SelectItems.Concat(select.SelectItems));
+                }
+
+                return new EventsContext(this.graphClient, this.eventsUri, this.selectToStringVisitor, select);
             }
 
             public ICollectionContext<Event> Top(int count)
