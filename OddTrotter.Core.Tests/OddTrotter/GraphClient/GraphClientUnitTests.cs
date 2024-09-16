@@ -85,8 +85,8 @@
         {
             var graphClient = new MockGraphClient();
             var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor());
-            graphCalendarContext.SubContext(calendar => calendar.Events);
-            graphCalendarContext.SubContext(calendar => calendar.Id);
+            var events = graphCalendarContext.SubContext(calendar => calendar.Events);
+            graphCalendarContext.SubContext(calendar => calendar.Id); //// TODO just proving that instance are treated different from collections; you should do more testing in another method
         }
     }
 

@@ -80,6 +80,7 @@
 
         public IInstanceContext<Calendar> Select<TProperty>(Expression<Func<Calendar, TProperty>> selector)
         {
+            //// TODO what about multiple selects on the same property?
             var select = LinqToOdata.Select(selector);
             if (this.select != null)
             {
@@ -116,7 +117,7 @@
                     }
                     catch
                     {
-                        //// TODO property handle no matches
+                        //// TODO properly handle no matches
                         //// TODO properly handle multiple matches
                         return jsonTypeInfo;
                     }
