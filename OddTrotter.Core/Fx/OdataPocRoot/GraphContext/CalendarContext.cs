@@ -198,29 +198,9 @@
                 jsonSerializerOptions.TypeInfoResolver = new TypeInfoResolver();
                 jsonSerializerOptions.Converters.Add(new ConverterFactory());
                 jsonSerializerOptions.Converters.Add(new CollectionConverterFactory());
-                var deserializedResponse = await this.graphClient.GetOdataCollection<Event>(new Uri(requestUri, UriKind.Relative).ToRelativeUri(), jsonSerializerOptions).ConfigureAwait(false); //// TODO pass jsonserializeroptions
+                var deserializedResponse = await this.graphClient.GetOdataCollection<Event>(new Uri(requestUri, UriKind.Relative).ToRelativeUri(), jsonSerializerOptions).ConfigureAwait(false); 
 
                 return deserializedResponse;
-
-                /*using (var httpResponseMessage = await this.graphClient.GetAsync(new Uri(requestUri, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false))
-                {
-                    httpResponseMessage.EnsureSuccessStatusCode();
-                    var httpResponseContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                    var jsonSerializerOptions = new JsonSerializerOptions();
-                    jsonSerializerOptions.TypeInfoResolver = new TypeInfoResolver();
-                    jsonSerializerOptions.Converters.Add(new ConverterFactory());
-                    jsonSerializerOptions.Converters.Add(new CollectionConverterFactory());
-                    var events = JsonSerializer.Deserialize<OdataCollection<Event>>(httpResponseContent, jsonSerializerOptions);
-                    if (events == null)
-                    {
-                        throw new Exception("TODO null events");
-                    }
-
-                    //// TODO traverse the pages of the collection?
-
-                    return events;
-                }*/
             }
 
             public ICollectionContext<Event> Filter(Expression<Func<Event, bool>> predicate)
