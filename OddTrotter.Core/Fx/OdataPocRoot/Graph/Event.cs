@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Fx.OdataPocRoot.Odata;
+using System.Text.Json.Serialization;
 
 namespace Fx.OdataPocRoot.Graph
 {
@@ -17,7 +18,7 @@ namespace Fx.OdataPocRoot.Graph
             WebLink = webLink;
         }
 
-        [JsonPropertyName("id")]
+        [PropertyName("id")]
         public OdataProperty<string> Id { get; }
 
         public OdataProperty<ItemBody> Body { get; }
