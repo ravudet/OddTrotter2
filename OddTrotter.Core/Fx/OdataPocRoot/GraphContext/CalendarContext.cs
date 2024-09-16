@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection.Metadata.Ecma335;
+    using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
@@ -13,6 +14,7 @@
     using Fx.OdataPocRoot.Odata;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
+    using Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations;
     using Microsoft.VisualBasic;
     using OddTrotter.GraphClient;
 
@@ -38,8 +40,22 @@
 
         public async Task<Calendar> Evaluate()
         {
+            var queryOptions = new List<string>();
+            if (this.select != null)
+            {
+                var stringBuilder = new StringBuilder();
+                new SelectToStringVisitor().Visit(this.select, stringBuilder);
+                queryOptions.Add(stringBuilder.ToString());
+            }
+
+            var optionsString = string.Join("&", queryOptions);
+
+            var requestUri = 
+                this.calendarUri.OriginalString.TrimEnd('/') + 
+                (string.IsNullOrEmpty(optionsString) ? string.Empty : $"?{optionsString}");
+
             //// TODO generate string from select and append it to uri
-            using (var httpResponseMessage = await this.graphClient.GetAsync(this.calendarUri).ConfigureAwait(false))
+            using (var httpResponseMessage = await this.graphClient.GetAsync(new Uri(requestUri, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false))
             {
                 httpResponseMessage.EnsureSuccessStatusCode();
                 var httpResponseContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);

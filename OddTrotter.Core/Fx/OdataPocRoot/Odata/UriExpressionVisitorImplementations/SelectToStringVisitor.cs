@@ -31,6 +31,20 @@
 
         private readonly AliasAndValueToStringVisitor aliasAndValueToStringVisitor;
 
+        public SelectToStringVisitor()
+            : this(
+                  new FilterToStringVisitor(),
+                  new SearchToStringVisitor(),
+                  new InlineCountToStringVisitor(),
+                  new OrderByToStringVisitor(),
+                  new SkipToStringVisitor(),
+                  new TopToStringVisitor(),
+                  new ComputeToStringVisitor(),
+                  new ExpandToStringVisitor(),
+                  new AliasAndValueToStringVisitor())
+        {
+        }
+
         public SelectToStringVisitor(FilterToStringVisitor filterToStringVisitor, SearchToStringVisitor searchToStringVisitor, InlineCountToStringVisitor inlineCountToStringVisitor, OrderByToStringVisitor orderByToStringVisitor, SkipToStringVisitor skipToStringVisitor, TopToStringVisitor topToStringVisitor, ComputeToStringVisitor computeToStringVisitor, ExpandToStringVisitor expandToStringVisitor, AliasAndValueToStringVisitor aliasAndValueToStringVisitor)
         {
             this.filterToStringVisitor = filterToStringVisitor;
@@ -54,6 +68,7 @@
                 return;
             }
 
+            builder.Append("$select=");
             Visit(selectItems[0], builder);
             for (int i = 1; i < selectItems.Count; ++i)
             {
