@@ -81,12 +81,37 @@
         }
 
         [TestMethod]
-        public void SubContext()
+        public async Task SubContextSelect()
         {
             var graphClient = new MockGraphClient();
             var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor());
+            
+            Assert.ThrowsException<NotImplementedException>(() => graphCalendarContext.SubContext(calendar => calendar.Id)); //// TODO just proving that instance are treated different from collections; you should do more testing in another method
+
             var events = graphCalendarContext.SubContext(calendar => calendar.Events);
-            graphCalendarContext.SubContext(calendar => calendar.Id); //// TODO just proving that instance are treated different from collections; you should do more testing in another method
+            var filteredEvents = await events
+                .Select(calendarEvent => calendarEvent.Id)
+                .Select(calendarEvent => calendarEvent.Subject)
+                .Evaluate()
+                .ConfigureAwait(false);
+
+            Assert.AreEqual("/me/calendar?$select=id,subject", graphClient.CalledUri);
+            //// TODO do memory assertions too
+        }
+
+        [TestMethod]
+        public async Task SubContextFilter()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor());
+
+            Assert.ThrowsException<NotImplementedException>(() => graphCalendarContext.SubContext(calendar => calendar.Id)); //// TODO just proving that instance are treated different from collections; you should do more testing in another method
+
+            var events = graphCalendarContext.SubContext(calendar => calendar.Events);
+            var filteredEvents = await events
+                .Filter(calendarEvent => calendarEvent.Subject.Value == "asdf")
+                .Evaluate()
+                .ConfigureAwait(false);
         }
     }
 
