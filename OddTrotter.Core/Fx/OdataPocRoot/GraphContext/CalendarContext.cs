@@ -134,6 +134,7 @@
                 return jsonTypeInfo;
             }
         }
+
         private sealed class CollectionConverterFactory : JsonConverterFactory
         {
             public override bool CanConvert(Type typeToConvert)
