@@ -29,16 +29,20 @@
 
         private readonly SelectToStringVisitor selectToStringVisitor;
 
+        private readonly FilterToStringVisitor filterToStringVisitor;
+
         private readonly Select? select;
 
         public CalendarContext(
-            IGraphClient graphClient, 
-            RelativeUri calendarUri, 
-            SelectToStringVisitor selectToStringVisitor)
+            IGraphClient graphClient,
+            RelativeUri calendarUri,
+            SelectToStringVisitor selectToStringVisitor,
+            FilterToStringVisitor filterToStringVisitor) //// TODO it's pretty weird that you need a filter visitor for an instance context
             : this(
-                  graphClient, 
-                  calendarUri, 
-                  selectToStringVisitor, 
+                  graphClient,
+                  calendarUri,
+                  selectToStringVisitor,
+                  filterToStringVisitor,
                   null)
         {
         }
@@ -47,11 +51,13 @@
             IGraphClient graphClient, 
             RelativeUri calendarUri,
             SelectToStringVisitor selectToStringVisitor,
+            FilterToStringVisitor filterToStringVisitor,
             Select? select)
         {
             this.graphClient = graphClient;
             this.calendarUri = calendarUri;
             this.selectToStringVisitor = selectToStringVisitor;
+            this.filterToStringVisitor = filterToStringVisitor;
             this.select = select;
         }
 
@@ -99,7 +105,12 @@
                 select = new Select(this.select.SelectItems.Concat(select.SelectItems));
             }
 
-            return new CalendarContext(this.graphClient, this.calendarUri, this.selectToStringVisitor, select);
+            return new CalendarContext(
+                this.graphClient, 
+                this.calendarUri,
+                this.selectToStringVisitor, 
+                this.filterToStringVisitor,
+                select);
         }
 
         public IInstanceContext<TProperty> SubContext<TProperty>(Expression<Func<Calendar, OdataInstanceProperty<TProperty>>> selector)
@@ -123,7 +134,12 @@
                     //// TODO generalize this
                     if (string.Equals(translatedName, "events"))
                     {
-                        return (new EventsContext(this.graphClient, new Uri(this.calendarUri.OriginalString.TrimEnd('/') + "/events", UriKind.Relative).ToRelativeUri(), this.selectToStringVisitor) as ICollectionContext<TProperty>)!; //// TODO nullable
+                        return (new EventsContext(
+                            this.graphClient, 
+                            new Uri(this.calendarUri.OriginalString.TrimEnd('/') + "/events", UriKind.Relative).ToRelativeUri(), 
+                            this.selectToStringVisitor,
+                            this.filterToStringVisitor
+                            ) as ICollectionContext<TProperty>)!; //// TODO nullable
                     }
                     else
                     {
@@ -152,6 +168,8 @@
 
             private readonly SelectToStringVisitor selectToStringVisitor;
 
+            private readonly FilterToStringVisitor filterToStringVisitor;
+
             private readonly Select? select;
 
             private readonly Filter? filter;
@@ -159,11 +177,13 @@
             public EventsContext(
                 IGraphClient graphClient,
                 RelativeUri eventsUri, 
-                SelectToStringVisitor selectToStringVisitor)
+                SelectToStringVisitor selectToStringVisitor,
+                FilterToStringVisitor filterToStringVisitor)
                 : this(
                       graphClient, 
                       eventsUri,
                       selectToStringVisitor, 
+                      filterToStringVisitor,
                       null,
                       null)
             {
@@ -173,12 +193,14 @@
                 IGraphClient graphClient, 
                 RelativeUri eventsUri, 
                 SelectToStringVisitor selectToStringVisitor, 
+                FilterToStringVisitor filterToStringVisitor,
                 Select? select,
                 Filter? filter)
             {
                 this.graphClient = graphClient;
                 this.eventsUri = eventsUri;
                 this.selectToStringVisitor = selectToStringVisitor;
+                this.filterToStringVisitor = filterToStringVisitor;
                 this.select = select;
                 this.filter = filter;
             }
@@ -190,6 +212,13 @@
                 {
                     var stringBuilder = new StringBuilder();
                     this.selectToStringVisitor.Visit(this.select, stringBuilder);
+                    queryOptions.Add(stringBuilder.ToString());
+                }
+
+                if (this.filter != null)
+                {
+                    var stringBuilder = new StringBuilder();
+                    this.filterToStringVisitor.Visit(this.filter, stringBuilder);
                     queryOptions.Add(stringBuilder.ToString());
                 }
 
@@ -218,6 +247,7 @@
                     this.graphClient,
                     this.eventsUri,
                     this.selectToStringVisitor,
+                    this.filterToStringVisitor,
                     this.select,
                     filter);
             }
@@ -240,6 +270,7 @@
                     this.graphClient, 
                     this.eventsUri,
                     this.selectToStringVisitor, 
+                    this.filterToStringVisitor,
                     select, 
                     this.filter);
             }

@@ -65,7 +65,10 @@
         public async Task SelectsNew()
         {
             var graphClient = new MockGraphClient();
-            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor());
+            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(
+                graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), 
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor(),
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor());
             var calendar = await graphCalendarContext
                 .Select(calendar => calendar.Id)
                 .Select(calendar => calendar.Events)
@@ -84,7 +87,11 @@
         public async Task SubContextSelect()
         {
             var graphClient = new MockGraphClient();
-            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor());
+            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(
+                graphClient, 
+                new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), 
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor(),
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor());
             
             Assert.ThrowsException<NotImplementedException>(() => graphCalendarContext.SubContext(calendar => calendar.Id)); //// TODO just proving that instance are treated different from collections; you should do more testing in another method
 
@@ -107,7 +114,10 @@
         public async Task SubContextFilter()
         {
             var graphClient = new MockGraphClient();
-            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor());
+            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(
+                graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), 
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor(),
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor());
 
             var events = graphCalendarContext.SubContext(calendar => calendar.Events);
             var filteredEvents = await events
