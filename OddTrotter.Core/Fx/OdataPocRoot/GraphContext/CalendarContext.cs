@@ -97,10 +97,73 @@
 
         public ICollectionContext<TProperty> SubContext<TProperty>(Expression<Func<Calendar, OdataCollectionProperty<TProperty>>> selector)
         {
-            throw new NotImplementedException();
+            if (selector.Body is MemberExpression memberExpression)
+            {
+                if (memberExpression.Expression?.NodeType == ExpressionType.Parameter)
+                {
+                    var translatedName = memberExpression.Member.Name;
+                    var propertyNameAttribute = memberExpression.Member.GetCustomAttribute<PropertyNameAttribute>();
+                    if (propertyNameAttribute != null)
+                    {
+                        translatedName = propertyNameAttribute.PropertyName;
+                    }
+
+                    if (string.Equals(translatedName, "events"))
+                    {
+                        return (new EventsContext(this.graphClient, new Uri(this.calendarUri.OriginalString.Trim('/') + "/events", UriKind.Relative).ToRelativeUri()) as ICollectionContext<TProperty>)!; //// TODO nullable
+                    }
+                    else
+                    {
+                        throw new Exception($"TODO subcontext not supported for {translatedName}");
+                    }
+                }
+                else
+                {
+                    throw new Exception("TODO only direct member accesses supported");
+                }
+            }
+            else
+            {
+                throw new Exception("TODO only direct member accesses supported");
+            }
         }
 
-        public sealed class TypeInfoResolver : IJsonTypeInfoResolver
+        /// <summary>
+        /// TODO is it good to have this be nested and public? i like it public so taht people don't have to go through a calendar to get to events if they know the direct url
+        /// </summary>
+        public sealed class EventsContext : ICollectionContext<Event>
+        {
+            public EventsContext(IGraphClient graphClient, RelativeUri calendarUri)
+            {
+            }
+
+            public Task<OdataCollection<Event>> Evaluate()
+            {
+                throw new NotImplementedException();
+            }
+
+            public ICollectionContext<Event> Filter(Expression<Func<Event, bool>> predicate)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ICollectionContext<Event> OrderBy<TProperty>(Expression<Func<Event, TProperty>> selector)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ICollectionContext<Event> Select<TProperty>(Expression<Func<Event, TProperty>> selector)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ICollectionContext<Event> Top(int count)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private sealed class TypeInfoResolver : IJsonTypeInfoResolver
         {
             public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
             {                
