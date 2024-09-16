@@ -2,12 +2,9 @@
 {
     using System;
 
-    using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
     using System.Linq;
     using System.Text;
-    using System.Threading;
-    using System.Xml.Linq;
 
     public sealed class SelectToStringVisitor
     {
