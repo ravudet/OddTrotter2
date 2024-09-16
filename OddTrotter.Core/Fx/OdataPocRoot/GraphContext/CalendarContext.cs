@@ -91,9 +91,7 @@
         public sealed class TypeInfoResolver : IJsonTypeInfoResolver
         {
             public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
-            {
-                //// TODO is there a default tpyeinforesolver that you can use?
-                
+            {                
                 var defaultJsonTypeInfoResolver = new DefaultJsonTypeInfoResolver();
                 var jsonTypeInfo = defaultJsonTypeInfoResolver.GetTypeInfo(type, options);
 
@@ -123,31 +121,6 @@
                 }
 
                 return jsonTypeInfo;
-            }
-
-            private sealed class CustomAttributeProvider : ICustomAttributeProvider
-            {
-                private readonly JsonPropertyInfo propertyInfo;
-
-                public CustomAttributeProvider(JsonPropertyInfo propertyInfo)
-                {
-                    this.propertyInfo = propertyInfo;
-                }
-
-                public object[] GetCustomAttributes(bool inherit)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public object[] GetCustomAttributes(Type attributeType, bool inherit)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public bool IsDefined(Type attributeType, bool inherit)
-                {
-                    throw new NotImplementedException();
-                }
             }
         }
 
