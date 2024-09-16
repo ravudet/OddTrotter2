@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Reflection;
     using System.Reflection.Metadata.Ecma335;
     using System.Text;
     using System.Text.Json;
@@ -44,7 +45,7 @@
             if (this.select != null)
             {
                 var stringBuilder = new StringBuilder();
-                new SelectToStringVisitor().Visit(this.select, stringBuilder);
+                new SelectToStringVisitor().Visit(this.select, stringBuilder); //// TODO constructor injection
                 queryOptions.Add(stringBuilder.ToString());
             }
 
@@ -173,12 +174,19 @@
             var propertyNames = GetPropertyNames(expression.Member.DeclaringType!); //// TODO nullable
             if (propertyNames.Contains(expression.Member.Name))
             {
+                var translatedName = expression.Member.Name;
+                var propertyNameAttribute = expression.Member.GetCustomAttribute<PropertyNameAttribute>();
+                if (propertyNameAttribute != null)
+                {
+                    translatedName = propertyNameAttribute.PropertyName;
+                }
+
                 if (!expressions.MoveNext())
                 {
                     return
                         new SelectProperty.PrimitiveProperty(
                             new PrimitiveProperty.PrimitiveNonKeyProperty(
-                                new OdataIdentifier(expression.Member.Name)
+                                new OdataIdentifier(translatedName)
                             )
                         );
                 }
@@ -187,7 +195,7 @@
                     return
                         new SelectProperty.FullSelectPath.SelectPropertyNode(
                             new SelectPath.First(
-                                new OdataIdentifier(expression.Member.Name)
+                                new OdataIdentifier(translatedName)
                             ),
                             TraversePreviousMembers(expressions)
                         );

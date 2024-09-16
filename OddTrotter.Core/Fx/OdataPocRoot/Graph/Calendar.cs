@@ -20,11 +20,13 @@
         }
 
         [JsonPropertyName("id")] //// TODO this should be an odata attribute, not a json one jsonSerializerOptions.PropertyNamingPolicy
+        [PropertyName("id")]
         public OdataProperty<string> Id { get; }
 
         public Foo Foo { get; }
 
         [JsonPropertyName("events")] //// TODO this should be an odata attribute, not a json one jsonSerializerOptions.PropertyNamingPolicy
+        [PropertyName("events")]
         public OdataProperty<IEnumerable<Event>> Events { get; }
     }
 

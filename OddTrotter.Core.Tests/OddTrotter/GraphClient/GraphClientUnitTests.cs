@@ -69,11 +69,10 @@
             var calendar = await graphCalendarContext
                 .Select(calendar => calendar.Id)
                 .Select(calendar => calendar.Events)
-                ////.Select(calendar => calendar.Foo.Bar.Test)
                 .Evaluate()
                 .ConfigureAwait(false);
 
-            Assert.AreEqual("/me/calendar?$select=id", graphClient.CalledUri);
+            Assert.AreEqual("/me/calendar?$select=id,events", graphClient.CalledUri);
         }
     }
 
