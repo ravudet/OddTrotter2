@@ -123,7 +123,7 @@
                     //// TODO generalize this
                     if (string.Equals(translatedName, "events"))
                     {
-                        return (new EventsContext(this.graphClient, new Uri(this.calendarUri.OriginalString.Trim('/') + "/events", UriKind.Relative).ToRelativeUri(), this.selectToStringVisitor) as ICollectionContext<TProperty>)!; //// TODO nullable
+                        return (new EventsContext(this.graphClient, new Uri(this.calendarUri.OriginalString.TrimEnd('/') + "/events", UriKind.Relative).ToRelativeUri(), this.selectToStringVisitor) as ICollectionContext<TProperty>)!; //// TODO nullable
                     }
                     else
                     {
