@@ -26,8 +26,6 @@
 
         private readonly ExpandToStringVisitor expandToStringVisitor;
 
-        private readonly AliasAndValueToStringVisitor aliasAndValueToStringVisitor;
-
         public SelectToStringVisitor()
             : this(
                   CommonToStringVisitor.Default,
@@ -38,12 +36,11 @@
                   new SkipToStringVisitor(),
                   new TopToStringVisitor(),
                   new ComputeToStringVisitor(),
-                  new ExpandToStringVisitor(),
-                  new AliasAndValueToStringVisitor())
+                  new ExpandToStringVisitor())
         {
         }
 
-        public SelectToStringVisitor(CommonToStringVisitor commonToStringVisitor, FilterToStringVisitor filterToStringVisitor, SearchToStringVisitor searchToStringVisitor, InlineCountToStringVisitor inlineCountToStringVisitor, OrderByToStringVisitor orderByToStringVisitor, SkipToStringVisitor skipToStringVisitor, TopToStringVisitor topToStringVisitor, ComputeToStringVisitor computeToStringVisitor, ExpandToStringVisitor expandToStringVisitor, AliasAndValueToStringVisitor aliasAndValueToStringVisitor)
+        public SelectToStringVisitor(CommonToStringVisitor commonToStringVisitor, FilterToStringVisitor filterToStringVisitor, SearchToStringVisitor searchToStringVisitor, InlineCountToStringVisitor inlineCountToStringVisitor, OrderByToStringVisitor orderByToStringVisitor, SkipToStringVisitor skipToStringVisitor, TopToStringVisitor topToStringVisitor, ComputeToStringVisitor computeToStringVisitor, ExpandToStringVisitor expandToStringVisitor)
         {
             this.commonToStringVisitor = commonToStringVisitor;
             this.filterToStringVisitor = filterToStringVisitor;
@@ -54,7 +51,6 @@
             this.topToStringVisitor = topToStringVisitor;
             this.computeToStringVisitor = computeToStringVisitor;
             this.expandToStringVisitor = expandToStringVisitor;
-            this.aliasAndValueToStringVisitor = aliasAndValueToStringVisitor;
         }
 
         public void Visit(Select node, StringBuilder builder)
