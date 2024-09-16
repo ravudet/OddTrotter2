@@ -80,7 +80,59 @@
                 if (propertyPath is SelectItem.PropertyPath.First first)
                 {
                     this.commonToStringVisitor.Visit(first.QualifiedEntityTypeName, builder);
+                    builder.Append("/");
+                    Visit(first.SelectProperty, builder);
                 }
+                else if (propertyPath is SelectItem.PropertyPath.Second second)
+                {
+                    Visit(second.SelectProperty, builder);
+                }
+                else if (propertyPath is SelectItem.PropertyPath.Third third)
+                {
+                    this.commonToStringVisitor.Visit(third.QualifiedEntityTypeName, builder);
+                    builder.Append("/");
+                    this.commonToStringVisitor.Visit(third.QualifiedActionName, builder);
+                }
+                else if (propertyPath is SelectItem.PropertyPath.Fourth fourth)
+                {
+                    this.commonToStringVisitor.Visit(fourth.QualifiedActionName, builder);
+                }
+                else if (propertyPath is SelectItem.PropertyPath.Fifth fifth)
+                {
+                    this.commonToStringVisitor.Visit(fifth.QualifiedEntityTypeName, builder);
+                    builder.Append("/");
+                    this.commonToStringVisitor.Visit(fifth.QualifiedFunctionName, builder);
+                }
+                else if (propertyPath is SelectItem.PropertyPath.Sixth sixth)
+                {
+                    this.commonToStringVisitor.Visit(sixth.QualifiedFunctionName, builder);
+                }
+                else if (propertyPath is SelectItem.PropertyPath.Seventh seventh)
+                {
+                    this.commonToStringVisitor.Visit(seventh.QualifiedComplexTypeName, builder);
+                    builder.Append("/");
+                    Visit(seventh.SelectProperty, builder);
+                }
+                else if (propertyPath is SelectItem.PropertyPath.Eighth eighth)
+                {
+                    this.commonToStringVisitor.Visit(eighth.QualifiedComplexTypeName, builder);
+                    builder.Append("/");
+                    this.commonToStringVisitor.Visit(eighth.QualifiedActionName, builder);
+                }
+                else if (propertyPath is SelectItem.PropertyPath.Ninth ninth)
+                {
+                    this.commonToStringVisitor.Visit(ninth.QualifiedComplexTypeName, builder);
+                    builder.Append("/");
+                    this.commonToStringVisitor.Visit(ninth.QualifiedFunctionName, builder);
+                }
+                else
+                {
+                    throw new Exception("TODO a proper visitor pattern would prevent this branch");
+                }
+            }
+            else
+            {
+                throw new Exception("TODO a proper visitor pattern would prevent this branch");
             }
         }
 
@@ -154,13 +206,29 @@
                         }
                     };
 
+                    builder.Append("(");
                     visit(selectOptions[0], builder);
                     for (int i = 0; i < selectOptions.Count; ++i)
                     {
                         builder.Append(";");
                         visit(selectOptions[i], builder);
                     }
+
+                    builder.Append(")");
                 }
+                else if (node is SelectProperty.FullSelectPath.SelectPropertyNode selectPropertyNode)
+                {
+                    builder.Append("/");
+                    Visit(selectPropertyNode.SelectProperty, builder);
+                }
+                else
+                {
+                    throw new Exception("TODO a proper visitor pattern would prevent this branch");
+                }
+            }
+            else
+            {
+                throw new Exception("TODO a proper visitor pattern would prevent this branch");
             }
         }
 
@@ -303,7 +371,21 @@
 
             public void Visit(AliasAndValue node, StringBuilder builder)
             {
-                throw new Exception("tODO aliasandvalue is not supported yet")
+                throw new Exception("tODO aliasandvalue is not supported yet");
+            }
+
+            public void Visit(QualifiedActionName node, StringBuilder builder)
+            {
+                Visit(node.Namespace, builder);
+                builder.Append(".");
+                Visit(node.Action, builder);
+            }
+
+            public void Visit(QualifiedFunctionName node, StringBuilder builder)
+            {
+                Visit(node.Namespace, builder);
+                builder.Append(".");
+                Visit(node.Function, builder);
             }
         }
     }
