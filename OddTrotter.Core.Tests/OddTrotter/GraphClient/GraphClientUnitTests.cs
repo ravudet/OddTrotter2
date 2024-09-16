@@ -96,7 +96,6 @@
                 .ConfigureAwait(false);
 
             Assert.AreEqual("/me/calendar/events?$select=id,subject", graphClient.CalledUri);
-            //// TODO do memory assertions too
 
             var elements = events.Elements.ToList();
             Assert.AreEqual(1, elements.Count());
