@@ -1,4 +1,6 @@
-﻿namespace Fx.OdataPocRoot.Graph
+﻿using Fx.OdataPocRoot.Odata;
+
+namespace Fx.OdataPocRoot.Graph
 {
     public sealed class ItemBody
     {
@@ -7,6 +9,7 @@
             Content = content;
         }
 
+        [PropertyName("content")]
         public OdataProperty<string> Content { get; }
     }
 }

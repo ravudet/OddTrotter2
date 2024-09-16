@@ -7,11 +7,6 @@
 
     public sealed class Calendar
     {
-        /*public Calendar(string id, IEnumerable<Event> events)
-            : this(new OdataProperty<string>(id), new OdataProperty<IEnumerable<Event>>(events), new Foo(new Bar("sasdf")))
-        {
-        }*/
-
         public Calendar(OdataProperty<string> id, OdataProperty<IEnumerable<Event>> events, Foo foo)
         {
             this.Id = id;

@@ -21,20 +21,28 @@ namespace Fx.OdataPocRoot.Graph
         [PropertyName("id")]
         public OdataProperty<string> Id { get; }
 
+        [PropertyName("body")]
         public OdataProperty<ItemBody> Body { get; }
 
+        [PropertyName("end")]
         public OdataProperty<DateTimeTimeZone> End { get; }
 
+        [PropertyName("isCancelled")]
         public OdataProperty<bool> IsCancelled { get; }
 
+        [PropertyName("responseStatus")]
         public OdataProperty<ResponseStatus> ResponseStatus { get; }
 
+        [PropertyName("start")]
         public OdataProperty<DateTimeTimeZone> Start { get; }
 
+        [PropertyName("subject")]
         public OdataProperty<string> Subject { get; }
 
+        [PropertyName("type")]
         public OdataProperty<string> Type { get; }
 
+        [PropertyName("webLink")]
         public OdataProperty<string> WebLink { get; }
     }
 }
