@@ -13,8 +13,8 @@
 
         IInstanceContext<T> Select<TProperty>(Expression<Func<T, TProperty>> selector);
 
-        IInstanceContext<TProperty> SubContext<TProperty>(Expression<Func<T, OdataInstanceProperty<TProperty>>> selector);
+        IInstanceContext<TProperty> SubContext<TProperty>(Expression<Func<T, OdataInstanceProperty<TProperty>>> selector); //// TODO better name
 
-        ICollectionContext<TProperty> SubContext<TProperty>(Expression<Func<T, OdataCollectionProperty<TProperty>>> selector);
+        ICollectionContext<TProperty> SubContext<TProperty>(Expression<Func<T, OdataCollectionProperty<TProperty>>> selector); //// TODO better name
     }
 }

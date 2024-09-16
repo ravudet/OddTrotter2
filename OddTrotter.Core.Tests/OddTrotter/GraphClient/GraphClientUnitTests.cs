@@ -79,6 +79,15 @@
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual("event_id_1", events[0].Id.Value);
         }
+
+        [TestMethod]
+        public void SubContext()
+        {
+            var graphClient = new MockGraphClient();
+            var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor());
+            graphCalendarContext.SubContext(calendar => calendar.Events);
+            graphCalendarContext.SubContext(calendar => calendar.Id);
+        }
     }
 
     //// TODO remove the need for this directive

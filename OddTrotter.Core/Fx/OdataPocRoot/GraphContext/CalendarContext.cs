@@ -262,7 +262,7 @@
             if (propertyNames.Contains(expression.Member.Name))
             {
                 var translatedName = expression.Member.Name;
-                var propertyNameAttribute = expression.Member.GetCustomAttribute<PropertyNameAttribute>();
+                var propertyNameAttribute = expression.Member.GetCustomAttribute<PropertyNameAttribute>(false);
                 if (propertyNameAttribute != null)
                 {
                     translatedName = propertyNameAttribute.PropertyName;
