@@ -88,8 +88,8 @@
             
             Assert.ThrowsException<NotImplementedException>(() => graphCalendarContext.SubContext(calendar => calendar.Id)); //// TODO just proving that instance are treated different from collections; you should do more testing in another method
 
-            var events = graphCalendarContext.SubContext(calendar => calendar.Events);
-            var filteredEvents = await events
+            var eventsContext = graphCalendarContext.SubContext(calendar => calendar.Events);
+            var events = await eventsContext
                 .Select(calendarEvent => calendarEvent.Id)
                 .Select(calendarEvent => calendarEvent.Subject)
                 .Evaluate()
