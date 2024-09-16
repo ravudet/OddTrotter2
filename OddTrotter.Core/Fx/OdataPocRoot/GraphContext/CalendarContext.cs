@@ -25,17 +25,20 @@
 
         private readonly RelativeUri calendarUri;
 
+        private readonly SelectToStringVisitor selectToStringVisitor;
+
         private readonly Select? select;
 
-        public CalendarContext(IGraphClient graphClient, RelativeUri calendarUri)
-            : this(graphClient, calendarUri, null)
+        public CalendarContext(IGraphClient graphClient, RelativeUri calendarUri, SelectToStringVisitor selectToStringVisitor)
+            : this(graphClient, calendarUri, selectToStringVisitor, null)
         {
         }
 
-        private CalendarContext(IGraphClient graphClient, RelativeUri calendarUri, Select? select)
+        private CalendarContext(IGraphClient graphClient, RelativeUri calendarUri, SelectToStringVisitor selectToStringVisitor, Select? select)
         {
             this.graphClient = graphClient;
             this.calendarUri = calendarUri;
+            this.selectToStringVisitor = selectToStringVisitor;
             this.select = select;
         }
 
@@ -45,7 +48,7 @@
             if (this.select != null)
             {
                 var stringBuilder = new StringBuilder();
-                new SelectToStringVisitor().Visit(this.select, stringBuilder); //// TODO constructor injection
+                this.selectToStringVisitor.Visit(this.select, stringBuilder);
                 queryOptions.Add(stringBuilder.ToString());
             }
 
@@ -55,7 +58,6 @@
                 this.calendarUri.OriginalString.TrimEnd('/') + 
                 (string.IsNullOrEmpty(optionsString) ? string.Empty : $"?{optionsString}");
 
-            //// TODO generate string from select and append it to uri
             using (var httpResponseMessage = await this.graphClient.GetAsync(new Uri(requestUri, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false))
             {
                 httpResponseMessage.EnsureSuccessStatusCode();
@@ -81,7 +83,7 @@
                 select = new Select(this.select.SelectItems.Concat(select.SelectItems));
             }
 
-            return new CalendarContext(this.graphClient, this.calendarUri, select);
+            return new CalendarContext(this.graphClient, this.calendarUri, this.selectToStringVisitor, select);
         }
 
         private sealed class ConverterFactory : JsonConverterFactory
