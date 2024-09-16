@@ -123,29 +123,6 @@
                 }
 
                 return jsonTypeInfo;
-
-                /*var jsonTypeInfo = JsonTypeInfo.CreateJsonTypeInfo(type, options);
-                if (jsonTypeInfo.Kind == JsonTypeInfoKind.None)
-                {
-                    return jsonTypeInfo;
-                }
-
-                var propertyInfos = type.GetProperties();
-                foreach (var propertyInfo in propertyInfos)
-                {
-                    var jsonPropertyInfo = jsonTypeInfo.CreateJsonPropertyInfo(propertyInfo.PropertyType, propertyInfo.Name);
-
-                    var translatedName = propertyInfo.Name;
-                    var propertyNameAttribute = propertyInfo.GetCustomAttribute<PropertyNameAttribute>(false);
-                    if (propertyNameAttribute != null)
-                    {
-                        translatedName = propertyNameAttribute.PropertyName;
-                    }
-
-                    jsonTypeInfo.Properties.Add(jsonPropertyInfo);
-                }
-
-                return jsonTypeInfo;*/
             }
 
             private sealed class CustomAttributeProvider : ICustomAttributeProvider
