@@ -3,5 +3,11 @@
     public sealed class Filter
     {
         //// TODO do this
+        public Filter(BoolCommonExpression boolCommonExpression)
+        {
+            this.BoolCommonExpression = boolCommonExpression;
+        }
+
+        public BoolCommonExpression BoolCommonExpression { get; }
     }
 }
