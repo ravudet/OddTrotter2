@@ -27,14 +27,14 @@
 
                 if (string.Equals(absoluteUri.LocalPath, "/me/calendar"))
                 {
-                    var content = new StringContent("{\"id\":\"calendar_id\",\"events\":[{\"id\":\"event_id_1\"}]}");
+                    var content = new StringContent("{\"id\":\"calendar_id\",\"events\":[{\"id\":\"event_id_1\",\"subject\": \"a_subject_here\"}]}");
                     var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
                     responseMessage.Content = content;
                     return await Task.FromResult(responseMessage);
                 }
                 else if (string.Equals(absoluteUri.LocalPath, "/me/calendar/events"))
                 {
-                    var content = new StringContent("{\"value\":[]}");
+                    var content = new StringContent("{\"value\":[{\"id\":\"event_id_1\",\"subject\": \"a_subject_here\"}]}");
                     var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
                     responseMessage.Content = content;
                     return await Task.FromResult(responseMessage);
@@ -97,6 +97,11 @@
 
             Assert.AreEqual("/me/calendar/events?$select=id,subject", graphClient.CalledUri);
             //// TODO do memory assertions too
+
+            var elements = events.Elements.ToList();
+            Assert.AreEqual(1, elements.Count());
+            Assert.AreEqual("event_id_1", elements[0].Id.Value);
+            Assert.AreEqual("a_subject_here", elements[0].Subject.Value);
         }
 
         [TestMethod]

@@ -29,13 +29,28 @@
         /// </exception>
         public static async Task<OdataCollection<T>> GetOdataCollection<T>(this IGraphClient graphClient, RelativeUri uri)
         {
+            return await graphClient.GetOdataCollection<T>(uri, null).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="graphClient"></param>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidAccessTokenException">
+        /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
+        /// </exception>
+        public static async Task<OdataCollection<T>> GetOdataCollection<T>(this IGraphClient graphClient, RelativeUri uri, JsonSerializerOptions? jsonSerializerOptions)
+        {
             //// TODO use linq instead of a list
             var elements = new List<T>();
             ODataCollectionPage<T> page;
             try
             {
                 //// TODO would it make sense to have a method like "bool TryGetPage(IGraphClient, RelativeUri, out ODataCollectionPage, out ODataCollection)" ?
-                page = await GetPage<T>(graphClient, uri).ConfigureAwait(false);
+                page = await GetPage<T>(graphClient, uri, jsonSerializerOptions).ConfigureAwait(false);
             }
             catch (Exception e) when (e is HttpRequestException || e is GraphException || e is JsonException)
             {
@@ -58,7 +73,7 @@
 
                 try
                 {
-                    page = await GetPage<T>(graphClient, nextLinkUri).ConfigureAwait(false);
+                    page = await GetPage<T>(graphClient, nextLinkUri, jsonSerializerOptions).ConfigureAwait(false);
                 }
                 catch (Exception e) when (e is HttpRequestException || e is GraphException || e is JsonException)
                 {
@@ -87,11 +102,11 @@
         /// </exception>
         /// <exception cref="GraphException">Thrown if graph produced an error while retrieving the page</exception>
         /// <exception cref="JsonException">Thrown if the response content was not a valid OData collection payload</exception>
-        private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient graphClient, RelativeUri uri)
+        private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient graphClient, RelativeUri uri, JsonSerializerOptions? jsonSerializerOptions)
         {
             using (var httpResponse = await graphClient.GetAsync(uri).ConfigureAwait(false))
             {
-                return await ReadPage<T>(httpResponse).ConfigureAwait(false);
+                return await ReadPage<T>(httpResponse, jsonSerializerOptions).ConfigureAwait(false);
             }
         }
 
@@ -110,11 +125,11 @@
         /// </exception>
         /// <exception cref="GraphException">Thrown if graph produced an error while retrieving the page</exception>
         /// <exception cref="JsonException">Thrown if the response content was not a valid OData collection payload</exception>
-        private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient graphClient, AbsoluteUri uri)
+        private static async Task<ODataCollectionPage<T>> GetPage<T>(IGraphClient graphClient, AbsoluteUri uri, JsonSerializerOptions? jsonSerializerOptions)
         {
             using (var httpResponse = await graphClient.GetAsync(uri).ConfigureAwait(false))
             {
-                return await ReadPage<T>(httpResponse).ConfigureAwait(false);
+                return await ReadPage<T>(httpResponse, jsonSerializerOptions).ConfigureAwait(false);
             }
         }
 
@@ -126,7 +141,7 @@
         /// <returns></returns>
         /// <exception cref="GraphException">Thrown if graph produced an error while retrieving the page</exception>
         /// <exception cref="JsonException">Thrown if the response content was not a valid OData collection payload</exception>
-        private static async Task<ODataCollectionPage<T>> ReadPage<T>(HttpResponseMessage httpResponse)
+        private static async Task<ODataCollectionPage<T>> ReadPage<T>(HttpResponseMessage httpResponse, JsonSerializerOptions? jsonSerializerOptions)
         {
             var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
             try
@@ -138,7 +153,7 @@
                 throw new GraphException(httpResponseContent, e);
             }
 
-            var odataCollectionPage = JsonSerializer.Deserialize<ODataCollectionPage<T>.Builder>(httpResponseContent);
+            var odataCollectionPage = JsonSerializer.Deserialize<ODataCollectionPage<T>.Builder>(httpResponseContent, jsonSerializerOptions);
             if (odataCollectionPage == null)
             {
                 throw new JsonException($"Deserialized value was null. Serialized value was '{httpResponseContent}'");

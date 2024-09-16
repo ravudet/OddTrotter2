@@ -194,7 +194,11 @@
                     this.eventsUri.OriginalString.TrimEnd('/') +
                     (string.IsNullOrEmpty(optionsString) ? string.Empty : $"?{optionsString}");
 
-                var deserializedResponse = await this.graphClient.GetOdataCollection<Event>(new Uri(requestUri, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false); //// TODO pass jsonserializeroptions
+                var jsonSerializerOptions = new JsonSerializerOptions();
+                jsonSerializerOptions.TypeInfoResolver = new TypeInfoResolver();
+                jsonSerializerOptions.Converters.Add(new ConverterFactory());
+                jsonSerializerOptions.Converters.Add(new CollectionConverterFactory());
+                var deserializedResponse = await this.graphClient.GetOdataCollection<Event>(new Uri(requestUri, UriKind.Relative).ToRelativeUri(), jsonSerializerOptions).ConfigureAwait(false); //// TODO pass jsonserializeroptions
 
                 return deserializedResponse;
 
