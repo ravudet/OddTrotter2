@@ -12,6 +12,7 @@
         //// TODO do a uri comparer for tests
 
         IInstanceContext<T> Select<TProperty>(Expression<Func<T, TProperty>> selector); //// TODO should these query option methods return a strong type?
+        //// TODO these expression<Func> variants should be extension methods and the interface should take in the odata node
 
         IInstanceContext<TProperty> SubContext<TProperty>(Expression<Func<T, OdataInstanceProperty<TProperty>>> selector); //// TODO better name
 
