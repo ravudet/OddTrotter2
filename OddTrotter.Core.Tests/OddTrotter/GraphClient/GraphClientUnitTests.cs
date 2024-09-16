@@ -95,7 +95,7 @@
                 .Evaluate()
                 .ConfigureAwait(false);
 
-            Assert.AreEqual("/me/calendar?$select=id,subject", graphClient.CalledUri);
+            Assert.AreEqual("/me/calendar/events?$select=id,subject", graphClient.CalledUri);
             //// TODO do memory assertions too
         }
 
