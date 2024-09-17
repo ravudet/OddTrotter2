@@ -19,9 +19,12 @@
             public BooleanValue BooleanValue { get; }
         }
 
-        public sealed class Second : BoolCommonExpression
+        /// <summary>
+        /// TODO rename
+        /// </summary>
+        public sealed class Million : BoolCommonExpression
         {
-            public Second(BoolCommonExpression boolCommonExpression, AndExpression andExpression)
+            public Million(BoolCommonExpression boolCommonExpression, AndExpression andExpression)
             {
                 BoolCommonExpression = boolCommonExpression;
                 AndExpression = andExpression;
