@@ -100,6 +100,28 @@
             Assert.AreEqual("event_id_1", elements[0].Id.Value);
             Assert.AreEqual("a_subject_here", elements[0].Subject.Value);
         }
+
+        [TestMethod]
+        public async Task EventsFilter()
+        {
+            var eventsUri = new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(); //// TODO is it time for a convenience constructor on relaetive uri and absolute uri?
+            var requestBuilder = new GetCollectionRequestBuilder(eventsUri);
+            var genericRequestBuilder = new GetCollectionRequestBuilder<Fx.OdataPocRoot.Graph.Event>(requestBuilder);
+
+            var query = genericRequestBuilder
+                .Filter(calendarEvent => calendarEvent.Subject.Value == "asdf"); //// TODO having to call ".value" is weird here
+            var request = query.Request();
+
+            var httpClient = new MockHttpClient();
+            var requestEvaluator = new HttpClientRequestEvaluator(httpClient);
+
+            var eventsResponse = await requestEvaluator.Evaluate(request).ConfigureAwait(false);
+            var events = eventsResponse.Value;
+
+            Assert.AreEqual("/me/calendar/events?$filter=true", httpClient.CalledUri);
+            ////Assert.AreEqual("/me/calendar/events?$filter=subject eq 'asdf'", httpClient.CalledUri);
+            //// TODO do memory assertions
+        }
     }
 
     [TestClass]

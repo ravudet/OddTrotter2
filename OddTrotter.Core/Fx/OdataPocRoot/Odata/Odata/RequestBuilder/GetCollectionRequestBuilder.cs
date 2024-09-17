@@ -48,7 +48,16 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
 
         public IGetCollectionRequestBuilder Filter(Filter query)
         {
-            throw new System.NotImplementedException("TODO implement filter for request builder");
+            var filter = query;
+            if (this.filter != null)
+            {
+                filter = new Filter(
+                    new BoolCommonExpression.Second(
+                        this.filter.BoolCommonExpression, 
+                        new AndExpression(filter.BoolCommonExpression)));
+            }
+
+            return new GetCollectionRequestBuilder(this.uri, this.expand, filter, this.select);
         }
 
         public IGetCollectionRequestBuilder Select(Select query)
