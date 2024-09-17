@@ -2288,8 +2288,12 @@ boolCommonExpr =
                 / primitiveLiteral hasExpr
                 / primitiveLiteral inExpr
                 / TODO
-                / boolCommonExpr andExpr ; TODO this isn't actually quite right according to the ABNF
-                / boolCommonExpr orExpr ; TODO this isn't actually quite right according to the ABNF
+                / boolCommonExpr andExpr    ; TODO this isn't actually quite right according to the ABNF; make sure to
+                                            ; change the boolcommonexpression derived type once you fixed this part of
+                                            ; the ABNF
+                / boolCommonExpr orExpr ; TODO this isn't actually quite right according to the ABNF; make sure to
+                                        ; change the boolcommonexpression derived type once you fixed this part of the
+                                        ; ABNF
                 / TODO
                 )
 

@@ -19,6 +19,10 @@
             public BooleanValue BooleanValue { get; }
         }
 
+        public sealed class Second : BoolCommonExpression
+        {
+        }
+
         /// <summary>
         /// TODO rename
         /// </summary>
