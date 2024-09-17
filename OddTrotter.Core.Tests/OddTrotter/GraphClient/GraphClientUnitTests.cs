@@ -109,6 +109,7 @@
             var genericRequestBuilder = new GetCollectionRequestBuilder<Fx.OdataPocRoot.Graph.Event>(requestBuilder);
 
             var query = genericRequestBuilder
+                .Filter(calendarEvent => calendarEvent.Subject.Value == "asdf") //// TODO having to call ".value" is weird here
                 .Filter(calendarEvent => calendarEvent.Subject.Value == "asdf"); //// TODO having to call ".value" is weird here
             var request = query.Request();
 
@@ -118,7 +119,7 @@
             var eventsResponse = await requestEvaluator.Evaluate(request).ConfigureAwait(false);
             var events = eventsResponse.Value;
 
-            Assert.AreEqual("/me/calendar/events?$filter=true", httpClient.CalledUri);
+            Assert.AreEqual("/me/calendar/events?$filter=true and true", httpClient.CalledUri);
             ////Assert.AreEqual("/me/calendar/events?$filter=subject eq 'asdf'", httpClient.CalledUri);
             //// TODO do memory assertions
         }

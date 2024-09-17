@@ -19,10 +19,10 @@
             {
                 Visit(first.BooleanValue, builder);
             }
-            else if (node is BoolCommonExpression.Second second)
+            else if (node is BoolCommonExpression.Million million)
             {
-                Visit(second.BoolCommonExpression, builder);
-                Visit(second.AndExpression, builder);
+                Visit(million.BoolCommonExpression, builder);
+                Visit(million.AndExpression, builder);
             }
             else
             {

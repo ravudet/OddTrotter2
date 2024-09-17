@@ -52,7 +52,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
             if (this.filter != null)
             {
                 filter = new Filter(
-                    new BoolCommonExpression.Second(
+                    new BoolCommonExpression.Million(
                         this.filter.BoolCommonExpression, 
                         new AndExpression(filter.BoolCommonExpression)));
             }
