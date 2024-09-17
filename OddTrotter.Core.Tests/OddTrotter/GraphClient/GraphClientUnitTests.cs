@@ -62,6 +62,127 @@
         }
 
         [TestMethod]
+        public void Generate()
+        {
+            var firsts = new[]
+            {
+                "primitiveLiteral",
+                "arrayOrObject",
+                "rootExpr",
+                "firstMemberExpr",
+                "functionExpr",
+                "negateExpr",
+                "methodCallExpr",
+                "parenExpr",
+                "listExpr",
+                "castExpr",
+                "isofExpr",
+                "notExpr",
+            };
+            var seconds = new[]
+            {
+                "addExpr",
+                "subExpr",
+                "mulExpr",
+                "divExpr",
+                "divbyExpr",
+                "modExpr",
+            };
+            var thirds = new[]
+            {
+                "eqExpr",
+                "neExpr",
+                "ltExpr",
+                "leExpr",
+                "gtExpr",
+                "geExpr",
+                "hasExpr",
+                "inExpr",
+            };
+            var fourths = new[]
+            {
+                "andExpr",
+                "orExpr",
+            };
+
+            foreach (var first in firsts)
+            {
+                Console.WriteLine(first);
+            }
+
+            foreach (var first in firsts)
+            {
+                foreach (var second in seconds)
+                {
+                    Console.WriteLine(first + " " + second);
+                }
+            }
+
+            foreach (var first in firsts)
+            {
+                foreach (var third in thirds)
+                {
+                    Console.WriteLine(first + " " + third);
+                }
+            }
+
+            foreach (var first in firsts)
+            {
+                foreach (var fourth in fourths)
+                {
+                    Console.WriteLine(first + " " + fourth);
+                }
+            }
+
+            foreach (var first in firsts)
+            {
+                foreach (var second in seconds)
+                {
+                    foreach (var third in thirds)
+                    {
+                        Console.WriteLine(first + " " + second + " " + third);
+                    }
+                }
+            }
+
+            foreach (var first in firsts)
+            {
+                foreach (var second in seconds)
+                {
+                    foreach (var fourth in fourths)
+                    {
+                        Console.WriteLine(first + " " + second + " " + fourth);
+                    }
+                }
+            }
+
+            foreach (var first in firsts)
+            {
+                foreach (var third in thirds)
+                {
+                    foreach (var fourth in fourths)
+                    {
+                        Console.WriteLine(first + " " + third + " " + fourth);
+                    }
+                }
+            }
+
+            foreach (var first in firsts)
+            {
+                foreach (var second in seconds)
+                {
+                    foreach (var third in thirds)
+                    {
+                        foreach (var fourth in fourths)
+                        {
+                            Console.WriteLine(first + " " + second + " " + third + " " + fourth);
+                        }
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public async Task SelectsNew()
         {
             var graphClient = new MockGraphClient();
