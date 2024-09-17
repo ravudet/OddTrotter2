@@ -53,8 +53,19 @@ boolMemberExpr =
 boolPropertyPathExpr = 
                         (
                         entityColNavigationProperty boolCollectionNavigationExpr
-                        / ????
+                        / entityNavigationProperty  boolSingleNavigationExpr
+                        / complexColProperty boolComplexColPathExpr
+                        / primitiveColProperty boolCollectionPathExpr
+                        / primitiveProperty [ boolPrimitivePathExpr ]
+                        / streamProperty boolPrimitivePathExpr
                         )
+
+boolPrimitivePathExpr =
+                        "/" [ boolAnnotationExpr / boundFunctionExpr ]
+
+boolComplexColPathExpr = 
+                        [ "/" qualifiedComplexTypeName ]
+                        [ boolCollectionPathExpr ]
 
 boolCollectionNavigationExpr = 
                                 [ "/" qualifiedEntityTypeName ]
