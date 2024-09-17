@@ -30,8 +30,30 @@ boolCommonExpr =
                 / boolRootExpr
                 / boolFirstMemberExpr
                 / boolFunctionExpr
-                / ????
+                / boolMethodCallExpr
+                / boolParenExpr
+                / boolCastExpr
+                / isofExpr
+                / notExpr
+                / primitiveLiteral eqExpr
+                / primitiveLiteral neExpr
+                / primitiveLiteral ltExpr
+                / primitiveLiteral leExpr
+                / primitiveLiteral gtExpr
+                / primitiveLiteral geExpr
+                / primitiveLiteral hasExpr
+                / primitiveLiteral inExpr
+                / TODO
+                / boolPrimitiveLiteral andExpr
+                / boolPrimitiveLiteral orExpr
+                / TODO
                 )
+
+boolCastExpr =
+                TODO only if you can cast to bool
+
+boolParenExpr =
+                OPEN BWS boolCommonExpr BWS CLOSE
 
 boolFunctionExpr = 
                     TODO
