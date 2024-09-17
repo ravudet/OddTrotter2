@@ -39,6 +39,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
 
         public async Task<OdataResponse.Instance> Evaluate(OdataRequest.GetInstance request)
         {
+            //// TODO do you want to use a uribuilder for this?
             var queryOptions = new List<string>();
 
             //// TODO implement expand
