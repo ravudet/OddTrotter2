@@ -49,7 +49,7 @@
         }
 
         [TestMethod]
-        public async Task Driver()
+        public async Task CalendarSelect()
         {
             var calendarUri = new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(); //// TODO is it time for a convenience constructor on relaetive uri and absolute uri?
             var requestBuilder = new GetInstanceRequestBuilder(calendarUri);
@@ -67,11 +67,38 @@
             var calendar = calendarResponse.Value;
 
             Assert.AreEqual("/me/calendar?$select=id,events", httpClient.CalledUri);
+
             Assert.AreEqual("calendar_id", calendar.Id.Value);
             Assert.IsNotNull(calendar.Events);
             var events = calendar.Events.Value.ToList();
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual("event_id_1", events[0].Id.Value);
+        }
+
+        [TestMethod]
+        public async Task EventsSelect()
+        {
+            var calendarUri = new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(); //// TODO is it time for a convenience constructor on relaetive uri and absolute uri?
+            var requestBuilder = new GetCollectionRequestBuilder(calendarUri);
+            var genericRequestBuilder = new GetCollectionRequestBuilder<Fx.OdataPocRoot.Graph.Event>(requestBuilder);
+
+            var query = genericRequestBuilder
+                .Select(calendarEvent => calendarEvent.Id)
+                .Select(calendarEvent => calendarEvent.Subject);
+            var request = query.Request();
+
+            var httpClient = new MockHttpClient();
+            var requestEvaluator = new RequestEvaluator(httpClient);
+
+            var eventsResponse = await requestEvaluator.Evaluate(request).ConfigureAwait(false);
+            var events = eventsResponse.Value;
+
+            Assert.AreEqual("/me/calendar/events?$select=id,subject", httpClient.CalledUri);
+
+            var elements = events.ToList();
+            Assert.AreEqual(1, elements.Count());
+            Assert.AreEqual("event_id_1", elements[0].Id.Value);
+            Assert.AreEqual("a_subject_here", elements[0].Subject.Value);
         }
     }
 
