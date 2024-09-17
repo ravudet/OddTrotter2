@@ -52,7 +52,57 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter
 
         public sealed class Fifth : BoolCommonExpression
         {
-            public Fifth()
+            public Fifth(BoolMethodCallExpression boolMethodCallExpression)
+            {
+                BoolMethodCallExpression = boolMethodCallExpression;
+            }
+
+            public BoolMethodCallExpression BoolMethodCallExpression { get; }
+        }
+
+        public sealed class Sixth : BoolCommonExpression
+        {
+            public Sixth(BoolParenExpression boolParenExpression)
+            {
+                BoolParenExpression = boolParenExpression;
+            }
+
+            public BoolParenExpression BoolParenExpression { get; }
+        }
+
+        public sealed class Seventh : BoolCommonExpression
+        {
+            private Seventh()
+            {
+                throw new System.Exception("TODO");
+            }
+        }
+
+        public sealed class Eighth : BoolCommonExpression
+        {
+            public Eighth(IsofExpression isofExpression)
+            {
+                IsofExpression = isofExpression;
+            }
+
+            public IsofExpression IsofExpression { get; }
+        }
+
+        public sealed class Ninth : BoolCommonExpression
+        {
+            public Ninth(NotExpression notExpression)
+            {
+                NotExpression = notExpression;
+            }
+
+            public NotExpression NotExpression { get; }
+        }
+
+        public sealed class Tenth : BoolCommonExpression
+        {
+            public Tenth()
+            {
+            }
         }
 
         /// <summary>
