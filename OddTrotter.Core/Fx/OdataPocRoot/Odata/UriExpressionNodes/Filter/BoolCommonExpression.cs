@@ -29,8 +29,12 @@ boolCommonExpr =
                 boolPrimitiveLiteral
                 / boolRootExpr
                 / boolFirstMemberExpr
+                / boolFunctionExpr
                 / ????
                 )
+
+boolFunctionExpr = 
+                    TODO
 
 boolPrimitiveLiteral =
                         booleanValue
