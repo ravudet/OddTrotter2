@@ -43,7 +43,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
 
             return new OdataResponse<T>.GetCollection(
                 collection,
-                new OdataResponse<T>.GetCollection.CollectionControlInformation(null, 0));
+                new OdataResponse<T>.GetCollection.CollectionControlInformation(null!, 0));
         }
     }
 }
