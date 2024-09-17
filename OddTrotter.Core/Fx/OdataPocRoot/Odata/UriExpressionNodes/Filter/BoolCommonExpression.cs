@@ -1,4 +1,5 @@
-﻿namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter
 {
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
 
@@ -21,6 +22,22 @@
 
         public sealed class Second : BoolCommonExpression
         {
+            public Second(BoolRootExpression boolRootExpression)
+            {
+                BoolRootExpression = boolRootExpression;
+            }
+
+            public BoolRootExpression BoolRootExpression { get; }
+        }
+
+        public sealed class Third : BoolCommonExpression
+        {
+            public Third(BoolFirstMemberExpression boolFirstMemberExpression)
+            {
+                BoolFirstMemberExpression = boolFirstMemberExpression;
+            }
+
+            public BoolFirstMemberExpression BoolFirstMemberExpression { get; }
         }
 
         /// <summary>

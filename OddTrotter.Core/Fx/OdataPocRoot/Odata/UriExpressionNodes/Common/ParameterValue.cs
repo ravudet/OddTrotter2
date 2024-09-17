@@ -1,7 +1,10 @@
 ﻿namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Common
 {
-    public sealed class ParameterValue
+    public abstract class ParameterValue
     {
-        //// TODO do this
+        private ParameterValue()
+        {
+            throw new System.Exception("tODO");
+        }
     }
 }
