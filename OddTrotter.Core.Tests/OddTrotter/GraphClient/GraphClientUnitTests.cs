@@ -7,10 +7,73 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Fx.OdataPocRoot.Odata.Odata.RequestBuilder;
+    using Fx.OdataPocRoot.Odata.Odata.RequestEvaluator;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client.Payloads;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using OddTrotter.Calendar;
     using OddTrotter.TodoList;
+
+    [TestClass]
+    public sealed class MigrationTestsEvaluator
+    {
+        private sealed class MockHttpClient : IHttpClient
+        {
+            public string CalledUri { get; private set; } = string.Empty;
+
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                this.CalledUri = relativeUri.OriginalString;
+
+                var absoluteUri = new AbsoluteUri(new Uri("https://localhost/" + relativeUri.OriginalString.TrimStart('/'), UriKind.Absolute)).ToAbsoluteUri();
+
+                if (string.Equals(absoluteUri.LocalPath, "/me/calendar"))
+                {
+                    var content = new StringContent("{\"id\":\"calendar_id\",\"events\":[{\"id\":\"event_id_1\",\"subject\": \"a_subject_here\"}]}");
+                    var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                    responseMessage.Content = content;
+                    return await Task.FromResult(responseMessage);
+                }
+                else if (string.Equals(absoluteUri.LocalPath, "/me/calendar/events"))
+                {
+                    var content = new StringContent("{\"value\":[{\"id\":\"event_id_1\",\"subject\": \"a_subject_here\"}]}");
+                    var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                    responseMessage.Content = content;
+                    return await Task.FromResult(responseMessage);
+                }
+                else
+                {
+                    throw new NotSupportedException("TODO");
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task Driver()
+        {
+            var calendarUri = new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(); //// TODO is it time for a convenience constructor on relaetive uri and absolute uri?
+            var requestBuilder = new GetInstanceRequestBuilder(calendarUri);
+            var genericRequestBuilder = new GetInstanceRequestBuilder<Fx.OdataPocRoot.Graph.Calendar>(requestBuilder);
+
+            var query = genericRequestBuilder
+                .Select(calendar => calendar.Id)
+                .Select(calendar => calendar.Events);
+            var request = query.Request();
+
+            var httpClient = new MockHttpClient();
+            var requestEvaluator = new RequestEvaluator(httpClient);
+                
+            var calendarResponse = await requestEvaluator.Evaluate(request).ConfigureAwait(false);
+            var calendar = calendarResponse.Value;
+
+            Assert.AreEqual("/me/calendar?$select=id,events", httpClient.CalledUri);
+            Assert.AreEqual("calendar_id", calendar.Id.Value);
+            Assert.IsNotNull(calendar.Events);
+            var events = calendar.Events.Value.ToList();
+            Assert.AreEqual(1, events.Count);
+            Assert.AreEqual("event_id_1", events[0].Id.Value);
+        }
+    }
 
     [TestClass]
     public sealed class MigrationTestsOdataPocRootCalendarContext

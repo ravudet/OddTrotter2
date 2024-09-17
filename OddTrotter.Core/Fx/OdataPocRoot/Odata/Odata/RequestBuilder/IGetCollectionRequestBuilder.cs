@@ -20,8 +20,6 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
 
     public interface IGetCollectionRequestBuilder<T>
     {
-        OdataRequest.GetCollection Request { get; } //// TODO this should be generic
-
         public IGetCollectionRequestBuilder Builder { get; }
 
         public GetCollectionUnit<T> Unit { get; }

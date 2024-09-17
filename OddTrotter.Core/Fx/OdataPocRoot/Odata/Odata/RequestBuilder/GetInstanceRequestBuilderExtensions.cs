@@ -25,5 +25,12 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
             var newBuilder = builder.Builder.Select(select);
             return builder.Unit(newBuilder);
         }
+
+        public static OdataRequest<TInstance>.GetInstance Request<TInstance>(
+            this IGetInstanceRequestBuilder<TInstance> builder)
+        {
+            //// TODO any other logic needed here?
+            return new OdataRequest<TInstance>.GetInstance(builder.Builder.Request);
+        }
     }
 }

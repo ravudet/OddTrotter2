@@ -9,22 +9,28 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
     using System.Text.Json;
     using System.Threading.Tasks;
 
+    public interface IHttpClient
+    {
+        Task<HttpResponseMessage> GetAsync(RelativeUri uri);
+    }
+
     public sealed class RequestEvaluator : IRequestEvaluator
     {
-        private readonly HttpClient httpClient;
+        private readonly IHttpClient httpClient;
 
         private readonly FilterToStringVisitor filterToStringVisitor;
 
         private readonly SelectToStringVisitor selectToStringVisitor;
 
-        public RequestEvaluator(HttpClient httpClient)
+        public RequestEvaluator(IHttpClient httpClient)
             : this(httpClient, RequestEvaluatorSettings.Default)
         {
         }
 
-        public RequestEvaluator(HttpClient httpClient, RequestEvaluatorSettings settings)
+        public RequestEvaluator(IHttpClient httpClient, RequestEvaluatorSettings settings)
         {
             //// TODO make an interface for httpclient?
+            //// TODO have a client factory instead? you're not disposing right now...
             this.httpClient = httpClient;
 
             this.filterToStringVisitor = settings.FilterToStringVisitor;

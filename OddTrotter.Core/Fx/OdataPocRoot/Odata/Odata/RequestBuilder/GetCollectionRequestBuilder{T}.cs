@@ -8,14 +8,6 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
             this.Builder = getCollectionRequestBuilder;
         }
 
-        public OdataRequest.GetCollection Request
-        {
-            get
-            {
-                return this.Builder.Request;
-            }
-        }
-
         public IGetCollectionRequestBuilder Builder { get; }
 
         public GetCollectionUnit<T> Unit

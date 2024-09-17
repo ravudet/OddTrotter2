@@ -17,8 +17,6 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
 
     public interface IGetInstanceRequestBuilder<T>
     {
-        OdataRequest.GetInstance Request { get; }
-
         public IGetInstanceRequestBuilder Builder { get; } //// TODO should this interface *implement* the non-generic one, or should we have this property? having the property follows what you've previously established as the monad pattern in linqv2; if you do that, you should probably remove the "Request" property and let the caller use "Builder.Request" to get it
 
         public GetInstanceUnit<T> Unit { get; }

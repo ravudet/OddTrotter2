@@ -31,5 +31,12 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
             var newBuilder = builder.Builder.Select(select);
             return builder.Unit(newBuilder);
         }
+
+        public static OdataRequest<TInstance>.GetCollection Request<TInstance>(
+            this IGetCollectionRequestBuilder<TInstance> builder)
+        {
+            //// TODO any other logic needed here?
+            return new OdataRequest<TInstance>.GetCollection(builder.Builder.Request);
+        }
     }
 }
