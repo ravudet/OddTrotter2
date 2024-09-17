@@ -3,7 +3,6 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter
 {
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
 
-    //// TODO finish the rest of boolCommonExpr.abnf
     public abstract class BoolCommonExpression
     {
         private BoolCommonExpression()
@@ -100,18 +99,120 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter
 
         public sealed class Tenth : BoolCommonExpression
         {
-            public Tenth()
+            public Tenth(PrimitiveLiteral primitiveLiteral, EqualsExpression equalsExpression)
             {
+                PrimitiveLiteral = primitiveLiteral;
+                EqualsExpression = equalsExpression;
             }
+
+            public PrimitiveLiteral PrimitiveLiteral { get; }
+
+            public EqualsExpression EqualsExpression { get; }
         }
 
-        /// <summary>
-        /// TODO rename
-        /// </summary>
-        public sealed class Million : BoolCommonExpression
+        public sealed class Eleventh : BoolCommonExpression
         {
-            public Million(BoolCommonExpression boolCommonExpression, AndExpression andExpression)
+            public Eleventh(PrimitiveLiteral primitiveLiteral, NotEqualsExpression notEqualsExpression)
             {
+                PrimitiveLiteral = primitiveLiteral;
+                NotEqualsExpression = notEqualsExpression;
+            }
+
+            public PrimitiveLiteral PrimitiveLiteral { get; }
+
+            public NotEqualsExpression NotEqualsExpression { get; }
+        }
+
+        public sealed class Twelfth : BoolCommonExpression
+        {
+            public Twelfth(PrimitiveLiteral primitiveLiteral, LessThanExpression lessThanExpression)
+            {
+                PrimitiveLiteral = primitiveLiteral;
+                LessThanExpression = lessThanExpression;
+            }
+
+            public PrimitiveLiteral PrimitiveLiteral { get; }
+
+            public LessThanExpression LessThanExpression { get; }
+        }
+
+        public sealed class Thirteenth : BoolCommonExpression
+        {
+            public Thirteenth(
+                PrimitiveLiteral primitiveLiteral,
+                LessThanOrEqualToExpression lessThanOrEqualToExpression)
+            {
+                PrimitiveLiteral = primitiveLiteral;
+                LessThanOrEqualToExpression = lessThanOrEqualToExpression;
+            }
+
+            public PrimitiveLiteral PrimitiveLiteral { get; }
+
+            public LessThanOrEqualToExpression LessThanOrEqualToExpression { get; }
+        }
+
+        public sealed class Fourteenth : BoolCommonExpression
+        {
+            public Fourteenth(PrimitiveLiteral primitiveLiteral, GreaterThanExpression greaterThanExpression)
+            {
+                PrimitiveLiteral = primitiveLiteral;
+                GreaterThanExpression = greaterThanExpression;
+            }
+
+            public PrimitiveLiteral PrimitiveLiteral { get; }
+
+            public GreaterThanExpression GreaterThanExpression { get; }
+        }
+
+        public sealed class Fifteenth : BoolCommonExpression
+        {
+            public Fifteenth(
+                PrimitiveLiteral primitiveLiteral,
+                GreatherThanOrEqualToExpression greatherThanOrEqualToExpression)
+            {
+                PrimitiveLiteral = primitiveLiteral;
+                GreatherThanOrEqualToExpression = greatherThanOrEqualToExpression;
+            }
+
+            public PrimitiveLiteral PrimitiveLiteral { get; }
+
+            public GreatherThanOrEqualToExpression GreatherThanOrEqualToExpression { get; }
+        }
+
+        public sealed class Sixteenth : BoolCommonExpression
+        {
+            public Sixteenth(PrimitiveLiteral primitiveLiteral, HasExpression hasExpression)
+            {
+                PrimitiveLiteral = primitiveLiteral;
+                HasExpression = hasExpression;
+            }
+
+            public PrimitiveLiteral PrimitiveLiteral { get; }
+
+            public HasExpression HasExpression { get; }
+        }
+
+        public sealed class Seventeenth : BoolCommonExpression
+        {
+            public Seventeenth(PrimitiveLiteral primitiveLiteral, InExpression inExpression)
+            {
+                PrimitiveLiteral = primitiveLiteral;
+                InExpression = inExpression;
+            }
+
+            public PrimitiveLiteral PrimitiveLiteral { get; }
+
+            public InExpression InExpression { get; }
+        }
+
+        //// TODO do other derived types from boolCommonExpr.abnf
+
+        public sealed class Eighteenth : BoolCommonExpression
+        {
+            public Eighteenth(BoolCommonExpression boolCommonExpression, AndExpression andExpression)
+            {
+                //// TODO the left side is not actually boolcommonexpression; check the boolCommonExpr.abnf once it's
+                //// finalized
                 BoolCommonExpression = boolCommonExpression;
                 AndExpression = andExpression;
             }
@@ -121,16 +222,21 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter
             public AndExpression AndExpression { get; }
         }
 
-        //// TODO do other derived types after you've created abnf for boolcommonexpr
-    }
-
-    public sealed class AndExpression
-    {
-        public AndExpression(BoolCommonExpression right)
+        public sealed class Nineteenth : BoolCommonExpression
         {
-            Right = right;
+            public Nineteenth(BoolCommonExpression boolCommonExpression, OrExpression orExpression)
+            {
+                //// TODO the left side is not actually boolcommonexpression; check the boolCommonExpr.abnf once it's
+                //// finalized
+                BoolCommonExpression = boolCommonExpression;
+                OrExpression = orExpression;
+            }
+
+            public BoolCommonExpression BoolCommonExpression { get; }
+
+            public OrExpression OrExpression { get; }
         }
 
-        public BoolCommonExpression Right { get; }
+        //// TODO do other derived types after you've finished boolCommonExpr.abnf
     }
 }

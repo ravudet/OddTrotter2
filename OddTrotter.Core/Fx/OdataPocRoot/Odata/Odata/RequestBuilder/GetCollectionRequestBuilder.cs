@@ -4,6 +4,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
     using System;
     using System.Linq;
 
+    using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Expand;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
@@ -52,7 +53,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
             if (this.filter != null)
             {
                 filter = new Filter(
-                    new BoolCommonExpression.Million(
+                    new BoolCommonExpression.Eighteenth(
                         this.filter.BoolCommonExpression, 
                         new AndExpression(filter.BoolCommonExpression)));
             }
