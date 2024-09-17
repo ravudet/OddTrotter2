@@ -11,6 +11,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
     using System.Threading.Tasks;
 
     using Fx.OdataPocRoot.Graph;
+    using System.IO;
 
     public static class RequestEvaluatorExtensions
     {
@@ -43,21 +44,68 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
             OdataRequest<T>.GetCollection request)
         {
             var response = await requestEvaluator.Evaluate(request.Request).ConfigureAwait(false);
+            string responseString;
+            using (var streamReader = new StreamReader(response.Contents))
+            {
+                responseString = streamReader.ReadToEnd();
+            }
 
             var jsonSerializerOptions = new JsonSerializerOptions();
             jsonSerializerOptions.TypeInfoResolver = new TypeInfoResolver();
             jsonSerializerOptions.Converters.Add(new ConverterFactory());
             jsonSerializerOptions.Converters.Add(new CollectionConverterFactory());
             //// TODO also deserialzie control information
-            var collection = JsonSerializer.Deserialize<IEnumerable<T>>(response.Contents, jsonSerializerOptions);
+            var collection = JsonSerializer.Deserialize<ODataCollectionPage<T>.Builder>(
+                responseString,
+                jsonSerializerOptions); //// TODO do you liuke the odatacollectionpage?
             if (collection == null)
             {
                 throw new System.Exception("TODO null collection");
             }
 
             return new OdataResponse<T>.GetCollection(
-                collection,
+                collection.Value!, //// TODO nullable
                 new OdataResponse<T>.GetCollection.CollectionControlInformation(null!, 0));
+        }
+
+        private sealed class ODataCollectionPage<T>
+        {
+            private ODataCollectionPage(IEnumerable<T> value, string? nextLink)
+            {
+                this.Value = value;
+                this.NextLink = nextLink;
+            }
+
+            public IEnumerable<T> Value { get; }
+
+            /// <summary>
+            /// Gets the URL of the next page in the collection, <see langword="null"/> if there are no more pages in the collection
+            /// </summary>
+            public string? NextLink { get; }
+
+            public sealed class Builder
+            {
+                [JsonPropertyName("value")]
+                public IEnumerable<T>? Value { get; set; }
+
+                [JsonPropertyName("@odata.nextLink")]
+                public string? NextLink { get; set; }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <see cref="Value"/> is <see langword="null"/></exception>
+                public ODataCollectionPage<T> Build()
+                {
+                    if (this.Value == null)
+                    {
+                        throw new ArgumentNullException(nameof(this.Value));
+                    }
+
+                    return new ODataCollectionPage<T>(this.Value, this.NextLink);
+                }
+            }
         }
 
         private sealed class TypeInfoResolver : IJsonTypeInfoResolver
