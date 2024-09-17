@@ -19,7 +19,7 @@
             {
                 Visit(first.BooleanValue, builder);
             }
-            else if (node is BoolCommonExpression.Million million)
+            else if (node is BoolCommonExpression.Eighteenth million)
             {
                 Visit(million.BoolCommonExpression, builder);
                 Visit(million.AndExpression, builder);
