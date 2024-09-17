@@ -44,8 +44,12 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
         {
             var response = await requestEvaluator.Evaluate(request.Request).ConfigureAwait(false);
 
-            //// TODO use deserialzier options from context to do this correclt
-            var collection = JsonSerializer.Deserialize<IEnumerable<T>>(response.Contents);
+            var jsonSerializerOptions = new JsonSerializerOptions();
+            jsonSerializerOptions.TypeInfoResolver = new TypeInfoResolver();
+            jsonSerializerOptions.Converters.Add(new ConverterFactory());
+            jsonSerializerOptions.Converters.Add(new CollectionConverterFactory());
+            //// TODO also deserialzie control information
+            var collection = JsonSerializer.Deserialize<IEnumerable<T>>(response.Contents, jsonSerializerOptions);
             if (collection == null)
             {
                 throw new System.Exception("TODO null collection");
