@@ -56,15 +56,23 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
                 request.Uri.OriginalString.TrimEnd('/') +
                 (string.IsNullOrEmpty(optionsString) ? string.Empty : $"?{optionsString}");
 
-            using (var httpResponseMessage = await this.httpClient
-                .GetAsync(new Uri(requestUri, UriKind.Relative).ToRelativeUri())
-                .ConfigureAwait(false))
+            HttpResponseMessage? httpResponseMessage = null;
+            try
             {
+                httpResponseMessage = await this.httpClient
+                    .GetAsync(new Uri(requestUri, UriKind.Relative).ToRelativeUri())
+                    .ConfigureAwait(false);
+
                 httpResponseMessage.EnsureSuccessStatusCode(); //// TODO properly handle error cases
 
                 var httpResponseContent = await httpResponseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
                 return new OdataResponse.Instance(httpResponseContent);
+            }
+            catch
+            {
+                httpResponseMessage?.Dispose();
+                throw;
             }
         }
 
