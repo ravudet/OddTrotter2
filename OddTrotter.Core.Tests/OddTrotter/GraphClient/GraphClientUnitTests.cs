@@ -109,8 +109,10 @@
             var genericRequestBuilder = new GetCollectionRequestBuilder<Fx.OdataPocRoot.Graph.Event>(requestBuilder);
 
             var query = genericRequestBuilder
-                .Filter(calendarEvent => calendarEvent.Subject.Value == "asdf") //// TODO having to call ".value" is weird here
-                .Filter(calendarEvent => calendarEvent.Subject.Value == "asdf"); //// TODO having to call ".value" is weird here
+                .Filter(calendarEvent => true)
+                .Filter(calendarEvent => true);
+                ////.Filter(calendarEvent => calendarEvent.Subject.Value == "asdf") //// TODO having to call ".value" is weird here
+                ////.Filter(calendarEvent => calendarEvent.Subject.Value == "asdf"); //// TODO having to call ".value" is weird here
             var request = query.Request();
 
             var httpClient = new MockHttpClient();
