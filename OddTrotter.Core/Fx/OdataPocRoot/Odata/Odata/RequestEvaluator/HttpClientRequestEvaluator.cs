@@ -14,7 +14,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
         Task<HttpResponseMessage> GetAsync(RelativeUri uri);
     }
 
-    public sealed class RequestEvaluator : IRequestEvaluator
+    public sealed class HttpClientRequestEvaluator : IRequestEvaluator
     {
         private readonly IHttpClient httpClient;
 
@@ -22,12 +22,12 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
 
         private readonly SelectToStringVisitor selectToStringVisitor;
 
-        public RequestEvaluator(IHttpClient httpClient)
+        public HttpClientRequestEvaluator(IHttpClient httpClient)
             : this(httpClient, RequestEvaluatorSettings.Default)
         {
         }
 
-        public RequestEvaluator(IHttpClient httpClient, RequestEvaluatorSettings settings)
+        public HttpClientRequestEvaluator(IHttpClient httpClient, RequestEvaluatorSettings settings)
         {
             //// TODO make an interface for httpclient?
             //// TODO have a client factory instead? you're not disposing right now...

@@ -61,7 +61,7 @@
             var request = query.Request();
 
             var httpClient = new MockHttpClient();
-            var requestEvaluator = new RequestEvaluator(httpClient);
+            var requestEvaluator = new HttpClientRequestEvaluator(httpClient);
                 
             var calendarResponse = await requestEvaluator.Evaluate(request).ConfigureAwait(false);
             var calendar = calendarResponse.Value;
@@ -88,7 +88,7 @@
             var request = query.Request();
 
             var httpClient = new MockHttpClient();
-            var requestEvaluator = new RequestEvaluator(httpClient);
+            var requestEvaluator = new HttpClientRequestEvaluator(httpClient);
 
             var eventsResponse = await requestEvaluator.Evaluate(request).ConfigureAwait(false);
             var events = eventsResponse.Value;
