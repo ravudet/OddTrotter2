@@ -40,6 +40,21 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter
             public BoolFirstMemberExpression BoolFirstMemberExpression { get; }
         }
 
+        public sealed class Fourth : BoolCommonExpression
+        {
+            public Fourth(BoolFunctionExpression boolFunctionExpression)
+            {
+                BoolFunctionExpression = boolFunctionExpression;
+            }
+
+            public BoolFunctionExpression BoolFunctionExpression { get; }
+        }
+
+        public sealed class Fifth : BoolCommonExpression
+        {
+            public Fifth()
+        }
+
         /// <summary>
         /// TODO rename
         /// </summary>
