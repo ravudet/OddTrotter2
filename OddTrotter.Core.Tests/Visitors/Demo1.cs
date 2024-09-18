@@ -1,8 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Text;
-
-namespace Visitors
+﻿namespace Visitors
 {
+    using System.Text;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     public abstract class Parent
     {
         private Parent()
