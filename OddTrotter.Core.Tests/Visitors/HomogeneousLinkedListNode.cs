@@ -22,7 +22,7 @@
 
             public abstract TResult Visit(Terminal node, TContext context);
 
-            public abstract TResult Visit(Todo node, TContext context);
+            public abstract TResult Visit<TTheRest>(Todo<TTheRest> node, TContext context) where TTheRest : HomogeneousLinkedListNode<TElement>;
         }
 
         public sealed class Terminal : HomogeneousLinkedListNode<TElement>
@@ -41,9 +41,9 @@
             }
         }
 
-        public sealed class Todo : HomogeneousLinkedListNode<TElement>
+        public sealed class Todo<TTheRest> : HomogeneousLinkedListNode<TElement> where TTheRest : HomogeneousLinkedListNode<TElement>
         {
-            public Todo(TElement element, HomogeneousLinkedListNode<TElement> theRest)
+            public Todo(TElement element, TTheRest theRest)
             {
                 Element = element;
                 TheRest = theRest;
@@ -51,7 +51,7 @@
 
             public TElement Element { get; }
 
-            public HomogeneousLinkedListNode<TElement> TheRest { get; }
+            public TTheRest TheRest { get; }
 
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
@@ -62,9 +62,9 @@
 
     public static class HomogeneousLinkedListNodeExtensions
     {
-        public static HomogeneousLinkedListNode<TElement> Prepend<TElement>(this HomogeneousLinkedListNode<TElement> node, TElement element)
+        public static HomogeneousLinkedListNode<TElement>.Todo<TTheRest> Prepend<TElement, TTheRest>(this TTheRest node, TElement element) where TTheRest : HomogeneousLinkedListNode<TElement>
         {
-            return new HomogeneousLinkedListNode<TElement>.Todo(element, node);
+            return new HomogeneousLinkedListNode<TElement>.Todo<TTheRest>(element, node);
         }
     }
 
@@ -87,7 +87,7 @@
             return default;
         }
 
-        public override Void Visit(HomogeneousLinkedListNode<TElement>.Todo node, (StringBuilder Builder, bool First) context)
+        public override Void Visit<TTheRest>(HomogeneousLinkedListNode<TElement>.Todo<TTheRest> node, (StringBuilder Builder, bool First) context)
         {
             if (context.First)
             {
