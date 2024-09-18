@@ -1,13 +1,13 @@
-﻿namespace Visitors.LinkedList
+﻿namespace Visitors.HomogeneousLinkedListNode
 {    
     using System;
     using System.Text;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-    public abstract class LinkedListNode<TElement>
+    public abstract class HomogeneousLinkedListNode<TElement>
     {
-        private LinkedListNode()
+        private HomogeneousLinkedListNode()
         {
         }
 
@@ -15,7 +15,7 @@
 
         public abstract class Visitor<TResult, TContext>
         {
-            public TResult Traverse(LinkedListNode<TElement> node, TContext context)
+            public TResult Traverse(HomogeneousLinkedListNode<TElement> node, TContext context)
             {
                 return node.Accept(this, context);
             }
@@ -25,7 +25,7 @@
             public abstract TResult Visit(Todo node, TContext context);
         }
 
-        public sealed class Terminal : LinkedListNode<TElement>
+        public sealed class Terminal : HomogeneousLinkedListNode<TElement>
         {
             private Terminal()
             {
@@ -41,9 +41,9 @@
             }
         }
 
-        public sealed class Todo : LinkedListNode<TElement>
+        public sealed class Todo : HomogeneousLinkedListNode<TElement>
         {
-            public Todo(TElement element, LinkedListNode<TElement> theRest)
+            public Todo(TElement element, HomogeneousLinkedListNode<TElement> theRest)
             {
                 Element = element;
                 TheRest = theRest;
@@ -51,7 +51,7 @@
 
             public TElement Element { get; }
 
-            public LinkedListNode<TElement> TheRest { get; }
+            public HomogeneousLinkedListNode<TElement> TheRest { get; }
 
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
@@ -60,11 +60,11 @@
         }
     }
 
-    public static class LinkedListNodeExtensions
+    public static class HomogeneousLinkedListNodeExtensions
     {
-        public static LinkedListNode<TElement> Prepend<TElement>(this LinkedListNode<TElement> node, TElement element)
+        public static HomogeneousLinkedListNode<TElement> Prepend<TElement>(this HomogeneousLinkedListNode<TElement> node, TElement element)
         {
-            return new LinkedListNode<TElement>.Todo(element, node);
+            return new HomogeneousLinkedListNode<TElement>.Todo(element, node);
         }
     }
 
@@ -72,7 +72,7 @@
     {
     }
 
-    public sealed class ToStringVisitor<TElement> : LinkedListNode<TElement>.Visitor<Void, (StringBuilder Builder, bool First)>
+    public sealed class ToStringVisitor<TElement> : HomogeneousLinkedListNode<TElement>.Visitor<Void, (StringBuilder Builder, bool First)>
     {
         private readonly Func<TElement, string> transcriber;
 
@@ -81,13 +81,13 @@
             this.transcriber = transcriber;
         }
 
-        public override Void Visit(LinkedListNode<TElement>.Terminal node, (StringBuilder Builder, bool First) context)
+        public override Void Visit(HomogeneousLinkedListNode<TElement>.Terminal node, (StringBuilder Builder, bool First) context)
         {
             context.Builder.Append("]");
             return default;
         }
 
-        public override Void Visit(LinkedListNode<TElement>.Todo node, (StringBuilder Builder, bool First) context)
+        public override Void Visit(HomogeneousLinkedListNode<TElement>.Todo node, (StringBuilder Builder, bool First) context)
         {
             if (context.First)
             {
@@ -106,12 +106,12 @@
     }
 
     [TestClass]
-    public sealed class Demo2
+    public sealed class Demo3
     {
         [TestMethod]
         public void Test()
         {
-            var list = LinkedListNode<string>.Terminal.Instance
+            var list = HomogeneousLinkedListNode<string>.Terminal.Instance
                 .Prepend("first")
                 .Prepend("second")
                 .Prepend("third");
