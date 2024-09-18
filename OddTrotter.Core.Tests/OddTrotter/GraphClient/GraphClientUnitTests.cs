@@ -114,10 +114,9 @@
                 .Filter(calendarEvent => true)
                 .Filter(calendarEvent => calendarEvent.IsCancelled.Value)
                 .Filter(calendarEvent => calendarEvent.Nested.Value.Prop.Value)
-            //// TODO get the two below filters working, then completely implement the filtertostring visitor, then try to completely implement the linqtoodata for filters
+            //// TODO completely implement the filtertostring visitor, then try to completely implement the linqtoodata for filters
                 .Filter(calendarEvent => "asdf" == calendarEvent.Subject.Value) //// TODO having to call ".value" is weird here; you also shouldn't nave to put the literal first
                 .Filter(calendarEvent => "qwer" == calendarEvent.Nested.Value.Prop2.Value);
-                ////.Filter(calendarEvent => calendarEvent.Subject.Value == "asdf"); //// TODO having to call ".value" is weird here
             var request = query.Request();
 
             var httpClient = new MockHttpClient();
