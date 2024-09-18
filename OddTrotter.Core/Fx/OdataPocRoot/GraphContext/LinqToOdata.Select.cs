@@ -20,7 +20,7 @@
         {
             if (selector.Body is MemberExpression memberExpression)
             {
-                return TraverseSelect<TType>(memberExpression, Enumerable.Empty<MemberExpression>());
+                return SelectUtilities.TraverseSelect<TType>(memberExpression, Enumerable.Empty<MemberExpression>());
             }
             else
             {
@@ -28,94 +28,97 @@
             }
         }
 
-        private static Select TraverseSelect<TType>(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
+        private static class SelectUtilities
         {
-            if (expression.Expression?.NodeType != ExpressionType.Parameter)
+            public static Select TraverseSelect<TType>(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
             {
-                if (expression.Expression is MemberExpression memberExpression)
+                if (expression.Expression?.NodeType != ExpressionType.Parameter)
                 {
-                    return TraverseSelect<TType>(memberExpression, previousExpressions.Prepend(expression));
+                    if (expression.Expression is MemberExpression memberExpression)
+                    {
+                        return TraverseSelect<TType>(memberExpression, previousExpressions.Prepend(expression));
+                    }
+                    else
+                    {
+                        throw new Exception("TODO i don't think you can actually get here");
+                    }
                 }
                 else
                 {
-                    throw new Exception("TODO i don't think you can actually get here");
-                }
-            }
-            else
-            {
-                using (var enumerator = previousExpressions.Prepend(expression).GetEnumerator())
-                {
-                    enumerator.MoveNext();
-                    return
-                        new Select(
-                            new[]
-                            {
+                    using (var enumerator = previousExpressions.Prepend(expression).GetEnumerator())
+                    {
+                        enumerator.MoveNext();
+                        return
+                            new Select(
+                                new[]
+                                {
                                 new SelectItem.PropertyPath.Second(
                                     TraversePreviousMembers(enumerator)
                                 ),
-                            });
+                                });
+                    }
                 }
             }
-        }
 
-        private static SelectProperty TraversePreviousMembers(IEnumerator<MemberExpression> expressions)
-        {
-            var expression = expressions.Current;
-            var propertyNames = GetPropertyNames(expression.Member.DeclaringType!); //// TODO nullable
-            if (propertyNames.Contains(expression.Member.Name))
+            private static SelectProperty TraversePreviousMembers(IEnumerator<MemberExpression> expressions)
             {
-                var translatedName = expression.Member.Name;
-                var propertyNameAttribute = expression.Member.GetCustomAttribute<PropertyNameAttribute>(false);
-                if (propertyNameAttribute != null)
+                var expression = expressions.Current;
+                var propertyNames = GetPropertyNames(expression.Member.DeclaringType!); //// TODO nullable
+                if (propertyNames.Contains(expression.Member.Name))
                 {
-                    translatedName = propertyNameAttribute.PropertyName;
-                }
+                    var translatedName = expression.Member.Name;
+                    var propertyNameAttribute = expression.Member.GetCustomAttribute<PropertyNameAttribute>(false);
+                    if (propertyNameAttribute != null)
+                    {
+                        translatedName = propertyNameAttribute.PropertyName;
+                    }
 
-                if (!expressions.MoveNext())
-                {
-                    return
-                        new SelectProperty.PrimitiveProperty(
-                            new PrimitiveProperty.PrimitiveNonKeyProperty(
-                                new OdataIdentifier(translatedName)
-                            )
-                        );
+                    if (!expressions.MoveNext())
+                    {
+                        return
+                            new SelectProperty.PrimitiveProperty(
+                                new PrimitiveProperty.PrimitiveNonKeyProperty(
+                                    new OdataIdentifier(translatedName)
+                                )
+                            );
+                    }
+                    else
+                    {
+                        return
+                            new SelectProperty.FullSelectPath.SelectPropertyNode(
+                                new SelectPath.First(
+                                    new OdataIdentifier(translatedName)
+                                ),
+                                TraversePreviousMembers(expressions)
+                            );
+                    }
+
                 }
                 else
                 {
-                    return
-                        new SelectProperty.FullSelectPath.SelectPropertyNode(
-                            new SelectPath.First(
-                                new OdataIdentifier(translatedName)
-                            ),
-                            TraversePreviousMembers(expressions)
-                        );
+                    throw new Exception("TODO property name not found; you could get here if the memberexpression was manually instantiated or if the type has members defined that are not marked as odata properties");
                 }
-
-            }
-            else
-            {
-                throw new Exception("TODO property name not found; you could get here if the memberexpression was manually instantiated or if the type has members defined that are not marked as odata properties");
             }
         }
 
         private static IEnumerable<string> GetPropertyNames(Type type)
         {
             return type.GetProperties().Where(property =>
+            {
+                var propertyType = property.PropertyType;
+                if (!propertyType.IsGenericType)
                 {
-                    var propertyType = property.PropertyType;
-                    if (!propertyType.IsGenericType)
-                    {
-                        return false;
-                    }
+                    return false;
+                }
 
-                    if (propertyType.GetGenericTypeDefinition() != typeof(OdataInstanceProperty<>) &&
-                        propertyType.GetGenericTypeDefinition() != typeof(OdataCollectionProperty<>))
-                    {
-                        return false;
-                    }
+                if (propertyType.GetGenericTypeDefinition() != typeof(OdataInstanceProperty<>) &&
+                    propertyType.GetGenericTypeDefinition() != typeof(OdataCollectionProperty<>))
+                {
+                    return false;
+                }
 
-                    return true;
-                })
+                return true;
+            })
                 .Select(property => property.Name);
         }
     }

@@ -6,83 +6,10 @@
     using System.Text;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
 
-    public sealed class SelectItemStringBuilder : SelectItem.OtherVisitor<StringBuilder>
-    {
-        public override void SpecializedVisit(SelectItem.Star node, StringBuilder context)
-        {
-            context.Append("*");
-        }
-    }
-
-    public sealed class SelectItemToString : SelectItem.Visitor<string>
-    {
-        public override string SpecializedVisit(SelectItem.Star node)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override string SpecializedVisit(SelectItem.PropertyPath path)
-        {
-            return PropertyPathToString.Instance.Visit(path);
-        }
-
-        private sealed class PropertyPathToString : SelectItem.PropertyPath.Visitor<string>
-        {
-            private PropertyPathToString()
-            {
-            }
-
-            public static PropertyPathToString Instance { get; } = new PropertyPathToString();
-
-            public override string SpecializedVisit(SelectItem.PropertyPath.First node)
-            {
-                throw new System.NotImplementedException();
-            }
-        }
-    }
-
     public abstract class SelectItem
     {
         private SelectItem()
         {
-        }
-
-        protected abstract T Accept<T>(Visitor<T> visitor);
-
-        protected abstract void Accept<T>(OtherVisitor<T> visitor, T context);
-
-        protected abstract TResult Accept<TResult, TContext>(OtherOtherVisitor<TResult, TContext> visitor, TContext context);
-
-        public abstract class OtherOtherVisitor<TResult, TContext>
-        {
-            public TResult Visit(SelectItem node, TContext context)
-            {
-                return node.Accept(this, context);
-            }
-        }
-
-        public abstract class Visitor<T>
-        {
-            public T Visit(SelectItem node)
-            {
-                return node.Accept(this);
-            }
-
-            public abstract T SpecializedVisit(Star node);
-
-            //// TODO other methods
-
-            public abstract T SpecializedVisit(PropertyPath path);
-        }
-
-        public abstract class OtherVisitor<T>
-        {
-            public void Visit(SelectItem node, T context)
-            {
-                node.Accept(this, context);
-            }
-
-            public abstract void SpecializedVisit(Star node, T context);
         }
 
         public sealed class Star : SelectItem
@@ -93,15 +20,6 @@
 
             public static Star Instance { get; } = new Star();
 
-            protected override T Accept<T>(Visitor<T> visitor)
-            {
-                return visitor.SpecializedVisit(this);
-            }
-
-            protected override void Accept<T>(OtherVisitor<T> visitor, T context)
-            {
-                return visitor.SpecializedVisit(this, context);
-            }
         }
 
         public sealed class AllOperationsInSchema : SelectItem
@@ -118,23 +36,6 @@
         {
             private PropertyPath()
             {
-            }
-
-            protected sealed override T Accept<T>(SelectItem.Visitor<T> visitor)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            protected abstract T Accept<T>(Visitor<T> visitor);
-
-            public new abstract class Visitor<T>
-            {
-                public T Visit(PropertyPath node)
-                {
-                    return node.Accept(this);
-                }
-
-                public abstract T SpecializedVisit(First node);
             }
 
             /// <summary>

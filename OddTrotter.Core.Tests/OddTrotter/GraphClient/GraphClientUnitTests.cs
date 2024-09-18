@@ -111,7 +111,9 @@
             var query = genericRequestBuilder
                 .Filter(calendarEvent => true)
                 .Select(calendarEvent => calendarEvent.Id)
-                .Filter(calendarEvent => true);
+                .Filter(calendarEvent => true)
+                .Filter(calendarEvent => calendarEvent.IsCancelled.Value)
+                .Filter(calendarEvent => calendarEvent.Nested.Value.Prop.Value);
                 ////.Filter(calendarEvent => calendarEvent.Subject.Value == "asdf") //// TODO having to call ".value" is weird here
                 ////.Filter(calendarEvent => calendarEvent.Subject.Value == "asdf"); //// TODO having to call ".value" is weird here
             var request = query.Request();
@@ -122,7 +124,7 @@
             var eventsResponse = await requestEvaluator.Evaluate(request).ConfigureAwait(false);
             var events = eventsResponse.Value;
 
-            Assert.AreEqual("/me/calendar/events?$filter=true and true&$select=id", httpClient.CalledUri);
+            Assert.AreEqual("/me/calendar/events?$filter=true and true and isCancelled and Nested/Prop&$select=id", httpClient.CalledUri);
             ////Assert.AreEqual("/me/calendar/events?$filter=subject eq 'asdf'", httpClient.CalledUri);
             //// TODO do memory assertions
         }
