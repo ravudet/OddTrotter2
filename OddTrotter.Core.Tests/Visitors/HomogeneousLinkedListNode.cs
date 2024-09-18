@@ -112,15 +112,15 @@
         public void Test()
         {
             var list = HomogeneousLinkedListNode<string>.Terminal.Instance
-                .Prepend("first")
-                .Prepend("second")
-                .Prepend("third");
+                .Prepend("fourth")
+                .Prepend("fifth")
+                .Prepend("sixth");
 
             var toStringVisitor = new ToStringVisitor<string>(_ => _);
             var builder = new StringBuilder();
             toStringVisitor.Traverse(list, (builder, true));
 
-            Assert.AreEqual("[third, second, first]", builder.ToString());
+            Assert.AreEqual("[sixth, fifth, fourth]", builder.ToString());
         }
     }
 }
