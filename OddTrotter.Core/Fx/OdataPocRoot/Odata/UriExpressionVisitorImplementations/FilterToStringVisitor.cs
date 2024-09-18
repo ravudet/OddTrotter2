@@ -23,6 +23,11 @@
             {
                 Visit(third.BoolFirstMemberExpression, builder);
             }
+            else if (node is BoolCommonExpression.Tenth tenth)
+            {
+                Visit(tenth.PrimitiveLiteral, builder);
+                Visit(tenth.EqualsExpression, builder);
+            }
             else if (node is BoolCommonExpression.Eighteenth million)
             {
                 Visit(million.BoolCommonExpression, builder);
@@ -31,6 +36,46 @@
             else
             {
                 throw new Exception("TODO a proper visitor pattern would prevent this branch");
+            }
+        }
+
+        public void Visit(EqualsExpression node, StringBuilder builder)
+        {
+            builder.Append(" eq ");
+            Visit(node.Right, builder);
+        }
+
+        public void Visit(CommonExpression node, StringBuilder builder)
+        {
+            //// TODO put this in common
+            if (node is CommonExpression.Todo todo)
+            {
+                CommonToStringVisitor.Default.Visit(todo.Identifier, builder);
+                builder.Append("/");
+                Visit(todo.CommonExpression, builder);
+            }
+            else if (node is CommonExpression.TodoTerminal terminal)
+            {
+                CommonToStringVisitor.Default.Visit(terminal.Identifier, builder);
+            }
+            else
+            {
+                throw new Exception("TODO");
+            }
+        }
+
+        public void Visit(PrimitiveLiteral node, StringBuilder builder)
+        {
+            //// TODO put this in common
+            if (node is PrimitiveLiteral.StringValue stringValue)
+            {
+                builder.Append("\'");
+                builder.Append(stringValue.String);
+                builder.Append("\'");
+            }
+            else
+            {
+                throw new Exception("TODO");
             }
         }
 

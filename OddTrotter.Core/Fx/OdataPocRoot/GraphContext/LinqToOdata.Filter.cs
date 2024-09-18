@@ -52,6 +52,145 @@
                         throw new Exception("TODO a c# member was accessed, but it was not a boolean literal and it was not a closure on a boolean local variable");
                     }
                 }
+                else if (expression is BinaryExpression binaryExpression)
+                {
+                    var traversed = TraverseBinaryExpression(binaryExpression);
+                    if (traversed.Tenth != null)
+                    {
+                        return new Filter(traversed.Tenth);
+                    }
+                    if (traversed.Eleventh != null)
+                    {
+                        return new Filter(traversed.Eleventh);
+                    }
+                    if (traversed.Twelfth != null)
+                    {
+                        return new Filter(traversed.Twelfth);
+                    }
+                    if (traversed.Thirteenth != null)
+                    {
+                        return new Filter(traversed.Thirteenth);
+                    }
+                    if (traversed.Fourteenth != null)
+                    {
+                        return new Filter(traversed.Fourteenth);
+                    }
+                    if (traversed.Fifteenth != null)
+                    {
+                        return new Filter(traversed.Fifteenth);
+                    }
+                    else
+                    {
+                        throw new Exception("TODO a c# binary operation was provided, but it wasn't a boolean operation");
+                    }
+                }
+                else
+                {
+                    throw new Exception("TODO");
+                }
+            }
+
+            private static 
+                (
+                    BoolCommonExpression.Tenth? Tenth,
+                    BoolCommonExpression.Eleventh? Eleventh,
+                    BoolCommonExpression.Twelfth? Twelfth,
+                    BoolCommonExpression.Thirteenth? Thirteenth,
+                    BoolCommonExpression.Fourteenth? Fourteenth,
+                    BoolCommonExpression.Fifteenth? Fifteenth,
+                    object? NonboolBinary
+                )
+                TraverseBinaryExpression(BinaryExpression expression)
+            {
+                var leftTraversed = TraverseExpression(expression.Left);
+                if (leftTraversed.PrimitiveLiteral == null)
+                {
+                    throw new Exception("TODO implement the rest of the linq expression traversal");
+                }
+
+                var rightTraversed = TraverseExpression(expression.Right);
+                if (rightTraversed.CommonExpression == null)
+                {
+                    throw new Exception("TODO implement the rest of the linq expression traversal");
+                }
+
+                if (
+                    (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_Equality") // 'operator ==' overload
+                    || (expression.NodeType == ExpressionType.Equal) // primitive equality provided by the compiler
+                    )
+                {
+                    return
+                        (
+                            new BoolCommonExpression.Tenth(
+                                leftTraversed.PrimitiveLiteral,
+                                new EqualsExpression(rightTraversed.CommonExpression)),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
+                        );
+                }
+                else if (
+                    (expression.Method?.IsSpecialName == true && expression.Method?.Name == "op_GreaterThan") // 'operator >' overload
+                    || (expression.NodeType == ExpressionType.GreaterThan) // primitive comparison provided by the compiler
+                    )
+                {
+                    return
+                        (
+                            null,
+                            null,
+                            null,
+                            null,
+                            new BoolCommonExpression.Fourteenth(
+                                leftTraversed.PrimitiveLiteral,
+                                new GreaterThanExpression(rightTraversed.CommonExpression)),
+                            null,
+                            null
+                        );
+                }
+                else
+                {
+                    //// TODO other operators
+                    throw new Exception("TODO");
+                }
+            }
+
+            private static (PrimitiveLiteral? PrimitiveLiteral, CommonExpression? CommonExpression, object? Other) TraverseExpression(Expression expression)
+            {
+                if (expression is ConstantExpression constantExpression)
+                {
+                    var traversed = TraverseConstantExpression(constantExpression);
+                    if (traversed.PrimitiveLiteral != null)
+                    {
+                        return (traversed.PrimitiveLiteral, null, null);
+                    }
+                    else
+                    {
+                        throw new Exception("TODO");
+                    }
+                }
+                else if (expression is MemberExpression memberExpression)
+                {
+                    var traversed = TraverseMemberExpression(memberExpression);
+                    if (traversed.PrimitiveLiteral != null)
+                    {
+                        return (traversed.PrimitiveLiteral, null, null);
+                    }
+                    else if (traversed.BoolFirstMemberExpression != null)
+                    {
+                        throw new Exception("TODO"); //// TODO convert to common expression
+                    }
+                    else if (traversed.NonboolMemberExpression != null)
+                    {
+                        return (null, traversed.NonboolMemberExpression, null);
+                    }
+                    else
+                    {
+                        throw new Exception("TODO");
+                    }
+                }
                 else
                 {
                     throw new Exception("TODO");
@@ -82,7 +221,7 @@
                 }
             }
 
-            private static (PrimitiveLiteral? PrimitiveLiteral, BoolFirstMemberExpression? BoolFirstMemberExpression, object? NonboolMemberExpression)
+            private static (PrimitiveLiteral? PrimitiveLiteral, BoolFirstMemberExpression? BoolFirstMemberExpression, CommonExpression? NonboolMemberExpression)
                 TraverseMemberExpression(MemberExpression expression)
             {
                 var parameterAccess = TraverseParameterAccess(expression, Enumerable.Empty<MemberExpression>());
@@ -99,7 +238,7 @@
                 return (closure, null, null);
             }
 
-            private static (BoolFirstMemberExpression? BoolFirstMemberExpression, object? NonboolMemberExpression) TraverseParameterAccess(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
+            private static (BoolFirstMemberExpression? BoolFirstMemberExpression, CommonExpression? NonboolMemberExpression) TraverseParameterAccess(MemberExpression expression, IEnumerable<MemberExpression> previousExpressions)
             {
                 if (expression.Expression?.NodeType == ExpressionType.Constant)
                 {
@@ -136,8 +275,16 @@
                             return
                                 (
                                     new BoolFirstMemberExpression.BoolMemberExpressionNode(
-                                        traversed.BoolMemberExpression), 
+                                        traversed.BoolMemberExpression),
                                     null
+                                );
+                        }
+                        else if (traversed.NonboolMemberExpression != null)
+                        {
+                            return
+                                (
+                                    null,
+                                    traversed.NonboolMemberExpression
                                 );
                         }
                         else
@@ -148,7 +295,7 @@
                 }
             }
 
-            private static (BoolMemberExpression? BoolMemberExpression, object? NonboolMemberExpression) TraversePreviousMembers(IEnumerator<MemberExpression> expressions)
+            private static (BoolMemberExpression? BoolMemberExpression, CommonExpression? NonboolMemberExpression) TraversePreviousMembers(IEnumerator<MemberExpression> expressions)
             {
                 var expression = expressions.Current;
                 var propertyNames = GetPropertyNames(expression.Member.DeclaringType!); //// TODO nullable
@@ -163,26 +310,57 @@
 
                     if (!expressions.MoveNext())
                     {
-                        return
-                            (
-                                new BoolMemberExpression.Unqualified.PropertyPath(
-                                    new BoolPropertyPathExpression.PrimitveNode.Primitive(
-                                        new PrimitiveProperty.PrimitiveNonKeyProperty(
-                                            new OdataIdentifier(translatedName)))),
-                                null //// TODO for non-bool expressions
-                            );
+                        if (expression.Type == typeof(bool) || expression.Type == typeof(OdataInstanceProperty<bool>))
+                        {
+                            return
+                                (
+                                    new BoolMemberExpression.Unqualified.PropertyPath(
+                                        new BoolPropertyPathExpression.PrimitveNode.Primitive(
+                                            new PrimitiveProperty.PrimitiveNonKeyProperty(
+                                                new OdataIdentifier(translatedName)))),
+                                    null
+                                );
+                        }
+                        else
+                        {
+                            return
+                                (
+                                    null,
+                                    new CommonExpression.TodoTerminal(
+                                        new OdataIdentifier(translatedName))
+                                );
+                        }
                     }
                     else
                     {
-                        return
-                            (
-                                new BoolMemberExpression.Unqualified.PropertyPath(
-                                    new BoolPropertyPathExpression.PrimitveNode.Entity(
+                        var traversed = TraversePreviousMembers(expressions);
+
+                        if (traversed.BoolMemberExpression != null)
+                        {
+                            return
+                                (
+                                    new BoolMemberExpression.Unqualified.PropertyPath(
+                                        new BoolPropertyPathExpression.PrimitveNode.Entity(
+                                            new OdataIdentifier(translatedName),
+                                            new BoolSingleNavigationExpression(
+                                                traversed.BoolMemberExpression))),
+                                    null
+                                );
+                        }
+                        else if (traversed.NonboolMemberExpression != null)
+                        {
+                            return
+                                (
+                                    null,
+                                    new CommonExpression.Todo(
                                         new OdataIdentifier(translatedName),
-                                        new BoolSingleNavigationExpression(
-                                            TraversePreviousMembers(expressions).BoolMemberExpression!))), //// TODO nullable
-                                null //// TODO for non-bool expressions
-                            );
+                                        traversed.NonboolMemberExpression)
+                                );
+                        }
+                        else
+                        {
+                            throw new Exception("TODO");
+                        }
                     }
 
                 }

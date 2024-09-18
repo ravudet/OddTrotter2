@@ -51,11 +51,14 @@ namespace Fx.OdataPocRoot.Graph
 
     public sealed class NestedBool
     {
-        public NestedBool(OdataInstanceProperty<bool> prop)
+        public NestedBool(OdataInstanceProperty<bool> prop, OdataInstanceProperty<string> prop2)
         {
             Prop = prop;
+            Prop2 = prop2;
         }
 
         public OdataInstanceProperty<bool> Prop { get; }
+
+        public OdataInstanceProperty<string> Prop2 { get; }
     }
 }

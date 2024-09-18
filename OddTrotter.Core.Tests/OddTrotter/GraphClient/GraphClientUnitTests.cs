@@ -113,8 +113,10 @@
                 .Select(calendarEvent => calendarEvent.Id)
                 .Filter(calendarEvent => true)
                 .Filter(calendarEvent => calendarEvent.IsCancelled.Value)
-                .Filter(calendarEvent => calendarEvent.Nested.Value.Prop.Value);
-                ////.Filter(calendarEvent => calendarEvent.Subject.Value == "asdf") //// TODO having to call ".value" is weird here
+                .Filter(calendarEvent => calendarEvent.Nested.Value.Prop.Value)
+            //// TODO get the two below filters working, then completely implement the filtertostring visitor, then try to completely implement the linqtoodata for filters
+                .Filter(calendarEvent => "asdf" == calendarEvent.Subject.Value) //// TODO having to call ".value" is weird here; you also shouldn't nave to put the literal first
+                .Filter(calendarEvent => "qwer" == calendarEvent.Nested.Value.Prop2.Value);
                 ////.Filter(calendarEvent => calendarEvent.Subject.Value == "asdf"); //// TODO having to call ".value" is weird here
             var request = query.Request();
 
@@ -124,7 +126,7 @@
             var eventsResponse = await requestEvaluator.Evaluate(request).ConfigureAwait(false);
             var events = eventsResponse.Value;
 
-            Assert.AreEqual("/me/calendar/events?$filter=true and true and isCancelled and Nested/Prop&$select=id", httpClient.CalledUri);
+            Assert.AreEqual("/me/calendar/events?$filter=true and true and isCancelled and Nested/Prop and 'asdf' eq subject and 'qwer' eq Nested/Prop2&$select=id", httpClient.CalledUri);
             ////Assert.AreEqual("/me/calendar/events?$filter=subject eq 'asdf'", httpClient.CalledUri);
             //// TODO do memory assertions
         }
