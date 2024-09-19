@@ -13,7 +13,7 @@
 
         public abstract class Visitor<TResult, TContext>
         {
-            public TResult Traverse(Parent node, TContext context)
+            public TResult Dispatch(Parent node, TContext context)
             {
                 return node.Accept(this, context);
             }
@@ -56,7 +56,7 @@
 
             public new abstract class Visitor<TResult, TContext>
             {
-                public TResult Traverse(Child3 node, TContext context)
+                public TResult Dispatch(Child3 node, TContext context)
                 {
                     return node.Accept(this, context);
                 }
@@ -110,7 +110,7 @@
 
         public override Void Visit(Parent.Child3 node, StringBuilder context)
         {
-            return Child3ToStringVisitor.Instance.Traverse(node, context);
+            return Child3ToStringVisitor.Instance.Dispatch(node, context);
         }
 
         private sealed class Child3ToStringVisitor : Parent.Child3.Visitor<Void, StringBuilder>
@@ -144,10 +144,10 @@
             var toStringVisitor = ToStringVisitor.Instance;
 
             var builder = new StringBuilder();
-            toStringVisitor.Traverse(new Parent.Child1(), builder);
-            toStringVisitor.Traverse(new Parent.Child2(), builder);
-            toStringVisitor.Traverse(new Parent.Child3.GrandChild1(), builder);
-            toStringVisitor.Traverse(new Parent.Child3.GrandChild2(), builder);
+            toStringVisitor.Dispatch(new Parent.Child1(), builder);
+            toStringVisitor.Dispatch(new Parent.Child2(), builder);
+            toStringVisitor.Dispatch(new Parent.Child3.GrandChild1(), builder);
+            toStringVisitor.Dispatch(new Parent.Child3.GrandChild2(), builder);
 
             var value = builder.ToString();
             Assert.AreEqual("child1child2grandchild1grandchild2", value);

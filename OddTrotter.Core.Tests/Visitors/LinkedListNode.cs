@@ -15,7 +15,7 @@
 
         public abstract class Visitor<TResult, TContext>
         {
-            public TResult Traverse(LinkedListNode<TElement> node, TContext context)
+            public TResult Dispatch(LinkedListNode<TElement> node, TContext context)
             {
                 return node.Accept(this, context);
             }
@@ -100,7 +100,7 @@
 
             context.Builder.Append(this.transcriber(node.Element));
 
-            this.Traverse(node.TheRest, (context.Builder, false));
+            this.Dispatch(node.TheRest, (context.Builder, false));
             return default;
         }
     }
@@ -118,7 +118,7 @@
 
             var toStringVisitor = new ToStringVisitor<string>(_ => _);
             var builder = new StringBuilder();
-            toStringVisitor.Traverse(list, (builder, true));
+            toStringVisitor.Dispatch(list, (builder, true));
 
             Assert.AreEqual("[third, second, first]", builder.ToString());
         }
