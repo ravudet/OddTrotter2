@@ -149,13 +149,21 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
                     encodedSkipToken);
                 var nextLinkRelativeUri = ToRelativeUri(nextLinkRequest);
                 var nextLinkUri = new Uri(new Uri("TODO base URI here"), nextLinkRelativeUri).ToAbsoluteUri();
-                new OdataResponse<T>.GetCollection(
+                return new OdataResponse<T>.GetCollection(
                     elements,
                     new OdataResponse<T>.GetCollection.CollectionControlInformation(
                         nextLinkUri,
                         null
                         ));
             }
+
+            //// TODO differentiate between an invalid skip token, misconfiguration of the backendevaluators, and a final page that is incomplete
+            return new OdataResponse<T>.GetCollection(
+                    elements,
+                    new OdataResponse<T>.GetCollection.CollectionControlInformation(
+                        null,
+                        null
+                        ));
         }
 
         private static async Task<
