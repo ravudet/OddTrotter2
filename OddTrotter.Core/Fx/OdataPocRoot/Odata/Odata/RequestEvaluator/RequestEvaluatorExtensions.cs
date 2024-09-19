@@ -12,6 +12,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
 
     using Fx.OdataPocRoot.Graph;
     using System.IO;
+    using Fx.OdataPocRoot.Odata.Odata.RequestEvaluator.Mixins;
 
     public static class RequestEvaluatorExtensions
     {
@@ -43,6 +44,11 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
             this IRequestEvaluator requestEvaluator,
             OdataRequest<T>.GetCollection request)
         {
+            if (requestEvaluator is IGetCollectionMixin getCollectionMixin)
+            {
+                return await getCollectionMixin.Evaluate(request).ConfigureAwait(false);
+            }
+
             var response = await requestEvaluator.Evaluate(request.Request).ConfigureAwait(false);
             string responseString;
             using (var streamReader = new StreamReader(response.Contents))

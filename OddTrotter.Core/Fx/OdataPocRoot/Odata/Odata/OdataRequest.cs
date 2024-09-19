@@ -22,7 +22,7 @@ namespace Fx.OdataPocRoot.Odata.Odata
                 Select = select;
             }
 
-            public RelativeUri Uri { get; }
+            public RelativeUri Uri { get; } //// TODO you're really only interested in the non-query portions of this URI...you *might* be interested in keeping custom query options, or those should be a different property on the getcollection class; also, what about the URI fragment (stuff that comes after #)
 
             public Expand? Expand { get; }
 
