@@ -38,7 +38,8 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
             get
             {
                 //// TODO use a lazy?
-                return new OdataRequest.GetCollection(this.uri, this.expand, this.filter, this.select);
+                //// TODO implement skip token
+                return new OdataRequest.GetCollection(this.uri, this.expand, this.filter, this.select, null);
             }
         }
 
