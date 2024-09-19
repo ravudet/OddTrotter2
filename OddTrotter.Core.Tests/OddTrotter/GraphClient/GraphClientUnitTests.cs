@@ -115,6 +115,7 @@
                 .Filter(calendarEvent => calendarEvent.IsCancelled.Value)
                 .Filter(calendarEvent => calendarEvent.Nested.Value.Prop.Value)
             //// TODO completely implement the filtertostring visitor, then try to completely implement the linqtoodata for filters
+            //// TODO when are you ready to move into queryablev2 land?
                 .Filter(calendarEvent => "asdf" == calendarEvent.Subject.Value) //// TODO having to call ".value" is weird here; you also shouldn't nave to put the literal first
                 .Filter(calendarEvent => "qwer" == calendarEvent.Nested.Value.Prop2.Value);
             var request = query.Request();
