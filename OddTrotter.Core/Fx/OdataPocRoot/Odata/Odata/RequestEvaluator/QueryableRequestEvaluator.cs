@@ -33,7 +33,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
 
             //// TODO implement other query options;
 
-            var response = new OdataResponse<T>.GetCollection(query, null!);
+            var response = new OdataResponse<T>.GetCollection(query.ToList(), null!);
 
             //// TODO actually implement this
             return Task.FromResult(new OdataResponse.Collection(System.IO.Stream.Null));

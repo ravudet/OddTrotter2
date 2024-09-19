@@ -96,38 +96,93 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
                 }
 
                 var backendEvaluator = enumerator.Current;
-                var response = await GetMore(
-                    backendEvaluator, 
-                    incomingRequest, 
-                    backendNextLink, 
-                    elements, 
-                    backendElementsToSkip,
-                    this.pageSize).ConfigureAwait(false);
+                var response = await ExhaustEvaluator(backendEvaluator, incomingRequest, backendNextLink, elements, this.pageSize, backendElementsToSkip).ConfigureAwait(false);
                 if (elements.Count < this.pageSize)
                 {
-
+                    //// TODO next evaluator, or return if it's the last evaluator
                 }
                 else
                 {
-                    if (elements.Count > this.pageSize)
+                    var toSkip = response.PageCount - response.Taken;
+                    string skipTokenNextLink;
+                    if (toSkip > 0)
                     {
-                        //// TODO log an error?
+                        if (backendNextLink == null)
+                        {
+                            skipTokenNextLink = backendEvaluator.BackendUri;
+                        }
+                        else
+                        {
+                            skipTokenNextLink = backendNextLink.OriginalString;
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("TODO next page of current evaluator, or next evalutor");
                     }
 
-                    var skipToken = new SkipToken(backendEvaluator.BackendUri, response.NewNextLink);
+                    var skipToken = new SkipToken(
+                        backendEvaluator.BackendUri,
+                        skipTokenNextLink,
+                        toSkip);
                     return new OdataResponse<T>.GetCollection(
                         elements,
                         new OdataResponse<T>.GetCollection.CollectionControlInformation(
                             response.NewNextLink == null ? null : new Uri(response.NewNextLink, UriKind.Absolute).ToAbsoluteUri(),
-                            this.pageSize //// TODO you should only include this if "$count=true"
+                            pageSize //// TODO you should only include this if "$count=true"
                         ));
                 }
             }
         }
 
-        private static async Task<(string? NewNextLink, int? Taken)> GetMore<T>(BackendEvaluator backendEvaluator, OdataRequest<T>.GetCollection incomingRequest, RelativeUri? backendNextLink, List<T> elements, int pageSize, int toSkip)
+        private static async Task<(string? NewNextLink, int PageCount, int Taken)> ExhaustEvaluator<T>(BackendEvaluator backendEvaluator, OdataRequest<T>.GetCollection incomingRequest, RelativeUri? backendNextLink, List<T> elements, int pageSize, int toSkip)
         {
-            var backendRequestUri = backendNextLink ?? new Uri(backendEvaluator.BackendUri, UriKind.Relative).ToRelativeUri();
+            var originalCount = elements.Count;
+            var response = await GetPage(
+                    backendEvaluator,
+                    incomingRequest,
+                    backendNextLink ?? new Uri(backendEvaluator.BackendUri, UriKind.Relative).ToRelativeUri(),
+                    elements,
+                    pageSize,
+                    toSkip).ConfigureAwait(false);
+            if (elements.Count < pageSize)
+            {
+                await GetPage(
+                    backendEvaluator,
+                    incomingRequest,
+                    )
+            }
+            else
+            {
+                
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="backendEvaluator"></param>
+        /// <param name="incomingRequest"></param>
+        /// <param name="backendRequestUri"></param>
+        /// <param name="aggregatedElements"></param>
+        /// <param name="aggregatorPageSize"></param>
+        /// <param name="backendElementsToSkip"></param>
+        /// <returns>
+        /// TODO you've basically just rebuilt odataresponse{T}.getcollection, do you want to re-use that?
+        /// 
+        /// Elements - the elements of the page
+        /// NextLink - the next link of the page received at backendrequesturi
+        /// Count - the nubmer of elements of the page received at backenduri
+        /// </returns>
+        private static async Task<(IReadOnlyList<T> Elements, string? NextLink, int Count)> GetPage<T>(
+            BackendEvaluator backendEvaluator,
+            OdataRequest<T>.GetCollection incomingRequest, 
+            RelativeUri backendRequestUri,
+            List<T> aggregatedElements,
+            int aggregatorPageSize,
+            int backendElementsToSkip)
+        {
             var backendEvaluatorSkipToken = backendRequestUri
                 .GetComponents(RelativeUriComponents.Query, UriFormat.UriEscaped)
                 .Split("&", StringSplitOptions.RemoveEmptyEntries)
@@ -148,10 +203,13 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
                 .Evaluator
                 .Evaluate(genericBackendRequest)
                 .ConfigureAwait(false);
-            var originalCount = elements.Count;
-            elements.AddRange(backendResponse.Value.Skip(toSkip).Take(pageSize - elements.Count));
 
-            return (backendResponse.ControlInformation.NextLink?.OriginalString, elements.Count - originalCount);
+            return
+                (
+                    backendResponse.Value,
+                    backendResponse.ControlInformation.NextLink?.OriginalString, 
+                    backendResponse.Value.Count
+                );
         }
 
         private sealed class SkipToken

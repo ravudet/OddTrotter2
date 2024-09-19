@@ -31,13 +31,13 @@ namespace Fx.OdataPocRoot.Odata.Odata
 
         public sealed class GetCollection
         {
-            public GetCollection(IEnumerable<T> value, CollectionControlInformation controlInformation)
+            public GetCollection(IReadOnlyList<T> value, CollectionControlInformation controlInformation)
             {
                 Value = value;
                 ControlInformation = controlInformation;
             }
 
-            public IEnumerable<T> Value { get; }
+            public IReadOnlyList<T> Value { get; }
 
             public CollectionControlInformation ControlInformation { get; }
 

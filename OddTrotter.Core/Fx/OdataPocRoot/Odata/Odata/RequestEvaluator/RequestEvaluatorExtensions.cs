@@ -92,7 +92,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
             public sealed class Builder
             {
                 [JsonPropertyName("value")]
-                public IEnumerable<T>? Value { get; set; }
+                public IReadOnlyList<T>? Value { get; set; }
 
                 [JsonPropertyName("@odata.nextLink")]
                 public string? NextLink { get; set; }
