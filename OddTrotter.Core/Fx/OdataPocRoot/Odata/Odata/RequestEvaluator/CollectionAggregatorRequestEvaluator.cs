@@ -3,7 +3,10 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Linq;
+    using System.Numerics;
+    using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
 
@@ -51,18 +54,19 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
             return await this.defaultEvaluator.Evaluate(request).ConfigureAwait(false);
         }
 
-        public async Task<OdataResponse<T>.GetCollection> Evaluate<T>(OdataRequest<T>.GetCollection incomingRequest)
+        public async Task<OdataResponse<T>.GetCollection> Evaluate<T>(OdataRequest<T>.GetCollection request)
         {
-            var uriPath = incomingRequest.Request.Uri.GetComponents(RelativeUriComponents.Path, UriFormat.UriEscaped);
+            //// TODO in odatarequest.getcollection, you are likely going to the Uri property to include on the path; if that's what happens, check all of your assumptions in this clss about the use of that URI
+            var uriPath = request.Request.Uri.GetComponents(RelativeUriComponents.Path, UriFormat.UriEscaped);
             if (!this.aggregatedEvaluators.TryGetValue(uriPath, out var backendEvaluators))
             {
-                return await this.defaultEvaluator.Evaluate(incomingRequest).ConfigureAwait(false);
+                return await this.defaultEvaluator.Evaluate(request).ConfigureAwait(false);
             }
 
             IEnumerable<BackendEvaluator> remainingEvaluators;
             RelativeUri? backendNextLink;
             int backendElementsToSkip;
-            if (incomingRequest.Request.SkipToken == null)
+            if (request.Request.SkipToken == null)
             {
                 remainingEvaluators = backendEvaluators;
                 backendNextLink = null;
@@ -70,7 +74,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
             }
             else
             {
-                var skipToken = JsonSerializer.Deserialize<SkipToken>(incomingRequest.Request.SkipToken);
+                var skipToken = JsonSerializer.Deserialize<SkipToken>(request.Request.SkipToken);
                 if (skipToken == null)
                 {
                     throw new Exception("TODO null skiptoken provided");
@@ -78,6 +82,19 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
 
                 backendElementsToSkip = skipToken.ToSkip;
 
+                //// TODO this logic might break a client if a deployment happens, for example:
+                //// client requests A
+                //// aggregator sends A to evaluator 1
+                //// aggregator receives A'
+                //// aggregator sends A to evaluator 2
+                //// aggregator receives A''
+                //// aggregator stitches together A' + A''
+                //// client receives A' + A'' with skip token B
+                //// 
+                //// aggregator deployment occurs, putting evaluator 3 at the beginning of the collection
+                ////
+                //// client requests B
+                //// aggregator sends B to evaluator 4 // ERROR client now doesn't receive anything from 3
                 remainingEvaluators = backendEvaluators
                     .SkipWhile(evaluator =>
                         !string.Equals(
@@ -88,73 +105,114 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
             }
 
             var elements = new List<T>(this.pageSize);
-            using (var enumerator = remainingEvaluators.GetEnumerator())
+            foreach (var backendEvaluator in backendEvaluators)
             {
-                if (!enumerator.MoveNext())
-                {
-                    throw new Exception("TODO no more evaluators, but at least one is expeceted...");
-                }
-
-                var backendEvaluator = enumerator.Current;
-                var response = await ExhaustEvaluator(backendEvaluator, incomingRequest, backendNextLink, elements, this.pageSize, backendElementsToSkip).ConfigureAwait(false);
+                var response = await FillPageOrExhaustEvaluator(
+                    backendEvaluator,
+                    request,
+                    backendNextLink,
+                    elements,
+                    this.pageSize,
+                    backendElementsToSkip).ConfigureAwait(false);
                 if (elements.Count < this.pageSize)
                 {
-                    //// TODO next evaluator, or return if it's the last evaluator
+                    // the page isn't full yet, go to the next evaluator
+                    continue;
+                }
+
+                string evaluatorNextLink;
+                int numberOfElementsAlreadyTaken;
+                if (response.NextUnexhaustedPage == null)
+                {
+                    // the page is full, but it was just barely filled by the current backend evaluator; let's get the
+                    // uri for the next evaluator
+                    evaluatorNextLink = "TODO make this the URI for the next backend evaluator";
+                    numberOfElementsAlreadyTaken = 0;
                 }
                 else
                 {
-                    var toSkip = response.PageCount - response.Taken;
-                    string skipTokenNextLink;
-                    if (toSkip > 0)
-                    {
-                        if (backendNextLink == null)
-                        {
-                            skipTokenNextLink = backendEvaluator.BackendUri;
-                        }
-                        else
-                        {
-                            skipTokenNextLink = backendNextLink.OriginalString;
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("TODO next page of current evaluator, or next evalutor");
-                    }
-
-                    var skipToken = new SkipToken(
-                        backendEvaluator.BackendUri,
-                        skipTokenNextLink,
-                        toSkip);
-                    return new OdataResponse<T>.GetCollection(
-                        elements,
-                        new OdataResponse<T>.GetCollection.CollectionControlInformation(
-                            response.NewNextLink == null ? null : new Uri(response.NewNextLink, UriKind.Absolute).ToAbsoluteUri(),
-                            pageSize //// TODO you should only include this if "$count=true"
-                        ));
+                    evaluatorNextLink = response.NextUnexhaustedPage;
+                    numberOfElementsAlreadyTaken = response.NumberOfElementsAlreadyTakenFromThatPage;
                 }
+
+                var skipToken = new SkipToken(
+                    backendEvaluator.BackendUri,
+                    evaluatorNextLink,
+                    numberOfElementsAlreadyTaken);
+                var serializedSkipToken = JsonSerializer.Serialize(skipToken);
+                var encodedSkipToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(serializedSkipToken));
+                var nextLinkRequest = new OdataRequest.GetCollection(
+                    request.Request.Uri,
+                    request.Request.Expand,
+                    request.Request.Filter,
+                    request.Request.Select,
+                    encodedSkipToken);
+                var nextLinkRelativeUri = ToRelativeUri(nextLinkRequest);
+                var nextLinkUri = new Uri(new Uri("TODO base URI here"), nextLinkRelativeUri).ToAbsoluteUri();
+                new OdataResponse<T>.GetCollection(
+                    elements,
+                    new OdataResponse<T>.GetCollection.CollectionControlInformation(
+                        nextLinkUri,
+                        null
+                        ));
             }
         }
 
-        private static async Task<(string? NewNextLink, int PageCount, int Taken)> ExhaustEvaluator<T>(BackendEvaluator backendEvaluator, OdataRequest<T>.GetCollection incomingRequest, RelativeUri? backendNextLink, List<T> elements, int pageSize, int toSkip)
+        private static async Task<
+            (
+                string? NextUnexhaustedPage,
+                int NumberOfElementsAlreadyTakenFromThatPage
+            )>
+                                    FillPageOrExhaustEvaluator<T>(
+                                        BackendEvaluator backendEvaluator, 
+                                        OdataRequest<T>.GetCollection incomingRequest, 
+                                        RelativeUri? backendNextLink, 
+                                        List<T> elements, 
+                                        int pageSize, 
+                                        int toSkip)
         {
-            var originalCount = elements.Count;
-            var response = await GetPage(
+            backendNextLink ??= new Uri(backendEvaluator.BackendUri, UriKind.Relative).ToRelativeUri();
+            while (true)
+            {
+                var response = await GetEvaluatorPage(
                     backendEvaluator,
                     incomingRequest,
-                    backendNextLink ?? new Uri(backendEvaluator.BackendUri, UriKind.Relative).ToRelativeUri(),
-                    elements,
-                    pageSize,
-                    toSkip).ConfigureAwait(false);
-            if (elements.Count < pageSize)
-            {
-                await GetPage(
-                    backendEvaluator,
-                    incomingRequest,
-                    )
-            }
-            else
-            {
-                
+                    backendNextLink
+                    ).ConfigureAwait(false);
+
+                var pageRemainder = pageSize - elements.Count;
+                elements.AddRange(response.Elements.Skip(toSkip).Take(pageRemainder));
+                if (elements.Count < pageSize)
+                {
+                    // the aggregator page isn't full
+                    if (response.NextLink == null)
+                    {
+                        // but the evaluator is exhausted
+                        return (null, 0);
+                    }
+
+                    //// TODO doing this assumes that the nextlink is always at the same domain + scheme + port + etc
+                    var nextLink = new Uri(response.NextLink, UriKind.Absolute);
+                    var relativeNextLink = nextLink.GetComponents(
+                        UriComponents.PathAndQuery | UriComponents.Fragment, 
+                        UriFormat.Unescaped); //// TODO extension for this?
+                    backendNextLink = new Uri(relativeNextLink, UriKind.Relative).ToRelativeUri();
+                    toSkip = 0;
+                }
+                else
+                {
+                    // the aggregator page is full
+                    if (toSkip + pageRemainder < response.Elements.Count)
+                    {
+                        // there are still elements on the most recently requested page
+                        return (backendNextLink.OriginalString, toSkip + pageRemainder);
+                    }
+                    else
+                    {
+                        // the most recently requested page just barely finished the aggregator page
+                        return (response.NextLink, 0);
+                    }
+                }
             }
         }
 
@@ -173,15 +231,11 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
         /// 
         /// Elements - the elements of the page
         /// NextLink - the next link of the page received at backendrequesturi
-        /// Count - the nubmer of elements of the page received at backenduri
         /// </returns>
-        private static async Task<(IReadOnlyList<T> Elements, string? NextLink, int Count)> GetPage<T>(
+        private static async Task<(IReadOnlyList<T> Elements, string? NextLink)> GetEvaluatorPage<T>(
             BackendEvaluator backendEvaluator,
             OdataRequest<T>.GetCollection incomingRequest, 
-            RelativeUri backendRequestUri,
-            List<T> aggregatedElements,
-            int aggregatorPageSize,
-            int backendElementsToSkip)
+            RelativeUri backendRequestUri)
         {
             var backendEvaluatorSkipToken = backendRequestUri
                 .GetComponents(RelativeUriComponents.Query, UriFormat.UriEscaped)
@@ -207,9 +261,45 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
             return
                 (
                     backendResponse.Value,
-                    backendResponse.ControlInformation.NextLink?.OriginalString, 
-                    backendResponse.Value.Count
+                    backendResponse.ControlInformation.NextLink?.OriginalString
                 );
+        }
+
+        private static RelativeUri ToRelativeUri(OdataRequest.GetCollection odataRequest)
+        {
+            //// TODO make this an extension somewhere?
+
+            var uriBuilder = new StringBuilder();
+            uriBuilder.Append(odataRequest.Uri.OriginalString.Trim('/'));
+
+            var queryOptions = new List<string>();
+            if (odataRequest.Expand != null)
+            {
+                queryOptions.Add($"$expand={odataRequest.Expand.ToString()}"); //// TODO have adapters from each query option node to its string
+            }
+
+            if (odataRequest.Filter != null)
+            {
+                queryOptions.Add($"$filter={odataRequest.Filter.ToString()}"); //// TODO have adapters from each query option node to its string
+            }
+
+            if (odataRequest.Select != null)
+            {
+                queryOptions.Add($"$select={odataRequest.Select.ToString()}"); //// TODO have adapters from each query option node to its string
+            }
+
+            if (odataRequest.SkipToken != null)
+            {
+                queryOptions.Add($"$skiptoken={odataRequest.SkipToken.ToString()}"); //// TODO have adapters from each query option node to its string
+            }
+
+            if (queryOptions.Count > 0)
+            {
+                uriBuilder.Append("?");
+                uriBuilder.AppendJoin("&", queryOptions);
+            }
+
+            return new Uri(uriBuilder.ToString(), UriKind.Relative).ToRelativeUri();
         }
 
         private sealed class SkipToken
