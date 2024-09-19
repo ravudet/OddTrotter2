@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Fx.OdataPocRoot.Odata.Odata.RequestBuilder;
     using Fx.OdataPocRoot.Odata.Odata.RequestEvaluator;
+    using Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client.Payloads;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using OddTrotter.Calendar;
@@ -309,7 +310,7 @@
             var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(
                 graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), 
                 new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor(),
-                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor());
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor(CommonToStringVisitor.Default));
             var calendar = await graphCalendarContext
                 .Select(calendar => calendar.Id)
                 .Select(calendar => calendar.Events)
@@ -332,7 +333,7 @@
                 graphClient, 
                 new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), 
                 new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor(),
-                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor());
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor(CommonToStringVisitor.Default));
             
             Assert.ThrowsException<NotImplementedException>(() => graphCalendarContext.SubContext(calendar => calendar.Id)); //// TODO just proving that instance are treated different from collections; you should do more testing in another method
 
@@ -358,7 +359,7 @@
             var graphCalendarContext = new Fx.OdataPocRoot.GraphContext.CalendarContext(
                 graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), 
                 new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.SelectToStringVisitor(),
-                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor());
+                new Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations.FilterToStringVisitor(CommonToStringVisitor.Default));
 
             var events = graphCalendarContext.SubContext(calendar => calendar.Events);
             var filteredEvents = await events

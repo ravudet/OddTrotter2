@@ -29,7 +29,7 @@
         public SelectToStringVisitor()
             : this(
                   CommonToStringVisitor.Default,
-                  new FilterToStringVisitor(),
+                  new FilterToStringVisitor(CommonToStringVisitor.Default),
                   new SearchToStringVisitor(),
                   new InlineCountToStringVisitor(),
                   new OrderByToStringVisitor(),

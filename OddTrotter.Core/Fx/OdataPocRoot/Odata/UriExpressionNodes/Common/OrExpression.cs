@@ -5,11 +5,11 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Common
 
     public sealed class OrExpression
     {
-        public OrExpression(BoolCommonExpression boolCommonExpression)
+        public OrExpression(BoolCommonExpression right)
         {
-            BoolCommonExpression = boolCommonExpression;
+            Right = right;
         }
 
-        public BoolCommonExpression BoolCommonExpression { get; }
+        public BoolCommonExpression Right { get; }
     }
 }

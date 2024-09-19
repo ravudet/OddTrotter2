@@ -33,5 +33,7 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Common
                 public PrimitiveLiteral PrimitiveLiteral { get; }
             }
         }
+
+        //// TODO other types here
     }
 }

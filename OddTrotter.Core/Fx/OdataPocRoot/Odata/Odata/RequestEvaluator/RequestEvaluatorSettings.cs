@@ -14,7 +14,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
         }
 
         public static RequestEvaluatorSettings Default { get; } = new RequestEvaluatorSettings(
-            new FilterToStringVisitor(),
+            new FilterToStringVisitor(CommonToStringVisitor.Default),
             new SelectToStringVisitor());
 
         public FilterToStringVisitor FilterToStringVisitor { get; }
