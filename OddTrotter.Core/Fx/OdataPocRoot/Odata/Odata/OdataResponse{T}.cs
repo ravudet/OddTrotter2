@@ -45,13 +45,13 @@ namespace Fx.OdataPocRoot.Odata.Odata
             {
                 //// TODO put this somewhere commmn
                 
-                public CollectionControlInformation(AbsoluteUri nextLink, int count)
+                public CollectionControlInformation(AbsoluteUri? nextLink, int count)
                 {
                     NextLink = nextLink;
                     Count = count;
                 }
 
-                public AbsoluteUri NextLink { get; } //// TODO indicate if provided or not...
+                public AbsoluteUri? NextLink { get; } //// TODO indicate if provided or not using something other than nullable?
 
                 public int Count { get; } //// TODO indicate if provided or not
 
