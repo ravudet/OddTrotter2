@@ -2,6 +2,8 @@
 namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
 {
     using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Linq.Expressions;
     using System.Reflection;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Common;
@@ -34,11 +36,205 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
         }
     }
 
+    public sealed class StringToOdataIdentifierVisitor
+    {
+        public OdataIdentifier Dispatch(string node, Void context)
+        {
+            //// TODO validate the string...
+            return new OdataIdentifier(node);
+        }
+    }
+
+    public sealed class StringEnumerableToNamesapceVisitor
+    {
+        private readonly StringToOdataIdentifierVisitor stringToOdataIdentifierVisitor;
+
+        public StringEnumerableToNamesapceVisitor()
+        {
+            this.stringToOdataIdentifierVisitor = new StringToOdataIdentifierVisitor();
+        }
+
+        public Namespace Dispatch(IEnumerable<string> node, Void context)
+        {
+            //// TODO i can't decide if lazy evaluation is a good idea here...
+            var namespaceParts = new List<OdataIdentifier>();
+            foreach (var namespacePart in node)
+            {
+                namespaceParts.Add(this.stringToOdataIdentifierVisitor.Dispatch(namespacePart, context));
+            }
+
+            return new Namespace(namespaceParts);
+        }
+    }
+
+    public sealed class TypeToQualifiedEnumTypeNameVisitor
+    {
+        private readonly StringEnumerableToNamesapceVisitor stringEnumerableToNamesapceVisitor;
+
+        private readonly StringToOdataIdentifierVisitor stringToOdataIdentifierVisitor;
+
+        public TypeToQualifiedEnumTypeNameVisitor()
+        {
+            this.stringEnumerableToNamesapceVisitor = new StringEnumerableToNamesapceVisitor();
+            this.stringToOdataIdentifierVisitor = new StringToOdataIdentifierVisitor();
+        }
+
+        public QualifiedEnumTypeName Dispatch(Type node, Void context)
+        {
+            //// TODO do you want to revalidate stuff everywhere? like, "node" should be an enum here...
+            if (node.Namespace == null)
+            {
+                throw new Exception("TODO no .net type can be an enum if it doesn't have a namespace");
+            }
+
+            var namespaces = node.Namespace.Split('.');
+
+            var @namespace = this.stringEnumerableToNamesapceVisitor.Dispatch(namespaces, context);
+            var enumerationTypeName = this.stringToOdataIdentifierVisitor.Dispatch(node.Name, context);
+            return new QualifiedEnumTypeName(@namespace, enumerationTypeName);
+        }
+    }
+
+    public sealed class TypeToQualifiedEntityTypeNameVisitor
+    {
+        private readonly StringEnumerableToNamesapceVisitor stringEnumerableToNamesapceVisitor;
+
+        private readonly StringToOdataIdentifierVisitor stringToOdataIdentifierVisitor;
+
+        public TypeToQualifiedEntityTypeNameVisitor()
+        {
+            this.stringEnumerableToNamesapceVisitor = new StringEnumerableToNamesapceVisitor();
+            this.stringToOdataIdentifierVisitor = new StringToOdataIdentifierVisitor();
+        }
+
+        public QualifiedEntityTypeName Dispatch(Type node, Void context)
+        {
+            if (node.Namespace == null)
+            {
+                throw new Exception("TODO no .net type can be an enum if it doesn't have a namespace");
+            }
+
+            var namespaces = node.Namespace.Split('.');
+
+            var @namespace = this.stringEnumerableToNamesapceVisitor.Dispatch(namespaces, context);
+            var entityTypeName = this.stringToOdataIdentifierVisitor.Dispatch(node.Name, context);
+            return new QualifiedEntityTypeName(@namespace, entityTypeName);
+        }
+    }
+
     public sealed class TypeToSingleQualifiedTypeNameVisitor
     {
-        public SingleQualifiedTypeName Dispatch(Type type)
+        private readonly TypeToQualifiedEnumTypeNameVisitor typeToQualifiedEnumTypeNameVisitor;
+
+        private readonly TypeToQualifiedEntityTypeNameVisitor typeToQualifiedEntityTypeNameVisitor;
+
+        public TypeToSingleQualifiedTypeNameVisitor()
         {
-            throw new Exception("tODO");
+            this.typeToQualifiedEnumTypeNameVisitor = new TypeToQualifiedEnumTypeNameVisitor();
+            this.typeToQualifiedEntityTypeNameVisitor = new TypeToQualifiedEntityTypeNameVisitor();
+        }
+
+        public SingleQualifiedTypeName Dispatch(Type node, Void context)
+        {
+            if (node.IsEnum)
+            {
+                var qualifiedEnumTypeName = this.typeToQualifiedEnumTypeNameVisitor.Dispatch(node, context);
+                return new SingleQualifiedTypeName.QualifiedEnumType(qualifiedEnumTypeName);
+            }
+            /*else if (is typedef)
+            {
+                //// TODO is there a corresponding .NET construct?
+            }*/
+            else if (node == typeof(byte[]))
+            {
+                //// TODO you're breaking your convention here, but there would be too many visitors and too much duplicated if statements to continue following it...judgement call; you might go back on it if you need to return primitivetypenames in other places
+                var primitiveTypeName = new PrimitiveTypeName.Binary();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(bool))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Boolean();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(byte))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Byte();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(DateOnly))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Date();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(DateTimeOffset))
+            {
+                //// TODO do you also want to include datetime here?
+                var primitiveTypeName = new PrimitiveTypeName.DateTimeOffset();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(decimal))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Decimal();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(double))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Double();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(TimeSpan))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Duration();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(Guid))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Guid();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(short))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Int16();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(int))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Int32();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(long))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Int64();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(sbyte))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Sbyte();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(float))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Single();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(Stream))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.Stream();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else if (node == typeof(TimeOnly))
+            {
+                var primitiveTypeName = new PrimitiveTypeName.TimeOfDay();
+                return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
+            }
+            else
+            {
+                //// TODO how to differentiate between entity and complex type; you can't just look for a key property because entity base types are allowed to not define a key
+                var qualifiedEntityTypeName = this.typeToQualifiedEntityTypeNameVisitor.Dispatch(node, context);
+                return new SingleQualifiedTypeName.QualifiedEntityType(qualifiedEntityTypeName);
+            }
+
+            throw new Exception("TODO there's no meaningful mapping from node to an odata type name");
         }
     }
 
@@ -71,7 +267,8 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
             if (node.Type == typeof(Type))
             {
                 //// TODO check for collection
-                var singleQualifiedTypeName = this.typeToSingleQualifiedTypeNameVisitor.Dispatch(node.Type);
+                //// type.IsSubclassOf(typeof(IEnumerable));
+                var singleQualifiedTypeName = this.typeToSingleQualifiedTypeNameVisitor.Dispatch(node.Type, context);
                 return new QualifiedTypeName.SingleValue(singleQualifiedTypeName);
             }
             else
