@@ -7,6 +7,7 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Fx.OdataPocRoot.Odata.Odata.LinqVisitor;
     using Fx.OdataPocRoot.Odata.Odata.RequestBuilder;
     using Fx.OdataPocRoot.Odata.Odata.RequestEvaluator;
     using Fx.OdataPocRoot.Odata.UriExpressionVisitorImplementations;
@@ -47,6 +48,13 @@
                     throw new NotSupportedException("TODO");
                 }
             }
+        }
+
+        [TestMethod]
+        public void Test()
+        {
+            System.Linq.Expressions.Expression<Func<Fx.OdataPocRoot.Graph.Calendar, bool>> expression = (calendar) => calendar.GetType() == typeof(object);
+            new LinqToOdataFilterVisitor().Dispatch(expression);
         }
 
         [TestMethod]

@@ -3,6 +3,23 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
 {
     using System.Linq.Expressions;
 
+    public struct Void
+    {
+    }
+
+    public static class ExpressionVisitorExtensions
+    {
+        public static TResult Dispatch<TResult>(this ExpressionVisitor<TResult, Void> visitor, Expression node)
+        {
+            return visitor.Dispatch(node, default);
+        }
+
+        public static void Dispatch<TContext>(this ExpressionVisitor<Void, TContext> visitor, Expression node, TContext context)
+        {
+            visitor.Dispatch(node, context);
+        }
+    }
+
     /// <summary>
     /// TODO this class has nothing to do with odata or oddtrotter
     /// </summary>
