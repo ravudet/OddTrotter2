@@ -33,5 +33,12 @@ namespace Fx.OdataPocRoot.Odata.UriExpressionNodes.Common
 
             public OdataIdentifier Identifier { get; }
         }
+
+        public sealed class Empty : CommonExpression
+        {
+            public Empty()
+            {
+            }
+        }
     }
 }

@@ -123,107 +123,129 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
         }
     }
 
-    public sealed class TypeToSingleQualifiedTypeNameVisitor
+    public sealed class LinqToSingleQualifiedTypeNameVisitor : ExpressionVisitor<SingleQualifiedTypeName, Void>
     {
         private readonly TypeToQualifiedEnumTypeNameVisitor typeToQualifiedEnumTypeNameVisitor;
 
         private readonly TypeToQualifiedEntityTypeNameVisitor typeToQualifiedEntityTypeNameVisitor;
 
-        public TypeToSingleQualifiedTypeNameVisitor()
+        public LinqToSingleQualifiedTypeNameVisitor()
         {
             this.typeToQualifiedEnumTypeNameVisitor = new TypeToQualifiedEnumTypeNameVisitor();
             this.typeToQualifiedEntityTypeNameVisitor = new TypeToQualifiedEntityTypeNameVisitor();
         }
 
-        public SingleQualifiedTypeName Dispatch(Type node, Void context)
+        protected override SingleQualifiedTypeName Visit(BinaryExpression node, Void context)
         {
-            if (node.IsEnum)
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(BlockExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(ConditionalExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(ConstantExpression node, Void context)
+        {
+            //// TODO the subvisitors here need to have a way to update the casing and names and such of the types (e.g., the "Calendar" class should be translated to "calendar", and also you need to have a way to configure namespaces if the caller doesn't want their .NET ones exposed)
+
+            if (!(node.Value is Type type))
             {
-                var qualifiedEnumTypeName = this.typeToQualifiedEnumTypeNameVisitor.Dispatch(node, context);
+                throw new Exception("TODO use a good error message here");
+            }
+
+            if (type.IsEnum)
+            {
+                var qualifiedEnumTypeName = this.typeToQualifiedEnumTypeNameVisitor.Dispatch(type, context);
                 return new SingleQualifiedTypeName.QualifiedEnumType(qualifiedEnumTypeName);
             }
             /*else if (is typedef)
             {
                 //// TODO is there a corresponding .NET construct?
             }*/
-            else if (node == typeof(byte[]))
+            else if (type == typeof(byte[]))
             {
                 //// TODO you're breaking your convention here, but there would be too many visitors and too much duplicated if statements to continue following it...judgement call; you might go back on it if you need to return primitivetypenames in other places
                 var primitiveTypeName = new PrimitiveTypeName.Binary();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(bool))
+            else if (type == typeof(bool))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Boolean();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(byte))
+            else if (type == typeof(byte))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Byte();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(DateOnly))
+            else if (type == typeof(DateOnly))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Date();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(DateTimeOffset))
+            else if (type == typeof(DateTimeOffset))
             {
                 //// TODO do you also want to include datetime here?
                 var primitiveTypeName = new PrimitiveTypeName.DateTimeOffset();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(decimal))
+            else if (type == typeof(decimal))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Decimal();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(double))
+            else if (type == typeof(double))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Double();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(TimeSpan))
+            else if (type == typeof(TimeSpan))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Duration();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(Guid))
+            else if (type == typeof(Guid))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Guid();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(short))
+            else if (type == typeof(short))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Int16();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(int))
+            else if (type == typeof(int))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Int32();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(long))
+            else if (type == typeof(long))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Int64();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(sbyte))
+            else if (type == typeof(sbyte))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Sbyte();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(float))
+            else if (type == typeof(float))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Single();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(Stream))
+            else if (type == typeof(Stream))
             {
                 var primitiveTypeName = new PrimitiveTypeName.Stream();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
             }
-            else if (node == typeof(TimeOnly))
+            else if (type == typeof(TimeOnly))
             {
                 var primitiveTypeName = new PrimitiveTypeName.TimeOfDay();
                 return new SingleQualifiedTypeName.PrimitiveType(primitiveTypeName);
@@ -231,21 +253,126 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
             else
             {
                 //// TODO how to differentiate between entity and complex type; you can't just look for a key property because entity base types are allowed to not define a key
-                var qualifiedEntityTypeName = this.typeToQualifiedEntityTypeNameVisitor.Dispatch(node, context);
+                var qualifiedEntityTypeName = this.typeToQualifiedEntityTypeNameVisitor.Dispatch(type, context);
                 return new SingleQualifiedTypeName.QualifiedEntityType(qualifiedEntityTypeName);
             }
 
             throw new Exception("TODO there's no meaningful mapping from node to an odata type name");
         }
+
+        protected override SingleQualifiedTypeName Visit(DebugInfoExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(DefaultExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(DynamicExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(GotoExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(IndexExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(InvocationExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(LabelExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(LambdaExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(ListInitExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(LoopExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(MemberExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(MemberInitExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(MethodCallExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(NewArrayExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(NewExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(ParameterExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(RuntimeVariablesExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(SwitchExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(TryExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(TypeBinaryExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override SingleQualifiedTypeName Visit(UnaryExpression node, Void context)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public sealed class LinqToQualifiedTypeNameVisitor : ExpressionVisitor<QualifiedTypeName, Void>
     {
-        private readonly TypeToSingleQualifiedTypeNameVisitor typeToSingleQualifiedTypeNameVisitor;
+        private readonly LinqToSingleQualifiedTypeNameVisitor linqToSingleQualifiedTypeNameVisitor;
 
         public LinqToQualifiedTypeNameVisitor()
         {
-            this.typeToSingleQualifiedTypeNameVisitor = new TypeToSingleQualifiedTypeNameVisitor();
+            this.linqToSingleQualifiedTypeNameVisitor = new LinqToSingleQualifiedTypeNameVisitor();
         }
 
         protected override QualifiedTypeName Visit(BinaryExpression node, Void context)
@@ -267,7 +394,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
         {
             if (node.Type == typeof(Type))
             {
-                var singleQualifiedTypeName = this.typeToSingleQualifiedTypeNameVisitor.Dispatch(node.Type, context);
+                var singleQualifiedTypeName = this.linqToSingleQualifiedTypeNameVisitor.Dispatch(node, context);
                 if (node.Type.IsSubclassOf(typeof(IEnumerable)))
                 {
                     return new QualifiedTypeName.MultiValue(singleQualifiedTypeName);
@@ -391,6 +518,13 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
 
     public sealed class LinqToCommonExpressionVisitor : ExpressionVisitor<CommonExpression, Void>
     {
+        private readonly StringToOdataIdentifierVisitor stringToOdataIdentifierVisitor;
+
+        public LinqToCommonExpressionVisitor()
+        {
+            this.stringToOdataIdentifierVisitor = new StringToOdataIdentifierVisitor();
+        }
+
         protected override CommonExpression Visit(BinaryExpression node, Void context)
         {
             throw new NotImplementedException();
@@ -463,7 +597,23 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
 
         protected override CommonExpression Visit(MemberExpression node, Void context)
         {
-            throw new NotImplementedException();
+            //// TODO make sure that it's an odataproperty<T>?
+            //// TODO reminder that commonexpression is not accurate to the odata standard, so this whole class is basically a hack
+            var identifier = this.stringToOdataIdentifierVisitor.Dispatch(node.Member.Name, context);
+            if (node.Expression == null)
+            {
+                throw new Exception("TODO i don't understand waht cases result in a null expression here...");
+            }
+
+            var commonExpression = this.Dispatch(node.Expression, context);
+            if (commonExpression is CommonExpression.TodoTerminal todoTerminal && todoTerminal.Identifier.Identifier == "$this")
+            {
+                return new CommonExpression.TodoTerminal(identifier);
+            }
+            else
+            {
+                return new CommonExpression.Todo(identifier, commonExpression);
+            }
         }
 
         protected override CommonExpression Visit(MemberInitExpression node, Void context)
@@ -473,8 +623,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
 
         protected override CommonExpression Visit(MethodCallExpression node, Void context)
         {
-            //// TODO
-            return new CommonExpression.TodoTerminal(new OdataIdentifier("asdf"));
+            throw new NotImplementedException();
         }
 
         protected override CommonExpression Visit(NewArrayExpression node, Void context)
@@ -489,7 +638,8 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
 
         protected override CommonExpression Visit(ParameterExpression node, Void context)
         {
-            throw new NotImplementedException();
+            var identifier = new OdataIdentifier("$this");
+            return new CommonExpression.TodoTerminal(identifier);
         }
 
         protected override CommonExpression Visit(RuntimeVariablesExpression node, Void context)
@@ -533,15 +683,17 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
         protected override IsofExpression Visit(BinaryExpression node, Void context)
         {
             //// TODO you could probably do something so that people can write typeof(string) == prop.GetType(), but let's just assume the left side is the accessor and the right side is the typeof for now
-            /*Expression typeOperand;
-            Expression accessorOperand;*/
-
             CommonExpression commonExpression;
             if (node.Left is MethodCallExpression methodCallExpression &&
                 methodCallExpression.Method == CommonMethods.Object.GetType)
             {
-                //// TODO you need everything *before* the .gettype call...
-                commonExpression = this.linqToCommonExpressionVisitor.Dispatch(node.Left, context);
+                var accessorExpression = methodCallExpression.Object;
+                if (accessorExpression == null)
+                {
+                    throw new Exception("TODO i don't think you can get here");
+                }
+
+                commonExpression = this.linqToCommonExpressionVisitor.Dispatch(accessorExpression, context);
             }
             else
             {
@@ -551,7 +703,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
             QualifiedTypeName qualifiedTypeName;
             if (node.Right is ConstantExpression constantExpression && constantExpression.Type == typeof(Type))
             {
-                qualifiedTypeName = this.linqToQualifiedTypeNameVisitor.Dispatch(node.Right, context);
+                qualifiedTypeName = this.linqToQualifiedTypeNameVisitor.Dispatch(constantExpression, context);
             }
             else
             {
