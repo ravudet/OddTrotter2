@@ -2,6 +2,7 @@
 namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq.Expressions;
@@ -266,10 +267,15 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
         {
             if (node.Type == typeof(Type))
             {
-                //// TODO check for collection
-                //// type.IsSubclassOf(typeof(IEnumerable));
                 var singleQualifiedTypeName = this.typeToSingleQualifiedTypeNameVisitor.Dispatch(node.Type, context);
-                return new QualifiedTypeName.SingleValue(singleQualifiedTypeName);
+                if (node.Type.IsSubclassOf(typeof(IEnumerable)))
+                {
+                    return new QualifiedTypeName.MultiValue(singleQualifiedTypeName);
+                }
+                else
+                {
+                    return new QualifiedTypeName.SingleValue(singleQualifiedTypeName);
+                }
             }
             else
             {
