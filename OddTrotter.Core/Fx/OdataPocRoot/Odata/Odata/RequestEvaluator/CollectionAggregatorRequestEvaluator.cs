@@ -56,6 +56,8 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestEvaluator
 
         public async Task<OdataResponse<T>.GetCollection> Evaluate<T>(OdataRequest<T>.GetCollection request)
         {
+            //// TODO this implementation doesn't support orderby in the incoming request; you *could* support it by merging the sequence from all backendevaluators at once; the "degenerate" case would be a comparer that always takes the leftmost one, which will be *close* to this implementation: it will need to get the first page of every evaluator before it can do any work, but then it will exhaust the first evaluator before moving on to the second one, which is the same as the current implementaiton
+
             //// TODO in odatarequest.getcollection, you are likely going to the Uri property to include on the path; if that's what happens, check all of your assumptions in this clss about the use of that URI
             var uriPath = request.Request.Uri.GetComponents(RelativeUriComponents.Path, UriFormat.UriEscaped);
             if (!this.aggregatedEvaluators.TryGetValue(uriPath, out var backendEvaluators))
