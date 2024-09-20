@@ -8,6 +8,7 @@
     using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
+    using Fx.OdataPocRoot.Graph;
     using Fx.OdataPocRoot.Odata.Odata.LinqVisitor;
     using Fx.OdataPocRoot.Odata.Odata.RequestBuilder;
     using Fx.OdataPocRoot.Odata.Odata.RequestEvaluator;
@@ -61,7 +62,20 @@
             new FilterToStringVisitor(CommonToStringVisitor.Default).Visit(filter, builder);
 
             //// TODO note that the $this is actually wrong, as a result of your hacky commonexpression stop-gap
-            Assert.AreEqual("$filter=isof($this, object)", builder.ToString());
+            Assert.AreEqual("$filter=isof($this,System.Object)", builder.ToString());
+        }
+
+        [TestMethod]
+        public void Test2()
+        {
+            System.Linq.Expressions.Expression<Func<Fx.OdataPocRoot.Graph.Calendar, bool>> expression = (calendar) => calendar.Events.GetType() == typeof(IEnumerable<Event>);
+            var filter = new LinqToOdataFilterVisitor().Dispatch(expression);
+
+            var builder = new StringBuilder();
+            new FilterToStringVisitor(CommonToStringVisitor.Default).Visit(filter, builder);
+
+            //// TODO note that the $this is actually wrong, as a result of your hacky commonexpression stop-gap
+            Assert.AreEqual("$filter=isof(events,Collection(Fx.OdataPocRoot.Graph.Event)", builder.ToString());
         }
 
         [TestMethod]
