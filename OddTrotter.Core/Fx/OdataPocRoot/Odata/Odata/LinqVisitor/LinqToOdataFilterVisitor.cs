@@ -159,6 +159,16 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
                 throw new Exception("TODO use a good error message here");
             }
 
+            if (type.IsGenericType)
+            {
+                var genericTypeDefinition = type.GetGenericTypeDefinition();
+                if (genericTypeDefinition == typeof(IEnumerable<>))
+                {
+                    //// TODO this only works for exactly ienumerable<T>, not its derived types
+                    type = type.GenericTypeArguments[0];
+                }
+            }
+
             if (type.IsEnum)
             {
                 var qualifiedEnumTypeName = this.typeToQualifiedEnumTypeNameVisitor.Dispatch(type, context);
@@ -392,10 +402,11 @@ namespace Fx.OdataPocRoot.Odata.Odata.LinqVisitor
 
         protected override QualifiedTypeName Visit(ConstantExpression node, Void context)
         {
-            if (node.Type == typeof(Type))
+            if (node.Type == typeof(Type) && node.Value is Type type)
             {
                 var singleQualifiedTypeName = this.linqToSingleQualifiedTypeNameVisitor.Dispatch(node, context);
-                if (node.Type.IsSubclassOf(typeof(IEnumerable)))
+                //// TODO this will only work for exactly ienumerable<T>, not anything that implements it
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                 {
                     return new QualifiedTypeName.MultiValue(singleQualifiedTypeName);
                 }

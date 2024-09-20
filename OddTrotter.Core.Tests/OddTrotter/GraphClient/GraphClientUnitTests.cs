@@ -74,8 +74,8 @@
             var builder = new StringBuilder();
             new FilterToStringVisitor(CommonToStringVisitor.Default).Visit(filter, builder);
 
-            //// TODO note that the $this is actually wrong, as a result of your hacky commonexpression stop-gap
-            Assert.AreEqual("$filter=isof(events,Collection(Fx.OdataPocRoot.Graph.Event)", builder.ToString());
+            //// TODO the propertyname attribute on Events should be honored
+            Assert.AreEqual("$filter=isof(Events,Collection(Fx.OdataPocRoot.Graph.Event))", builder.ToString());
         }
 
         [TestMethod]
