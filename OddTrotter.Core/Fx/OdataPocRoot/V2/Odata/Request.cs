@@ -1,4 +1,5 @@
-﻿namespace Fx.OdataPocRoot.V2.Odata
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.OdataPocRoot.V2.Odata
 {
     using Fx.OdataPocRoot.V2.System.Uri;
 
@@ -8,9 +9,9 @@
         {
         }
 
-        public sealed class GetInstance : Request
+        public sealed class GetCollection : Request
         {
-            public GetInstance(Path uri)
+            public GetCollection(Path uri)
             {
                 this.Uri = uri;
             }
