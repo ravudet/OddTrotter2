@@ -14,15 +14,15 @@ namespace Fx.OdataPocRoot.V2.Odata
 
         public sealed class GetCollection : Request
         {
-            public GetCollection(Path uri, Filter? filter, Select? select, Top? top)
+            public GetCollection(Path path, Filter? filter, Select? select, Top? top)
             {
-                this.Uri = uri;
+                this.Path = path;
                 this.Filter = filter;
                 this.Select = select;
                 this.Top = top;
             }
 
-            public Path Uri { get; }
+            public Path Path { get; }
 
             public Filter? Filter { get; }
 
@@ -30,5 +30,7 @@ namespace Fx.OdataPocRoot.V2.Odata
 
             public Top? Top { get; }
         }
+
+        //// TODO FEATURE GAP: other request types here
     }
 }

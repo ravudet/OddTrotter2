@@ -1,4 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+using static Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.CommonExpression;
+
 namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
 {
     public abstract class CommonExpressionPart1
@@ -9,6 +11,40 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
         {
         }
 
+        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Traverse(CommonExpressionPart1 node, TContext context)
+            {
+                return node.Accept(this, context);
+            }
+
+            public abstract TResult Visit(PrimitiveLiteral node, TContext context); //// TODO any way to make these protected?
+
+            public abstract TResult Visit(ArrayOrObject node, TContext context);
+
+            public abstract TResult Visit(RootExpr node, TContext context);
+
+            public abstract TResult Visit(FirstMemberExpr node, TContext context);
+
+            public abstract TResult Visit(FunctionExpr node, TContext context);
+
+            public abstract TResult Visit(NegateExpr node, TContext context);
+
+            public abstract TResult Visit(MethodCallExpr node, TContext context);
+
+            public abstract TResult Visit(ParenExpr node, TContext context);
+
+            public abstract TResult Visit(ListExpr node, TContext context);
+
+            public abstract TResult Visit(CastExpr node, TContext context);
+
+            public abstract TResult Visit(IsofExpr node, TContext context);
+
+            public abstract TResult Visit(NotExpr node, TContext context);
+        }
+
         public sealed class PrimitiveLiteral : CommonExpressionPart1
         {
             public PrimitiveLiteral(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.PrimitiveLiteral primitiveLiteral)
@@ -17,6 +53,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.PrimitiveLiteral Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class ArrayOrObject : CommonExpressionPart1
@@ -27,6 +68,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ArrayOrObject Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class RootExpr : CommonExpressionPart1
@@ -37,6 +83,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.RootExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class FirstMemberExpr : CommonExpressionPart1
@@ -47,6 +98,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.FirstMemberExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class FunctionExpr : CommonExpressionPart1
@@ -57,6 +113,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.FunctionExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class NegateExpr : CommonExpressionPart1
@@ -67,6 +128,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.NegateExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class MethodCallExpr : CommonExpressionPart1
@@ -77,6 +143,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.MethodCallExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class ParenExpr : CommonExpressionPart1
@@ -87,6 +158,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ParenExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class ListExpr : CommonExpressionPart1
@@ -97,6 +173,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ListExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class CastExpr : CommonExpressionPart1
@@ -107,6 +188,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.CastExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class IsofExpr : CommonExpressionPart1
@@ -117,6 +203,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.IsofExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class NotExpr : CommonExpressionPart1
@@ -127,6 +218,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.NotExpr Value { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
     }
 
@@ -136,6 +232,16 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
         {
             //// TODO FEATURE GAP: finish this
         }
+
+        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Traverse(CommonExpressionPart2 node, TContext context)
+            {
+                return node.Accept(this, context);
+            }
+        }
     }
 
     public abstract class CommonExpressionPart3
@@ -144,12 +250,36 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
         {
             //// TODO FEATURE GAP: finish this
         }
+
+        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Traverse(CommonExpressionPart3 node, TContext context)
+            {
+                return node.Accept(this, context);
+            }
+        }
     }
 
     public abstract class CommonExpressionPart4
     {
         private CommonExpressionPart4()
         {
+        }
+
+        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Traverse(CommonExpressionPart4 node, TContext context)
+            {
+                return node.Accept(this, context);
+            }
+
+            public abstract TResult Visit(AndExpr node, TContext context); //// TODO any way to make these protected?
+
+            public abstract TResult Visit(OrExpr node, TContext context);
         }
 
         public sealed class AndExpr : CommonExpressionPart4
@@ -160,6 +290,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public BoolCommonExpression BoolCommonExpression { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
 
         public sealed class OrExpr : CommonExpressionPart4
@@ -170,6 +305,11 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             }
 
             public BoolCommonExpression BoolCommonExpression { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
         }
     }
 

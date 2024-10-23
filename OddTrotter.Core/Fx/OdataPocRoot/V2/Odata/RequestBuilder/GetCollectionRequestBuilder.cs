@@ -36,7 +36,7 @@ namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
                                 new CommonExpressionPart4.AndExpr(filter.BoolCommonExpression))));
             }
 
-            return new GetCollectionRequestBuilder(this.Request.Uri, newFilter, this.Request.Select, this.Request.Top);
+            return new GetCollectionRequestBuilder(this.Request.Path, newFilter, this.Request.Select, this.Request.Top);
         }
 
         public IGetCollectionRequestBuilder Select(Select select)
@@ -50,7 +50,7 @@ namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
                         this.Request.Select.SelectItems.Append(select.SelectItem).Concat(select.SelectItems));
             }
 
-            return new GetCollectionRequestBuilder(this.Request.Uri, this.Request.Filter, newSelect, this.Request.Top);
+            return new GetCollectionRequestBuilder(this.Request.Path, this.Request.Filter, newSelect, this.Request.Top);
         }
 
         public IGetCollectionRequestBuilder Top(Top top)
@@ -60,7 +60,7 @@ namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
                 throw new global::System.Exception("TODO");
             }
 
-            return new GetCollectionRequestBuilder(this.Request.Uri, this.Request.Filter, this.Request.Select, top);
+            return new GetCollectionRequestBuilder(this.Request.Path, this.Request.Filter, this.Request.Select, top);
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Fx.OdataPocRoot.V2.System.Uri
 
         public Path(string path)
         {
+            //// TODO does trailing '/' mean anything?
             var uri = new Uri(path, UriKind.Relative).ToRelativeUri();
 
             var nonPathComponents = uri.GetComponents(RelativeUriComponents.Query | RelativeUriComponents.Fragment, UriFormat.Unescaped);
