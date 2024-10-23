@@ -5,7 +5,7 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
     {
         private CastExpr()
         {
-            //// TODO finish this
+            //// TODO FEATURE GAP: finish this
         }
     }
 }

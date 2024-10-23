@@ -1,8 +1,11 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Select
 {
-    public sealed class Select
+    public abstract class SelectItem
     {
-
+        private SelectItem()
+        {
+            //// TODO finish this
+        }
     }
 }

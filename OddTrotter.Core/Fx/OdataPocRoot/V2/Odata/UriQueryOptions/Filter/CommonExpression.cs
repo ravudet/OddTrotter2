@@ -134,7 +134,7 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
     {
         private CommonExpressionPart2()
         {
-            //// TODO flesh this out in the future
+            //// TODO FEATURE GAP: finish this
         }
     }
 
@@ -142,7 +142,7 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
     {
         private CommonExpressionPart3()
         {
-            //// TODO flesh this out in the future
+            //// TODO FEATURE GAP: finish this
         }
     }
 

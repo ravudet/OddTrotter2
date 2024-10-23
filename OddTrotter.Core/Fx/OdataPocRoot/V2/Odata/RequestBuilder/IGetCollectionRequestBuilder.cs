@@ -15,6 +15,6 @@ namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
 
         IGetCollectionRequestBuilder Top(Top top);
 
-        //// TODO other query options here...
+        //// TODO FEATURE GAP: other query options here...
     }
 }
