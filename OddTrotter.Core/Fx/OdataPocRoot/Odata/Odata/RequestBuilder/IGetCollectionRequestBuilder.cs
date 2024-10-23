@@ -1,6 +1,10 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
 {
+    using System;
+    using System.Linq;
+    using System.Linq.Expressions;
+
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Expand;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Filter;
     using Fx.OdataPocRoot.Odata.UriExpressionNodes.Select;
@@ -9,7 +13,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
     {
         OdataRequest.GetCollection Request { get; }
 
-        IGetInstanceRequestBuilder Expand(Expand query);
+        IGetCollectionRequestBuilder Expand(Expand query);
 
         IGetCollectionRequestBuilder Filter(Filter query);
 
