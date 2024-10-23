@@ -1,10 +1,12 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
 {
+    using global::System.Linq;
+
     using Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter;
     using Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Select;
     using Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Top;
-    using Fx.OdataPocRoot.V2.System.Uri;
+    using Fx.OdataPocRoot.V2.System.Uri;    
 
     public sealed class GetCollectionRequestBuilder : IGetCollectionRequestBuilder
     {
@@ -39,7 +41,16 @@ namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
 
         public IGetCollectionRequestBuilder Select(Select select)
         {
-            throw new global::System.NotImplementedException();
+            var newSelect = select;
+            if (this.Request.Select != null)
+            {
+                newSelect =
+                    new Select(
+                        this.Request.Select.SelectItem,
+                        this.Request.Select.SelectItems.Append(select.SelectItem).Concat(select.SelectItems));
+            }
+
+            return new GetCollectionRequestBuilder(this.Request.Uri, this.Request.Filter, newSelect, this.Request.Top);
         }
 
         public IGetCollectionRequestBuilder Top(Top top)

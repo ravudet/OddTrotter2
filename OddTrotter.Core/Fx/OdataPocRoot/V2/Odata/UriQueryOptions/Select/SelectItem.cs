@@ -5,7 +5,7 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Select
     {
         private SelectItem()
         {
-            //// TODO finish this
+            //// TODO FEATURE GAP: finish this
         }
     }
 }
