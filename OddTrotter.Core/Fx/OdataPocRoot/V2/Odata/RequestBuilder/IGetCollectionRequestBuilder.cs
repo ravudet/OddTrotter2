@@ -1,15 +1,19 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
 {
+    using Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter;
+    using Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Select;
+    using Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Top;
+
     public interface IGetCollectionRequestBuilder
     {
         Request.GetCollection Request { get; }
 
-        IGetCollectionRequestBuilder Filter(object query);
+        IGetCollectionRequestBuilder Filter(Filter filter);
 
-        IGetCollectionRequestBuilder Top(object query);
+        IGetCollectionRequestBuilder Select(Select select);
 
-        IGetCollectionRequestBuilder Select(object query);
+        IGetCollectionRequestBuilder Top(Top top);
 
         //// TODO other query options here...
     }
