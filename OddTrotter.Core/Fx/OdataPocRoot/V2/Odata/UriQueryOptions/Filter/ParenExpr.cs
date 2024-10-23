@@ -1,11 +1,13 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
 {
-    public abstract class ParenExpr
+    public sealed class ParenExpr
     {
-        private ParenExpr()
+        public ParenExpr(CommonExpression commonExpression)
         {
-            //// TODO finish this
+            this.CommonExpression = commonExpression;
         }
+
+        public CommonExpression CommonExpression { get; }
     }
 }

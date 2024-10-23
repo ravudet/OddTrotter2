@@ -29,7 +29,8 @@ namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
                     new Filter(
                         new BoolCommonExpression(
                             new CommonExpression.Part1Part4(
-                                new CommonExpressionPart1.ParenExpr(this.Request.Filter.BoolCommonExpression.CommonExpression),
+                                new CommonExpressionPart1.ParenExpr(
+                                    new ParenExpr(this.Request.Filter.BoolCommonExpression.CommonExpression)),
                                 new CommonExpressionPart4.AndExpr(filter.BoolCommonExpression))));
             }
 
