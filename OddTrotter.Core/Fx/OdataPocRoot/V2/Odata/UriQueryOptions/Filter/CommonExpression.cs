@@ -10,6 +10,75 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
         private CommonExpressionPart1()
         {
         }
+
+        public sealed class PrimitiveLiteral : CommonExpressionPart1
+        {
+            private PrimitiveLiteral()
+            {
+                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+            }
+        }
+
+        public sealed class ArrayOrObject : CommonExpressionPart1
+        {
+            private ArrayOrObject()
+            {
+                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+            }
+        }
+
+        public sealed class RootExpr : CommonExpressionPart1
+        {
+            private RootExpr()
+            {
+                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+            }
+        }
+
+        public sealed class FirstMemberExpr : CommonExpressionPart1
+        {
+            private FirstMemberExpr()
+            {
+                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+            }
+        }
+
+        public sealed class FunctionExpr : CommonExpressionPart1
+        {
+            private FunctionExpr()
+            {
+                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+            }
+        }
+
+        public sealed class NegateExpr : CommonExpressionPart1
+        {
+            private NegateExpr()
+            {
+                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+            }
+        }
+
+        public sealed class MethodCallExpr : CommonExpressionPart1
+        {
+            private MethodCallExpr()
+            {
+                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+            }
+        }
+
+        public sealed class ParenExpr : CommonExpressionPart1
+        {
+            public ParenExpr(CommonExpression commonExpression)
+            {
+                this.CommonExpression = commonExpression;
+            }
+
+            public CommonExpression CommonExpression { get; }
+        }
+
+
+        //// TODO do the rest before "shipping", but leave the actual primitive literal node stubbed
     }
 
     public abstract class CommonExpressionPart2
