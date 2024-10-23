@@ -1,6 +1,4 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-using System.ComponentModel;
-
 namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
 {
     public abstract class CommonExpressionPart1
@@ -13,78 +11,130 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
 
         public sealed class PrimitiveLiteral : CommonExpressionPart1
         {
-            private PrimitiveLiteral()
+            public PrimitiveLiteral(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.PrimitiveLiteral primitiveLiteral)
             {
-                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+                this.Value = primitiveLiteral;
             }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.PrimitiveLiteral Value { get; }
         }
 
         public sealed class ArrayOrObject : CommonExpressionPart1
         {
-            private ArrayOrObject()
+            public ArrayOrObject(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ArrayOrObject arrayOrObject)
             {
-                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+                this.Value = arrayOrObject;
             }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ArrayOrObject Value { get; }
         }
 
         public sealed class RootExpr : CommonExpressionPart1
         {
-            private RootExpr()
+            public RootExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.RootExpr rootExpr)
             {
-                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+                this.Value = rootExpr;
             }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.RootExpr Value { get; }
         }
 
         public sealed class FirstMemberExpr : CommonExpressionPart1
         {
-            private FirstMemberExpr()
+            public FirstMemberExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.FirstMemberExpr firstMemberExpr)
             {
-                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+                this.Value = firstMemberExpr;
             }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.FirstMemberExpr Value { get; }
         }
 
         public sealed class FunctionExpr : CommonExpressionPart1
         {
-            private FunctionExpr()
+            public FunctionExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.FunctionExpr functionExpr)
             {
-                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+                this.Value = functionExpr;
             }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.FunctionExpr Value { get; }
         }
 
         public sealed class NegateExpr : CommonExpressionPart1
         {
-            private NegateExpr()
+            public NegateExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.NegateExpr negateExpr)
             {
-                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+                this.Value = negateExpr;
             }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.NegateExpr Value { get; }
         }
 
         public sealed class MethodCallExpr : CommonExpressionPart1
         {
-            private MethodCallExpr()
+            public MethodCallExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.MethodCallExpr methodCallExpr)
             {
-                //// TODO do this before "shipping", but leave the actual primitive literal node stubbed
+                this.Value = methodCallExpr;
             }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.MethodCallExpr Value { get; }
         }
 
         public sealed class ParenExpr : CommonExpressionPart1
         {
-            public ParenExpr(CommonExpression commonExpression)
+            public ParenExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ParenExpr parenExpr)
             {
-                this.CommonExpression = commonExpression;
+                this.Value = parenExpr;
             }
 
-            public CommonExpression CommonExpression { get; }
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ParenExpr Value { get; }
         }
 
+        public sealed class ListExpr : CommonExpressionPart1
+        {
+            public ListExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ListExpr listExpr)
+            {
+                this.Value = listExpr;
+            }
 
-        //// TODO do the rest before "shipping", but leave the actual primitive literal node stubbed
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.ListExpr Value { get; }
+        }
+
+        public sealed class CastExpr : CommonExpressionPart1
+        {
+            public CastExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.CastExpr castExpr)
+            {
+                this.Value = castExpr;
+            }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.CastExpr Value { get; }
+        }
+
+        public sealed class IsofExpr : CommonExpressionPart1
+        {
+            public IsofExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.IsofExpr isofExpr)
+            {
+                this.Value = isofExpr;
+            }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.IsofExpr Value { get; }
+        }
+
+        public sealed class NotExpr : CommonExpressionPart1
+        {
+            public NotExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.NotExpr notExpr)
+            {
+                this.Value = notExpr;
+            }
+
+            public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.NotExpr Value { get; }
+        }
     }
 
     public abstract class CommonExpressionPart2
     {
         private CommonExpressionPart2()
         {
+            //// TODO flesh this out in the future
         }
     }
 
@@ -92,6 +142,7 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
     {
         private CommonExpressionPart3()
         {
+            //// TODO flesh this out in the future
         }
     }
 
