@@ -55,7 +55,12 @@ namespace Fx.OdataPocRoot.V2.Odata.RequestBuilder
 
         public IGetCollectionRequestBuilder Top(Top top)
         {
-            throw new global::System.NotImplementedException();
+            if (this.Request.Top != null)
+            {
+                throw new global::System.Exception("TODO");
+            }
+
+            return new GetCollectionRequestBuilder(this.Request.Uri, this.Request.Filter, this.Request.Select, top);
         }
     }
 }
