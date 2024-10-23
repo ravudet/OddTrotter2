@@ -43,7 +43,7 @@ namespace Fx.OdataPocRoot.Odata.Odata.RequestBuilder
             }
         }
 
-        public IGetInstanceRequestBuilder Expand(Expand query)
+        public IGetCollectionRequestBuilder Expand(Expand query)
         {
             throw new System.NotImplementedException("TODO implement expand for request builder");
         }

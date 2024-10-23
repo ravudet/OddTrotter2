@@ -11,7 +11,7 @@
         /// <param name="relativeUri">The URI to parse the components of</param>
         /// <param name="relativeUriComponents">A bitwise combination of the <see cref="RelativeUriComponents"/> values that specifies which parts of the current instance to return to the caller.</param>
         /// <param name="uriFormat">One of the enumeration values that controls how special characters are escaped.</param>
-        /// <returns>The components of the <paramref name="relativeUri"/>.</returns>
+        /// <returns>The components of the <paramref name="relativeUri"/>, or <see cref="string.Empty"/> if those components are not present in <paramref name="relativeUri"/> TODO write tests for this.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeUri"/> is <see langword="null"/></exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="relativeUriComponents"/> is not a valid combination of <see cref="RelativeUriComponents"/></exception>
         public static string GetComponents(this RelativeUri relativeUri, RelativeUriComponents relativeUriComponents, UriFormat uriFormat)
