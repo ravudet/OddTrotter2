@@ -820,7 +820,7 @@
 
         IODataCollectionContext<T> OrderBy<TProperty>(Expression<Func<T, TProperty>> selector);
 
-        IODataCollectionContext<T> Filter(Expression<Func<GraphCalendarContextEvent, bool>> predicate);
+        IODataCollectionContext<T> Filter(Expression<Func<T, bool>> predicate);
 
         //// TODO T this[somekey?] { get; }
     }
