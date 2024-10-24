@@ -3,7 +3,7 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
 {
     public abstract class CommonExpressionPart1
     {
-        //// TODO should these "parts" be nested in CommonExpression?
+        //// TODO should these "parts" be nested in CommonExpression? ANSWER yes, nest these
 
         private CommonExpressionPart1()
         {
@@ -238,6 +238,23 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             public TResult Traverse(CommonExpressionPart2 node, TContext context)
             {
                 return node.Accept(this, context);
+            }
+
+            public abstract TResult Visit(Variant1 node, TContext context);
+        }
+
+        public sealed class Variant1 : CommonExpressionPart2
+        {
+            public Variant1(AddExpr addExpr)
+            {
+                this.AddExpr = addExpr;
+            }
+
+            public AddExpr AddExpr { get; }
+
+            protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
             }
         }
     }
@@ -495,6 +512,51 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
             public CommonExpressionPart4 Part4 { get; }
 
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
+        }
+    }
+
+    public abstract class AUnion
+    {
+        private AUnion()
+        {
+        }
+
+        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Traverse(AUnion node, TContext context)
+            {
+                return node.Accept(this, context);
+            }
+
+            public abstract TResult Visit(FirstKind node, TContext context);
+
+            public abstract TResult Visit(SecondKind node, TContext context);
+        }
+
+        public sealed class FirstKind : AUnion
+        {
+            public FirstKind()
+            {
+            }
+
+            protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Visit(this, context);
+            }
+        }
+
+        public sealed class SecondKind : AUnion
+        {
+            public SecondKind()
+            {
+            }
+
+            protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
                 return visitor.Visit(this, context);
             }
