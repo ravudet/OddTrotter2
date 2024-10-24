@@ -1,6 +1,4 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-using static Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.CommonExpression;
-
 namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
 {
     public abstract class CommonExpressionPart1
