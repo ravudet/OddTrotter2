@@ -28,9 +28,27 @@ namespace Fx.OdataPocRoot.V2.Odata
             public Stream Body { get; }
         }
 
-        public sealed class EntityCollection : Response
+        public sealed class EntityCollection : Response //// TODO how are you handling the odataversion?
         {
+            public EntityCollection(HttpStatusCode httpStatusCode, ResponseHeaders headers)
+            {
+                this.HttpStatusCode = httpStatusCode;
+                this.Headers = headers;
+            }
 
+            public HttpStatusCode HttpStatusCode { get; } //// TODO do all status codes make sense for all response types?
+
+            public ResponseHeaders Headers { get; } //// TODO how can you make the headers class name and the property name both make sense?
+
+            public sealed class ResponseHeaders //// TODO is this really a good way to model the headers? the problem is that the allowable headers are specific to the kind of response, so you'll want a bag of them per derived type of response; also, you're really only adding this class to avoid add "header" as a suffix to the property names
+            {
+                public ResponseHeaders(string contentType)
+                {
+                    this.ContentType = contentType;
+                }
+
+                public string ContentType { get; } //// TODO strongly type this? also, isn't this dependent on odata version?
+            }
         }
 
         //// TODO FEATURE GAP: other response types here
