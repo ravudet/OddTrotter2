@@ -37,7 +37,7 @@ namespace Fx.OdataPocRoot.V2.Odata
                 this.Context = context;
             }
 
-            public HttpStatusCode HttpStatusCode { get; } //// TODO do all status codes make sense for all response types? consider that you'll only really return an entity collection for a successful response
+            public HttpStatusCode HttpStatusCode { get; } //// TODO do all status codes make sense for all response types? consider that you'll only really return an entity collection for a successful response; could you do adhoc discriminated unions with something that looks like "Union<Ok, Union<Created, Union<Redirected, NotFound>>>"?
 
             public ResponseHeaders Headers { get; } //// TODO how can you make the headers class name and the property name both make sense?
 
