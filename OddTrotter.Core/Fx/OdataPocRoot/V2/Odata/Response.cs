@@ -51,7 +51,7 @@ namespace Fx.OdataPocRoot.V2.Odata
                 public string ContentType { get; } //// TODO strongly type this? also, isn't this dependent on odata version?
             }
 
-            public string Context { get; } //// TODO strongly type this? TODO here you don't quite have the "provided with value, provided with null, not provided" union; the only valid options are "provided with value, not provided", but what if someone gives the *invalid* option of "null"? this is really a question for most things that are represented: how do you model that *most* of the data is valid and parsed out, but here are the parts that aren't valid? TODO how to name this so it's clear it's control information?
+            public string Context { get; } //// TODO strongly type this? TODO here you don't quite have the "provided with value, provided with null, not provided" union; the only valid options are "provided with value, not provided", but what if someone gives the *invalid* option of "null"? this is really a question for most things that are represented: how do you model that *most* of the data is valid and parsed out, but here are the parts that aren't valid? (is that what a tokenizer is for, and i'm just missing that part?) TODO how to name this so it's clear it's control information?
         }
 
         //// TODO FEATURE GAP: other response types here
