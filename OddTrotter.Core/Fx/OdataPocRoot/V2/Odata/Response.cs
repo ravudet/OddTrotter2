@@ -36,7 +36,7 @@ namespace Fx.OdataPocRoot.V2.Odata
         //// TODO FEATURE GAP: other response types here
     }
 
-    public abstract class HttpStatusCode
+    public abstract class HttpStatusCode //// TODO move to another file; do you want more namespaces or anything?
     {
         private HttpStatusCode()
         {
