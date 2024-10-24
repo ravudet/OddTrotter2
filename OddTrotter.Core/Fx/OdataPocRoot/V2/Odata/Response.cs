@@ -36,7 +36,7 @@ namespace Fx.OdataPocRoot.V2.Odata
                 this.Headers = headers;
             }
 
-            public HttpStatusCode HttpStatusCode { get; } //// TODO do all status codes make sense for all response types?
+            public HttpStatusCode HttpStatusCode { get; } //// TODO do all status codes make sense for all response types? consider that you'll only really return an entity collection for a successful response
 
             public ResponseHeaders Headers { get; } //// TODO how can you make the headers class name and the property name both make sense?
 
