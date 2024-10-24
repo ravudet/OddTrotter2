@@ -30,10 +30,11 @@ namespace Fx.OdataPocRoot.V2.Odata
 
         public sealed class EntityCollection : Response //// TODO how are you handling the odataversion?
         {
-            public EntityCollection(HttpStatusCode httpStatusCode, ResponseHeaders headers)
+            public EntityCollection(HttpStatusCode httpStatusCode, ResponseHeaders headers, string context)
             {
                 this.HttpStatusCode = httpStatusCode;
                 this.Headers = headers;
+                this.Context = context;
             }
 
             public HttpStatusCode HttpStatusCode { get; } //// TODO do all status codes make sense for all response types? consider that you'll only really return an entity collection for a successful response
