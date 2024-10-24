@@ -224,6 +224,45 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
         }
     }
 
+    public static class Experiment
+    {
+        public abstract class CommonExpressionPart2
+        {
+            private CommonExpressionPart2()
+            {
+                //// TODO FEATURE GAP: finish this
+            }
+
+            protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+            public abstract class Visitor<TResult, TContext>
+            {
+                public TResult Traverse(CommonExpressionPart2 node, TContext context)
+                {
+                    return node.Accept(this, context);
+                }
+
+                public abstract TResult Visit(AddExpr node, TContext context);
+            }
+
+            public sealed class AddExpr : CommonExpressionPart2
+            {
+                public AddExpr(Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.AddExpr addExpr)
+                {
+                    this.Item = addExpr;
+                }
+
+                public Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter.AddExpr Item { get; }
+
+                protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+                {
+                    return visitor.Visit(this, context);
+                }
+            }
+            //// TODO other variants here
+        }
+    }
+    
     public abstract class CommonExpressionPart2
     {
         private CommonExpressionPart2()
@@ -247,6 +286,7 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
         {
             public Variant1(AddExpr addExpr)
             {
+                //// TODO call this the "addexprvariant"
                 this.AddExpr = addExpr;
             }
 
