@@ -24,7 +24,7 @@ namespace Fx.OdataPocRoot.V2.Odata
 
             public Path Path { get; }
 
-            //// TODO how to handle the odata-version header?
+            //// TODO how to handle the odata-version header? ANSWER: make the classes version specific
             //// TODO how to handle any of the 8.2 headers
             //// TODO how to handle headers that aren't in the standard?
 
@@ -33,6 +33,8 @@ namespace Fx.OdataPocRoot.V2.Odata
             public Select? Select { get; }
 
             public Top? Top { get; }
+
+            //// TODO FEATURE GAP: other query options here
         }
 
         //// TODO FEATURE GAP: other request types here

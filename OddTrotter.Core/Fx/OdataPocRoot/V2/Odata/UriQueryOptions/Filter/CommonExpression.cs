@@ -325,6 +325,7 @@ namespace Fx.OdataPocRoot.V2.Odata.UriQueryOptions.Filter
         {
             public TResult Traverse(CommonExpression node, TContext context)
             {
+                //// TODO maybe call this switch?
                 return node.Accept(this, context);
             }
 
