@@ -21,7 +21,7 @@ namespace OddTrotter.Calendar
 
         public sealed class Element : QueryResult<TValue, TError>
         {
-            public Element(TValue value, QueryResult<TValue, TError> next)
+            public Element(TValue value, System.Threading.Tasks.Task<QueryResult<TValue, TError>> next)
             {
                 this.Value = value;
                 this.Next = next;
@@ -29,7 +29,7 @@ namespace OddTrotter.Calendar
 
             public TValue Value { get; }
 
-            public QueryResult<TValue, TError> Next { get; }
+            public System.Threading.Tasks.Task<QueryResult<TValue, TError>> Next { get; }
         }
 
         public sealed class Partial : QueryResult<TValue, TError>
@@ -40,6 +40,14 @@ namespace OddTrotter.Calendar
             }
 
             public TError Error { get; }
+        }
+    }
+
+    public static class QueryResultDriver
+    {
+        public static async System.Threading.Tasks.Task DoWork(QueryResult<string, System.Exception>.Element result)
+        {
+            var next = await result.Next;
         }
     }
 }
