@@ -34,6 +34,10 @@ namespace OddTrotter.Calendar
 
         public QueryResult<Either<CalendarEvent, CalendarEventBuilder>, object> Evaluate()
         {
+            //// TODO finish implementing this class
+            //// TODO write tests for todolistservice that confirm the URLs
+            //// TODO convert todolistservice to use this class
+            //// TODO update this class to try using odataquerybuilder, odatarequestevaluator, etc; or maybe try adding the pending calendar events stuff first, and then update this class to make it easier to share code
             throw new System.NotImplementedException();
         }
 
