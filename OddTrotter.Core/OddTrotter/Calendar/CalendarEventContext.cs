@@ -119,14 +119,18 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private static ODataCollection<CalendarEvent> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static async Task<QueryResult<CalendarEvent, (string, Exception)>> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
-            var seriesEventMasters = GetSeriesEventMasters(graphClient, pageSize);
+            var seriesEventMasters = await GetSeriesEventMasters(graphClient, pageSize).ConfigureAwait(false);
             //// TODO you could actually filter by subject here before making further requests
-            var seriesInstanceEvents = seriesEventMasters
-                .Elements
-                .Select(series => (series, GetFirstSeriesInstanceInRange(graphClient, series, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult()))
-                .ToV2Enumerable();
+            var seriesInstanceEvents = await seriesEventMasters
+                .Select(series => (series, GetFirstSeriesInstanceInRange(graphClient, series, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult())).ConfigureAwait(false); //// TODO don't use getawaiter...
+
+            seriesInstanceEvents.
+
+
+
+
             var seriesInstanceEventsWithFailures = seriesInstanceEvents
                 .ApplyAggregation((string?)null, (failedMasterId, tuple) => tuple.Item2 == null ? tuple.series.Id : null);
             var seriesInstanceEventsWithoutFailures = seriesInstanceEventsWithFailures
@@ -175,7 +179,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static async Task<IEnumerable<CalendarEvent>?> GetFirstSeriesInstanceInRange(IGraphClient graphClient, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
+        private static async Task<QueryResult<CalendarEvent, (string, Exception)>> GetFirstSeriesInstanceInRange(IGraphClient graphClient, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
         {
             //// TODO this method would be much better as some sort of "TryGet" variant (though it does still have exceptions that it throws...), but being async, we can't have the needed out parameters
             var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body&$filter=isCancelled eq false";
@@ -186,14 +190,18 @@ namespace OddTrotter.Calendar
                 {
                     httpResponse = await graphClient.GetAsync(new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
                 }
-                catch (HttpRequestException)
+                catch (HttpRequestException e)
                 {
-                    return null;
+                    return new QueryResult<CalendarEvent, (string, Exception)>.Partial((url, e));
                 }
 
-                if (!httpResponse.IsSuccessStatusCode)
+                try
                 {
-                    return null;
+                    httpResponse.EnsureSuccessStatusCode();
+                }
+                catch (HttpRequestException e)
+                {
+                    return new QueryResult<CalendarEvent, (string, Exception)>.Partial((url, e));
                 }
 
                 var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -202,12 +210,17 @@ namespace OddTrotter.Calendar
                 {
                     odataCollection = JsonSerializer.Deserialize<ODataCollectionPage<CalendarEvent>.Builder>(httpResponseContent);
                 }
-                catch (JsonException)
+                catch (JsonException e)
                 {
-                    return null;
+                    return new QueryResult<CalendarEvent, (string, Exception)>.Partial((url, e));
                 }
 
-                return odataCollection?.Value;
+                if (odataCollection?.Value == null)
+                {
+                    return new QueryResult<CalendarEvent, (string, Exception)>.Partial((url, new Exception())); //// TODO the exception part isn't relevant here...
+                }
+
+                return odataCollection.Value.ToQueryResult<CalendarEvent, (string, Exception)>();
             }
             finally
             {
