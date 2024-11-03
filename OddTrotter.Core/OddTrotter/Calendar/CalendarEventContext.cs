@@ -245,12 +245,17 @@ namespace OddTrotter.Calendar
             {
                 page = await GetPage<T>(graphClient, relativeUri).ConfigureAwait(false);
             }
-            catch (Exception e)
+            catch (Exception e) //// TODO exception types
             {
                 return new QueryResult<T, (string, Exception)>.Partial((relativeUri.OriginalString, e));
             }
 
-            var next = GetNextQueryResult<T>(graphClient, page); //// TODO is there an issue with a stackoverflow or anything in this recursion?
+            return await GetQueryResult(graphClient, page).ConfigureAwait(false);
+        }
+
+        private static async Task<QueryResult<T, (string, Exception)>> GetQueryResult<T>(IGraphClient graphClient, ODataCollectionPage<T> page)
+        {
+            var next = GetQueryResult<T>(graphClient, page.NextLink); //// TODO is there an issue with a stackoverflow or anything in this recursion?
             for (int i = page.Value.Count - 1; i >= 0; --i)
             {
                 //// TODO why does implicit type conversion not work here?
@@ -260,9 +265,34 @@ namespace OddTrotter.Calendar
             return await next.ConfigureAwait(false);
         }
 
-        private static async Task<QueryResult<T, (string, Exception)>> GetNextQueryResult<T>(IGraphClient graphClient, ODataCollectionPage<T> lastPage)
+        private static async Task<QueryResult<T, (string, Exception)>> GetQueryResult<T>(IGraphClient graphClient, string? nextLink)
         {
-            return await Task.FromResult(new QueryResult<T, (string, Exception)>.Final()).ConfigureAwait(false);
+            if (nextLink == null)
+            {
+                return new QueryResult<T, (string, Exception)>.Final();
+            }
+
+            AbsoluteUri nextLinkUri;
+            try
+            {
+                nextLinkUri = new Uri(nextLink, UriKind.Absolute).ToAbsoluteUri();
+            }
+            catch (UriFormatException e)
+            {
+                return new QueryResult<T, (string, Exception)>.Partial((nextLink, e));
+            }
+
+            ODataCollectionPage<T> page;
+            try
+            {
+                page = await GetPage<T>(graphClient, nextLinkUri).ConfigureAwait(false);
+            }
+            catch (Exception e) //// TODO exception types
+            {
+                return new QueryResult<T, (string, Exception)>.Partial((nextLinkUri.OriginalString, e));
+            }
+
+            return await GetQueryResult(graphClient, page).ConfigureAwait(false);
         }
 
         /// <summary>

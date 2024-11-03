@@ -29,7 +29,7 @@ namespace OddTrotter.Calendar
 
             public TValue Value { get; }
 
-            public System.Threading.Tasks.Task<QueryResult<TValue, TError>> Next { get; }
+            public System.Threading.Tasks.Task<QueryResult<TValue, TError>> Next { get; } //// TODO how inefficient is it to use Task here when the element is already known?
         }
 
         public sealed class Partial : QueryResult<TValue, TError>
