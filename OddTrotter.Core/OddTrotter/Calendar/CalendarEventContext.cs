@@ -54,14 +54,16 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private static ODataCollection<CalendarEvent> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static async Task<QueryResult<CalendarEvent, (string, Exception)>> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
-            var instanceEvents = GetInstanceEvents(graphClient, startTime, endTime, pageSize);
+            var instanceEvents = await GetInstanceEvents(graphClient, startTime, endTime, pageSize).ConfigureAwait(false);
             var seriesEvents = GetSeriesEvents(graphClient, startTime, endTime, pageSize);
             //// TODO merge the sorted sequences instead of concat
-            return new ODataCollection<CalendarEvent>(
+            /*return new ODataCollection<CalendarEvent>(
                 instanceEvents.Elements.Concat(seriesEvents.Elements),
-                instanceEvents.LastRequestedPageUrl ?? seriesEvents.LastRequestedPageUrl);
+                instanceEvents.LastRequestedPageUrl ?? seriesEvents.LastRequestedPageUrl);*/
+
+            return instanceEvents;
         }
 
         /// <summary>
@@ -75,11 +77,11 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static ODataCollection<CalendarEvent> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static async Task<QueryResult<CalendarEvent, (string, Exception)>> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             //// TODO starttime and endtime should be done through a queryable
             var url = GetInstanceEventsUrl(startTime, pageSize) + $" and start/dateTime lt '{endTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'";
-            return GetCollection<CalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri());
+            return await GetQueryResult<CalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -151,7 +153,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static ODataCollection<CalendarEvent> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
+        private static async Task<QueryResult<CalendarEvent, (string, Exception)>> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
         {
             //// TODO make the calendar that's used configurable?
             var url = $"/me/calendar/events?" +
@@ -159,7 +161,7 @@ namespace OddTrotter.Calendar
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
-            return GetCollection<CalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri());
+            return await GetQueryResult<CalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
         }
 
         /// <summary>

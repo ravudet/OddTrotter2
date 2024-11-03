@@ -1,4 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+using System.Threading.Tasks;
+
 namespace OddTrotter.Calendar
 {
     public interface IQueryContext<TValue, TError>
@@ -40,6 +42,60 @@ namespace OddTrotter.Calendar
             }
 
             public TError Error { get; }
+        }
+    }
+
+    public abstract class QueryResultV2<TValue, TError>
+    {
+        private QueryResultV2()
+        {
+        }
+
+        public sealed class Final : QueryResultV2<TValue, TError>
+        {
+            public Final()
+            {
+            }
+        }
+
+        public sealed class Element : QueryResultV2<TValue, TError>
+        {
+            public Element(TValue value)
+            {
+                this.Value = value;
+            }
+
+            public TValue Value { get; }
+        }
+
+        public sealed class Partial : QueryResultV2<TValue, TError>
+        {
+            public Partial(TError error)
+            {
+                this.Error = error;
+            }
+
+            public TError Error { get; }
+        }
+    }
+
+    public static class QueryResultExtensions
+    {
+        public static QueryResult<TValue, TError> Concat<TValue, TError>(this QueryResult<TValue, TError> first, QueryResult<TValue, TError> second)
+        {
+            if (first is QueryResult<TValue, TError>.Final)
+            {
+                return second;
+            }
+            else if (first is QueryResult<TValue, TError>.Partial partial)
+            {
+                return first;
+                //// TODO
+            }
+            else if (first is QueryResult<TValue, TError>.Element element)
+            {
+                return new QueryResult<TValue, TError>.Element(element.Value, element.Next.ContinueWith(_ => _.Result.Concat(second)));
+            }
         }
     }
 
