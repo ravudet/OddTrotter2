@@ -141,43 +141,7 @@ namespace OddTrotter.Calendar
         private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             var seriesEventMasters = await GetSeriesEventMasters(graphClient, pageSize).ConfigureAwait(false);
-
-
-
-            while (true)
-            {
-                if (seriesEventMasters is QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Final)
-                {
-
-                }
-            }
-
-
-
-            //// TODO you could actually filter by subject here before making further requests
-            var seriesInstanceEvents = await seriesEventMasters
-                .Select(series => (series, GetFirstSeriesInstanceInRange(graphClient, series, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult())).ConfigureAwait(false); //// TODO don't use getawaiter...
-
-            return Adapt(seriesInstanceEvents);
-
-
-
-
-            var seriesInstanceEventsWithFailures = seriesInstanceEvents
-                .ApplyAggregation((string?)null, (failedMasterId, tuple) => tuple.Item2 == null ? tuple.series.Id : null);
-            var seriesInstanceEventsWithoutFailures = seriesInstanceEventsWithFailures
-                .TakeWhile(tuple => tuple.Item2 != null) //// TODO if you can move this before the applyaggregation somehow, that would be ideal since we then wouldn't continue retrieve the first series instance if we already know we aren't returing anymore of them
-                .Where(tuple => tuple.Item2?.Any() == true)
-                .Select(tuple => new CalendarEvent() { Body = tuple.series.Body, Id = tuple.series.Id, Subject = tuple.series.Subject, Start = tuple.Item2?.First().Start });
-
-            // because the second parameter of lastRequestedPageUrl is a fully realized value, we need to have actually enumerated the elements that we expect to return in the
-            // first parameter; in this case, we have enumerated the elements because accessing seriesInstanceEventsWithFailures.Aggregation will enumerate enough events to
-            // perform the aggregation; in a previous iteration of this method, the elements were enumerated with a .ToList() call
-            return new ODataCollection<CalendarEvent>(
-                seriesInstanceEventsWithoutFailures,
-                seriesInstanceEventsWithFailures.Aggregation == null ?
-                    seriesEventMasters.LastRequestedPageUrl :
-                    $"/me/calendar/events/{seriesInstanceEventsWithFailures.Aggregation}");
+            return await Adapt(seriesEventMasters, graphClient, startTime, endTime).ConfigureAwait(false);
         }
 
         private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> Adapt(QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError> seriesEventMasters, IGraphClient graphClient, DateTime startTime, DateTime endTime)
@@ -201,20 +165,27 @@ namespace OddTrotter.Calendar
                     {
                         if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Final)
                         {
-                            // there are no instances of the series in the range, so skip this series master
+                            // there are no valid instances of the series in the range, so skip this series master
                             return await Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime).ConfigureAwait(false);
                         }
                         else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Element firstInstanceElement)
                         {
-                            /*var instance = firstInstanceElement.Value.Build();
-                            if (instance is Either<CalendarEvent, GraphCalendarEvent>.Left)
+                            var instance = firstInstanceElement.Value.Build();
+                            if (instance is Either<CalendarEvent, GraphCalendarEvent>.Left leftInstance)
                             {
-                                // the series 
-                            }*/
-                            //// TODO are you sure you don't want to do any assertions about the first instance of the series?
-                            return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
-                                element.Value,
-                                Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime));
+                                var calendarEvent = new CalendarEvent(
+                                    left.Value.Id,
+                                    left.Value.Subject,
+                                    left.Value.Body,
+                                    leftInstance.Value.Start);
+                                return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
+                                    new Either<CalendarEvent, GraphCalendarEvent>.Left(calendarEvent),
+                                    Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime));
+                            }
+                            else
+                            {
+                                firstSeriesInstanceInRange = await firstInstanceElement.Next.ConfigureAwait(false);
+                            }
                         }
                         else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Partial)
                         {
