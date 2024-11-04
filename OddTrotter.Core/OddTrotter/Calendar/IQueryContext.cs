@@ -7,7 +7,7 @@ namespace OddTrotter.Calendar
 
     public interface IQueryContext<TValue, TError>
     {
-        QueryResult<TValue, TError> Evaluate();
+        Task<QueryResult<TValue, TError>> Evaluate();
     }
 
     public abstract class QueryResult<TValue, TError>

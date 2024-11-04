@@ -32,10 +32,10 @@ namespace OddTrotter.Calendar
         private readonly int pageSize;
 
         public CalendarEventContext(
-            IGraphClient graphClient, 
-            RelativeUri calendarUri, 
-            DateTime startTime, 
-            DateTime endTime, 
+            IGraphClient graphClient,
+            RelativeUri calendarUri,
+            DateTime startTime,
+            DateTime endTime,
             CalendarEventContextSettings settings)
         {
             this.graphClient = graphClient;
@@ -45,15 +45,38 @@ namespace OddTrotter.Calendar
             this.pageSize = settings.PageSize;
         }
 
-        public async QueryResult<Either<CalendarEvent, CalendarEventBuilder>, OdataError> Evaluate()
+        public async Task<QueryResult<Either<CalendarEvent, CalendarEventBuilder>, OdataError>> Evaluate()
         {
             //// TODO finish implementing this class
             //// TODO write tests for todolistservice that confirm the URLs
             //// TODO convert todolistservice to use this class
             //// TODO update this class to try using odataquerybuilder, odatarequestevaluator, etc; or maybe try adding the pending calendar events stuff first, and then update this class to make it easier to share code
-            
+
             //// TODO use this.calendarUri
-            return await GetEvents(this.graphClient, this.startTime, this.endTime, this.pageSize).ConfigureAwait(false);
+            var graphEvents = await GetEvents(this.graphClient, this.startTime, this.endTime, this.pageSize).ConfigureAwait(false);
+            return await graphEvents.Select<Either<CalendarEvent, GraphCalendarEvent>, Either<CalendarEvent, CalendarEventBuilder>, OdataError>(graphEvent =>
+            {
+                if (graphEvent is Either<CalendarEvent, GraphCalendarEvent>.Left left)
+                {
+                    return new Either<CalendarEvent, CalendarEventBuilder>.Left(left.Value);
+                }
+                else if (graphEvent is Either<CalendarEvent, GraphCalendarEvent>.Right right)
+                {
+                    DateTimeOffset start;
+                    var calendarEventBuilder = new CalendarEventBuilder()
+                    {
+                        Body = right.Value.Body?.Content,
+                        Id = right.Value.Id,
+                        Start = DateTimeOffset.TryParse(right.Value.Start?.DateTime, out start) ? start : null,
+                        Subject = right.Value.Subject,
+                    };
+                    return new Either<CalendarEvent, CalendarEventBuilder>.Right(calendarEventBuilder);
+                }
+                else
+                {
+                    throw new Exception("TODO use visitor");
+                }
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
