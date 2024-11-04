@@ -4,6 +4,7 @@ namespace OddTrotter.Calendar
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using static System.Net.Mime.MediaTypeNames;
 
     public interface IQueryContext<TValue, TError>
     {
@@ -83,6 +84,33 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultExtensions
     {
+        public static async Task<QueryResult<TValue, TError>> Where<TValue, TError>(this QueryResult<TValue, TError> queryResult, Func<TValue, bool> predicate)
+        {
+            if (queryResult is QueryResult<TValue, TError>.Final)
+            {
+                return queryResult;
+            }
+            else if (queryResult is QueryResult<TValue, TError>.Partial partial)
+            {
+                return queryResult;
+            }
+            else if (queryResult is QueryResult<TValue, TError>.Element element)
+            {
+                if (predicate(element.Value))
+                {
+                    return new QueryResult<TValue, TError>.Element(element.Value, Where(await element.Next.ConfigureAwait(false), predicate));
+                }
+                else
+                {
+                    return await Where(await element.Next.ConfigureAwait(false), predicate).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                throw new Exception("TODO use visitor");
+            }
+        }
+
         public static QueryResult<TValue, TError> ToQueryResult<TValue, TError>(this IEnumerable<TValue> enumerable)
         {
             using (var enumerator = enumerable.GetEnumerator())

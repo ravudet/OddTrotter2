@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Linq.V2;
     using System.Net.Http;
+    using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
@@ -13,6 +14,7 @@
 
     using Microsoft.Extensions.Caching.Memory;
     using OddTrotter.AzureBlobClient;
+    using OddTrotter.Calendar;
     using OddTrotter.GraphClient;
 
     public sealed class TodoListService
@@ -226,6 +228,76 @@
             }
 
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
+            var calendarEventContext = new CalendarEventContext(this.graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), originalLastRecordedEventTimeStamp, DateTime.UtcNow, CalendarEventContextSettings.Default); //// TODO configure page size
+            var calendarEvents = await calendarEventContext.Evaluate().ConfigureAwait(false);
+            var todoListEvents2 = await calendarEvents.Where(
+                instanceEvent => instanceEvent is Either<OddTrotter.Calendar.CalendarEvent, CalendarEventBuilder>.Left left &&     
+                left.Value.Subject.Contains("todo list", StringComparison.OrdinalIgnoreCase) == true).ConfigureAwait(false);
+
+            var todoListItems = new List<string>();
+            string? brokenNextLink;
+            var eventsWithoutStarts = new List<OddTrotter.Calendar.CalendarEventBuilder>();
+            var eventsWithStartParseFailures = new List<(OddTrotter.Calendar.CalendarEventBuilder, Exception)>();
+            var eventsWithBodyParseFailures = new List<(OddTrotter.Calendar.CalendarEvent, Exception)>();
+            while (true)
+            {
+                if (todoListEvents2 is QueryResult<Either<OddTrotter.Calendar.CalendarEvent, CalendarEventBuilder>, OdataError>.Final)
+                {
+                    break;
+                }
+                else if (todoListEvents2 is QueryResult<Either<OddTrotter.Calendar.CalendarEvent, CalendarEventBuilder>, OdataError>.Partial partial)
+                {
+                    brokenNextLink = partial.Error.RequestedUrl;
+                    break;
+                }
+                else if (todoListEvents2 is QueryResult<Either<OddTrotter.Calendar.CalendarEvent, CalendarEventBuilder>, OdataError>.Element element)
+                {
+                    if (element.Value is Either<OddTrotter.Calendar.CalendarEvent, CalendarEventBuilder>.Left left)
+                    {
+                        IEnumerable<string> parsedEventBody;
+                        try
+                        {
+                            parsedEventBody = ParseEventBody(left.Value.Body);
+                        }
+                        catch (Exception e)
+                        {
+                            eventsWithBodyParseFailures.Add((left.Value, e));
+                            todoListEvents2 = await element.Next.ConfigureAwait(false);
+                            continue;
+                        }
+
+                        todoListItems.AddRange(parsedEventBody);
+                    }
+                    else if (element.Value is Either<OddTrotter.Calendar.CalendarEvent, CalendarEventBuilder>.Right right)
+                    {
+                        if (right.Value.Start == null)
+                        {
+                            eventsWithoutStarts.Add(right.Value);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                DateTimeOffset.Parse(right.Value.Start);
+                            }
+                            catch (Exception e)
+                            {
+                                eventsWithStartParseFailures.Add((right.Value, e));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("TODO use visitor");
+                    }
+                }
+                else
+                {
+                    throw new Exception("TODO use visitor");
+                }
+            }
+
+
             var instanceEventsCollection = GetEvents(this.graphClient, originalLastRecordedEventTimeStamp, DateTime.UtcNow, this.calendarEventPageSize);
             var instanceEvents = instanceEventsCollection.Elements.ToV2Enumerable();
             var todoListEvents = instanceEvents

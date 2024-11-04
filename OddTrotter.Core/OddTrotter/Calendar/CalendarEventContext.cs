@@ -48,6 +48,7 @@ namespace OddTrotter.Calendar
         public async Task<QueryResult<Either<CalendarEvent, CalendarEventBuilder>, OdataError>> Evaluate()
         {
             //// TODO finish implementing this class
+            //// TODO implement query result using an abastract method
             //// TODO write tests for todolistservice that confirm the URLs
             //// TODO convert todolistservice to use this class
             //// TODO update this class to try using odataquerybuilder, odatarequestevaluator, etc; or maybe try adding the pending calendar events stuff first, and then update this class to make it easier to share code
@@ -62,12 +63,11 @@ namespace OddTrotter.Calendar
                 }
                 else if (graphEvent is Either<CalendarEvent, GraphCalendarEvent>.Right right)
                 {
-                    DateTimeOffset start;
                     var calendarEventBuilder = new CalendarEventBuilder()
                     {
                         Body = right.Value.Body?.Content,
                         Id = right.Value.Id,
-                        Start = DateTimeOffset.TryParse(right.Value.Start?.DateTime, out start) ? start : null,
+                        Start = right.Value.Start?.DateTime,
                         Subject = right.Value.Subject,
                     };
                     return new Either<CalendarEvent, CalendarEventBuilder>.Right(calendarEventBuilder);

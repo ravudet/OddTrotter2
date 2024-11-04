@@ -37,7 +37,7 @@ namespace OddTrotter.Calendar
 
         public string? Body { get; set; }
 
-        public DateTimeOffset? Start { get; set; }
+        public string? Start { get; set; }
     }
 
     public abstract class Either<TLeft, TRight>
