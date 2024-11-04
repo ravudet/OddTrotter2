@@ -45,13 +45,15 @@ namespace OddTrotter.Calendar
             this.pageSize = settings.PageSize;
         }
 
-        public QueryResult<Either<CalendarEvent, CalendarEventBuilder>, OdataError> Evaluate()
+        public async QueryResult<Either<CalendarEvent, CalendarEventBuilder>, OdataError> Evaluate()
         {
             //// TODO finish implementing this class
             //// TODO write tests for todolistservice that confirm the URLs
             //// TODO convert todolistservice to use this class
             //// TODO update this class to try using odataquerybuilder, odatarequestevaluator, etc; or maybe try adding the pending calendar events stuff first, and then update this class to make it easier to share code
-            throw new System.NotImplementedException();
+            
+            //// TODO use this.calendarUri
+            return await GetEvents(this.graphClient, this.startTime, this.endTime, this.pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -74,13 +76,9 @@ namespace OddTrotter.Calendar
         private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             var instanceEvents = await GetInstanceEvents(graphClient, startTime, endTime, pageSize).ConfigureAwait(false);
-            var seriesEvents = GetSeriesEvents(graphClient, startTime, endTime, pageSize);
+            var seriesEvents = await GetSeriesEvents(graphClient, startTime, endTime, pageSize).ConfigureAwait(false);
             //// TODO merge the sorted sequences instead of concat
-            /*return new ODataCollection<CalendarEvent>(
-                instanceEvents.Elements.Concat(seriesEvents.Elements),
-                instanceEvents.LastRequestedPageUrl ?? seriesEvents.LastRequestedPageUrl);*/
-
-            return instanceEvents;
+            return instanceEvents.Concat(seriesEvents);
         }
 
         /// <summary>
