@@ -138,9 +138,22 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private static async Task<QueryResult<CalendarEvent, (string, Exception)>> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             var seriesEventMasters = await GetSeriesEventMasters(graphClient, pageSize).ConfigureAwait(false);
+
+
+
+            while (true)
+            {
+                if (seriesEventMasters is QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Final)
+                {
+
+                }
+            }
+
+
+
             //// TODO you could actually filter by subject here before making further requests
             var seriesInstanceEvents = await seriesEventMasters
                 .Select(series => (series, GetFirstSeriesInstanceInRange(graphClient, series, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult())).ConfigureAwait(false); //// TODO don't use getawaiter...
@@ -167,7 +180,72 @@ namespace OddTrotter.Calendar
                     $"/me/calendar/events/{seriesInstanceEventsWithFailures.Aggregation}");
         }
 
-        private static QueryResult<CalendarEvent, (string, Exception)> Adapt(QueryResult<(CalendarEvent, QueryResult<CalendarEvent, (string, Exception)>), (string, Exception)> seriesInstanceEvents)
+        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> Adapt(QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError> seriesEventMasters, IGraphClient graphClient, DateTime startTime, DateTime endTime)
+        {
+            if (seriesEventMasters is QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Final)
+            {
+                // we are done going through all of the series events, so we return the terminal node
+                return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Final();
+            }
+            else if (seriesEventMasters is QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Partial)
+            {
+                // there was an error retrieving any more series events, so we just pass that error through
+                return seriesEventMasters;
+            }
+            else if (seriesEventMasters is QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element element)
+            {
+                if (element.Value is Either<CalendarEvent, GraphCalendarEvent>.Left left)
+                {
+                    var firstSeriesInstanceInRange = await GetFirstSeriesInstanceInRange(graphClient, left.Value, startTime, endTime).ConfigureAwait(false);
+                    while (true)
+                    {
+                        if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Final)
+                        {
+                            // there are no instances of the series in the range, so skip this series master
+                            return await Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime).ConfigureAwait(false);
+                        }
+                        else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Element firstInstanceElement)
+                        {
+                            /*var instance = firstInstanceElement.Value.Build();
+                            if (instance is Either<CalendarEvent, GraphCalendarEvent>.Left)
+                            {
+                                // the series 
+                            }*/
+                            //// TODO are you sure you don't want to do any assertions about the first instance of the series?
+                            return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
+                                element.Value,
+                                Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime));
+                        }
+                        else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Partial)
+                        {
+                            //// TODO this code just swallows the fact that the series master retrieval was successful, but the instance event retrieval failed; it swallows by just skipping the series master
+                            return await Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            throw new Exception("TODO use visitor");
+                        }
+                    }
+                }
+                else if (element.Value is Either<CalendarEvent, GraphCalendarEvent>.Right right)
+                {
+                    // the series master was malformed, so we will preserved the malformed-ness, but skip trying to get any instances of the series
+                    return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
+                        element.Value,
+                        Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime));
+                }
+                else
+                {
+                    throw new Exception("TODO use visitor");
+                }
+            }
+            else
+            {
+                throw new Exception("TODO use visitor");
+            }
+        }
+
+        /*private static QueryResult<CalendarEvent, (string, Exception)> Adapt(QueryResult<(CalendarEvent, QueryResult<CalendarEvent, (string, Exception)>), (string, Exception)> seriesInstanceEvents)
         {
             if (seriesInstanceEvents is QueryResult<(CalendarEvent, QueryResult<CalendarEvent, (string, Exception)>), (string, Exception)>.Final)
             {
@@ -186,7 +264,7 @@ namespace OddTrotter.Calendar
             {
                 throw new Exception("TODO use visitor");
             }
-        }
+        }*/
 
         /// <summary>
         /// 
@@ -197,7 +275,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static async Task<QueryResult<CalendarEvent, (string, Exception)>> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
+        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
         {
             //// TODO make the calendar that's used configurable?
             var url = $"/me/calendar/events?" +
@@ -205,7 +283,9 @@ namespace OddTrotter.Calendar
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
-            return await GetQueryResult<CalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
+            var graphCalendarEvents = await GetQueryResult<GraphCalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
+            var calendarEvents = await graphCalendarEvents.Select(graphCalendarEvent => graphCalendarEvent.Build()).ConfigureAwait(false);
+            return calendarEvents;
         }
 
         /// <summary>
@@ -219,7 +299,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static async Task<QueryResult<CalendarEvent, (string, Exception)>> GetFirstSeriesInstanceInRange(IGraphClient graphClient, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
+        private static async Task<QueryResult<GraphCalendarEvent, OdataError>> GetFirstSeriesInstanceInRange(IGraphClient graphClient, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
         {
             //// TODO this method would be much better as some sort of "TryGet" variant (though it does still have exceptions that it throws...), but being async, we can't have the needed out parameters
             var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body&$filter=isCancelled eq false";
@@ -232,7 +312,7 @@ namespace OddTrotter.Calendar
                 }
                 catch (HttpRequestException e)
                 {
-                    return new QueryResult<CalendarEvent, (string, Exception)>.Partial((url, e));
+                    return new QueryResult<GraphCalendarEvent, OdataError>.Partial(new OdataError(url, e));
                 }
 
                 try
@@ -241,26 +321,26 @@ namespace OddTrotter.Calendar
                 }
                 catch (HttpRequestException e)
                 {
-                    return new QueryResult<CalendarEvent, (string, Exception)>.Partial((url, e));
+                    return new QueryResult<GraphCalendarEvent, OdataError>.Partial(new OdataError(url, e));
                 }
 
                 var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                ODataCollectionPage<CalendarEvent>.Builder? odataCollection;
+                ODataCollectionPage<GraphCalendarEvent>.Builder? odataCollection;
                 try
                 {
-                    odataCollection = JsonSerializer.Deserialize<ODataCollectionPage<CalendarEvent>.Builder>(httpResponseContent);
+                    odataCollection = JsonSerializer.Deserialize<ODataCollectionPage<GraphCalendarEvent>.Builder>(httpResponseContent);
                 }
                 catch (JsonException e)
                 {
-                    return new QueryResult<CalendarEvent, (string, Exception)>.Partial((url, e));
+                    return new QueryResult<GraphCalendarEvent, OdataError>.Partial(new OdataError(url, e));
                 }
 
                 if (odataCollection?.Value == null)
                 {
-                    return new QueryResult<CalendarEvent, (string, Exception)>.Partial((url, new Exception())); //// TODO the exception part isn't relevant here...
+                    return new QueryResult<GraphCalendarEvent, OdataError>.Partial(new OdataError(url, new Exception())); //// TODO the exception part isn't relevant here...
                 }
 
-                return odataCollection.Value.ToQueryResult<CalendarEvent, (string, Exception)>();
+                return odataCollection.Value.ToQueryResult<GraphCalendarEvent, OdataError>();
             }
             finally
             {
