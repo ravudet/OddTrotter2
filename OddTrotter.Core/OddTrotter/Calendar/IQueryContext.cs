@@ -46,17 +46,16 @@ namespace OddTrotter.Calendar
             }
         }
 
-        public sealed class Element : QueryResult<TValue, TError>
+        public abstract class Element : QueryResult<TValue, TError>
         {
-            public Element(TValue value, Func<QueryResult<TValue, TError>> next)
+            public Element(TValue value)
             {
                 this.Value = value;
-                this.Next = next;
             }
 
             public TValue Value { get; }
 
-            public Func<QueryResult<TValue, TError>> Next { get; } //// TODO how inefficient is it to use Task here when the element is already known?
+            public abstract QueryResult<TValue, TError> Next();
 
             protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
@@ -82,31 +81,58 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultExtensions
     {
-        public static QueryResult<TValue, TError> Where<TValue, TError>(this QueryResult<TValue, TError> queryResult, Func<TValue, bool> predicate)
+        private sealed class WhereResult<TValue, TError> : QueryResult<TValue, TError>.Element
         {
-            if (queryResult is QueryResult<TValue, TError>.Final)
+            private readonly Element queryResult;
+            private readonly Func<TValue, bool> predicate;
+
+            public WhereResult(QueryResult<TValue, TError>.Element queryResult, Func<TValue, bool> predicate)
+                : base(queryResult.Value)
             {
-                return queryResult;
+                this.queryResult = queryResult;
+                this.predicate = predicate;
             }
-            else if (queryResult is QueryResult<TValue, TError>.Partial partial)
+
+            public sealed override QueryResult<TValue, TError> Next()
             {
-                return queryResult;
+                return WhereVisitor<TValue, TError>.Instance.Visit(this.queryResult, this.predicate);
             }
-            else if (queryResult is QueryResult<TValue, TError>.Element element)
+        }
+
+        private sealed class WhereVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, Func<TValue, bool>>
+        {
+            private WhereVisitor()
             {
-                if (predicate(element.Value))
+            }
+
+            public static WhereVisitor<TValue, TError> Instance { get; } = new WhereVisitor<TValue, TError>();
+
+            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Final node, Func<TValue, bool> context)
+            {
+                return node;
+            }
+
+            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, Func<TValue, bool> context)
+            {
+                if (context(node.Value))
                 {
-                    return new QueryResult<TValue, TError>.Element(element.Value, () => Where(element.Next(), predicate));
+                    return new WhereResult<TValue, TError>(node, context);
                 }
                 else
                 {
-                    return Where(element.Next(), predicate);
+                    return this.Visit(node.Next(), context);
                 }
             }
-            else
+
+            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Func<TValue, bool> context)
             {
-                throw new Exception("TODO use visitor");
+                return node;
             }
+        }
+
+        public static QueryResult<TValue, TError> Where<TValue, TError>(this QueryResult<TValue, TError> queryResult, Func<TValue, bool> predicate)
+        {
+            return WhereVisitor<TValue, TError>.Instance.Visit(queryResult, predicate);
         }
 
         public static QueryResult<TValue, TError> ToQueryResult<TValue, TError>(this IEnumerable<TValue> enumerable)
