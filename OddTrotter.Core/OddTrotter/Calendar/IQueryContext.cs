@@ -134,40 +134,6 @@ namespace OddTrotter.Calendar
         }
     }
 
-    public abstract class QueryResultV2<TValue, TError>
-    {
-        private QueryResultV2()
-        {
-        }
-
-        public sealed class Final : QueryResultV2<TValue, TError>
-        {
-            public Final()
-            {
-            }
-        }
-
-        public sealed class Element : QueryResultV2<TValue, TError>
-        {
-            public Element(TValue value)
-            {
-                this.Value = value;
-            }
-
-            public TValue Value { get; }
-        }
-
-        public sealed class Partial : QueryResultV2<TValue, TError>
-        {
-            public Partial(TError error)
-            {
-                this.Error = error;
-            }
-
-            public TError Error { get; }
-        }
-    }
-
     public static class QueryResultExtensions
     {
         public static QueryResult<TValue, TError> Where<TValue, TError>(this QueryResult<TValue, TError> queryResult, Func<TValue, bool> predicate)
