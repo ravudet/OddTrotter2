@@ -165,6 +165,15 @@ namespace OddTrotter.Calendar
             return await Adapt(seriesEventMasters, graphClient, startTime, endTime).ConfigureAwait(false);
         }
 
+        private static async IAsyncEnumerable<TValue> ToEnumerable<TValue, TError>(QueryResult<TValue, TError> queryResult)
+        {
+            while (queryResult is QueryResult<TValue, TError>.Element element)
+            {
+                yield return element.Value;
+                queryResult = await Task.FromResult(element.Next()).ConfigureAwait(false);
+            }
+        }
+
         private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> Adapt(QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError> seriesEventMasters, IGraphClient graphClient, DateTime startTime, DateTime endTime)
         {
             await Task.Delay(1).ConfigureAwait(false); //// TODO remove this
@@ -189,7 +198,7 @@ namespace OddTrotter.Calendar
                             if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Final)
                             {
                                 // there are no valid instances of the series in the range, so skip this series master
-                                return Adapt(element.Next.ConfigureAwait(false).GetAwaiter().GetResult(), graphClient, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await x2
+                                return Adapt(element.Next(), graphClient, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await x2
                             }
                             else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Element firstInstanceElement)
                             {
@@ -203,17 +212,17 @@ namespace OddTrotter.Calendar
                                         leftInstance.Value.Start);
                                     return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
                                         new Either<CalendarEvent, GraphCalendarEvent>.Left(calendarEvent),
-                                        Adapt(element.Next.ConfigureAwait(false).GetAwaiter().GetResult(), graphClient, startTime, endTime)); //// TODO await
+                                        () => Adapt(element.Next(), graphClient, startTime, endTime).GetAwaiter().GetResult()); //// TODO await
                                 }
                                 else
                                 {
-                                    firstSeriesInstanceInRange = firstInstanceElement.Next.ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await
+                                    firstSeriesInstanceInRange = firstInstanceElement.Next(); //// TODO await
                                 }
                             }
                             else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Partial)
                             {
                                 //// TODO this code just swallows the fact that the series master retrieval was successful, but the instance event retrieval failed; it swallows by just skipping the series master
-                                return Adapt(element.Next.ConfigureAwait(false).GetAwaiter().GetResult(), graphClient, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await x2
+                                return Adapt(element.Next(), graphClient, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await x2
                             }
                             else
                             {
@@ -226,7 +235,7 @@ namespace OddTrotter.Calendar
                         // the series master was malformed, so we will preserved the malformed-ness, but skip trying to get any instances of the series
                         return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
                             element.Value,
-                            Adapt(element.Next.ConfigureAwait(false).GetAwaiter().GetResult(), graphClient, startTime, endTime)); //// TODO await
+                            () => Adapt(element.Next(), graphClient, startTime, endTime).GetAwaiter().GetResult()); //// TODO await
                     });
                 return visitor.Visit(element.Value, true);
             }
@@ -415,7 +424,7 @@ namespace OddTrotter.Calendar
             for (int i = page.Value.Count - 1; i >= 0; --i)
             {
                 //// TODO why does implicit type conversion not work here?
-                next = Task.FromResult<QueryResult<T, OdataError>>(new QueryResult<T, OdataError>.Element(page.Value[i], next));
+                next = Task.FromResult<QueryResult<T, OdataError>>(new QueryResult<T, OdataError>.Element(page.Value[i], () => next.GetAwaiter().GetResult()));
             }
 
             return await next.ConfigureAwait(false);

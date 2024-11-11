@@ -112,7 +112,7 @@ namespace OddTrotter.Calendar
 
         public sealed class Element : QueryResult<TValue, TError>
         {
-            public Element(TValue value, System.Threading.Tasks.Task<QueryResult<TValue, TError>> next)
+            public Element(TValue value, Func<QueryResult<TValue, TError>> next)
             {
                 this.Value = value;
                 this.Next = next;
@@ -120,7 +120,7 @@ namespace OddTrotter.Calendar
 
             public TValue Value { get; }
 
-            public System.Threading.Tasks.Task<QueryResult<TValue, TError>> Next { get; } //// TODO how inefficient is it to use Task here when the element is already known?
+            public Func<QueryResult<TValue, TError>> Next { get; } //// TODO how inefficient is it to use Task here when the element is already known?
         }
 
         public sealed class Partial : QueryResult<TValue, TError>
@@ -170,7 +170,7 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultExtensions
     {
-        public static async Task<QueryResult<TValue, TError>> Where<TValue, TError>(this QueryResult<TValue, TError> queryResult, Func<TValue, bool> predicate)
+        public static QueryResult<TValue, TError> Where<TValue, TError>(this QueryResult<TValue, TError> queryResult, Func<TValue, bool> predicate)
         {
             if (queryResult is QueryResult<TValue, TError>.Final)
             {
@@ -184,11 +184,11 @@ namespace OddTrotter.Calendar
             {
                 if (predicate(element.Value))
                 {
-                    return new QueryResult<TValue, TError>.Element(element.Value, Where(await element.Next.ConfigureAwait(false), predicate));
+                    return new QueryResult<TValue, TError>.Element(element.Value, () => Where(element.Next(), predicate));
                 }
                 else
                 {
-                    return await Where(await element.Next.ConfigureAwait(false), predicate).ConfigureAwait(false);
+                    return Where(element.Next(), predicate);
                 }
             }
             else
@@ -207,18 +207,18 @@ namespace OddTrotter.Calendar
                 }
 
                 //// TODO is this actually lazy?
-                return new QueryResult<TValue, TError>.Element(enumerator.Current, ToQueryResult<TValue, TError>(enumerator));
+                return new QueryResult<TValue, TError>.Element(enumerator.Current, () => ToQueryResult<TValue, TError>(enumerator));
             }
         }
 
-        private static async Task<QueryResult<TValue, TError>> ToQueryResult<TValue, TError>(IEnumerator<TValue> enumerator)
+        private static QueryResult<TValue, TError> ToQueryResult<TValue, TError>(IEnumerator<TValue> enumerator)
         {
             if (!enumerator.MoveNext())
             {
-                return await Task.FromResult(new QueryResult<TValue, TError>.Final());
+                return new QueryResult<TValue, TError>.Final();
             }
 
-            return new QueryResult<TValue, TError>.Element(enumerator.Current, ToQueryResult<TValue, TError>(enumerator));
+            return new QueryResult<TValue, TError>.Element(enumerator.Current, () => ToQueryResult<TValue, TError>(enumerator));
         }
 
         public static QueryResult<TValue, TError> Concat<TValue, TError>(this QueryResult<TValue, TError> first, QueryResult<TValue, TError> second)
@@ -234,7 +234,9 @@ namespace OddTrotter.Calendar
             }
             else if (first is QueryResult<TValue, TError>.Element element)
             {
-                return new QueryResult<TValue, TError>.Element(element.Value, element.Next.ContinueWith(_ => _.Result.Concat(second)));
+                return first;
+                //// TODO
+                ////return new QueryResult<TValue, TError>.Element(element.Value, element.Next.ContinueWith(_ => _.Result.Concat(second)));
             }
             else
             {
@@ -244,6 +246,8 @@ namespace OddTrotter.Calendar
 
         public static async Task<QueryResult<TValueEnd, TError>> Select<TValueStart, TValueEnd, TError>(this QueryResult<TValueStart, TError> queryResult, Func<TValueStart, TValueEnd> selector)
         {
+            await Task.Delay(1).ConfigureAwait(false); //// TODO remove this
+
             //// TODO is it a good idea for this to be async?
             if (queryResult is QueryResult<TValueStart, TError>.Final)
             {
@@ -255,22 +259,16 @@ namespace OddTrotter.Calendar
             }
             else if (queryResult is QueryResult<TValueStart, TError>.Element element)
             {
-                return new QueryResult<TValueEnd, TError>.Element(
+                return new QueryResult<TValueEnd, TError>.Final();
+                //// TODO
+                /*return new QueryResult<TValueEnd, TError>.Element(
                     selector(element.Value),
-                    (await element.Next.ConfigureAwait(false)).Select(selector));
+                    (await element.Next.ConfigureAwait(false)).Select(selector));*/
             }
             else
             {
                 throw new Exception("TODO use visitor");
             }
-        }
-    }
-
-    public static class QueryResultDriver
-    {
-        public static async System.Threading.Tasks.Task DoWork(QueryResult<string, System.Exception>.Element result)
-        {
-            var next = await result.Next;
         }
     }
 }

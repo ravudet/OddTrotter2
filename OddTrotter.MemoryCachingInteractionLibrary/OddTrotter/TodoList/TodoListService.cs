@@ -230,7 +230,7 @@
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
             var calendarEventContext = new CalendarEventContext(this.graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), originalLastRecordedEventTimeStamp, DateTime.UtcNow, CalendarEventContextSettings.Default); //// TODO configure page size
             var calendarEvents = await calendarEventContext.Evaluate().ConfigureAwait(false);
-            var todoListEvents2 = await calendarEvents.Where(
+            /*var todoListEvents2 = await calendarEvents.Where(
                 instanceEvent => instanceEvent is Either<OddTrotter.Calendar.CalendarEvent, CalendarEventBuilder>.Left left &&     
                 left.Value.Subject.Contains("todo list", StringComparison.OrdinalIgnoreCase) == true).ConfigureAwait(false);
 
@@ -295,7 +295,7 @@
                 {
                     throw new Exception("TODO use visitor");
                 }
-            }
+            }*/
 
 
             var instanceEventsCollection = GetEvents(this.graphClient, originalLastRecordedEventTimeStamp, DateTime.UtcNow, this.calendarEventPageSize);

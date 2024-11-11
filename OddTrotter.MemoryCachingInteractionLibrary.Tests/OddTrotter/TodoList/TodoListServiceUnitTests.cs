@@ -12,7 +12,9 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Newtonsoft.Json.Linq;
     using OddTrotter.AzureBlobClient;
+    using OddTrotter.Calendar;
     using OddTrotter.GraphClient;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     /// Unit tests for <see cref="TodoListService"/>
@@ -21,6 +23,22 @@
     [TestClass]
     public sealed class TodoListServiceUnitTests
     {
+        [TestMethod]
+        public void QueryResult()
+        {
+            var items = new[] { "asdf", "qwer", "1234", "zxcv" };
+            var queryResult = items.ToQueryResult<string, bool>();
+
+            var values = new List<string>();
+            while (queryResult is QueryResult<string, bool>.Element element)
+            {
+                values.Add(element.Value);
+                queryResult = element.Next();
+            }
+
+            var concat = string.Join(",", values);
+        }
+
         /// <summary>
         /// Creates a <see cref="TodoListService"/> with a <see langword="null"/> memory cache
         /// </summary>
