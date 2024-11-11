@@ -39,31 +39,4 @@ namespace OddTrotter.Calendar
 
         public string? Start { get; set; }
     }
-
-    public abstract class Either<TLeft, TRight>
-    {
-        private Either()
-        {
-        }
-
-        public sealed class Left : Either<TLeft, TRight>
-        {
-            public Left(TLeft value)
-            {
-                Value = value;
-            }
-
-            public TLeft Value { get; }
-        }
-
-        public sealed class Right : Either<TLeft, TRight>
-        {
-            public Right(TRight value)
-            {
-                Value = value;
-            }
-
-            public TRight Value { get; }
-        }
-    }
 }

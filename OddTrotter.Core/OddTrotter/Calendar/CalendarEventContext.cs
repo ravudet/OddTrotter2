@@ -167,6 +167,7 @@ namespace OddTrotter.Calendar
 
         private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> Adapt(QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError> seriesEventMasters, IGraphClient graphClient, DateTime startTime, DateTime endTime)
         {
+            await Task.Delay(1).ConfigureAwait(false); //// TODO remove this
             if (seriesEventMasters is QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Final)
             {
                 // we are done going through all of the series events, so we return the terminal node
@@ -179,57 +180,55 @@ namespace OddTrotter.Calendar
             }
             else if (seriesEventMasters is QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element element)
             {
-                if (element.Value is Either<CalendarEvent, GraphCalendarEvent>.Left left)
-                {
-                    var firstSeriesInstanceInRange = await GetFirstSeriesInstanceInRange(graphClient, left.Value, startTime, endTime).ConfigureAwait(false);
-                    while (true)
+                var visitor = Either.Visitor<CalendarEvent, GraphCalendarEvent, QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>, bool>(
+                    (left, context) => 
                     {
-                        if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Final)
+                        var firstSeriesInstanceInRange = GetFirstSeriesInstanceInRange(graphClient, left.Value, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await
+                        while (true)
                         {
-                            // there are no valid instances of the series in the range, so skip this series master
-                            return await Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime).ConfigureAwait(false);
-                        }
-                        else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Element firstInstanceElement)
-                        {
-                            var instance = firstInstanceElement.Value.Build();
-                            if (instance is Either<CalendarEvent, GraphCalendarEvent>.Left leftInstance)
+                            if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Final)
                             {
-                                var calendarEvent = new CalendarEvent(
-                                    left.Value.Id,
-                                    left.Value.Subject,
-                                    left.Value.Body,
-                                    leftInstance.Value.Start);
-                                return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
-                                    new Either<CalendarEvent, GraphCalendarEvent>.Left(calendarEvent),
-                                    Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime));
+                                // there are no valid instances of the series in the range, so skip this series master
+                                return Adapt(element.Next.ConfigureAwait(false).GetAwaiter().GetResult(), graphClient, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await x2
+                            }
+                            else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Element firstInstanceElement)
+                            {
+                                var instance = firstInstanceElement.Value.Build();
+                                if (instance is Either<CalendarEvent, GraphCalendarEvent>.Left leftInstance)
+                                {
+                                    var calendarEvent = new CalendarEvent(
+                                        left.Value.Id,
+                                        left.Value.Subject,
+                                        left.Value.Body,
+                                        leftInstance.Value.Start);
+                                    return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
+                                        new Either<CalendarEvent, GraphCalendarEvent>.Left(calendarEvent),
+                                        Adapt(element.Next.ConfigureAwait(false).GetAwaiter().GetResult(), graphClient, startTime, endTime)); //// TODO await
+                                }
+                                else
+                                {
+                                    firstSeriesInstanceInRange = firstInstanceElement.Next.ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await
+                                }
+                            }
+                            else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Partial)
+                            {
+                                //// TODO this code just swallows the fact that the series master retrieval was successful, but the instance event retrieval failed; it swallows by just skipping the series master
+                                return Adapt(element.Next.ConfigureAwait(false).GetAwaiter().GetResult(), graphClient, startTime, endTime).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO await x2
                             }
                             else
                             {
-                                firstSeriesInstanceInRange = await firstInstanceElement.Next.ConfigureAwait(false);
+                                throw new Exception("TODO use visitor");
                             }
                         }
-                        else if (firstSeriesInstanceInRange is QueryResult<GraphCalendarEvent, OdataError>.Partial)
-                        {
-                            //// TODO this code just swallows the fact that the series master retrieval was successful, but the instance event retrieval failed; it swallows by just skipping the series master
-                            return await Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            throw new Exception("TODO use visitor");
-                        }
-                    }
-                }
-                else if (element.Value is Either<CalendarEvent, GraphCalendarEvent>.Right right)
-                {
-                    // the series master was malformed, so we will preserved the malformed-ness, but skip trying to get any instances of the series
-                    return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
-                        element.Value,
-                        Adapt(await element.Next.ConfigureAwait(false), graphClient, startTime, endTime));
-                }
-                else
-                {
-                    throw new Exception("TODO use visitor");
-                }
+                    },
+                    (right, context) =>
+                    {
+                        // the series master was malformed, so we will preserved the malformed-ness, but skip trying to get any instances of the series
+                        return new QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>.Element(
+                            element.Value,
+                            Adapt(element.Next.ConfigureAwait(false).GetAwaiter().GetResult(), graphClient, startTime, endTime)); //// TODO await
+                    });
+                return visitor.Visit(element.Value, true);
             }
             else
             {
