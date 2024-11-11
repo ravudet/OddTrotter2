@@ -236,27 +236,6 @@ namespace OddTrotter.Calendar
             }
         }
 
-        /*private static QueryResult<CalendarEvent, (string, Exception)> Adapt(QueryResult<(CalendarEvent, QueryResult<CalendarEvent, (string, Exception)>), (string, Exception)> seriesInstanceEvents)
-        {
-            if (seriesInstanceEvents is QueryResult<(CalendarEvent, QueryResult<CalendarEvent, (string, Exception)>), (string, Exception)>.Final)
-            {
-                // there are no series masters
-                return new QueryResult<CalendarEvent, (string, Exception)>.Final();
-            }
-            else if (seriesInstanceEvents is QueryResult<(CalendarEvent, QueryResult<CalendarEvent, (string, Exception)>), (string, Exception)>.Partial partial)
-            {
-                return new QueryResult<CalendarEvent, (string, Exception)>.Partial(partial.Error);
-            }
-            else if (seriesInstanceEvents is QueryResult<(CalendarEvent, QueryResult<CalendarEvent, (string, Exception)>), (string, Exception)>.Element element)
-            {
-                throw new Exception("TODO");
-            }
-            else
-            {
-                throw new Exception("TODO use visitor");
-            }
-        }*/
-
         /// <summary>
         /// 
         /// </summary>
