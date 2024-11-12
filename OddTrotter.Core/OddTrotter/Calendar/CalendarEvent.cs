@@ -29,6 +29,9 @@ namespace OddTrotter.Calendar
         public DateTimeOffset Start { get; }
     }
 
+    /// <summary>
+    /// TODO better name
+    /// </summary>
     public sealed class CalendarEventBuilder
     {
         public string? Id { get; set; }

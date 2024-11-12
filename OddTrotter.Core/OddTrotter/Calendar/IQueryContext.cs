@@ -78,8 +78,63 @@ namespace OddTrotter.Calendar
         }
     }
 
+    public static class ExceptionExtensions
+    {
+        public static Exception AsException<TException>(this TException exception) where TException : Exception
+        {
+            return exception;
+        }
+    }
+
     public static class QueryResultExtensions
     {
+        private sealed class ErrorResult<TValue, TErrorStart, TErrorEnd> : QueryResult<TValue, TErrorEnd>.Element
+        {
+            private readonly QueryResult<TValue, TErrorStart>.Element queryResult;
+            private readonly Func<TErrorStart, TErrorEnd> selector;
+
+            public ErrorResult(QueryResult<TValue, TErrorStart>.Element queryResult, Func<TErrorStart, TErrorEnd> selector)
+                : base(queryResult.Value)
+            {
+                this.queryResult = queryResult;
+                this.selector = selector;
+            }
+
+            public override QueryResult<TValue, TErrorEnd> Next()
+            {
+                return ErrorVisitor<TValue, TErrorStart, TErrorEnd>.Instance.Visit(this.queryResult.Next(), this.selector);
+            }
+        }
+
+        private sealed class ErrorVisitor<TValue, TErrorStart, TErrorEnd> : QueryResult<TValue, TErrorStart>.Visitor<QueryResult<TValue, TErrorEnd>, Func<TErrorStart, TErrorEnd>>
+        {
+            private ErrorVisitor()
+            {
+            }
+
+            public static ErrorVisitor<TValue, TErrorStart, TErrorEnd> Instance { get; } = new ErrorVisitor<TValue, TErrorStart, TErrorEnd>();
+
+            public override QueryResult<TValue, TErrorEnd> Dispatch(QueryResult<TValue, TErrorStart>.Final node, Func<TErrorStart, TErrorEnd> context)
+            {
+                return new QueryResult<TValue, TErrorEnd>.Final();
+            }
+
+            public override QueryResult<TValue, TErrorEnd> Dispatch(QueryResult<TValue, TErrorStart>.Element node, Func<TErrorStart, TErrorEnd> context)
+            {
+                return new ErrorResult<TValue, TErrorStart, TErrorEnd>(node, context);
+            }
+
+            public override QueryResult<TValue, TErrorEnd> Dispatch(QueryResult<TValue, TErrorStart>.Partial node, Func<TErrorStart, TErrorEnd> context)
+            {
+                return new QueryResult<TValue, TErrorEnd>.Partial(context(node.Error));
+            }
+        }
+
+        public static QueryResult<TValue, TErrorEnd> Error<TValue, TErrorStart, TErrorEnd>(this QueryResult<TValue, TErrorStart> queryResult, Func<TErrorStart, TErrorEnd> selector)
+        {
+            return ErrorVisitor<TValue, TErrorStart, TErrorEnd>.Instance.Visit(queryResult, selector);
+        }
+
         private sealed class WhereResult<TValue, TError> : QueryResult<TValue, TError>.Element
         {
             private readonly Element queryResult;

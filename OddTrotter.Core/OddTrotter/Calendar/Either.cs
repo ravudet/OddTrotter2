@@ -56,19 +56,29 @@ namespace OddTrotter.Calendar
 
     public static class Either
     {
+        public static TResult Visit<TLeft, TRight, TResult, TContext>(
+            this Either<TLeft, TRight> either,
+            Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,
+            Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch,
+            TContext context)
+        {
+            var visitor = new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
+            return visitor.Visit(either, context);
+        }
+
         public static Either<TLeft, TRight>.Visitor<TResult, TContext> Visitor<TLeft, TRight, TResult, TContext>(
             Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,
             Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch)
         {
-            return new DelelgateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
+            return new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
         }
 
-        private sealed class DelelgateVisitor<TLeft, TRight, TResult, TContext> : Either<TLeft, TRight>.Visitor<TResult, TContext>
+        private sealed class DelegateVisitor<TLeft, TRight, TResult, TContext> : Either<TLeft, TRight>.Visitor<TResult, TContext>
         {
             private readonly Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch;
             private readonly Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch;
 
-            public DelelgateVisitor(
+            public DelegateVisitor(
                 Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,
                 Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch)
             {

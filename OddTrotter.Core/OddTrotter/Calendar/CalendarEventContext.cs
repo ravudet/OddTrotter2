@@ -23,7 +23,10 @@ namespace OddTrotter.Calendar
         public Exception Exception { get; }
     }
 
-    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventBuilder>, OdataError>
+    /// <summary>
+    /// is Exception for TError a good call? isn't this basically just making your errors object?
+    /// </summary>
+    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventBuilder>, Exception>
     {
         private readonly IGraphClient graphClient;
         private readonly RelativeUri calendarUri;
@@ -45,8 +48,10 @@ namespace OddTrotter.Calendar
             this.pageSize = settings.PageSize;
         }
 
-        public async Task<QueryResult<Either<CalendarEvent, CalendarEventBuilder>, OdataError>> Evaluate()
+        public async Task<QueryResult<Either<CalendarEvent, CalendarEventBuilder>, Exception>> Evaluate()
         {
+            //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
+
             //// TODO finish implementing this class
             //// TODO implement query result using an abastract method
             //// TODO write tests for todolistservice that confirm the URLs
@@ -55,28 +60,16 @@ namespace OddTrotter.Calendar
 
             //// TODO use this.calendarUri
             var graphEvents = await GetEvents(this.graphClient, this.startTime, this.endTime, this.pageSize).ConfigureAwait(false);
-            return await graphEvents.Select<Either<CalendarEvent, GraphCalendarEvent>, Either<CalendarEvent, CalendarEventBuilder>, OdataError>(graphEvent =>
-            {
-                if (graphEvent is Either<CalendarEvent, GraphCalendarEvent>.Left left)
+            return graphEvents.Select(graphEvent => graphEvent.Visit<CalendarEvent, GraphCalendarEvent, Either<CalendarEvent, CalendarEventBuilder>, bool>(
+                (left, context) => new Either<CalendarEvent, CalendarEventBuilder>.Left(left.Value),
+                (right, context) => new Either<CalendarEvent, CalendarEventBuilder>.Right(new CalendarEventBuilder()
                 {
-                    return new Either<CalendarEvent, CalendarEventBuilder>.Left(left.Value);
-                }
-                else if (graphEvent is Either<CalendarEvent, GraphCalendarEvent>.Right right)
-                {
-                    var calendarEventBuilder = new CalendarEventBuilder()
-                    {
-                        Body = right.Value.Body?.Content,
-                        Id = right.Value.Id,
-                        Start = right.Value.Start?.DateTime,
-                        Subject = right.Value.Subject,
-                    };
-                    return new Either<CalendarEvent, CalendarEventBuilder>.Right(calendarEventBuilder);
-                }
-                else
-                {
-                    throw new Exception("TODO use visitor");
-                }
-            }).ConfigureAwait(false);
+                    Body = right.Value.Body?.Content,
+                    Id = right.Value.Id,
+                    Start = right.Value.Start?.DateTime,
+                    Subject = right.Value.Subject,
+                }),
+                false));
         }
 
         /// <summary>
@@ -96,7 +89,7 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             var instanceEvents = await GetInstanceEvents(graphClient, startTime, endTime, pageSize).ConfigureAwait(false);
             var seriesEvents = await GetSeriesEvents(graphClient, startTime, endTime, pageSize).ConfigureAwait(false);
@@ -115,13 +108,13 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             //// TODO starttime and endtime should be done through a queryable
             var url = GetInstanceEventsUrl(startTime, pageSize) + $" and start/dateTime lt '{endTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'";
             var graphCalendarEvents = await GetQueryResult<GraphCalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
-            var calendarEvents = await graphCalendarEvents.Select(graphCalendarEvent => graphCalendarEvent.Build()).ConfigureAwait(false);
-            return calendarEvents;
+            var calendarEvents = graphCalendarEvents.Select(graphCalendarEvent => graphCalendarEvent.Build());
+            return calendarEvents.Error(odataException => odataException.AsException());
         }
 
         /// <summary>
@@ -159,7 +152,7 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             var seriesEventMasters = await GetSeriesEventMasters(graphClient, pageSize).ConfigureAwait(false);
             return await Adapt(seriesEventMasters, graphClient, startTime, endTime).ConfigureAwait(false);
@@ -407,7 +400,11 @@ namespace OddTrotter.Calendar
             public string? LastRequestedPageUrl { get; }
         }
 
-        private static async Task<QueryResult<T, OdataError>> GetQueryResult<T>(IGraphClient graphClient, RelativeUri relativeUri)
+        private sealed class OdataException : Exception
+        {
+        }
+
+        private static async Task<QueryResult<T, OdataException>> GetQueryResult<T>(IGraphClient graphClient, RelativeUri relativeUri)
         {
             ODataCollectionPage<T> page;
             try
