@@ -222,7 +222,6 @@ namespace OddTrotter.Calendar
 
         public static QueryResult<TValue, TError> Concat<TValue, TError>(this QueryResult<TValue, TError> first, QueryResult<TValue, TError> second)
         {
-            //// TODO do a linq query that has more than one parameter
             return ConcatVisitor<TValue, TError>.Instance.Visit(first, second);
         }
 
@@ -272,5 +271,7 @@ namespace OddTrotter.Calendar
         {
             return SelectVisitor<TValueStart, TValueEnd, TError>.Instance.Visit(queryResult, selector);
         }
+
+        public static QueryResult<TValue, TError> DistinctBy<TValue, TError>(this QueryResult<TValue, TError> queryResult, )
     }
 }

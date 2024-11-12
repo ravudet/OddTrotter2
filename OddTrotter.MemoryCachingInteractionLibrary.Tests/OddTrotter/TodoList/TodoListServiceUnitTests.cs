@@ -27,6 +27,7 @@
         public void QueryResult()
         {
             var items = new[] { "asdf", "qwer", "1234", "zxcv" };
+            items.DistinctBy
             var queryResult = items.ToQueryResult<string, bool>();
 
             var values = new List<string>();
