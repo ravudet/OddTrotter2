@@ -160,8 +160,10 @@ namespace OddTrotter.Calendar
 
         public static QueryResult<TValue, TError> ToQueryResult<TValue, TError>(this IEnumerable<TValue> enumerable)
         {
-            using (var enumerator = enumerable.GetEnumerator())
+            IEnumerator<TValue>? enumerator = null;
+            try
             {
+                enumerator = enumerable.GetEnumerator();
                 if (!enumerator.MoveNext())
                 {
                     return new QueryResult<TValue, TError>.Final();
@@ -169,29 +171,60 @@ namespace OddTrotter.Calendar
 
                 return new ToQueryResultResult<TValue, TError>(enumerator);
             }
+            catch
+            {
+                enumerator?.Dispose();
+                throw;
+            }
+        }
+
+        private sealed class ConcatResult<TValue, TError> : QueryResult<TValue, TError>.Element
+        {
+            private readonly QueryResult<TValue, TError>.Element element;
+            private readonly QueryResult<TValue, TError> second;
+
+            public ConcatResult(QueryResult<TValue, TError>.Element element, QueryResult<TValue, TError> second)
+                : base(element.Value)
+            {
+                this.element = element;
+                this.second = second;
+            }
+
+            public override QueryResult<TValue, TError> Next()
+            {
+                return ConcatVisitor<TValue, TError>.Instance.Visit(this.element.Next(), second);
+            }
+        }
+
+        private sealed class ConcatVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, QueryResult<TValue, TError>>
+        {
+            private ConcatVisitor()
+            {
+            }
+
+            public static ConcatVisitor<TValue, TError> Instance { get; } = new ConcatVisitor<TValue, TError>();
+
+            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Final node, QueryResult<TValue, TError> context)
+            {
+                return context;
+            }
+
+            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, QueryResult<TValue, TError> context)
+            {
+                return new ConcatResult<TValue, TError>(node, context);
+            }
+
+            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, QueryResult<TValue, TError> context)
+            {
+                //// TODO what if there was in error in first *and* second?
+                return node;
+            }
         }
 
         public static QueryResult<TValue, TError> Concat<TValue, TError>(this QueryResult<TValue, TError> first, QueryResult<TValue, TError> second)
         {
-            if (first is QueryResult<TValue, TError>.Final)
-            {
-                return second;
-            }
-            else if (first is QueryResult<TValue, TError>.Partial partial)
-            {
-                return first;
-                //// TODO
-            }
-            else if (first is QueryResult<TValue, TError>.Element element)
-            {
-                return first;
-                //// TODO
-                ////return new QueryResult<TValue, TError>.Element(element.Value, element.Next.ContinueWith(_ => _.Result.Concat(second)));
-            }
-            else
-            {
-                throw new Exception("TODO use visitor");
-            }
+            //// TODO do a linq query that has more than one parameter
+            return ConcatVisitor<TValue, TError>.Instance.Visit(first, second);
         }
 
         public static async Task<QueryResult<TValueEnd, TError>> Select<TValueStart, TValueEnd, TError>(this QueryResult<TValueStart, TError> queryResult, Func<TValueStart, TValueEnd> selector)
