@@ -5,7 +5,6 @@ namespace OddTrotter.Calendar
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using static System.Net.Mime.MediaTypeNames;
 
     public interface IQueryContext<TValue, TError>
     {
@@ -95,7 +94,7 @@ namespace OddTrotter.Calendar
 
             public sealed override QueryResult<TValue, TError> Next()
             {
-                return WhereVisitor<TValue, TError>.Instance.Visit(this.queryResult, this.predicate);
+                return WhereVisitor<TValue, TError>.Instance.Visit(this.queryResult.Next(), this.predicate);
             }
         }
 
@@ -227,31 +226,51 @@ namespace OddTrotter.Calendar
             return ConcatVisitor<TValue, TError>.Instance.Visit(first, second);
         }
 
-        public static async Task<QueryResult<TValueEnd, TError>> Select<TValueStart, TValueEnd, TError>(this QueryResult<TValueStart, TError> queryResult, Func<TValueStart, TValueEnd> selector)
+        private sealed class SelectResult<TValueStart, TValueEnd, TError> : QueryResult<TValueEnd, TError>.Element
         {
-            await Task.Delay(1).ConfigureAwait(false); //// TODO remove this
+            private readonly QueryResult<TValueStart, TError>.Element queryResult;
+            private readonly Func<TValueStart, TValueEnd> selector;
 
-            //// TODO is it a good idea for this to be async?
-            if (queryResult is QueryResult<TValueStart, TError>.Final)
+            public SelectResult(QueryResult<TValueStart, TError>.Element queryResult, Func<TValueStart, TValueEnd> selector)
+                : base(selector(queryResult.Value))
+            {
+                this.queryResult = queryResult;
+                this.selector = selector;
+            }
+
+            public override QueryResult<TValueEnd, TError> Next()
+            {
+                return SelectVisitor<TValueStart, TValueEnd, TError>.Instance.Visit(this.queryResult.Next(), this.selector);
+            }
+        }
+
+        private sealed class SelectVisitor<TValueStart, TValueEnd, TError> : QueryResult<TValueStart, TError>.Visitor<QueryResult<TValueEnd, TError>, Func<TValueStart, TValueEnd>>
+        {
+            private SelectVisitor()
+            {
+            }
+
+            public static SelectVisitor<TValueStart, TValueEnd, TError> Instance { get; } = new SelectVisitor<TValueStart, TValueEnd, TError>();
+
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Final node, Func<TValueStart, TValueEnd> context)
             {
                 return new QueryResult<TValueEnd, TError>.Final();
             }
-            else if (queryResult is QueryResult<TValueStart, TError>.Partial partial)
+
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Element node, Func<TValueStart, TValueEnd> context)
             {
-                return new QueryResult<TValueEnd, TError>.Partial(partial.Error);
+                throw new NotImplementedException();
             }
-            else if (queryResult is QueryResult<TValueStart, TError>.Element element)
+
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Partial node, Func<TValueStart, TValueEnd> context)
             {
-                return new QueryResult<TValueEnd, TError>.Final();
-                //// TODO
-                /*return new QueryResult<TValueEnd, TError>.Element(
-                    selector(element.Value),
-                    (await element.Next.ConfigureAwait(false)).Select(selector));*/
+                return new QueryResult<TValueEnd, TError>.Partial(node.Error);
             }
-            else
-            {
-                throw new Exception("TODO use visitor");
-            }
+        }
+
+        public static QueryResult<TValueEnd, TError> Select<TValueStart, TValueEnd, TError>(this QueryResult<TValueStart, TError> queryResult, Func<TValueStart, TValueEnd> selector)
+        {
+            return SelectVisitor<TValueStart, TValueEnd, TError>.Instance.Visit(queryResult, selector);
         }
     }
 }
