@@ -135,6 +135,29 @@ namespace OddTrotter.Calendar
             return WhereVisitor<TValue, TError>.Instance.Visit(queryResult, predicate);
         }
 
+        private sealed class ToQueryResultResult<TValue, TError> : QueryResult<TValue, TError>.Element
+        {
+            private readonly IEnumerator<TValue> enumerator;
+
+            public ToQueryResultResult(IEnumerator<TValue> enumerator)
+                : base(enumerator.Current)
+            {
+                //// TODO make queryresult.final disposable?
+                this.enumerator = enumerator;
+            }
+
+            public override QueryResult<TValue, TError> Next()
+            {
+                if (!this.enumerator.MoveNext())
+                {
+                    return new QueryResult<TValue, TError>.Final();
+                }
+
+                //// TODO is this ok? it might not be properly immutable this way
+                return new ToQueryResultResult<TValue, TError>(this.enumerator);
+            }
+        }
+
         public static QueryResult<TValue, TError> ToQueryResult<TValue, TError>(this IEnumerable<TValue> enumerable)
         {
             using (var enumerator = enumerable.GetEnumerator())
@@ -144,19 +167,8 @@ namespace OddTrotter.Calendar
                     return new QueryResult<TValue, TError>.Final();
                 }
 
-                //// TODO is this actually lazy?
-                return new QueryResult<TValue, TError>.Element(enumerator.Current, () => ToQueryResult<TValue, TError>(enumerator));
+                return new ToQueryResultResult<TValue, TError>(enumerator);
             }
-        }
-
-        private static QueryResult<TValue, TError> ToQueryResult<TValue, TError>(IEnumerator<TValue> enumerator)
-        {
-            if (!enumerator.MoveNext())
-            {
-                return new QueryResult<TValue, TError>.Final();
-            }
-
-            return new QueryResult<TValue, TError>.Element(enumerator.Current, () => ToQueryResult<TValue, TError>(enumerator));
         }
 
         public static QueryResult<TValue, TError> Concat<TValue, TError>(this QueryResult<TValue, TError> first, QueryResult<TValue, TError> second)
