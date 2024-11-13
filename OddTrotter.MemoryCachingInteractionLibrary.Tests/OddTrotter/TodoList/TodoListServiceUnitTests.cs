@@ -23,6 +23,30 @@
     [TestClass]
     public sealed class TodoListServiceUnitTests
     {
+        private sealed class GetGraphCalendarEventsMockOdataClient : IOdataClient
+        {
+            public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [TestMethod]
+        public async Task GetGraphCalendarEvents()
+        {
+            var odataClient = new GetGraphCalendarEventsMockOdataClient();
+            var graphCalendarEventsContext = new GraphCalendarEventsContext(odataClient);
+
+            var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri();
+            var request = new OdataCollectionRequest()
+            graphCalendarEventsContext.GetCollection()
+        }
+
         [TestMethod]
         public void QueryResult()
         {

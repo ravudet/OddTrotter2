@@ -51,6 +51,8 @@ namespace OddTrotter.Calendar
         public async Task<QueryResult<Either<CalendarEvent, CalendarEventBuilder>, Exception>> Evaluate()
         {
             //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
+            
+            //// TODO you finished implementing one method in graphcalendareventscontext; you don't know if it works
 
             //// TODO finish implementing this class
             //// TODO implement query result using an abastract method
