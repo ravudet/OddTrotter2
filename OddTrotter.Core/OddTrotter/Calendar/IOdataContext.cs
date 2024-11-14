@@ -11,8 +11,45 @@ using System.Threading.Tasks;
 
 namespace OddTrotter.Calendar
 {
-    public interface IOdataCollectionRequestBuilder
+    public sealed class Filter
     {
+        private Filter()
+        {
+        }
+    }
+
+    public sealed class OrderBy
+    {
+        private OrderBy()
+        {
+        }
+    }
+
+    public sealed class Select
+    {
+        private Select()
+        {
+        }
+    }
+
+    public sealed class Top
+    {
+        private Top()
+        {
+        }
+    }
+
+    public interface IOdataCollectionRequestBuilder //// TODO should you have request builders or uri builders? or maybe a builder for each component of the request?
+    {
+        OdataCollectionRequest Request { get; }
+
+        IOdataCollectionRequestBuilder Filter(Filter filter);
+
+        IOdataCollectionRequestBuilder OrderBy(OrderBy orderBy);
+
+        IOdataCollectionRequestBuilder Select(Select select);
+
+        IOdataCollectionRequestBuilder Top(Top top);
     }
 
     public sealed class OdataCollectionRequest
@@ -37,6 +74,7 @@ namespace OddTrotter.Calendar
         }
 
         public RelativeUri? RelativeUri { get; }
+
         public AbsoluteUri? AbsoluteUri { get; }
     }
 
