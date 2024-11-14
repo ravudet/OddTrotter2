@@ -6,6 +6,8 @@
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
 
     using Microsoft.Extensions.Caching.Memory;
@@ -86,6 +88,64 @@
             var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(), null);
             var request = new OdataCollectionRequest(odataUri);
             var response = await graphCalendarEventsContext.GetCollection(request).ConfigureAwait(false);
+
+            var calendarEvents = response
+                .Value
+                .Select(odataObject => JsonSerializer.Deserialize<GraphCalendarEvent>(odataObject.JsonNode))
+                .Select(graphCalendarEvent => 
+                    graphCalendarEvent?.Build()?.SelectRight(_ => _.ToNullable()) ?? 
+                    new Either<OddTrotter.Calendar.CalendarEvent, GraphCalendarEvent?>.Right(graphCalendarEvent));
+        }
+
+        private sealed class GraphCalendarEvent
+        {
+            [JsonPropertyName("id")]
+            public string? Id { get; set; }
+
+            [JsonPropertyName("subject")]
+            public string? Subject { get; set; }
+
+            [JsonPropertyName("start")]
+            public TimeStructure? Start { get; set; }
+
+            [JsonPropertyName("body")]
+            public BodyStructure? Body { get; set; }
+
+            public Either<OddTrotter.Calendar.CalendarEvent, GraphCalendarEvent> Build()
+            {
+                DateTimeOffset start;
+                if (this.Id == null ||
+                    this.Subject == null ||
+                    this.Start == null ||
+                    this.Start.DateTime == null ||
+                    this.Start.TimeZone == null ||
+                    !DateTimeOffset.TryParse(this.Start.DateTime, out start) ||
+                    this.Body == null ||
+                    this.Body.Content == null)
+                {
+                    return new Either<OddTrotter.Calendar.CalendarEvent, GraphCalendarEvent>.Right(this);
+                }
+                else
+                {
+                    return new Either<OddTrotter.Calendar.CalendarEvent, GraphCalendarEvent>.Left(
+                        new OddTrotter.Calendar.CalendarEvent(this.Id, this.Id, this.Body.Content, start));
+                }
+            }
+        }
+
+        private sealed class BodyStructure
+        {
+            [JsonPropertyName("content")]
+            public string? Content { get; set; }
+        }
+
+        private sealed class TimeStructure
+        {
+            [JsonPropertyName("dateTime")]
+            public string? DateTime { get; set; }
+
+            [JsonPropertyName("timeZone")]
+            public string? TimeZone { get; set; }
         }
 
         [TestMethod]

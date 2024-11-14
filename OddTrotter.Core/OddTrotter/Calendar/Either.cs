@@ -54,8 +54,24 @@ namespace OddTrotter.Calendar
         }
     }
 
+    public static class Extensions
+    {
+        public static T? ToNullable<T>(this T value)
+        {
+            return value;
+        }
+    }
+
     public static class Either
     {
+        public static Either<TLeft, TRightNew> SelectRight<TLeft, TRightOld, TRightNew>(this Either<TLeft, TRightOld> either, Func<TRightOld, TRightNew> selector)
+        {
+            return either.Visit<TLeft, TRightOld, Either<TLeft, TRightNew>, bool>(
+                (left, context) => new Either<TLeft, TRightNew>.Left(left.Value),
+                (right, context) => new Either<TLeft, TRightNew>.Right(selector(right.Value)),
+                false);
+        }
+
         public static TResult Visit<TLeft, TRight, TResult, TContext>(
             this Either<TLeft, TRight> either,
             Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,

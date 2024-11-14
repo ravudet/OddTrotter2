@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.V2;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -46,13 +47,14 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataObject
     {
-        public OdataObject(string id)
+        public OdataObject(JsonNode jsonNode)
         {
-            this.Id = id;
+            //// TODO this should be more AST-looking instead of using JSON
+            //// TODO you've named this type odata "object", but could it also be individual values (like in a collection)?
+            this.JsonNode = jsonNode;
         }
 
-        [JsonPropertyName("id")] //// TODO
-        public string Id { get; }
+        public JsonNode JsonNode { get; }
     }
 
     public sealed class OdataCollectionResponse
@@ -112,16 +114,14 @@ namespace OddTrotter.Calendar
                     throw new JsonException($"The value of the collection JSON property was null. The serialized value was '{httpResponseContent}'");
                 }
 
-                //// TODO nullable
-                //// TODO select statement
-                return new OdataCollectionResponse(odataCollectionPage.Value.Select(node => JsonSerializer.Deserialize<OdataObject>(node)!).ToList(), odataCollectionPage.NextLink);
+                return new OdataCollectionResponse(odataCollectionPage.Value.Select(node => new OdataObject(node)).ToList(), odataCollectionPage.NextLink);
             }
         }
 
         private sealed class OdataCollectionResponseBuilder
         {
             [JsonPropertyName("value")]
-            public IReadOnlyList<System.Text.Json.Nodes.JsonNode>? Value { get; set; }
+            public IReadOnlyList<JsonNode>? Value { get; set; }
 
             [JsonPropertyName("@odata.nextLink")]
             public string? NextLink { get; set; }
