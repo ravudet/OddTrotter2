@@ -1,6 +1,7 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.V2;
 using System.Net.Http;
 using System.Text.Json;
@@ -45,6 +46,13 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataObject
     {
+        public OdataObject(string id)
+        {
+            this.Id = id;
+        }
+
+        [JsonPropertyName("id")] //// TODO
+        public string Id { get; }
     }
 
     public sealed class OdataCollectionResponse
@@ -104,14 +112,16 @@ namespace OddTrotter.Calendar
                     throw new JsonException($"The value of the collection JSON property was null. The serialized value was '{httpResponseContent}'");
                 }
 
-                return new OdataCollectionResponse(odataCollectionPage.Value, odataCollectionPage.NextLink);
+                //// TODO nullable
+                //// TODO select statement
+                return new OdataCollectionResponse(odataCollectionPage.Value.Select(node => JsonSerializer.Deserialize<OdataObject>(node)!).ToList(), odataCollectionPage.NextLink);
             }
         }
 
         private sealed class OdataCollectionResponseBuilder
         {
             [JsonPropertyName("value")]
-            public IReadOnlyList<OdataObject>? Value { get; set; }
+            public IReadOnlyList<System.Text.Json.Nodes.JsonNode>? Value { get; set; }
 
             [JsonPropertyName("@odata.nextLink")]
             public string? NextLink { get; set; }
