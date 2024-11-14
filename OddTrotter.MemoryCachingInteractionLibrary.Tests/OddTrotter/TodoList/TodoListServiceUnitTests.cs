@@ -25,9 +25,50 @@
     {
         private sealed class GetGraphCalendarEventsMockOdataClient : IOdataClient
         {
-            public Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
-                throw new NotImplementedException();
+                var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_id",
+            "subject": "testing",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>some data</p></body></html>"
+            },
+            "start": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            }
+        }
+    ]
+}
+""";
+                StringContent? stringContent = null;
+                try
+                {
+                    stringContent = new StringContent(content);
+                    HttpResponseMessage? responseMessage = null;
+                    try
+                    {
+                        responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                        responseMessage.Content = stringContent;
+                        return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        responseMessage?.Dispose();
+                        throw;
+                    }
+                }
+                catch
+                {
+                    stringContent?.Dispose();
+                    throw;
+                }
             }
 
             public Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
@@ -42,9 +83,9 @@
             var odataClient = new GetGraphCalendarEventsMockOdataClient();
             var graphCalendarEventsContext = new GraphCalendarEventsContext(odataClient);
 
-            var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri();
-            var request = new OdataCollectionRequest()
-            graphCalendarEventsContext.GetCollection()
+            var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(), null);
+            var request = new OdataCollectionRequest(odataUri);
+            var response = await graphCalendarEventsContext.GetCollection(request).ConfigureAwait(false);
         }
 
         [TestMethod]

@@ -157,7 +157,8 @@ namespace OddTrotter.Calendar
         private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             var seriesEventMasters = await GetSeriesEventMasters(graphClient, pageSize).ConfigureAwait(false);
-            return await Adapt(seriesEventMasters, graphClient, startTime, endTime).ConfigureAwait(false);
+            ////return await Adapt(seriesEventMasters, graphClient, startTime, endTime).ConfigureAwait(false);
+            throw new Exception("TODO");
         }
 
         private static async IAsyncEnumerable<TValue> ToEnumerable<TValue, TError>(QueryResult<TValue, TError> queryResult)
@@ -262,8 +263,10 @@ namespace OddTrotter.Calendar
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
             var graphCalendarEvents = await GetQueryResult<GraphCalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
-            var calendarEvents = await graphCalendarEvents.Select(graphCalendarEvent => graphCalendarEvent.Build()).ConfigureAwait(false);
-            return calendarEvents;
+            /*var calendarEvents = await graphCalendarEvents.Select(graphCalendarEvent => graphCalendarEvent.Build()).ConfigureAwait(false);
+            return calendarEvents;*/
+
+            throw new Exception("TODO");
         }
 
         /// <summary>
@@ -413,12 +416,15 @@ namespace OddTrotter.Calendar
             {
                 page = await GetPage<T>(graphClient, relativeUri).ConfigureAwait(false);
             }
-            catch (Exception e) //// TODO exception types
+            catch (Exception) //// TODO exception types
             {
-                return new QueryResult<T, OdataError>.Partial(new OdataError(relativeUri.OriginalString, e));
+                ////return new QueryResult<T, OdataError>.Partial(new OdataError(relativeUri.OriginalString, e));
+
+                throw new Exception("TODO");
             }
 
-            return await GetQueryResult(graphClient, page).ConfigureAwait(false);
+            ////return await GetQueryResult(graphClient, page).ConfigureAwait(false);
+            throw new Exception("TODO");
         }
 
         private static async Task<QueryResult<T, OdataError>> GetQueryResult<T>(IGraphClient graphClient, ODataCollectionPage<T> page)
