@@ -90,8 +90,18 @@ namespace OddTrotter.Calendar
 
         public async Task<OdataCollectionResponse> GetCollection(OdataCollectionRequest request)
         {
-            using (var httpResponse = await this.odataClient.GetAsync(request.Uri.RelativeUri!).ConfigureAwait(false)) //// TODO nullable uri
+            HttpResponseMessage? httpResponse = null;
+            try
             {
+                if (request.Uri.RelativeUri != null)
+                {
+                    httpResponse = await this.odataClient.GetAsync(request.Uri.RelativeUri).ConfigureAwait(false);
+                }
+                else
+                {
+                    httpResponse = await this.odataClient.GetAsync(request.Uri.AbsoluteUri!).ConfigureAwait(false); //// TODO nullable uri
+                }
+
                 var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
@@ -115,6 +125,10 @@ namespace OddTrotter.Calendar
                 }
 
                 return new OdataCollectionResponse(odataCollectionPage.Value.Select(node => new OdataObject(node)).ToList(), odataCollectionPage.NextLink);
+            }
+            finally
+            {
+                httpResponse?.Dispose();
             }
         }
 

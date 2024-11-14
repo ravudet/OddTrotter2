@@ -96,6 +96,114 @@
                     graphCalendarEvent?.Build()?.SelectRight(_ => _.ToNullable()) ?? 
                     new Either<OddTrotter.Calendar.CalendarEvent, GraphCalendarEvent?>.Right(graphCalendarEvent));
         }
+        private sealed class PageGraphCalendarEventsMockOdataClient : IOdataClient
+        {
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_id",
+            "subject": "testing",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>some data</p></body></html>"
+            },
+            "start": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            }
+        }
+    ],
+    "@odata.nextLink": "https://graph.microsoft.com/v1.0/me/calendar/events?$skip=1"
+}
+""";
+                StringContent? stringContent = null;
+                try
+                {
+                    stringContent = new StringContent(content);
+                    HttpResponseMessage? responseMessage = null;
+                    try
+                    {
+                        responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                        responseMessage.Content = stringContent;
+                        return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        responseMessage?.Dispose();
+                        throw;
+                    }
+                }
+                catch
+                {
+                    stringContent?.Dispose();
+                    throw;
+                }
+            }
+
+            public async Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                var content =
+"""
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('some_user')/calendar/events",
+    "value": [
+        {
+            "id": "some_other_id",
+            "subject": "a diferent test",
+            "body": {
+                "contentType": "html",
+                "content": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>some data</p></body></html>"
+            },
+            "start": {
+                "dateTime": "2024-05-17T23:30:00.0000000",
+                "timeZone": "UTC"
+            }
+        }
+    ]
+}
+""";
+                StringContent? stringContent = null;
+                try
+                {
+                    stringContent = new StringContent(content);
+                    HttpResponseMessage? responseMessage = null;
+                    try
+                    {
+                        responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+                        responseMessage.Content = stringContent;
+                        return await Task.FromResult(responseMessage).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        responseMessage?.Dispose();
+                        throw;
+                    }
+                }
+                catch
+                {
+                    stringContent?.Dispose();
+                    throw;
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task PageGraphCalendarEvents()
+        {
+            var odataClient = new PageGraphCalendarEventsMockOdataClient();
+            var graphCalendarEventsContext = new GraphCalendarEventsContext(odataClient);
+
+            var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(), null);
+            var request = new OdataCollectionRequest(odataUri);
+            var response = await graphCalendarEventsContext.PageCollection(request).ConfigureAwait(false);
+
+            var list = response.ToEnumerable();
+        }
 
         private sealed class GraphCalendarEvent
         {

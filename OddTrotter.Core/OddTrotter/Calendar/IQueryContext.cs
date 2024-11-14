@@ -89,6 +89,17 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultExtensions
     {
+        public static IEnumerable<TValue> ToEnumerable<TValue, TError>(this QueryResult<TValue, TError> queryResult)
+        {
+            while (queryResult is QueryResult<TValue, TError>.Element element)
+            {
+                yield return element.Value;
+                queryResult = element.Next();
+            }
+
+            //// TODO throw if queryresult is now partial?
+        }
+
         private sealed class ErrorResult<TValue, TErrorStart, TErrorEnd> : QueryResult<TValue, TErrorEnd>.Element
         {
             private readonly QueryResult<TValue, TErrorStart>.Element queryResult;
