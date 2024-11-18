@@ -5,7 +5,9 @@ namespace OddTrotter.Calendar
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Runtime.CompilerServices;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using OddTrotter.GraphClient;
@@ -28,6 +30,8 @@ namespace OddTrotter.Calendar
     /// </summary>
     public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventBuilder>, Exception>
     {
+        //// TODO can you use a more general context?
+        private readonly GraphCalendarEventsContext graphCalendarEventsContext;
         private readonly IGraphClient graphClient;
         private readonly RelativeUri calendarUri;
         private readonly DateTime startTime;
@@ -46,6 +50,28 @@ namespace OddTrotter.Calendar
             this.startTime = startTime; //// TODO does datetime make sense for this?
             this.endTime = endTime; //// TODO does datetime make sense for this?
             this.pageSize = settings.PageSize;
+
+            this.graphCalendarEventsContext = new GraphCalendarEventsContext(new GraphClientToOdataClient(this.graphClient));
+        }
+
+        private sealed class GraphClientToOdataClient : IOdataClient
+        {
+            private readonly IGraphClient graphClient;
+
+            public GraphClientToOdataClient(IGraphClient graphClient)
+            {
+                this.graphClient = graphClient;
+            }
+
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                return await this.graphClient.GetAsync(relativeUri).ConfigureAwait(false);
+            }
+
+            public async Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
+            {
+                return await this.graphClient.GetAsync(absoluteUri).ConfigureAwait(false);
+            }
         }
 
         public async Task<QueryResult<Either<CalendarEvent, CalendarEventBuilder>, Exception>> Evaluate()
@@ -91,9 +117,9 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
-            var instanceEvents = await GetInstanceEvents(graphClient, startTime, endTime, pageSize).ConfigureAwait(false);
+            var instanceEvents = await this.GetInstanceEvents(startTime, endTime, pageSize).ConfigureAwait(false);
             var seriesEvents = await GetSeriesEvents(graphClient, startTime, endTime, pageSize).ConfigureAwait(false);
             //// TODO merge the sorted sequences instead of concat
             return instanceEvents.Concat(seriesEvents);
@@ -110,31 +136,40 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>> GetInstanceEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private async Task<QueryResult<Either<CalendarEvent, Either<GraphCalendarEvent, JsonNode>>, Exception>> GetInstanceEvents(DateTime startTime, DateTime endTime, int pageSize)
         {
-            //// TODO starttime and endtime should be done through a queryable
-            var url = GetInstanceEventsUrl(startTime, pageSize) + $" and start/dateTime lt '{endTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'";
-            var graphCalendarEvents = await GetQueryResult<GraphCalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
-            var calendarEvents = graphCalendarEvents.Select(graphCalendarEvent => graphCalendarEvent.Build());
-            return calendarEvents.Error(odataException => odataException.AsException());
-        }
+            var calendarEventsRequest = new OdataCollectionRequest.SpecializedRequest.GetInstanceEvents(startTime, pageSize, endTime);
+            var odataCollectionRequest = new OdataCollectionRequest(calendarEventsRequest);
+            var odataCalendarEvents = await this.graphCalendarEventsContext.PageCollection(odataCollectionRequest).ConfigureAwait(false);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="startTime"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
-        private static string GetInstanceEventsUrl(DateTime startTime, int pageSize)
-        {
-            //// TODO make the calendar that's used configurable?
-            var url =
-                $"/me/calendar/events?" +
-                $"$select=body,start,subject&" +
-                $"$top={pageSize}&" +
-                $"$orderBy=start/dateTime&" +
-                $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false";
-            return url;
+            var graphCalendarEvents = odataCalendarEvents.Select<JsonNode, Either<GraphCalendarEvent, JsonNode>, OdataPaginationError>(odataCalendarEvent =>
+            {
+                GraphCalendarEvent? graphCalendarEvent;
+                try
+                {
+                    graphCalendarEvent = JsonSerializer.Deserialize<GraphCalendarEvent>(odataCalendarEvent);
+                }
+                catch
+                {
+                    //// TODO preserve exception?
+                    return new Either<GraphCalendarEvent, JsonNode>.Right(odataCalendarEvent);
+                }
+
+                if (graphCalendarEvent == null)
+                {
+                    return new Either<GraphCalendarEvent, JsonNode>.Right(odataCalendarEvent);
+                }
+
+                return new Either<GraphCalendarEvent, JsonNode>.Left(graphCalendarEvent);
+            });
+
+            //// TODO should the "good" value of either go on the right?
+            var calendarEvents = graphCalendarEvents.Select(graphCalendarEvent =>
+                graphCalendarEvent.Visit<GraphCalendarEvent, JsonNode, Either<CalendarEvent, Either<GraphCalendarEvent, JsonNode>>, bool>(
+                    (left, context) => left.Value.Build().SelectRight<CalendarEvent, GraphCalendarEvent, Either<GraphCalendarEvent, JsonNode>>(right => new Either<GraphCalendarEvent, JsonNode>.Left(right)),
+                    (right, context) => new Either<CalendarEvent, Either<GraphCalendarEvent, JsonNode>>.Right(new Either<GraphCalendarEvent, JsonNode>.Right(right.Value)),
+                    true));
+            return calendarEvents.Error(odataPaginationError => new Exception("TODO preserve the odatapaginationerror"));
         }
 
         /// <summary>
@@ -159,15 +194,6 @@ namespace OddTrotter.Calendar
             var seriesEventMasters = await GetSeriesEventMasters(graphClient, pageSize).ConfigureAwait(false);
             ////return await Adapt(seriesEventMasters, graphClient, startTime, endTime).ConfigureAwait(false);
             throw new Exception("TODO");
-        }
-
-        private static async IAsyncEnumerable<TValue> ToEnumerable<TValue, TError>(QueryResult<TValue, TError> queryResult)
-        {
-            while (queryResult is QueryResult<TValue, TError>.Element element)
-            {
-                yield return element.Value;
-                queryResult = await Task.FromResult(element.Next()).ConfigureAwait(false);
-            }
         }
 
         private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> Adapt(QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError> seriesEventMasters, IGraphClient graphClient, DateTime startTime, DateTime endTime)

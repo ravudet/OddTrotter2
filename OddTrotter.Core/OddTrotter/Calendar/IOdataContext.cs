@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.V2;
 using System.Net.Http;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace OddTrotter.Calendar
 {
-    public sealed class Filter
+    /*public sealed class Filter
     {
         private Filter()
         {
@@ -50,19 +51,59 @@ namespace OddTrotter.Calendar
         IOdataCollectionRequestBuilder Select(Select select);
 
         IOdataCollectionRequestBuilder Top(Top top);
-    }
+    }*/
 
     public sealed class OdataCollectionRequest
     {
-        public OdataCollectionRequest(OdataUri uri)
+        /*public OdataCollectionRequest(OdataUri uri)
         {
             this.Uri = uri;
         }
 
-        public OdataUri Uri { get; }
+        public OdataUri Uri { get; }*/
+
+        internal OdataCollectionRequest(SpecializedRequest request)
+        {
+            this.Request = request;
+        }
+
+        internal SpecializedRequest Request { get; }
+
+        internal abstract class SpecializedRequest
+        {
+            private SpecializedRequest()
+            {
+            }
+
+            public sealed class GetInstanceEvents : SpecializedRequest
+            {
+                public GetInstanceEvents(DateTime startTime, int pageSize, DateTime endTime)
+                {
+                    this.StartTime = startTime;
+                    this.PageSize = pageSize;
+                    this.EndTime = endTime;
+                }
+
+                public DateTime StartTime { get; }
+
+                public int PageSize { get; }
+
+                public DateTime EndTime { get; }
+            }
+
+            public sealed class GetAbsoluteUri : SpecializedRequest
+            {
+                public GetAbsoluteUri(AbsoluteUri uri)
+                {
+                    this.Uri = uri;
+                }
+
+                public AbsoluteUri Uri { get; }
+            }
+        }
     }
 
-    public sealed class OdataUri
+    /*public sealed class OdataUri
     {
         public OdataUri(RelativeUri? relativeUri, AbsoluteUri? absoluteUri)
         {
@@ -76,14 +117,14 @@ namespace OddTrotter.Calendar
         public RelativeUri? RelativeUri { get; }
 
         public AbsoluteUri? AbsoluteUri { get; }
-    }
+    }*/
 
     public interface IOdataContext
     {
         Task<OdataCollectionResponse> GetCollection(OdataCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
     }
 
-    public sealed class OdataObject
+    /*public sealed class OdataObject
     {
         public OdataObject(JsonNode jsonNode)
         {
@@ -93,21 +134,34 @@ namespace OddTrotter.Calendar
         }
 
         public JsonNode JsonNode { get; }
-    }
+    }*/
 
     public sealed class OdataCollectionResponse
     {
         //// TODO there should be a more AST-looking intermediate
 
-        public OdataCollectionResponse(IReadOnlyList<OdataObject> value, string? nextLink)
+        internal OdataCollectionResponse(SpecializedResponse response)
         {
-            this.Value = value;
-            this.NextLink = nextLink;
+            this.Response = response;
         }
 
-        public IReadOnlyList<OdataObject> Value { get; }
+        internal SpecializedResponse Response { get; }
 
-        public string? NextLink { get; }
+        internal abstract class SpecializedResponse
+        {
+            public sealed class Collection : SpecializedResponse
+            {
+                public Collection(IReadOnlyList<JsonNode> value, string? nextLink)
+                {
+                    this.Value = value;
+                    this.NextLink = nextLink;
+                }
+
+                public IReadOnlyList<JsonNode> Value { get; }
+
+                public string? NextLink { get; }
+            }
+        }
     }
 
     public interface IOdataClient
@@ -128,46 +182,53 @@ namespace OddTrotter.Calendar
 
         public async Task<OdataCollectionResponse> GetCollection(OdataCollectionRequest request)
         {
-            HttpResponseMessage? httpResponse = null;
-            try
+            if (request.Request is OdataCollectionRequest.SpecializedRequest.GetInstanceEvents getInstanceEventsRequest)
             {
-                if (request.Uri.RelativeUri != null)
-                {
-                    httpResponse = await this.odataClient.GetAsync(request.Uri.RelativeUri).ConfigureAwait(false);
-                }
-                else
-                {
-                    httpResponse = await this.odataClient.GetAsync(request.Uri.AbsoluteUri!).ConfigureAwait(false); //// TODO nullable uri
-                }
+                var getInstanceEventsUri = 
+                    $"/me/calendar/events?" +
+                    $"$select=body,start,subject&" +
+                    $"$top={getInstanceEventsRequest.PageSize}&" +
+                    $"$orderBy=start/dateTime&" +
+                    $"$filter=type eq 'singleInstance' and start/dateTime gt '{getInstanceEventsRequest.StartTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false and start/dateTime lt '{getInstanceEventsRequest.EndTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}";
+                var requestUri = new Uri(getInstanceEventsUri, UriKind.Relative).ToRelativeUri();
 
-                var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                HttpResponseMessage? httpResponse = null;
                 try
                 {
-                    httpResponse.EnsureSuccessStatusCode();
-                }
-                catch (HttpRequestException e)
-                {
-                    //// TODO throw new GraphException(httpResponseContent, e);
-                    throw new Exception(httpResponseContent, e);
-                }
+                    httpResponse = await this.odataClient.GetAsync(requestUri).ConfigureAwait(false);
+                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    try
+                    {
+                        httpResponse.EnsureSuccessStatusCode();
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        //// TODO throw new GraphException(httpResponseContent, e);
+                        throw new Exception(httpResponseContent, e);
+                    }
 
-                var odataCollectionPage = JsonSerializer.Deserialize<OdataCollectionResponseBuilder>(httpResponseContent);
-                if (odataCollectionPage == null)
-                {
-                    throw new JsonException($"Deserialized value was null. Serialized value was '{httpResponseContent}'");
-                }
+                    var odataCollectionPage = JsonSerializer.Deserialize<OdataCollectionResponseBuilder>(httpResponseContent);
+                    if (odataCollectionPage == null)
+                    {
+                        throw new JsonException($"Deserialized value was null. Serialized value was '{httpResponseContent}'");
+                    }
 
-                if (odataCollectionPage.Value == null)
-                {
-                    throw new JsonException($"The value of the collection JSON property was null. The serialized value was '{httpResponseContent}'");
-                }
+                    if (odataCollectionPage.Value == null)
+                    {
+                        throw new JsonException($"The value of the collection JSON property was null. The serialized value was '{httpResponseContent}'");
+                    }
 
-                return new OdataCollectionResponse(odataCollectionPage.Value.Select(node => new OdataObject(node)).ToList(), odataCollectionPage.NextLink);
+                    return new OdataCollectionResponse(new OdataCollectionResponse.SpecializedResponse.Collection(
+                        odataCollectionPage.Value, 
+                        odataCollectionPage.NextLink));
+                }
+                finally
+                {
+                    httpResponse?.Dispose();
+                }
             }
-            finally
-            {
-                httpResponse?.Dispose();
-            }
+
+            throw new Exception("TODO handle requests in a general way");
         }
 
         private sealed class OdataCollectionResponseBuilder
@@ -182,12 +243,16 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataPaginationError
     {
-        //// TODO
+        //// TODO do this correctly
+
+        internal OdataPaginationError()
+        {
+        }
     }
 
     public static class OdataContextExtensions
     {
-        public static async Task<QueryResult<OdataObject, OdataPaginationError>> PageCollection(this IOdataContext odataContext, OdataCollectionRequest request)
+        internal static async Task<QueryResult<JsonNode, OdataPaginationError>> PageCollection(this IOdataContext odataContext, OdataCollectionRequest request)
         {
             OdataCollectionResponse page;
             try
@@ -197,14 +262,25 @@ namespace OddTrotter.Calendar
             catch (Exception)
             {
                 //// TODO check exception types?
-                return new QueryResult<OdataObject, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve request and exception in error
+                return new QueryResult<JsonNode, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve request and exception in error
             }
 
-            var complete = page.Value.ToQueryResult<OdataObject, OdataPaginationError>();
+            QueryResult<JsonNode, OdataPaginationError> complete;
+            string? nextLink;
+            if (page.Response is OdataCollectionResponse.SpecializedResponse.Collection collectionPage)
+            {
+                complete = collectionPage.Value.ToQueryResult<JsonNode, OdataPaginationError>();
+                nextLink = collectionPage.NextLink;
+            }
+            else
+            {
+                throw new Exception("TODO implement in a general way");
+            }
+
             //// TODO make this lazy once queryresult supports it
             while (true)
             {
-                if (page.NextLink == null)
+                if (nextLink == null)
                 {
                     return complete;
                 }
@@ -212,25 +288,33 @@ namespace OddTrotter.Calendar
                 AbsoluteUri nextLinkUri;
                 try
                 {
-                    nextLinkUri = new Uri(page.NextLink, UriKind.Absolute).ToAbsoluteUri();
+                    nextLinkUri = new Uri(nextLink, UriKind.Absolute).ToAbsoluteUri();
                 }
                 catch (UriFormatException)
                 {
-                    return new QueryResult<OdataObject, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve nextlinkn and exception
+                    return new QueryResult<JsonNode, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve nextlinkn and exception
                 }
 
                 try
                 {
-                    request = new OdataCollectionRequest(new OdataUri(null, nextLinkUri));
+                    request = new OdataCollectionRequest(new OdataCollectionRequest.SpecializedRequest.GetAbsoluteUri(nextLinkUri));
                     page = await odataContext.GetCollection(request).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {
                     //// TODO check exception types?
-                    return new QueryResult<OdataObject, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve request and exception in error
+                    return new QueryResult<JsonNode, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve request and exception in error
                 }
 
-                complete = complete.Concat(page.Value.ToQueryResult<OdataObject, OdataPaginationError>());
+                if (page.Response is OdataCollectionResponse.SpecializedResponse.Collection anotherCollectionPage)
+                {
+                    complete = complete.Concat(anotherCollectionPage.Value.ToQueryResult<JsonNode, OdataPaginationError>());
+                    nextLink = collectionPage.NextLink;
+                }
+                else
+                {
+                    throw new Exception("TODO implement in a general way");
+                }
             }
         }
     }

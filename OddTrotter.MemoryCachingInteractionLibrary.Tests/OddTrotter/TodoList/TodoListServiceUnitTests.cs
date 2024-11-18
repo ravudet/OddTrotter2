@@ -85,7 +85,7 @@
             var odataClient = new GetGraphCalendarEventsMockOdataClient();
             var graphCalendarEventsContext = new GraphCalendarEventsContext(odataClient);
 
-            var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(), null);
+            ////var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(), null);
             var request = new OdataCollectionRequest(odataUri);
             var response = await graphCalendarEventsContext.GetCollection(request).ConfigureAwait(false);
 
