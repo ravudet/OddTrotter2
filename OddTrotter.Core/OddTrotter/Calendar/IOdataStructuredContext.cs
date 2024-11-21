@@ -119,9 +119,18 @@ namespace OddTrotter.Calendar
         public AbsoluteUri? AbsoluteUri { get; }
     }*/
 
-    public interface IOdataContext
+    public interface IOdataStructuredContext
     {
         Task<OdataCollectionResponse> GetCollection(OdataCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
+    }
+
+    public interface IOdataUnstructuredContext
+    {
+        Task Get(object requst); //// TODO structure the request as an AST
+
+        Task Post(object request);
+        
+         //// TODO other verbs
     }
 
     /*public sealed class OdataObject
@@ -148,6 +157,7 @@ namespace OddTrotter.Calendar
         {
             //// TODO there should be a more AST-looking intermediate
 
+            [Obsolete]
             internal Success(SpecializedResponse response)
             {
                 this.Response = response;
@@ -185,12 +195,24 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataErrorResponse
     {
-        private OdataErrorResponse()
+        private OdataErrorResponse(string code)
         {
+            if (code == null)
+            {
+                throw new ArgumentNullException(nameof(code));
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new ArgumentException("TODO cannot be empty", nameof(code));
+            }
+
+            this.Code = code;
         }
 
-        //// TODO implement this
-        //// do you want to do something AST looking, or somethign with structured properties and things like "provided" markups?
+        public string Code { get; }
+
+        //// TODO finish implementing this
     }
 
     public interface IOdataClient
@@ -200,7 +222,21 @@ namespace OddTrotter.Calendar
         Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri);
     }
 
-    public sealed class OdataCalendarEventsContext : IOdataContext
+    public sealed class OdataDeserializationException : Exception
+    {
+        public OdataDeserializationException(string message)
+            : base(message)
+        {
+        }
+
+        public OdataDeserializationException(string message, Exception e)
+            : base(message, e)
+        {
+            //// TODO other overloads
+        }
+    }
+
+    public sealed class OdataCalendarEventsContext : IOdataStructuredContext
     {
         private readonly IOdataClient odataClient;
 
@@ -225,6 +261,36 @@ namespace OddTrotter.Calendar
                 try
                 {
                     httpResponse = await this.odataClient.GetAsync(requestUri).ConfigureAwait(false);
+                    try
+                    {
+                        httpResponse.EnsureSuccessStatusCode();
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        OdataErrorResponseBuilder? odataErrorResponseBuilder;
+                        try
+                        {
+                            odataErrorResponseBuilder = JsonSerializer.Deserialize<OdataErrorResponseBuilder>(await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false));
+                        }
+                        catch (JsonException jsonException)
+                        {
+                            throw new OdataDeserializationException("TODO", jsonException);
+                        }
+
+                        if (odataErrorResponseBuilder == null)
+                        {
+                            throw new OdataDeserializationException("TODO");
+                        }
+                    }
+
+
+
+
+
+
+
+
+
                     var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                     try
                     {
@@ -232,6 +298,7 @@ namespace OddTrotter.Calendar
                     }
                     catch (HttpRequestException e)
                     {
+                        //// TODO instead of returning error response, do you want that to be the property on an exception? then you could preserve the httprequestexception? (and you should preserve that exception as a poroperty too so that it's convenient to check that status code)
                         //// TODO throw new GraphException(httpResponseContent, e);
                         throw new Exception(httpResponseContent, e);
                     }
@@ -247,7 +314,7 @@ namespace OddTrotter.Calendar
                         throw new JsonException($"The value of the collection JSON property was null. The serialized value was '{httpResponseContent}'");
                     }
 
-                    return new OdataCollectionResponse(new OdataCollectionResponse.SpecializedResponse.Collection(
+                    return new OdataCollectionResponse(new OdataCollectionResponse.Success.SpecializedResponse.Collection(
                         odataCollectionPage.Value, 
                         odataCollectionPage.NextLink));
                 }
@@ -268,6 +335,20 @@ namespace OddTrotter.Calendar
             [JsonPropertyName("@odata.nextLink")]
             public string? NextLink { get; set; }
         }
+
+        private sealed class OdataErrorResponseBuilder
+        {
+            [JsonPropertyName("code")]
+            public string? Code { get; set; }
+
+            //// TODO finish implemting this
+
+            public OdataErrorResponse Build()
+            {
+                //// TODO
+                return default;
+            }
+        }
     }
 
     public sealed class OdataPaginationError
@@ -281,7 +362,7 @@ namespace OddTrotter.Calendar
 
     public static class OdataContextExtensions
     {
-        internal static async Task<QueryResult<JsonNode, OdataPaginationError>> PageCollection(this IOdataContext odataContext, OdataCollectionRequest request)
+        internal static async Task<QueryResult<JsonNode, OdataPaginationError>> PageCollection(this IOdataStructuredContext odataContext, OdataCollectionRequest request)
         {
             OdataCollectionResponse page;
             try

@@ -16,9 +16,9 @@
 
     public sealed class GraphCalendarEventsContext : IGraphCalendarEventContext
     {
-        private readonly IOdataContext odataContext;
+        private readonly IOdataStructuredContext odataContext;
 
-        public GraphCalendarEventsContext(IOdataContext odataContext)
+        public GraphCalendarEventsContext(IOdataStructuredContext odataContext)
         {
             this.odataContext = odataContext;
         }
