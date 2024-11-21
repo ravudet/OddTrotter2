@@ -6,6 +6,7 @@ using System.Linq.V2;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -252,6 +253,7 @@ namespace OddTrotter.Calendar
 
         public async Task<OdataCollectionResponse> GetCollection(OdataCollectionRequest request)
         {
+            //// TODO use Either for the return type instead of a DU for the response type?
             if (request.Request is OdataCollectionRequest.SpecializedRequest.GetInstanceEvents getInstanceEventsRequest)
             {
                 var getInstanceEventsUri = 
@@ -270,7 +272,7 @@ namespace OddTrotter.Calendar
                     {
                         httpResponse.EnsureSuccessStatusCode();
                     }
-                    catch (HttpRequestException e)
+                    catch (HttpRequestException)
                     {
                         OdataErrorResponseBuilder? odataErrorResponseBuilder;
                         try
@@ -282,6 +284,7 @@ namespace OddTrotter.Calendar
                             throw new OdataDeserializationException("TODO", jsonException); //// TODO should there be a separate exception for errors occurring when deserializing an odata error vs and odata success?
                         }
 
+                        //// TODO replace these lines with buildorthrow call?
                         if (odataErrorResponseBuilder == null)
                         {
                             throw new OdataDeserializationException("TODO");
@@ -290,43 +293,28 @@ namespace OddTrotter.Calendar
                         var odataErrorResponse = odataErrorResponseBuilder.Build().ThrowRight();
                         //// TODO should this be an exception?
                         //// TODO how are going to preserve the http status code?
+                        //// TODO if you don't use the httprequestexception to prserve the status code, then use issuccessstatuscode instead
                         return new OdataCollectionResponse.Error(odataErrorResponse);
                     }
 
-
-
-
-
-
-
-
-
-                    var httpResponseContent = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    OdataCollectionResponseBuilder? odataCollectionResponseBuilder;
                     try
                     {
-                        httpResponse.EnsureSuccessStatusCode();
+                        odataCollectionResponseBuilder = JsonSerializer.Deserialize<OdataCollectionResponseBuilder>(await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false));
                     }
-                    catch (HttpRequestException e)
+                    catch (JsonException jsonException)
                     {
-                        //// TODO instead of returning error response, do you want that to be the property on an exception? then you could preserve the httprequestexception? (and you should preserve that exception as a poroperty too so that it's convenient to check that status code)
-                        //// TODO throw new GraphException(httpResponseContent, e);
-                        throw new Exception(httpResponseContent, e);
+                        throw new OdataDeserializationException("TODO", jsonException);
                     }
 
-                    var odataCollectionPage = JsonSerializer.Deserialize<OdataCollectionResponseBuilder>(httpResponseContent);
-                    if (odataCollectionPage == null)
+                    //// TODO replace these lines with builderorthrow call?
+                    if (odataCollectionResponseBuilder == null)
                     {
-                        throw new JsonException($"Deserialized value was null. Serialized value was '{httpResponseContent}'");
+                        throw new OdataDeserializationException("TODO");
                     }
 
-                    if (odataCollectionPage.Value == null)
-                    {
-                        throw new JsonException($"The value of the collection JSON property was null. The serialized value was '{httpResponseContent}'");
-                    }
-
-                    return new OdataCollectionResponse(new OdataCollectionResponse.Success.SpecializedResponse.Collection(
-                        odataCollectionPage.Value, 
-                        odataCollectionPage.NextLink));
+                    var odataCollectionResponse = odataCollectionResponseBuilder.Build().ThrowRight();
+                    return odataCollectionResponse;
                 }
                 finally
                 {
@@ -337,6 +325,21 @@ namespace OddTrotter.Calendar
             throw new Exception("TODO handle requests in a general way");
         }
 
+        private static T BuildOrThrow<T>(IBuilder<T>? builder)
+        {
+            if (builder == null)
+            {
+                throw new OdataDeserializationException("TODO");
+            }
+
+            return builder.Build().ThrowRight();
+        }
+
+        private interface IBuilder<T>
+        {
+            Either<T, OdataDeserializationException> Build();
+        }
+
         private sealed class OdataCollectionResponseBuilder
         {
             [JsonPropertyName("value")]
@@ -344,6 +347,18 @@ namespace OddTrotter.Calendar
 
             [JsonPropertyName("@odata.nextLink")]
             public string? NextLink { get; set; }
+
+            public Either<OdataCollectionResponse, OdataDeserializationException> Build()
+            {
+                if (this.Value == null || this.NextLink == null)
+                {
+                    return new Either<OdataCollectionResponse, OdataDeserializationException>.Right(new OdataDeserializationException("TODO"));
+                }
+
+                var specializedResponse = new OdataCollectionResponse.Success.SpecializedResponse.Collection(this.Value, this.NextLink);
+                return new Either<OdataCollectionResponse, OdataDeserializationException>.Left(
+                    new OdataCollectionResponse.Success(specializedResponse));
+            }
         }
 
         private sealed class OdataErrorResponseBuilder
