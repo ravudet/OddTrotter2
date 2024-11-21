@@ -68,7 +68,7 @@ namespace OddTrotter.Calendar
         {
             return either.Visit<TLeft, TRight, TLeft, Void>(
                 (left, context) => left.Value,
-                (right, context) => throw right.Value,
+                (right, context) => throw right.Value, //// TODO do we care about the extra frame on the stack trace?
                 default);
         }
 

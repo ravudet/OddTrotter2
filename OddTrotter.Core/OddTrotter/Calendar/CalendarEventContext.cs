@@ -3,6 +3,8 @@ namespace OddTrotter.Calendar
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Runtime.CompilerServices;
@@ -25,10 +27,76 @@ namespace OddTrotter.Calendar
         public Exception Exception { get; }
     }
 
+    public class TranslationError
+    {
+        public object? HttpError { get; }
+
+        public object? ToOdataError { get; }
+
+        public object? ToGraphError { get; }
+
+        public object? ToMemoryError { get; }
+    }
+
+    public static class Tester
+    {
+        public static void DoWork3()
+        {
+            try
+            {
+                DoWork();
+            }
+            catch (InvalidOperationException)
+            {
+                // handle
+            }
+            catch (Win32Exception)
+            {
+                throw;
+            }
+        }
+
+        public static void DoWork()
+        {
+            foreach (var element in new[] { "asdf" })
+            {
+                try
+                {
+                    DoWork2(element);
+                }
+                catch (InvalidOperationException)
+                {
+                    throw;
+                }
+                catch (Win32Exception)
+                {
+                    throw;
+                }
+                catch (IOException)
+                {
+                    // handle
+                }
+            }
+        }
+
+        public static void DoWork2(string asdf)
+        {
+            var thing = (12, 654);
+
+        }
+
+        public class Thing
+        {
+            public int First { get; }
+
+            public int Second { get; }
+        }
+    }
+
     /// <summary>
     /// is Exception for TError a good call? isn't this basically just making your errors object?
     /// </summary>
-    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventBuilder>, Exception>
+    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, TranslationError>, Exception>
     {
         //// TODO can you use a more general context?
         private readonly OdataCalendarEventsContext graphCalendarEventsContext;
