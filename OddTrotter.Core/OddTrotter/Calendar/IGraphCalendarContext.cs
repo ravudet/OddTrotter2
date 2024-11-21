@@ -25,7 +25,7 @@
 
         public IEnumerable<GraphCalendarEvent> Evaluate(GraphQuery graphQuery)
         {
-            throw new System.NotImplementedException();
+
         }
     }
 
