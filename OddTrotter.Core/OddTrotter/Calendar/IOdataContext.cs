@@ -136,32 +136,61 @@ namespace OddTrotter.Calendar
         public JsonNode JsonNode { get; }
     }*/
 
-    public sealed class OdataCollectionResponse
+    public abstract class OdataCollectionResponse
     {
-        //// TODO there should be a more AST-looking intermediate
-
-        internal OdataCollectionResponse(SpecializedResponse response)
+        private OdataCollectionResponse()
         {
-            this.Response = response;
         }
 
-        internal SpecializedResponse Response { get; }
+        //// TODO visitor
 
-        internal abstract class SpecializedResponse
+        public sealed class Success : OdataCollectionResponse
         {
-            public sealed class Collection : SpecializedResponse
+            //// TODO there should be a more AST-looking intermediate
+
+            internal Success(SpecializedResponse response)
             {
-                public Collection(IReadOnlyList<JsonNode> value, string? nextLink)
+                this.Response = response;
+            }
+
+            internal SpecializedResponse Response { get; }
+
+            internal abstract class SpecializedResponse
+            {
+                public sealed class Collection : SpecializedResponse
                 {
-                    this.Value = value;
-                    this.NextLink = nextLink;
+                    public Collection(IReadOnlyList<JsonNode> value, string? nextLink)
+                    {
+                        this.Value = value;
+                        this.NextLink = nextLink;
+                    }
+
+                    public IReadOnlyList<JsonNode> Value { get; }
+
+                    public string? NextLink { get; }
                 }
-
-                public IReadOnlyList<JsonNode> Value { get; }
-
-                public string? NextLink { get; }
             }
         }
+
+        public sealed class Error
+        {
+            public Error(OdataErrorResponse odataErrorResponse)
+            {
+                OdataErrorResponse = odataErrorResponse;
+            }
+
+            public OdataErrorResponse OdataErrorResponse { get; }
+        }
+    }
+
+    public sealed class OdataErrorResponse
+    {
+        private OdataErrorResponse()
+        {
+        }
+
+        //// TODO implement this
+        //// do you want to do something AST looking, or somethign with structured properties and things like "provided" markups?
     }
 
     public interface IOdataClient
@@ -171,11 +200,11 @@ namespace OddTrotter.Calendar
         Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri);
     }
 
-    public sealed class GraphCalendarEventsContext : IOdataContext
+    public sealed class OdataCalendarEventsContext : IOdataContext
     {
         private readonly IOdataClient odataClient;
 
-        public GraphCalendarEventsContext(IOdataClient odataClient)
+        public OdataCalendarEventsContext(IOdataClient odataClient)
         {
             this.odataClient = odataClient;
         }

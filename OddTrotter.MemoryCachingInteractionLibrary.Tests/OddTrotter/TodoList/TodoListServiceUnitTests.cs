@@ -83,7 +83,7 @@
         public async Task GetGraphCalendarEvents()
         {
             var odataClient = new GetGraphCalendarEventsMockOdataClient();
-            var graphCalendarEventsContext = new GraphCalendarEventsContext(odataClient);
+            var graphCalendarEventsContext = new OdataCalendarEventsContext(odataClient);
 
             ////var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(), null);
             var request = new OdataCollectionRequest(odataUri);
@@ -196,7 +196,7 @@
         public async Task PageGraphCalendarEvents()
         {
             var odataClient = new PageGraphCalendarEventsMockOdataClient();
-            var graphCalendarEventsContext = new GraphCalendarEventsContext(odataClient);
+            var graphCalendarEventsContext = new OdataCalendarEventsContext(odataClient);
 
             var odataUri = new OdataUri(new Uri("/me/calendar/events", UriKind.Relative).ToRelativeUri(), null);
             var request = new OdataCollectionRequest(odataUri);

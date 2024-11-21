@@ -31,7 +31,7 @@ namespace OddTrotter.Calendar
     public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventBuilder>, Exception>
     {
         //// TODO can you use a more general context?
-        private readonly GraphCalendarEventsContext graphCalendarEventsContext;
+        private readonly OdataCalendarEventsContext graphCalendarEventsContext;
         private readonly IGraphClient graphClient;
         private readonly RelativeUri calendarUri;
         private readonly DateTime startTime;
@@ -51,7 +51,7 @@ namespace OddTrotter.Calendar
             this.endTime = endTime; //// TODO does datetime make sense for this?
             this.pageSize = settings.PageSize;
 
-            this.graphCalendarEventsContext = new GraphCalendarEventsContext(new GraphClientToOdataClient(this.graphClient));
+            this.graphCalendarEventsContext = new OdataCalendarEventsContext(new GraphClientToOdataClient(this.graphClient));
         }
 
         private sealed class GraphClientToOdataClient : IOdataClient
