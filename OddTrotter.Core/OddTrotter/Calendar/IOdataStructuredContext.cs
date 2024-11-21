@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.V2;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -182,7 +183,7 @@ namespace OddTrotter.Calendar
             }
         }
 
-        public sealed class Error
+        public sealed class Error : OdataCollectionResponse
         {
             public Error(OdataErrorResponse odataErrorResponse)
             {
@@ -195,7 +196,7 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataErrorResponse
     {
-        private OdataErrorResponse(string code)
+        public OdataErrorResponse(string code)
         {
             if (code == null)
             {
@@ -236,6 +237,10 @@ namespace OddTrotter.Calendar
         }
     }
 
+    public struct Void
+    {
+    }
+
     public sealed class OdataCalendarEventsContext : IOdataStructuredContext
     {
         private readonly IOdataClient odataClient;
@@ -274,13 +279,18 @@ namespace OddTrotter.Calendar
                         }
                         catch (JsonException jsonException)
                         {
-                            throw new OdataDeserializationException("TODO", jsonException);
+                            throw new OdataDeserializationException("TODO", jsonException); //// TODO should there be a separate exception for errors occurring when deserializing an odata error vs and odata success?
                         }
 
                         if (odataErrorResponseBuilder == null)
                         {
                             throw new OdataDeserializationException("TODO");
                         }
+
+                        var odataErrorResponse = odataErrorResponseBuilder.Build().ThrowRight();
+                        //// TODO should this be an exception?
+                        //// TODO how are going to preserve the http status code?
+                        return new OdataCollectionResponse.Error(odataErrorResponse);
                     }
 
 
@@ -343,10 +353,15 @@ namespace OddTrotter.Calendar
 
             //// TODO finish implemting this
 
-            public OdataErrorResponse Build()
+            public Either<OdataErrorResponse, OdataDeserializationException> Build()
             {
-                //// TODO
-                return default;
+                if (this.Code == null || string.IsNullOrEmpty(this.Code))
+                {
+                    return new Either<OdataErrorResponse, OdataDeserializationException>.Right(new OdataDeserializationException("TODO"));
+                }
+
+                return new Either<OdataErrorResponse, OdataDeserializationException>.Left(
+                    new OdataErrorResponse(this.Code));
             }
         }
     }

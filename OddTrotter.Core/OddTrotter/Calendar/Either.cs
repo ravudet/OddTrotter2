@@ -64,6 +64,14 @@ namespace OddTrotter.Calendar
 
     public static class Either
     {
+        public static TLeft ThrowRight<TLeft, TRight>(this Either<TLeft, TRight> either) where TRight : Exception
+        {
+            return either.Visit<TLeft, TRight, TLeft, Void>(
+                (left, context) => left.Value,
+                (right, context) => throw right.Value,
+                default);
+        }
+
         public static Either<TLeft, TRightNew> SelectRight<TLeft, TRightOld, TRightNew>(this Either<TLeft, TRightOld> either, Func<TRightOld, TRightNew> selector)
         {
             return either.Visit<TLeft, TRightOld, Either<TLeft, TRightNew>, bool>(
@@ -74,7 +82,7 @@ namespace OddTrotter.Calendar
 
         public static TResult Visit<TLeft, TRight, TResult, TContext>(
             this Either<TLeft, TRight> either,
-            Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,
+            Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch, //// TODO should these delegates just give you the value instead of the left?
             Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch,
             TContext context)
         {
