@@ -358,7 +358,7 @@ namespace OddTrotter.Calendar
 
                 var specializedResponse = new OdataCollectionResponse.Success.SpecializedResponse.Collection(this.Value, this.NextLink);
                 return new Either<OdataCollectionResponse, OdataDeserializationException>.Left(
-                    new OdataCollectionResponse.Success(specializedResponse));
+                    new OdataCollectionResponse.Success(specializedResponse)); //// TODO you can't use the `either` helper factories because the return type is more general than `success`; should discriminated unions have like a "tobasetype" extension or something? or is this an issue with `either` and covariance?
             }
         }
 
@@ -373,79 +373,12 @@ namespace OddTrotter.Calendar
             {
                 if (this.Code == null || string.IsNullOrEmpty(this.Code))
                 {
-                    return Either2.Left<OdataErrorResponse>().Right(new OdataDeserializationException("tODO"));
-
-                    return Either3.Left<OdataErrorResponse>.Right(new OdataDeserializationException("TODO"));
-                    return new Either<OdataErrorResponse, OdataDeserializationException>.Right(new OdataDeserializationException("TODO"));
+                    return Either.Left<OdataErrorResponse>().Right(new OdataDeserializationException("tODO"));
                 }
 
-                return new Either<OdataErrorResponse, OdataDeserializationException>.Left(
-                    new OdataErrorResponse(this.Code));
+                return Either.Right<OdataDeserializationException>().Left(new OdataErrorResponse(this.Code));
             }
         }
-    }
-
-    public static class Either3
-    {
-        public static class Left<TLeft>
-        {
-            public static Either<TLeft, TRight> Right<TRight>(TRight right)
-            {
-                //// TODO should you have either only involve error cases?
-                return new Either<TLeft, TRight>.Right(right);
-            }
-        }
-
-        public static class Right<TRight>
-        {
-            public static Either<TLeft, TRight> Left<TLeft>(TLeft left)
-            {
-                return new Either<TLeft, TRight>.Left(left);
-            }
-        }
-
-        public static Either<TLeft, TRight> Value<TLeft, TRight>(TRight right)
-        {
-            return new Either<TLeft, TRight>.Right(right);
-        }
-
-
-
-        public static Either<TLeft, Exception> Exception<TLeft>(Exception right)
-        {
-            return new Either<TLeft, Exception>.Right(right);
-        }
-
-        public static Either<TLeft, TRight> Right<TLeft, TRight>(TRight right)
-        {
-            return new Either<TLeft, TRight>.Right(right);
-        }
-    }
-
-    public static class Either2Extensions
-    {
-        public static Either<TLeft, TRight> Right<TLeft, TRight>(this Either2.ALeft<TLeft> aleft, TRight right)
-        {
-            return new Either<TLeft, TRight>.Right(right);
-        }
-    }
-
-    public static class Either2
-    {
-        public sealed class ALeft<TLeft>
-        {
-            internal ALeft()
-            {
-                //// TODO make this private
-            }
-        }
-
-        public static ALeft<TLeft> Left<TLeft>()
-        {
-            return new ALeft<TLeft>(); //// TODO singleton
-        }
-
-        
     }
 
     public sealed class OdataPaginationError

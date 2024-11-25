@@ -62,8 +62,49 @@ namespace OddTrotter.Calendar
         }
     }
 
+    public static class EitherExtensions
+    {
+        public static Either<TLeft, TRight> Left<TLeft, TRight>(this Either.LeftFactory<TRight> leftFactory, TLeft value)
+        {
+            return new Either<TLeft, TRight>.Left(value);
+        }
+
+        public static Either<TLeft, TRight> Right<TLeft, TRight>(this Either.RightFactory<TLeft> rightFactory, TRight value)
+        {
+            return new Either<TLeft, TRight>.Right(value);
+        }
+    }
+
     public static class Either
     {
+        public sealed class RightFactory<TLeft>
+        {
+            private RightFactory()
+            {
+            }
+
+            public static RightFactory<TLeft> Instance { get; } = new RightFactory<TLeft>();
+        }
+
+        public static RightFactory<TLeft> Left<TLeft>()
+        {
+            return RightFactory<TLeft>.Instance;
+        }
+
+        public sealed class LeftFactory<TRight>
+        {
+            private LeftFactory()
+            {
+            }
+
+            public static LeftFactory<TRight> Instance { get; } = new LeftFactory<TRight>();
+        }
+
+        public static LeftFactory<TRight> Right<TRight>()
+        {
+            return LeftFactory<TRight>.Instance;
+        }
+
         public static TLeft ThrowRight<TLeft, TRight>(this Either<TLeft, TRight> either) where TRight : Exception
         {
             return either.Visit<TLeft, TRight, TLeft, Void>(
