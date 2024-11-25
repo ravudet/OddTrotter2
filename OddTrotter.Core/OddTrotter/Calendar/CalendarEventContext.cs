@@ -96,7 +96,7 @@ namespace OddTrotter.Calendar
     /// <summary>
     /// is Exception for TError a good call? isn't this basically just making your errors object?
     /// </summary>
-    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, TranslationError>, Exception>
+    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventBuilder>, Exception>
     {
         //// TODO can you use a more general context?
         private readonly OdataCalendarEventsContext graphCalendarEventsContext;
