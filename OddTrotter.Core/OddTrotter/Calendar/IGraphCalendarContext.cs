@@ -1,5 +1,6 @@
 ﻿namespace OddTrotter.Calendar
 {
+    using System;
     using System.Collections.Generic;
 
     public abstract class GraphQuery
@@ -15,17 +16,33 @@
                 //// TODO
             }
         }
+
+        internal sealed class GetInstanceEvents : GraphQuery
+        {
+            public GetInstanceEvents(DateTime startTime, DateTime endTime, int pageSize)
+            {
+                StartTime = startTime;
+                EndTime = endTime;
+                PageSize = pageSize;
+            }
+
+            public DateTime StartTime { get; }
+
+            public DateTime EndTime { get; }
+
+            public int PageSize { get; }
+        }
     }
 
     public interface IGraphCalendarEventsContext
     {
-        GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery);
+        Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery);
     }
 
     public sealed class GraphCalendarEventsResponse
     {
         public GraphCalendarEventsResponse(
-            IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>> events, 
+            IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>> events,
             GraphQuery.Page? nextPage)
         {
             this.Events = events;
@@ -96,5 +113,87 @@
         public string DateTime { get; set; }
 
         public string TimeZone { get; set; }
+    }
+
+    public sealed class GraphPagingException : Exception
+    {
+        public GraphPagingException(string message)
+            : base(message)
+        {
+        }
+    }
+
+    public static class GraphCalendarEventsContextExtensions
+    {
+        private sealed class PageQueryResult : QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Element
+        {
+            private readonly GraphCalendarEventsResponse graphCalendarEventsResponse;
+            private readonly int index;
+            private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
+
+            public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, IGraphCalendarEventsContext graphCalendarEventsContext)
+                : base(graphCalendarEventsResponse.Events[index])
+            {
+                this.graphCalendarEventsResponse = graphCalendarEventsResponse;
+                this.index = index;
+                this.graphCalendarEventsContext = graphCalendarEventsContext;
+            }
+
+            public override QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> Next()
+            {
+                if (this.index + 1 < this.graphCalendarEventsResponse.Events.Count)
+                {
+                    return new PageQueryResult(this.graphCalendarEventsResponse, this.index + 1, this.graphCalendarEventsContext);
+                }
+
+                if (this.graphCalendarEventsResponse.NextPage == null)
+                {
+                    return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Final();
+                }
+
+                return PageImpl(this.graphCalendarEventsContext, this.graphCalendarEventsResponse.NextPage);
+            }
+        }
+
+        public static QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> Page(
+            this IGraphCalendarEventsContext graphCalendarEventsContext,
+            GraphQuery graphQuery)
+        {
+            if (!(graphQuery is GraphQuery.GetInstanceEvents getInstanceEvents))
+            {
+                throw new Exception("TODO don't page in the middle of pagination?");
+            }
+
+            return PageImpl(graphCalendarEventsContext, graphQuery);
+        }
+
+        private static QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> PageImpl(
+            this IGraphCalendarEventsContext graphCalendarEventsContext,
+            GraphQuery pageQuery)
+        {
+            GraphCalendarEventsResponse response;
+            try
+            {
+                response = graphCalendarEventsContext.Evaluate(pageQuery);
+            }
+            catch
+            {
+                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Partial(new GraphPagingException("TODO preserve exception"));
+            }
+
+            if (response.Events.Count == 0)
+            {
+                if (response.NextPage == null)
+                {
+                    return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Final();
+                }
+                else
+                {
+                    return PageImpl(graphCalendarEventsContext, response.NextPage);
+                }
+            }
+
+            return new PageQueryResult(response, 0, graphCalendarEventsContext);
+        }
     }
 }

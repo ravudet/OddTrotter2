@@ -73,6 +73,17 @@ namespace OddTrotter.Calendar
         {
             return new Either<TLeft, TRight>.Right(value);
         }
+
+        public static Either<TLeftNew, TRightNew> VisitSelect<TLeftOld, TRightOld, TLeftNew, TRightNew>(
+            this Either<TLeftOld, TRightOld> either,
+            Func<TLeftOld, TLeftNew> leftSelector,
+            Func<TRightOld, TRightNew> rightSelector)
+        {
+            return either.Visit(
+                (left, context) => Either.Right<TRightNew>().Left(leftSelector(left.Value)),
+                (right, context) => Either.Left<TLeftNew>().Right(rightSelector(right.Value)),
+                new Void());
+        }
     }
 
     public static class Either

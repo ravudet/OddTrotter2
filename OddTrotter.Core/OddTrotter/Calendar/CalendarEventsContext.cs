@@ -27,9 +27,10 @@ namespace OddTrotter.Calendar
         public Exception Exception { get; }
     }
 
-    public sealed class CalendarEventsContextPagingException
+    public sealed class CalendarEventsContextPagingException : Exception
     {
-        public CalendarEventsContextPagingException()
+        public CalendarEventsContextPagingException(string message)
+            : base(message)
         {
         }
     }
@@ -64,7 +65,7 @@ namespace OddTrotter.Calendar
             this.endTime = endTime; //// TODO does datetime make sense for this?
             this.pageSize = settings.PageSize;
 
-            this.graphCalendarEventsContext = new GraphCalendarEventsContext(new GraphClientToOdataClient(this.graphClient));
+            this.graphCalendarEventsContext = /*new GraphCalendarEventsContext(new GraphClientToOdataClient(this.graphClient));*/ default; //// TODO
         }
 
         private sealed class GraphClientToOdataClient : IOdataClient
@@ -138,6 +139,19 @@ namespace OddTrotter.Calendar
             return instanceEvents.Concat(seriesEvents);
         }
 
+        private static
+            QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>
+            Adapt(
+            QueryResult<Either<OddTrotter.Calendar.GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> graphResponse)
+        {
+            return graphResponse
+                .Error(graphPageingException => new CalendarEventsContextPagingException("TODO presreve the exception"))
+                .Select(graphCalendarEvent =>
+                    graphCalendarEvent.VisitSelect(
+                        left => new CalendarEvent(left.Id, left.Subject, left.Body.Content, DateTime.Parse(left.Start.DateTime)), //// TODO what about datetime parsing errors?
+                        right => new CalendarEventsContextTranslationError()));
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -151,7 +165,20 @@ namespace OddTrotter.Calendar
         /// </exception>
         private async Task<QueryResult<Either<CalendarEvent, Either<GraphCalendarEvent, JsonNode>>, Exception>> GetInstanceEvents(DateTime startTime, DateTime endTime, int pageSize)
         {
-            var calendarEventsRequest = new OdataGetCollectionRequest.SpecializedRequest.GetInstanceEvents(startTime, pageSize, endTime);
+            var graphQuery = new GraphQuery.GetInstanceEvents(startTime, endTime, pageSize);
+            var graphResponse = this.graphCalendarEventsContext.Page(graphQuery);
+            return Adapt(graphResponse);
+
+
+
+
+
+
+
+
+
+
+            /*var calendarEventsRequest = new OdataGetCollectionRequest.SpecializedRequest.GetInstanceEvents(startTime, pageSize, endTime);
             var odataCollectionRequest = new OdataGetCollectionRequest(calendarEventsRequest);
             var odataCalendarEvents = await this.graphCalendarEventsContext.PageCollection(odataCollectionRequest).ConfigureAwait(false);
 
@@ -182,7 +209,7 @@ namespace OddTrotter.Calendar
                     (left, context) => left.Value.Build().SelectRight<CalendarEvent, GraphCalendarEvent, Either<GraphCalendarEvent, JsonNode>>(right => new Either<GraphCalendarEvent, JsonNode>.Left(right)),
                     (right, context) => new Either<CalendarEvent, Either<GraphCalendarEvent, JsonNode>>.Right(new Either<GraphCalendarEvent, JsonNode>.Right(right.Value)),
                     true));
-            return calendarEvents.Error(odataPaginationError => new Exception("TODO preserve the odatapaginationerror"));
+            return calendarEvents.Error(odataPaginationError => new Exception("TODO preserve the odatapaginationerror"));*/
         }
 
         /// <summary>
