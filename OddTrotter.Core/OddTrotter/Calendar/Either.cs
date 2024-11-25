@@ -84,6 +84,28 @@ namespace OddTrotter.Calendar
                 (right, context) => Either.Left<TLeftNew>().Right(rightSelector(right.Value)),
                 new Void());
         }
+
+        public static Either<(T1, T2), TRight> ShiftRight<T1, T2, TRight>(this Either<(T1, Either<T2, TRight>), TRight> either)
+        {
+            return either.Visit(
+                (left, context) => left.Value.Item2.Visit(
+                    (subLeft, subContext) => Either.Right<TRight>().Left((left.Value.Item1, subLeft.Value)),
+                    (subRight, subContext) => Either.Left<(T1, T2)>().Right(subRight.Value), 
+                    new Void()),
+                (right, context) => Either.Left<(T1, T2)>().Right(right.Value),
+                new Void());
+        }
+
+        public static Either<TLeft, TRight> ShiftRight<TLeft, TRight>(this Either<Either<TLeft, TRight>, TRight> either)
+        {
+            return either.Visit(
+                (left, context) => left.Value.Visit(
+                    (subLeft, subContext) => Either.Right<TRight>().Left(subLeft.Value),
+                    (subRight, subContext) => Either.Left<TLeft>().Right(subRight.Value),
+                    new Void()),
+                (right, context) => Either.Left<TLeft>().Right(right.Value),
+                new Void());
+        }
     }
 
     public static class Either

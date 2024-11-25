@@ -21,6 +21,7 @@
         {
             public GetInstanceEvents(DateTime startTime, DateTime endTime, int pageSize)
             {
+                //// TODO should this just take in the URL?
                 StartTime = startTime;
                 EndTime = endTime;
                 PageSize = pageSize;
@@ -35,18 +36,31 @@
 
         internal sealed class GetSeriesEvents : GraphQuery
         {
-            public GetSeriesEvents(DateTime startTime, DateTime endTime, int pageSize)
+            public GetSeriesEvents(int pageSize)
             {
-                StartTime = startTime;
-                EndTime = endTime;
+                //// TODO should this just take in the URL?
                 PageSize = pageSize;
             }
+
+            public int PageSize { get; }
+        }
+
+        internal sealed class GetSeriesIntanceEvents : GraphQuery
+
+        {
+            public GetSeriesIntanceEvents(string seriesMasterId, DateTime startTime, DateTime endTime)
+            {
+                //// TODO should this just take in the URL?
+                this.SeriesMasterId = seriesMasterId;
+                StartTime = startTime;
+                EndTime = endTime;
+            }
+
+            public string SeriesMasterId { get; }
 
             public DateTime StartTime { get; }
 
             public DateTime EndTime { get; }
-
-            public int PageSize { get; }
         }
     }
 

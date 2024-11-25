@@ -13,6 +13,7 @@ namespace OddTrotter.Calendar
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using OddTrotter.GraphClient;
+    using static OddTrotter.Calendar.Either<TLeft, TRight>;
 
     public sealed class OdataError //// TODO graph error?
     {
@@ -124,7 +125,7 @@ namespace OddTrotter.Calendar
         private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
         {
             var instanceEvents = this.GetInstanceEvents(startTime, endTime, pageSize);
-            var seriesEvents = GetSeriesEvents(graphClient, startTime, endTime, pageSize);
+            var seriesEvents = GetSeriesEvents(this.graphCalendarEventsContext, startTime, endTime, pageSize);
             //// TODO merge the sorted sequences instead of concat
             return instanceEvents.Concat(seriesEvents);
         }
@@ -138,7 +139,7 @@ namespace OddTrotter.Calendar
                 .Error(graphPageingException => new CalendarEventsContextPagingException("TODO presreve the exception"))
                 .Select(graphCalendarEvent =>
                     graphCalendarEvent.VisitSelect(
-                        left => new CalendarEvent(left.Id, left.Subject, left.Body.Content, DateTime.Parse(left.Start.DateTime)), //// TODO what about datetime parsing errors?
+                        left => ToCalendarEvent(left),
                         right => new CalendarEventsContextTranslationError()));
         }
 
@@ -219,11 +220,60 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private static QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private static QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEvents(IGraphCalendarEventsContext graphCalendarEventsContext, DateTime startTime, DateTime endTime, int pageSize)
         {
-            var seriesEventMasters = await GetSeriesEventMasters(graphClient, pageSize).ConfigureAwait(false);
-            ////return await Adapt(seriesEventMasters, graphClient, startTime, endTime).ConfigureAwait(false);
-            throw new Exception("TODO");
+            var seriesEventMasters =
+                GetSeriesEventMasters(graphCalendarEventsContext, pageSize);
+            var mastersWithInstances = seriesEventMasters
+                .Select(either => either.VisitSelect(
+                    left => (left, GetFirstSeriesInstance(graphCalendarEventsContext, left, startTime, endTime)),
+                    right => right))
+                .Select(eventPair => eventPair.ShiftRight())
+                .Select(eventPair => eventPair.VisitSelect(
+                    left => left.Item1,
+                    right => right));
+            return mastersWithInstances;
+        }
+
+        private static Either<CalendarEvent, CalendarEventsContextTranslationError> GetFirstSeriesInstance(
+            IGraphCalendarEventsContext graphCalendarEventsContext, 
+            CalendarEvent seriesMaster, 
+            DateTime startTime, 
+            DateTime endTime)
+        {
+            var graphRequest = new GraphQuery.GetSeriesIntanceEvents(seriesMaster.Id, startTime, endTime);
+
+            GraphCalendarEventsResponse graphResponse;
+            try
+            {
+                graphResponse = graphCalendarEventsContext.Evaluate(graphRequest); //// TODO do paging on the instances? it really shouldn't be necessary...
+            }
+            catch
+            {
+                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationError()); //// TODO
+            }
+
+
+            //// TODO do you want to do this check in the caller? someone up in the call stack probably wants to differentiate between mechanical errors vs the logical error of there being no instance events for a series
+            if (graphResponse.Events.Count == 0)
+            {
+                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationError()); //// TODO
+            }
+
+            return graphResponse
+                .Events[0]
+                .VisitSelect(
+                    left => ToCalendarEvent(left),
+                    right => new CalendarEventsContextTranslationError()); //// TODO
+        }
+
+        private static CalendarEvent ToCalendarEvent(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
+        {
+            return new CalendarEvent(
+                graphCalendarEvent.Id,
+                graphCalendarEvent.Subject,
+                graphCalendarEvent.Body.Content,
+                DateTime.Parse(graphCalendarEvent.Start.DateTime)); //// TODO what about datetime parsing errors?
         }
 
         private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> Adapt(QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError> seriesEventMasters, IGraphClient graphClient, DateTime startTime, DateTime endTime)
@@ -310,19 +360,21 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static async Task<QueryResult<Either<CalendarEvent, GraphCalendarEvent>, OdataError>> GetSeriesEventMasters(IGraphClient graphClient, int pageSize)
+        private static QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEventMasters(IGraphCalendarEventsContext graphCalendarEventsContext, int pageSize)
         {
-            //// TODO make the calendar that's used configurable?
+            var graphRequest = new GraphQuery.GetSeriesEvents(pageSize);
+            var graphResponse = graphCalendarEventsContext.Page(graphRequest);
+            return Adapt(graphResponse);
+
+            /*//// TODO make the calendar that's used configurable?
             var url = $"/me/calendar/events?" +
                 $"$select=body,start,subject&" +
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
-            var graphCalendarEvents = await GetQueryResult<GraphCalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);
+            var graphCalendarEvents = await GetQueryResult<GraphCalendarEvent>(graphClient, new Uri(url, UriKind.Relative).ToRelativeUri()).ConfigureAwait(false);*/
             /*var calendarEvents = await graphCalendarEvents.Select(graphCalendarEvent => graphCalendarEvent.Build()).ConfigureAwait(false);
             return calendarEvents;*/
-
-            throw new Exception("TODO");
         }
 
         /// <summary>
@@ -336,7 +388,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static async Task<QueryResult<GraphCalendarEvent, OdataError>> GetFirstSeriesInstanceInRange(IGraphClient graphClient, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
+        private static async Task<QueryResult<GraphCalendarEvent, OdataError>> GetFirstSeriesInstanceInRange(IGraphCalendarEventsContext graphCalendarEventsContext, CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
         {
             //// TODO this method would be much better as some sort of "TryGet" variant (though it does still have exceptions that it throws...), but being async, we can't have the needed out parameters
             var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body&$filter=isCancelled eq false";
