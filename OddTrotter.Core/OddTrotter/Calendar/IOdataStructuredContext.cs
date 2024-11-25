@@ -223,10 +223,6 @@ namespace OddTrotter.Calendar
         }
     }
 
-    public struct Void
-    {
-    }
-
     public sealed class OdataCalendarEventsContext : IOdataStructuredContext
     {
         private readonly IOdataClient odataClient;
