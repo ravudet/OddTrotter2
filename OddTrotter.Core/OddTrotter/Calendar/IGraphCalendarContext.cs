@@ -17,50 +17,14 @@
             }
         }
 
-        internal sealed class GetInstanceEvents : GraphQuery
+        internal sealed class GetEvents : GraphQuery
         {
-            public GetInstanceEvents(DateTime startTime, DateTime endTime, int pageSize)
+            public GetEvents(RelativeUri relativeUri)
             {
-                //// TODO should this just take in the URL?
-                StartTime = startTime;
-                EndTime = endTime;
-                PageSize = pageSize;
+                RelativeUri = relativeUri;
             }
 
-            public DateTime StartTime { get; }
-
-            public DateTime EndTime { get; }
-
-            public int PageSize { get; }
-        }
-
-        internal sealed class GetSeriesEvents : GraphQuery
-        {
-            public GetSeriesEvents(int pageSize)
-            {
-                //// TODO should this just take in the URL?
-                PageSize = pageSize;
-            }
-
-            public int PageSize { get; }
-        }
-
-        internal sealed class GetSeriesIntanceEvents : GraphQuery
-
-        {
-            public GetSeriesIntanceEvents(string seriesMasterId, DateTime startTime, DateTime endTime)
-            {
-                //// TODO should this just take in the URL?
-                this.SeriesMasterId = seriesMasterId;
-                StartTime = startTime;
-                EndTime = endTime;
-            }
-
-            public string SeriesMasterId { get; }
-
-            public DateTime StartTime { get; }
-
-            public DateTime EndTime { get; }
+            public RelativeUri RelativeUri { get; }
         }
     }
 

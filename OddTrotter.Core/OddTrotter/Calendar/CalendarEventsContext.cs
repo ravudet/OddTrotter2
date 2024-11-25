@@ -14,6 +14,7 @@ namespace OddTrotter.Calendar
     using System.Threading.Tasks;
     using OddTrotter.GraphClient;
     using static OddTrotter.Calendar.Either<TLeft, TRight>;
+    using static OddTrotter.Calendar.GraphQuery;
 
     public sealed class OdataError //// TODO graph error?
     {
@@ -156,7 +157,14 @@ namespace OddTrotter.Calendar
         /// </exception>
         private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetInstanceEvents(DateTime startTime, DateTime endTime, int pageSize)
         {
-            var graphQuery = new GraphQuery.GetInstanceEvents(startTime, endTime, pageSize);
+            //// TODO make the calendar that's used configurable?
+            var url =
+                $"/me/calendar/events?" +
+                $"$select=body,start,subject&" +
+                $"$top={pageSize}&" +
+                $"$orderBy=start/dateTime&" +
+                $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false";
+            var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = this.graphCalendarEventsContext.Page(graphQuery);
             return Adapt(graphResponse);
 
@@ -241,7 +249,8 @@ namespace OddTrotter.Calendar
             DateTime startTime, 
             DateTime endTime)
         {
-            var graphRequest = new GraphQuery.GetSeriesIntanceEvents(seriesMaster.Id, startTime, endTime);
+            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body&$filter=isCancelled eq false";
+            var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
 
             GraphCalendarEventsResponse graphResponse;
             try
@@ -362,7 +371,13 @@ namespace OddTrotter.Calendar
         /// </exception>
         private static QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEventMasters(IGraphCalendarEventsContext graphCalendarEventsContext, int pageSize)
         {
-            var graphRequest = new GraphQuery.GetSeriesEvents(pageSize);
+            //// TODO make the calendar that's used configurable?
+            var url = $"/me/calendar/events?" +
+                $"$select=body,start,subject&" +
+                $"$top={pageSize}&" +
+                $"$orderBy=start/dateTime&" +
+                "$filter=type eq 'seriesMaster' and isCancelled eq false";
+            var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = graphCalendarEventsContext.Page(graphRequest);
             return Adapt(graphResponse);
 
