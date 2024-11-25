@@ -93,10 +93,21 @@ namespace OddTrotter.Calendar
         }
     }
 
+    public sealed class CalendarEventContextPagingException
+    {
+        public CalendarEventContextPagingException()
+        {
+        }
+    }
+
+    public sealed class CalendarEventContextTranslationError
+    {
+    }
+
     /// <summary>
     /// is Exception for TError a good call? isn't this basically just making your errors object?
     /// </summary>
-    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventBuilder>, Exception>
+    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventContextTranslationError>, CalendarEventContextPagingException>
     {
         //// TODO can you use a more general context?
         private readonly OdataCalendarEventsContext graphCalendarEventsContext;
@@ -142,7 +153,7 @@ namespace OddTrotter.Calendar
             }
         }
 
-        public async Task<QueryResult<Either<CalendarEvent, CalendarEventBuilder>, Exception>> Evaluate()
+        public async Task<QueryResult<Either<CalendarEvent, CalendarEventContextTranslationError>, CalendarEventContextPagingException>> Evaluate()
         {
             //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
             

@@ -1,20 +1,47 @@
 ﻿namespace OddTrotter.Calendar
 {
     using System.Collections.Generic;
-    
-    public interface IGraphCalendarEventContext
-    {
-        IEnumerable<GraphCalendarEvent> Evaluate(GraphQuery graphQuery);
-    }
 
     public abstract class GraphQuery
     {
         private GraphQuery()
         {
         }
+
+        public sealed class Page : GraphQuery
+        {
+            private Page()
+            {
+                //// TODO
+            }
+        }
     }
 
-    public sealed class GraphCalendarEventsContext : IGraphCalendarEventContext
+    public interface IGraphCalendarEventsContext
+    {
+        GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery);
+    }
+
+    public sealed class GraphCalendarEventsResponse
+    {
+        public GraphCalendarEventsResponse(
+            IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>> events, 
+            GraphQuery.Page? nextPage)
+        {
+            this.Events = events;
+            this.NextPage = nextPage;
+        }
+
+        public IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>> Events { get; }
+
+        public GraphQuery.Page? NextPage { get; }
+    }
+
+    public sealed class GraphCalendarEventsContextTranslationError
+    {
+    }
+
+    public sealed class GraphCalendarEventsContext : IGraphCalendarEventsContext
     {
         private readonly IOdataStructuredContext odataContext;
 
@@ -23,7 +50,7 @@
             this.odataContext = odataContext;
         }
 
-        public IEnumerable<GraphCalendarEvent> Evaluate(GraphQuery graphQuery)
+        public GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery)
         {
 
         }
