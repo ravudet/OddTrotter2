@@ -32,11 +32,27 @@
 
             public int PageSize { get; }
         }
+
+        internal sealed class GetSeriesEvents : GraphQuery
+        {
+            public GetSeriesEvents(DateTime startTime, DateTime endTime, int pageSize)
+            {
+                StartTime = startTime;
+                EndTime = endTime;
+                PageSize = pageSize;
+            }
+
+            public DateTime StartTime { get; }
+
+            public DateTime EndTime { get; }
+
+            public int PageSize { get; }
+        }
     }
 
     public interface IGraphCalendarEventsContext
     {
-        Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery);
+        GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery);
     }
 
     public sealed class GraphCalendarEventsResponse
