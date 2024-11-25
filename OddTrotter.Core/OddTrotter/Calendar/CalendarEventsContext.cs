@@ -93,31 +93,31 @@ namespace OddTrotter.Calendar
         }
     }
 
-    public sealed class CalendarEventContextPagingException
+    public sealed class CalendarEventsContextPagingException
     {
-        public CalendarEventContextPagingException()
+        public CalendarEventsContextPagingException()
         {
         }
     }
 
-    public sealed class CalendarEventContextTranslationError
+    public sealed class CalendarEventsContextTranslationError
     {
     }
 
     /// <summary>
     /// is Exception for TError a good call? isn't this basically just making your errors object?
     /// </summary>
-    public sealed class CalendarEventContext : IQueryContext<Either<CalendarEvent, CalendarEventContextTranslationError>, CalendarEventContextPagingException>
+    public sealed class CalendarEventsContext : IQueryContext<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>
     {
         //// TODO can you use a more general context?
-        private readonly OdataCalendarEventsContext graphCalendarEventsContext;
+        private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
         private readonly IGraphClient graphClient;
         private readonly RelativeUri calendarUri;
         private readonly DateTime startTime;
         private readonly DateTime endTime;
         private readonly int pageSize;
 
-        public CalendarEventContext(
+        public CalendarEventsContext(
             IGraphClient graphClient,
             RelativeUri calendarUri,
             DateTime startTime,
@@ -130,7 +130,7 @@ namespace OddTrotter.Calendar
             this.endTime = endTime; //// TODO does datetime make sense for this?
             this.pageSize = settings.PageSize;
 
-            this.graphCalendarEventsContext = new OdataCalendarEventsContext(new GraphClientToOdataClient(this.graphClient));
+            this.graphCalendarEventsContext = new GraphCalendarEventsContext(new GraphClientToOdataClient(this.graphClient));
         }
 
         private sealed class GraphClientToOdataClient : IOdataClient
@@ -153,7 +153,7 @@ namespace OddTrotter.Calendar
             }
         }
 
-        public async Task<QueryResult<Either<CalendarEvent, CalendarEventContextTranslationError>, CalendarEventContextPagingException>> Evaluate()
+        public async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> Evaluate()
         {
             //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
             
@@ -217,8 +217,8 @@ namespace OddTrotter.Calendar
         /// </exception>
         private async Task<QueryResult<Either<CalendarEvent, Either<GraphCalendarEvent, JsonNode>>, Exception>> GetInstanceEvents(DateTime startTime, DateTime endTime, int pageSize)
         {
-            var calendarEventsRequest = new OdataCollectionRequest.SpecializedRequest.GetInstanceEvents(startTime, pageSize, endTime);
-            var odataCollectionRequest = new OdataCollectionRequest(calendarEventsRequest);
+            var calendarEventsRequest = new OdataGetCollectionRequest.SpecializedRequest.GetInstanceEvents(startTime, pageSize, endTime);
+            var odataCollectionRequest = new OdataGetCollectionRequest(calendarEventsRequest);
             var odataCalendarEvents = await this.graphCalendarEventsContext.PageCollection(odataCollectionRequest).ConfigureAwait(false);
 
             var graphCalendarEvents = odataCalendarEvents.Select<JsonNode, Either<GraphCalendarEvent, JsonNode>, OdataPaginationError>(odataCalendarEvent =>

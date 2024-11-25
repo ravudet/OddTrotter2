@@ -15,57 +15,9 @@ using System.Threading.Tasks;
 
 namespace OddTrotter.Calendar
 {
-    /*public sealed class Filter
+    public sealed class OdataGetCollectionRequest
     {
-        private Filter()
-        {
-        }
-    }
-
-    public sealed class OrderBy
-    {
-        private OrderBy()
-        {
-        }
-    }
-
-    public sealed class Select
-    {
-        private Select()
-        {
-        }
-    }
-
-    public sealed class Top
-    {
-        private Top()
-        {
-        }
-    }
-
-    public interface IOdataCollectionRequestBuilder //// TODO should you have request builders or uri builders? or maybe a builder for each component of the request?
-    {
-        OdataCollectionRequest Request { get; }
-
-        IOdataCollectionRequestBuilder Filter(Filter filter);
-
-        IOdataCollectionRequestBuilder OrderBy(OrderBy orderBy);
-
-        IOdataCollectionRequestBuilder Select(Select select);
-
-        IOdataCollectionRequestBuilder Top(Top top);
-    }*/
-
-    public sealed class OdataCollectionRequest
-    {
-        /*public OdataCollectionRequest(OdataUri uri)
-        {
-            this.Uri = uri;
-        }
-
-        public OdataUri Uri { get; }*/
-
-        internal OdataCollectionRequest(SpecializedRequest request)
+        internal OdataGetCollectionRequest(SpecializedRequest request)
         {
             this.Request = request;
         }
@@ -124,7 +76,7 @@ namespace OddTrotter.Calendar
 
     public interface IOdataStructuredContext
     {
-        Task<OdataCollectionResponse> GetCollection(OdataCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
+        Task<OdataCollectionResponse> GetCollection(OdataGetCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
     }
 
     /*public sealed class OdataObject
@@ -232,10 +184,10 @@ namespace OddTrotter.Calendar
             this.odataClient = odataClient;
         }
 
-        public async Task<OdataCollectionResponse> GetCollection(OdataCollectionRequest request)
+        public async Task<OdataCollectionResponse> GetCollection(OdataGetCollectionRequest request)
         {
             //// TODO use Either for the return type instead of a DU for the response type?
-            if (request.Request is OdataCollectionRequest.SpecializedRequest.GetInstanceEvents getInstanceEventsRequest)
+            if (request.Request is OdataGetCollectionRequest.SpecializedRequest.GetInstanceEvents getInstanceEventsRequest)
             {
                 var getInstanceEventsUri = 
                     $"/me/calendar/events?" +
@@ -372,7 +324,7 @@ namespace OddTrotter.Calendar
 
     public static class OdataContextExtensions
     {
-        internal static async Task<QueryResult<JsonNode, OdataPaginationError>> PageCollection(this IOdataStructuredContext odataContext, OdataCollectionRequest request)
+        internal static async Task<QueryResult<JsonNode, OdataPaginationError>> PageCollection(this IOdataStructuredContext odataContext, OdataGetCollectionRequest request)
         {
             OdataCollectionResponse page;
             try
@@ -417,7 +369,7 @@ namespace OddTrotter.Calendar
 
                 try
                 {
-                    request = new OdataCollectionRequest(new OdataCollectionRequest.SpecializedRequest.GetAbsoluteUri(nextLinkUri));
+                    request = new OdataGetCollectionRequest(new OdataGetCollectionRequest.SpecializedRequest.GetAbsoluteUri(nextLinkUri));
                     page = await odataContext.GetCollection(request).ConfigureAwait(false);
                 }
                 catch (Exception)
