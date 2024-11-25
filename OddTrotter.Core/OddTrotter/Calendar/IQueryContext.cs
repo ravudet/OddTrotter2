@@ -89,6 +89,50 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultExtensions
     {
+        private sealed class SplitVisitor<TValue, TError, TRight> : QueryResult<Either<TValue, TRight>, TError>.Visitor<TError?, (Action<TValue>, Action<TRight>)>
+        {
+            private SplitVisitor()
+            {
+            }
+
+            public static SplitVisitor<TValue, TError, TRight> Instance { get; } = new SplitVisitor<TValue, TError, TRight>();
+
+            public override TError? Dispatch(QueryResult<Either<TValue, TRight>, TError>.Final node, (Action<TValue>, Action<TRight>) context)
+            {
+                return default;
+            }
+
+            public override TError? Dispatch(QueryResult<Either<TValue, TRight>, TError>.Element node, (Action<TValue>, Action<TRight>) context)
+            {
+                node.Value.Visit(
+                    (left, @void) =>
+                    {
+                        context.Item1(left.Value);
+                        return new Void();
+                    },
+                    (right, @void) =>
+                    {
+                        context.Item2(right.Value);
+                        return new Void();
+                    },
+                    new Void());
+                return default;
+            }
+
+            public override TError? Dispatch(QueryResult<Either<TValue, TRight>, TError>.Partial node, (Action<TValue>, Action<TRight>) context)
+            {
+                return node.Error;
+            }
+        }
+
+        public static TError? Split<TValue, TError, TRight>(
+            this QueryResult<Either<TValue, TRight>, TError> queryResult,
+            Action<TValue> leftAction,
+            Action<TRight> rightAction)
+        {
+            return SplitVisitor<TValue, TError, TRight>.Instance.Visit(queryResult, (leftAction, rightAction));
+        }
+
         public static IEnumerable<TValue> ToEnumerable<TValue, TError>(this QueryResult<TValue, TError> queryResult)
         {
             while (queryResult is QueryResult<TValue, TError>.Element element)
