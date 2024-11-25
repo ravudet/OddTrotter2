@@ -127,15 +127,6 @@ namespace OddTrotter.Calendar
         Task<OdataCollectionResponse> GetCollection(OdataCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
     }
 
-    public interface IOdataUnstructuredContext
-    {
-        Task Get(object requst); //// TODO structure the request as an AST
-
-        Task Post(object request);
-        
-         //// TODO other verbs
-    }
-
     /*public sealed class OdataObject
     {
         public OdataObject(JsonNode jsonNode)
@@ -216,13 +207,6 @@ namespace OddTrotter.Calendar
         public string Code { get; }
 
         //// TODO finish implementing this
-    }
-
-    public interface IOdataClient
-    {
-        Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri);
-
-        Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri);
     }
 
     public sealed class OdataDeserializationException : Exception
