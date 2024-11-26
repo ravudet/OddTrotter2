@@ -17,66 +17,17 @@ namespace OddTrotter.Calendar
 {
     public sealed class OdataGetCollectionRequest
     {
-        internal OdataGetCollectionRequest(SpecializedRequest request)
+        internal OdataGetCollectionRequest(RelativeUri relativeUri)
         {
-            this.Request = request;
-        }
-
-        internal SpecializedRequest Request { get; }
-
-        internal abstract class SpecializedRequest
-        {
-            private SpecializedRequest()
-            {
-            }
-
-            public sealed class GetInstanceEvents : SpecializedRequest
-            {
-                public GetInstanceEvents(DateTime startTime, int pageSize, DateTime endTime)
-                {
-                    this.StartTime = startTime;
-                    this.PageSize = pageSize;
-                    this.EndTime = endTime;
-                }
-
-                public DateTime StartTime { get; }
-
-                public int PageSize { get; }
-
-                public DateTime EndTime { get; }
-            }
-
-            public sealed class GetAbsoluteUri : SpecializedRequest
-            {
-                public GetAbsoluteUri(AbsoluteUri uri)
-                {
-                    this.Uri = uri;
-                }
-
-                public AbsoluteUri Uri { get; }
-            }
-        }
-    }
-
-    /*public sealed class OdataUri
-    {
-        public OdataUri(RelativeUri? relativeUri, AbsoluteUri? absoluteUri)
-        {
-            //// TODO this shouldn't have nullables and stuff, figure out how to handle absolute + relaetive uris
-
-            //// TODO this should have significantly more structure
             this.RelativeUri = relativeUri;
-            AbsoluteUri = absoluteUri;
         }
 
-        public RelativeUri? RelativeUri { get; }
-
-        public AbsoluteUri? AbsoluteUri { get; }
-    }*/
+        internal RelativeUri RelativeUri { get; }
+    }
 
     public interface IOdataStructuredContext
     {
-        Task<OdataCollectionResponse> GetCollection(OdataGetCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
+        Task<Either<OdataCollectionResponse, OdataErrorResponse>> GetCollection(OdataGetCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
     }
 
     /*public sealed class OdataObject
@@ -99,43 +50,36 @@ namespace OddTrotter.Calendar
 
         //// TODO visitor
 
-        public sealed class Success : OdataCollectionResponse
+        public sealed class Values : OdataCollectionResponse //// TODO change the class name
         {
-            //// TODO there should be a more AST-looking intermediate
-
-            [Obsolete]
-            internal Success(SpecializedResponse response)
+            public Values(IReadOnlyList<OdataCollectionValue> value, string? nextLink)
             {
-                this.Response = response;
+                this.Value = value;
+                this.NextLink = nextLink;
             }
 
-            internal SpecializedResponse Response { get; }
+            public IReadOnlyList<OdataCollectionValue> Value { get; }
 
-            internal abstract class SpecializedResponse
-            {
-                public sealed class Collection : SpecializedResponse
-                {
-                    public Collection(IReadOnlyList<JsonNode> value, string? nextLink)
-                    {
-                        this.Value = value;
-                        this.NextLink = nextLink;
-                    }
+            public string? NextLink { get; }
 
-                    public IReadOnlyList<JsonNode> Value { get; }
+            //// TODO any other properties?
+        }
+    }
 
-                    public string? NextLink { get; }
-                }
-            }
+    public abstract class OdataCollectionValue
+    {
+        private OdataCollectionValue()
+        {
         }
 
-        public sealed class Error : OdataCollectionResponse
+        internal sealed class Json : OdataCollectionValue
         {
-            public Error(OdataErrorResponse odataErrorResponse)
+            public Json(JsonNode node)
             {
-                OdataErrorResponse = odataErrorResponse;
+                Node = node;
             }
 
-            public OdataErrorResponse OdataErrorResponse { get; }
+            public JsonNode Node { get; }
         }
     }
 

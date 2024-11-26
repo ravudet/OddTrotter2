@@ -3,10 +3,24 @@
     using System;
     using System.Collections.Generic;
 
-    public abstract class GraphQuery
+    public abstract class GraphQuery //// TODO graphrequest?
     {
         private GraphQuery()
         {
+        }
+
+        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Visit(GraphQuery node, TContext context)
+            {
+                return node.Accept(this, context);
+            }
+
+            public abstract TResult Dispatch(GraphQuery.Page node, TContext context);
+
+            internal abstract TResult Dispatch(GraphQuery.GetEvents node, TContext context);
         }
 
         public sealed class Page : GraphQuery
@@ -14,6 +28,11 @@
             private Page()
             {
                 //// TODO
+            }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Dispatch(this, context);
             }
         }
 
@@ -25,6 +44,11 @@
             }
 
             public RelativeUri RelativeUri { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Dispatch(this, context);
+            }
         }
     }
 
@@ -65,6 +89,8 @@
         {
 
         }
+
+        private sealed class EvaluateVisitor
     }
 
     public sealed class GraphCalendarEvent
