@@ -28,10 +28,19 @@
 
         public sealed class Page : GraphQuery
         {
-            private Page()
+            internal Page(RelativeUri relativeUri)
             {
-                //// TODO
+                //// TODO make this private
+                this.RelativeUri = relativeUri;
             }
+
+            //// TODO you should really do this, and have a lookup of the iodatastructuredcontext based on the schema + authority
+            //// internal UriScheme Schema { get; }
+
+            //// TODO you should really do this, and have a lookup of the iodatastructuredcontext based on the schema + authority
+            //// internal UriAuthority Authority { get; }
+
+            internal RelativeUri RelativeUri { get; }
 
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
@@ -100,16 +109,17 @@
         {
             private readonly IOdataStructuredContext odataContext;
 
-            private readonly OdataCollectionResponse.Visitor<GraphCalendarEventsResponse, Void> getEventsDispatchVisitor;
+            private readonly GetEventsDispatchVisitor getEventsDispatchVisitor;
 
             public EvaluateVisitor(IOdataStructuredContext odataContext)
             {
                 this.odataContext = odataContext;
+                this.getEventsDispatchVisitor = GetEventsDispatchVisitor.Instance;
             }
 
             public override GraphCalendarEventsResponse Dispatch(GraphQuery.Page node, Void context)
             {
-                throw new NotImplementedException();
+                
             }
 
             internal override GraphCalendarEventsResponse Dispatch(GraphQuery.GetEvents node, Void context)
@@ -127,13 +137,50 @@
 
             private sealed class GetEventsDispatchVisitor : OdataCollectionResponse.Visitor<GraphCalendarEventsResponse, Void>
             {
+                private readonly OdataCollectionValueVisitor odataCollectionValueVisitor;
+
+                private GetEventsDispatchVisitor()
+                {
+                    this.odataCollectionValueVisitor = OdataCollectionValueVisitor.Instance;
+                }
+
+                public static GetEventsDispatchVisitor Instance { get; } = new GetEventsDispatchVisitor();
+
                 public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Void context)
                 {
-                    node.Value.Select(odataCollectionValue => )
+                    var graphCalendarEvents = node
+                        .Value
+                        .Select(odataCollectionValue => this.odataCollectionValueVisitor.Visit(odataCollectionValue, default))
+                        .ToList();
+
+                    GraphQuery.Page? nextPage = null;
+                    if (node.NextLink != null)
+                    {
+                        var nextLink = new Uri(node.NextLink);
+                        RelativeUri relativeUri;
+                        if (nextLink.IsAbsoluteUri)
+                        {
+                            relativeUri = nextLink.ToAbsoluteUri().ToRelativeUri();
+                        }
+                        else
+                        {
+                            relativeUri = nextLink.ToRelativeUri();
+                        }
+
+                        nextPage = new GraphQuery.Page(relativeUri);
+                    }
+
+                    return new GraphCalendarEventsResponse(graphCalendarEvents, nextPage);
                 }
 
                 private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, Void>
                 {
+                    private OdataCollectionValueVisitor()
+                    {
+                    }
+
+                    public static OdataCollectionValueVisitor Instance { get; } = new OdataCollectionValueVisitor();
+
                     internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError> Dispatch(OdataCollectionValue.Json node, Void context)
                     {
                         GraphCalendarEventBuilder? graphCalendarEvent;
@@ -151,7 +198,7 @@
                             return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationError());
                         }
 
-
+                        return graphCalendarEvent.Build();
                     }
                 }
 
