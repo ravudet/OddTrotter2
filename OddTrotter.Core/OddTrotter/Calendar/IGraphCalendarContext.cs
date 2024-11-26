@@ -153,7 +153,7 @@
             this IGraphCalendarEventsContext graphCalendarEventsContext,
             GraphQuery graphQuery)
         {
-            if (!(graphQuery is GraphQuery.GetInstanceEvents getInstanceEvents))
+            if (!(graphQuery is GraphQuery.GetEvents))
             {
                 throw new Exception("TODO don't page in the middle of pagination?");
             }
