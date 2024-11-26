@@ -106,6 +106,19 @@ namespace OddTrotter.Calendar
                 (right, context) => Either.Left<TLeft>().Right(right.Value),
                 new Void());
         }
+
+        public static Either<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(this Either<TLeftFirst, TRight> first, Either<TLeftSecond, TRight> second)
+        {
+            //// TODO is this actually a selectmany?
+
+            return first.Visit(
+                (leftFirst, contextFirst) => second.Visit(
+                    (leftSecond, contextSecond) => Either.Right<TRight>().Left((leftFirst.Value, leftSecond.Value)),
+                    (rightSecond, contextSecond) => Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightSecond.Value),
+                    new Void()),
+                (rightFirst, contextFirst) => Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightFirst.Value), //// TODO if second is *also* right, you lose track of that one; do you want a TRight aggregator?
+                new Void());
+        }
     }
 
     public static class Either

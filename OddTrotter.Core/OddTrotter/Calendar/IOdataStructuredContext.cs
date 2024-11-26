@@ -48,7 +48,17 @@ namespace OddTrotter.Calendar
         {
         }
 
-        //// TODO visitor
+        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Visit(OdataCollectionResponse node, TContext context)
+            {
+                return node.Accept(this, context);
+            }
+
+            public abstract TResult Dispatch(OdataCollectionResponse.Values node, TContext context);
+        }
 
         public sealed class Values : OdataCollectionResponse //// TODO change the class name
         {
@@ -63,6 +73,11 @@ namespace OddTrotter.Calendar
             public string? NextLink { get; }
 
             //// TODO any other properties?
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Dispatch(this, context);
+            }
         }
     }
 
@@ -70,6 +85,18 @@ namespace OddTrotter.Calendar
     {
         private OdataCollectionValue()
         {
+        }
+
+        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Visit(OdataCollectionValue node, TContext context)
+            {
+                return node.Accept(this, context);
+            }
+
+            internal abstract TResult Dispatch(OdataCollectionValue.Json node, TContext context);
         }
 
         internal sealed class Json : OdataCollectionValue
@@ -80,6 +107,11 @@ namespace OddTrotter.Calendar
             }
 
             public JsonNode Node { get; }
+
+            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Dispatch(this, context);
+            }
         }
     }
 

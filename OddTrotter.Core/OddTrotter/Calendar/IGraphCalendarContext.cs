@@ -2,6 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     public abstract class GraphQuery //// TODO graphrequest?
     {
@@ -78,11 +81,11 @@
 
     public sealed class GraphCalendarEventsContext : IGraphCalendarEventsContext
     {
-        private readonly IOdataStructuredContext odataContext;
+        private readonly EvaluateVisitor evaluateVisitor;
 
         public GraphCalendarEventsContext(IOdataStructuredContext odataContext)
         {
-            this.odataContext = odataContext;
+            this.evaluateVisitor = new EvaluateVisitor(odataContext);
         }
 
         public GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery)
@@ -90,7 +93,137 @@
 
         }
 
-        private sealed class EvaluateVisitor
+        /// <summary>
+        /// TODO should you pass the iodatastructuredcontext as the visitor context, or should it be a field in the visitor? i feel like the visitor context is supposed to be used for this that are contextual *per request*, so probably that means a field
+        /// </summary>
+        private sealed class EvaluateVisitor : GraphQuery.Visitor<GraphCalendarEventsResponse, Void>
+        {
+            private readonly IOdataStructuredContext odataContext;
+
+            private readonly OdataCollectionResponse.Visitor<GraphCalendarEventsResponse, Void> getEventsDispatchVisitor;
+
+            public EvaluateVisitor(IOdataStructuredContext odataContext)
+            {
+                this.odataContext = odataContext;
+            }
+
+            public override GraphCalendarEventsResponse Dispatch(GraphQuery.Page node, Void context)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override GraphCalendarEventsResponse Dispatch(GraphQuery.GetEvents node, Void context)
+            {
+                var url = node.RelativeUri;
+                var odataCollectionRequest = new OdataGetCollectionRequest(url);
+                var odataCollectionResponse = this.odataContext.GetCollection(odataCollectionRequest).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO use async methods
+
+                return odataCollectionResponse
+                    .VisitSelect(
+                        left => this.getEventsDispatchVisitor.Visit(left, default),
+                        right => new Exception("TODO"))
+                    .ThrowRight();
+            }
+
+            private sealed class GetEventsDispatchVisitor : OdataCollectionResponse.Visitor<GraphCalendarEventsResponse, Void>
+            {
+                public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Void context)
+                {
+                    node.Value.Select(odataCollectionValue => )
+                }
+
+                private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, Void>
+                {
+                    internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError> Dispatch(OdataCollectionValue.Json node, Void context)
+                    {
+                        GraphCalendarEventBuilder? graphCalendarEvent;
+                        try
+                        {
+                            graphCalendarEvent = JsonSerializer.Deserialize<GraphCalendarEventBuilder>(node.Node);
+                        }
+                        catch
+                        {
+                            return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO presrve exception
+                        }
+
+                        if (graphCalendarEvent == null)
+                        {
+                            return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationError());
+                        }
+
+
+                    }
+                }
+
+                private sealed class GraphCalendarEventBuilder
+                {
+                    [JsonPropertyName("id")]
+                    public string? Id { get; set; }
+
+                    [JsonPropertyName("subject")]
+                    public string? Subject { get; set; }
+
+                    [JsonPropertyName("start")]
+                    public TimeStructureBuilder? Start { get; set; }
+
+                    [JsonPropertyName("body")]
+                    public BodyStructureBuilder? Body { get; set; }
+
+                    public Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError> Build()
+                    {
+                        if (this.Id == null || this.Subject == null || this.Start == null || this.Body == null)
+                        {
+                            return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO
+                        }
+
+                        var start = this.Start.Build();
+                        var body = this.Body.Build();
+
+                        return 
+                            start
+                            .Zip(body)
+                            .VisitSelect(
+                                left => new GraphCalendarEvent(this.Id, this.Subject, left.Item1, left.Item2),
+                                right => right);
+                    }
+                }
+
+                public sealed class BodyStructureBuilder
+                {
+                    [JsonPropertyName("context")]
+                    public string? Content { get; set; }
+
+                    public Either<BodyStructure, GraphCalendarEventsContextTranslationError> Build()
+                    {
+                        if (this.Content == null)
+                        {
+                            return Either.Left<BodyStructure>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO
+                        }
+
+                        return Either.Right<GraphCalendarEventsContextTranslationError>().Left(new BodyStructure(this.Content));
+                    }
+                }
+
+                public sealed class TimeStructureBuilder
+                {
+                    [JsonPropertyName("dateTime")]
+                    public string? DateTime { get; set; }
+
+                    [JsonPropertyName("timeZone")]
+                    public string? TimeZone { get; set; }
+
+                    public Either<TimeStructure, GraphCalendarEventsContextTranslationError> Build()
+                    {
+                        if (this.DateTime == null || this.TimeZone == null)
+                        {
+                            return Either.Left<TimeStructure>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO
+                        }
+
+                        return Either.Right<GraphCalendarEventsContextTranslationError>().Left(new TimeStructure(this.DateTime, this.TimeZone));
+                    }
+                }
+            }
+        }
     }
 
     public sealed class GraphCalendarEvent
