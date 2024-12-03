@@ -44,7 +44,9 @@ namespace OddTrotter.Calendar
             this.endTime = endTime; //// TODO does datetime make sense for this?
             this.pageSize = settings.PageSize;
 
-            this.graphCalendarEventsContext = new GraphCalendarEventsContext() //// TODO use constructor injection
+            var odataClient = new GraphClientToOdataClient(graphClient);
+            var odataCalendarEventsContext = new OdataCalendarEventsContext(odataClient);
+            this.graphCalendarEventsContext = new GraphCalendarEventsContext(odataCalendarEventsContext); //// TODO use constructor injection
         }
 
         private sealed class GraphClientToOdataClient : IOdataClient
@@ -59,11 +61,6 @@ namespace OddTrotter.Calendar
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
                 return await this.graphClient.GetAsync(relativeUri).ConfigureAwait(false);
-            }
-
-            public async Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri)
-            {
-                return await this.graphClient.GetAsync(absoluteUri).ConfigureAwait(false);
             }
         }
 
