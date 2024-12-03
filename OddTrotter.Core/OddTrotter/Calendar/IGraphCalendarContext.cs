@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Threading.Tasks;
 
     public abstract class GraphQuery //// TODO graphrequest?
     {
@@ -99,7 +100,7 @@
 
         public GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery)
         {
-
+            return this.evaluateVisitor.Visit(graphQuery, default);
         }
 
         /// <summary>
@@ -119,14 +120,18 @@
 
             public override GraphCalendarEventsResponse Dispatch(GraphQuery.Page node, Void context)
             {
-                
+                return GetPage(node.RelativeUri).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO use async methods
             }
 
             internal override GraphCalendarEventsResponse Dispatch(GraphQuery.GetEvents node, Void context)
             {
-                var url = node.RelativeUri;
+                return GetPage(node.RelativeUri).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO use async methods
+            }
+
+            private async Task<GraphCalendarEventsResponse> GetPage(RelativeUri url)
+            {
                 var odataCollectionRequest = new OdataGetCollectionRequest(url);
-                var odataCollectionResponse = this.odataContext.GetCollection(odataCollectionRequest).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO use async methods
+                var odataCollectionResponse = await this.odataContext.GetCollection(odataCollectionRequest).ConfigureAwait(false);
 
                 return odataCollectionResponse
                     .VisitSelect(
@@ -160,7 +165,7 @@
                         RelativeUri relativeUri;
                         if (nextLink.IsAbsoluteUri)
                         {
-                            relativeUri = nextLink.ToAbsoluteUri().ToRelativeUri();
+                            relativeUri = nextLink.ToAbsoluteUri().GetRelativeUri();
                         }
                         else
                         {
