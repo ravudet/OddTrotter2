@@ -11,6 +11,11 @@ namespace OddTrotter.Calendar
         Task<QueryResult<TValue, TError>> Evaluate();
     }
 
+    /// <summary>
+    /// TODO is it *really* that this is modeling queryresult*nodes* and that there are really 2 types of "queryresults": one that has just values, and one that has values and an error? this would let you mostly have ienumerables running around
+    /// </summary>
+    /// <typeparam name="TValue"></typeparam>
+    /// <typeparam name="TError"></typeparam>
     public abstract class QueryResult<TValue, TError>
     {
         private QueryResult()

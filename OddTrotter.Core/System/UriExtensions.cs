@@ -1,5 +1,7 @@
 ﻿namespace System
 {
+    using OddTrotter.Calendar;
+
     public static class UriExtensions
     {
         /// <summary>

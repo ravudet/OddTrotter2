@@ -26,20 +26,40 @@ namespace OddTrotter.Calendar
         //// TODO can you use a more general context?
         private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
         private readonly IGraphClient graphClient;
-        private readonly RelativeUri calendarUri;
+        private readonly UriPath calendarUriPath;
         private readonly DateTime startTime;
         private readonly DateTime endTime;
         private readonly int pageSize;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CalendarEventsContext"/> class
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <param name="calendarUri"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <param name="settings"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphClient"/> or <paramref name="calendarUriPath"/> is <see langword="null"/></exception>
         public CalendarEventsContext(
             IGraphClient graphClient,
-            RelativeUri calendarUri,
+            UriPath calendarUriPath,
             DateTime startTime,
             DateTime endTime,
             CalendarEventContextSettings settings)
         {
+            if (graphClient == null)
+            {
+                throw new ArgumentNullException(nameof(graphClient));
+            }
+
+            if (calendarUriPath == null)
+            {
+                throw new ArgumentNullException(nameof(calendarUriPath));
+            }
+
             this.graphClient = graphClient;
-            this.calendarUri = calendarUri; //// TODO you actually just want the path portion
+            this.calendarUriPath = calendarUriPath;
+            //// TODO you are here
             this.startTime = startTime; //// TODO does datetime make sense for this?
             this.endTime = endTime; //// TODO does datetime make sense for this?
             this.pageSize = settings.PageSize;

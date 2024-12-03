@@ -185,6 +185,17 @@
         /// </exception>
         /// <exception cref="AzureStorageException">Thrown if azure storage produced an error while reading the blob contents or writing back the blob content</exception>
         /// <exception cref="MalformedBlobDataException">Thrown if the contents of the todo list blob were not in the expected format</exception>
+        /// TODO handle all exceptions from here onward to the caller
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on the provided <see cref="IGraphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
@@ -228,7 +239,13 @@
             }
 
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
-            var calendarEventContext = new CalendarEventsContext(this.graphClient, new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(), originalLastRecordedEventTimeStamp, DateTime.UtcNow, CalendarEventContextSettings.Default); //// TODO configure page size
+            //// TODO you are here
+            var calendarEventContext = new CalendarEventsContext(
+                this.graphClient, 
+                new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(),
+                originalLastRecordedEventTimeStamp, 
+                DateTime.UtcNow, 
+                CalendarEventContextSettings.Default); //// TODO configure page size
             var calendarEvents = await calendarEventContext.Evaluate().ConfigureAwait(false);
 
             //// TODO check all of the possible errors
@@ -242,7 +259,7 @@
 
             var successesWithParsedBodies = successes.Select(success => ParseEventBody(success.Body)); //// TODO handle errors
             var newData2 = string.Join(Environment.NewLine, successesWithParsedBodies);
-            var result = new TodoListResult(newData2, default, default, pagingError?.ToString(), default, default, default, default);
+            ////var result = new TodoListResult(newData2, default, default, pagingError?.ToString(), default, default, default, default);
 
 
 

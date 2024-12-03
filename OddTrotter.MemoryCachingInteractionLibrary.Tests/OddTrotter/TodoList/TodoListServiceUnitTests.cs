@@ -25,7 +25,45 @@
     [TestClass]
     public sealed class TodoListServiceUnitTests
     {
-        private sealed class GetGraphCalendarEventsMockOdataClient : IOdataClient
+        [TestMethod]
+        public void Test()
+        {
+            var uri1 = new Uri("/    ?$filter=asdf", UriKind.Relative).ToRelativeUri();
+            var data1 = Split(uri1);
+
+            var uri2 = new Uri("    ", UriKind.Relative).ToRelativeUri();
+            var data2 = Split(uri2);
+
+            var uri3 = new Uri("/    ", UriKind.Relative).ToRelativeUri();
+            var data3 = Split(uri3);
+
+            var uri4 = new Uri("/    ?   #   1", UriKind.Relative).ToRelativeUri();
+            var data4 = Split(uri4);
+
+            var uri5 = new Uri("?$filter=asdf", UriKind.Relative).ToRelativeUri();
+            var data5 = Split(uri5);
+
+            var uri6 = new Uri("    ?$filter=asdf", UriKind.Relative).ToRelativeUri();
+            var data6 = Split(uri6);
+
+            var uri7 = new Uri("$filter=asdf", UriKind.Relative).ToRelativeUri();
+            var data7 = Split(uri7);
+
+            var uri8 = new Uri("/    ?$filter=asdf", UriKind.Relative).ToRelativeUri();
+            var data8 = Split(uri8);
+        }
+
+        private static (string Path, string Query, string Fragment) Split(RelativeUri relativeUri)
+        {
+            return 
+                (
+                    relativeUri.GetComponents(RelativeUriComponents.Path, UriFormat.Unescaped),
+                    relativeUri.GetComponents(RelativeUriComponents.Query, UriFormat.Unescaped),
+                    relativeUri.GetComponents(RelativeUriComponents.Fragment, UriFormat.Unescaped)
+                );
+        }
+
+        /*private sealed class GetGraphCalendarEventsMockOdataClient : IOdataClient
         {
             public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
             {
@@ -203,7 +241,7 @@
             var response = await graphCalendarEventsContext.PageCollection(request).ConfigureAwait(false);
 
             var list = response.ToEnumerable();
-        }
+        }*/
 
         private sealed class GraphCalendarEvent
         {
