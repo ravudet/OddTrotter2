@@ -30,18 +30,6 @@ namespace OddTrotter.Calendar
         Task<Either<OdataCollectionResponse, OdataErrorResponse>> GetCollection(OdataGetCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
     }
 
-    /*public sealed class OdataObject
-    {
-        public OdataObject(JsonNode jsonNode)
-        {
-            //// TODO this should be more AST-looking instead of using JSON
-            //// TODO you've named this type odata "object", but could it also be individual values (like in a collection)?
-            this.JsonNode = jsonNode;
-        }
-
-        public JsonNode JsonNode { get; }
-    }*/
-
     public abstract class OdataCollectionResponse
     {
         private OdataCollectionResponse()
