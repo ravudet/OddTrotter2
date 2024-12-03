@@ -2,6 +2,7 @@
 namespace OddTrotter.Calendar
 {
     using System;
+    using System.Linq.Expressions;
     using System.Net.Http;
     using System.Threading.Tasks;
     using OddTrotter.GraphClient;
@@ -19,9 +20,9 @@ namespace OddTrotter.Calendar
     }
 
     /// <summary>
-    /// is Exception for TError a good call? isn't this basically just making your errors object?
+    /// 
     /// </summary>
-    public sealed class CalendarEventsContext : IQueryContext<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>
+    public sealed class CalendarEventsContext : IQueryContext<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>, IWhereQueryContextMixin<CalendarEvent, CalendarEventsContextTranslationError, CalendarEventsContextPagingException, CalendarEventsContext>
     {
         //// TODO can you use a more general context?
         private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
@@ -59,9 +60,11 @@ namespace OddTrotter.Calendar
 
             this.graphClient = graphClient;
             this.calendarUriPath = calendarUriPath;
+            this.startTime = startTime;
             //// TODO you are here
-            this.startTime = startTime; //// TODO does datetime make sense for this?
-            this.endTime = endTime; //// TODO does datetime make sense for this?
+            //// TODO if endtime is datetime then you have to do a validation check; if it's a timespan then you can just compute the endtime
+            //// TODO endtime and iscanceled should be done by the caller of the iquerycontext using queryable-like apis
+            this.endTime = endTime;
             this.pageSize = settings.PageSize;
 
             var odataClient = new GraphClientToOdataClient(graphClient);
@@ -257,6 +260,11 @@ namespace OddTrotter.Calendar
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = graphCalendarEventsContext.Page(graphRequest);
             return Adapt(graphResponse);
+        }
+
+        public CalendarEventsContext Where(Expression<Func<CalendarEvent, bool>> predicate)
+        {
+            throw new NotImplementedException();
         }
     }
 }

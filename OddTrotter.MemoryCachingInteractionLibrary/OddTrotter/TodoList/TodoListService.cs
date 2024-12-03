@@ -240,13 +240,14 @@
 
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
             //// TODO you are here
-            var calendarEventContext = new CalendarEventsContext(
+            var calendarEventsContext = new CalendarEventsContext(
                 this.graphClient, 
                 new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(),
                 originalLastRecordedEventTimeStamp, 
                 DateTime.UtcNow, 
                 CalendarEventContextSettings.Default); //// TODO configure page size
-            var calendarEvents = await calendarEventContext.Evaluate().ConfigureAwait(false);
+            calendarEventsContext = calendarEventsContext.Where(calendarEvent => calendarEvent.Start < DateTime.UtcNow);
+            var calendarEvents = await calendarEventsContext.Evaluate().ConfigureAwait(false);
 
             //// TODO check all of the possible errors
             var todoListEvents2 = calendarEvents.Where(calendarEvent => calendarEvent.Visit(
