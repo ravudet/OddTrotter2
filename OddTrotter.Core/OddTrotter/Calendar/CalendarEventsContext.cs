@@ -43,6 +43,8 @@ namespace OddTrotter.Calendar
             this.startTime = startTime; //// TODO does datetime make sense for this?
             this.endTime = endTime; //// TODO does datetime make sense for this?
             this.pageSize = settings.PageSize;
+
+            this.graphCalendarEventsContext = new GraphCalendarEventsContext() //// TODO use constructor injection
         }
 
         private sealed class GraphClientToOdataClient : IOdataClient

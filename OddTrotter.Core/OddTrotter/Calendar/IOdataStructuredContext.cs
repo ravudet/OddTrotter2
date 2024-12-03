@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace OddTrotter.Calendar
 {
-    public sealed class OdataGetCollectionRequest
+    public sealed class OdataGetCollectionRequest //// TODO are you sure that this is not a discriminated union?
     {
         internal OdataGetCollectionRequest(RelativeUri relativeUri)
         {
@@ -160,93 +160,64 @@ namespace OddTrotter.Calendar
             this.odataClient = odataClient;
         }
 
-        public async Task<OdataCollectionResponse> GetCollection(OdataGetCollectionRequest request)
+        public async Task<Either<OdataCollectionResponse, OdataErrorResponse>> GetCollection(OdataGetCollectionRequest request)
         {
-            //// TODO use Either for the return type instead of a DU for the response type?
-            if (request.Request is OdataGetCollectionRequest.SpecializedRequest.GetInstanceEvents getInstanceEventsRequest)
+            HttpResponseMessage? httpResponseMessage = null;
+            try
             {
-                var getInstanceEventsUri = 
-                    $"/me/calendar/events?" +
-                    $"$select=body,start,subject&" +
-                    $"$top={getInstanceEventsRequest.PageSize}&" +
-                    $"$orderBy=start/dateTime&" +
-                    $"$filter=type eq 'singleInstance' and start/dateTime gt '{getInstanceEventsRequest.StartTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false and start/dateTime lt '{getInstanceEventsRequest.EndTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}";
-                var requestUri = new Uri(getInstanceEventsUri, UriKind.Relative).ToRelativeUri();
-
-                HttpResponseMessage? httpResponse = null;
+                httpResponseMessage = await this.odataClient.GetAsync(request.RelativeUri).ConfigureAwait(false);
                 try
                 {
-                    httpResponse = await this.odataClient.GetAsync(requestUri).ConfigureAwait(false);
+                    httpResponseMessage.EnsureSuccessStatusCode();
+                }
+                catch (HttpRequestException)
+                {
+                    //// TODO how do you preserve the http status code? if you don't use the exception, then use issuccessstatuscode instead
+
+                    //// TODO this pattern of deserialization and error handling might be able to leverage an ibuilder and some extensions; look into that...
+                    OdataErrorResponseBuilder? odataErrorResponseBuilder;
                     try
                     {
-                        httpResponse.EnsureSuccessStatusCode();
-                    }
-                    catch (HttpRequestException)
-                    {
-                        OdataErrorResponseBuilder? odataErrorResponseBuilder;
-                        try
-                        {
-                            odataErrorResponseBuilder = JsonSerializer.Deserialize<OdataErrorResponseBuilder>(await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false));
-                        }
-                        catch (JsonException jsonException)
-                        {
-                            throw new OdataDeserializationException("TODO", jsonException); //// TODO should there be a separate exception for errors occurring when deserializing an odata error vs and odata success?
-                        }
-
-                        //// TODO replace these lines with buildorthrow call?
-                        if (odataErrorResponseBuilder == null)
-                        {
-                            throw new OdataDeserializationException("TODO");
-                        }
-
-                        var odataErrorResponse = odataErrorResponseBuilder.Build().ThrowRight();
-                        //// TODO should this be an exception?
-                        //// TODO how are going to preserve the http status code?
-                        //// TODO if you don't use the httprequestexception to prserve the status code, then use issuccessstatuscode instead
-                        return new OdataCollectionResponse.Error(odataErrorResponse);
-                    }
-
-                    OdataCollectionResponseBuilder? odataCollectionResponseBuilder;
-                    try
-                    {
-                        odataCollectionResponseBuilder = JsonSerializer.Deserialize<OdataCollectionResponseBuilder>(await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false));
+                        odataErrorResponseBuilder = JsonSerializer.Deserialize<OdataErrorResponseBuilder>(await httpResponseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false));
                     }
                     catch (JsonException jsonException)
                     {
-                        throw new OdataDeserializationException("TODO", jsonException);
+                        throw new OdataDeserializationException("TODO", jsonException); //// TODO should there be a separate exception for errors occurring when deserializing an odata error vs and odata success?
                     }
 
-                    //// TODO replace these lines with builderorthrow call?
-                    if (odataCollectionResponseBuilder == null)
+                    if (odataErrorResponseBuilder == null)
                     {
                         throw new OdataDeserializationException("TODO");
                     }
 
-                    var odataCollectionResponse = odataCollectionResponseBuilder.Build().ThrowRight();
-                    return odataCollectionResponse;
+                    var odataErrorResponse = odataErrorResponseBuilder.Build().ThrowRight();
+
+                    return Either.Left<OdataCollectionResponse>().Right(odataErrorResponse);
                 }
-                finally
+
+                OdataCollectionResponseBuilder? odataCollectionResponseBuilder;
+                try
                 {
-                    httpResponse?.Dispose();
+                    odataCollectionResponseBuilder = JsonSerializer.Deserialize<OdataCollectionResponseBuilder>(await httpResponseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false));
                 }
+                catch (JsonException jsonException)
+                {
+                    throw new OdataDeserializationException("tODO", jsonException);
+                }
+
+                if (odataCollectionResponseBuilder == null)
+                {
+                    throw new OdataDeserializationException("TODO");
+                }
+
+                var odataCollectionResponse = odataCollectionResponseBuilder.Build().ThrowRight();
+
+                return Either.Right<OdataErrorResponse>().Left(odataCollectionResponse);
             }
-
-            throw new Exception("TODO handle requests in a general way");
-        }
-
-        private static T BuildOrThrow<T>(IBuilder<T>? builder)
-        {
-            if (builder == null)
+            finally
             {
-                throw new OdataDeserializationException("TODO");
+                httpResponseMessage?.Dispose();
             }
-
-            return builder.Build().ThrowRight();
-        }
-
-        private interface IBuilder<T>
-        {
-            Either<T, OdataDeserializationException> Build();
         }
 
         private sealed class OdataCollectionResponseBuilder
@@ -259,14 +230,12 @@ namespace OddTrotter.Calendar
 
             public Either<OdataCollectionResponse, OdataDeserializationException> Build()
             {
-                if (this.Value == null || this.NextLink == null)
+                if (this.Value == null)
                 {
-                    return new Either<OdataCollectionResponse, OdataDeserializationException>.Right(new OdataDeserializationException("TODO"));
+                    return Either.Left<OdataCollectionResponse>().Right(new OdataDeserializationException("TODO"));
                 }
 
-                var specializedResponse = new OdataCollectionResponse.Success.SpecializedResponse.Collection(this.Value, this.NextLink);
-                return new Either<OdataCollectionResponse, OdataDeserializationException>.Left(
-                    new OdataCollectionResponse.Success(specializedResponse)); //// TODO you can't use the `either` helper factories because the return type is more general than `success`; should discriminated unions have like a "tobasetype" extension or something? or is this an issue with `either` and covariance?
+                return new Either<OdataCollectionResponse, OdataDeserializationException>.Left(new OdataCollectionResponse.Values(this.Value.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), this.NextLink)); //// TODO you can't use the `either` helper factories because the return type is more general than `success`; should discriminated unions have like a "tobasetype" extension or something? or is this an issue with `either` and covariance?
             }
         }
 
@@ -285,84 +254,6 @@ namespace OddTrotter.Calendar
                 }
 
                 return Either.Right<OdataDeserializationException>().Left(new OdataErrorResponse(this.Code));
-            }
-        }
-    }
-
-    public sealed class OdataPaginationError
-    {
-        //// TODO do this correctly
-
-        internal OdataPaginationError()
-        {
-        }
-    }
-
-    public static class OdataContextExtensions
-    {
-        internal static async Task<QueryResult<JsonNode, OdataPaginationError>> PageCollection(this IOdataStructuredContext odataContext, OdataGetCollectionRequest request)
-        {
-            OdataCollectionResponse page;
-            try
-            {
-                page = await odataContext.GetCollection(request).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                //// TODO check exception types?
-                return new QueryResult<JsonNode, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve request and exception in error
-            }
-
-            QueryResult<JsonNode, OdataPaginationError> complete;
-            string? nextLink;
-            if (page.Response is OdataCollectionResponse.SpecializedResponse.Collection collectionPage)
-            {
-                complete = collectionPage.Value.ToQueryResult<JsonNode, OdataPaginationError>();
-                nextLink = collectionPage.NextLink;
-            }
-            else
-            {
-                throw new Exception("TODO implement in a general way");
-            }
-
-            //// TODO make this lazy once queryresult supports it
-            while (true)
-            {
-                if (nextLink == null)
-                {
-                    return complete;
-                }
-
-                AbsoluteUri nextLinkUri;
-                try
-                {
-                    nextLinkUri = new Uri(nextLink, UriKind.Absolute).ToAbsoluteUri();
-                }
-                catch (UriFormatException)
-                {
-                    return new QueryResult<JsonNode, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve nextlinkn and exception
-                }
-
-                try
-                {
-                    request = new OdataGetCollectionRequest(new OdataGetCollectionRequest.SpecializedRequest.GetAbsoluteUri(nextLinkUri));
-                    page = await odataContext.GetCollection(request).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                    //// TODO check exception types?
-                    return new QueryResult<JsonNode, OdataPaginationError>.Partial(new OdataPaginationError()); //// TODO preserve request and exception in error
-                }
-
-                if (page.Response is OdataCollectionResponse.SpecializedResponse.Collection anotherCollectionPage)
-                {
-                    complete = complete.Concat(anotherCollectionPage.Value.ToQueryResult<JsonNode, OdataPaginationError>());
-                    nextLink = collectionPage.NextLink;
-                }
-                else
-                {
-                    throw new Exception("TODO implement in a general way");
-                }
             }
         }
     }
