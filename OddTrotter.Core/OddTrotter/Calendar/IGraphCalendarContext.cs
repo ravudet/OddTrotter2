@@ -165,6 +165,7 @@
                         RelativeUri relativeUri;
                         if (nextLink.IsAbsoluteUri)
                         {
+                            //// TODO this assumes that the servicehost for the nextlink is the same as the one used in the odatacontext; this is not guaranteed
                             relativeUri = nextLink.ToAbsoluteUri().GetRelativeUri();
                         }
                         else
