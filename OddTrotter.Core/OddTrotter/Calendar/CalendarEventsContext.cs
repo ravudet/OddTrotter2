@@ -26,11 +26,25 @@ namespace OddTrotter.Calendar
     {
         //// TODO can you use a more general context?
         private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
-        private readonly IGraphClient graphClient;
+
         private readonly UriPath calendarUriPath;
+
+        /// <summary>
+        /// This is required because the `/instances` call on series event masters requires both a start time and an end time; we can continually look further in the future for `endTime`, but we have no way (as far as I can tell) to pick a `startTime` that guarantees we don't miss any instance events. So, we need the caller to tell us the start time in order to handle the series event instances.
+        /// </summary>
         private readonly DateTime startTime;
-        private readonly DateTime endTime;
+
         private readonly int pageSize;
+
+        /// <summary>
+        /// TODO you will want to handle this better in the future when you have full support for different query options. For now, `null` means that they've not filtered on `startTime < {something}`, and not `null` means that this value is `{something}`
+        /// </summary>
+        private readonly DateTime? endTime;
+
+        /// <summary>
+        /// TODO you will want to handle this better in the future when you have full support for different query options. For now, `null` means that they've not filtered on `isCancelled`, and not `null` means that this value is the value they are searching for
+        /// </summary>
+        private readonly bool? isCancelled;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CalendarEventsContext"/> class
@@ -40,36 +54,49 @@ namespace OddTrotter.Calendar
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="settings"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphClient"/> or <paramref name="calendarUriPath"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphClient"/> is <see langword="null"/></exception>
         public CalendarEventsContext(
             IGraphClient graphClient,
             UriPath calendarUriPath,
             DateTime startTime,
-            DateTime endTime,
             CalendarEventContextSettings settings)
+            : this(
+                  //// TODO you are here
+                  CreateGraphCalendarEventsContext(graphClient ?? throw new ArgumentNullException(nameof(graphClient))),
+                  calendarUriPath,
+                  startTime,
+                  settings.PageSize,
+                  null,
+                  null)
+        {   
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <returns></returns>
+        private static GraphCalendarEventsContext CreateGraphCalendarEventsContext(IGraphClient graphClient)
         {
-            if (graphClient == null)
-            {
-                throw new ArgumentNullException(nameof(graphClient));
-            }
-
-            if (calendarUriPath == null)
-            {
-                throw new ArgumentNullException(nameof(calendarUriPath));
-            }
-
-            this.graphClient = graphClient;
-            this.calendarUriPath = calendarUriPath;
-            this.startTime = startTime;
-            //// TODO you are here
-            //// TODO if endtime is datetime then you have to do a validation check; if it's a timespan then you can just compute the endtime
-            //// TODO endtime and iscanceled should be done by the caller of the iquerycontext using queryable-like apis
-            this.endTime = endTime;
-            this.pageSize = settings.PageSize;
-
             var odataClient = new GraphClientToOdataClient(graphClient);
             var odataCalendarEventsContext = new OdataCalendarEventsContext(odataClient);
-            this.graphCalendarEventsContext = new GraphCalendarEventsContext(odataCalendarEventsContext); //// TODO use constructor injection
+            return new GraphCalendarEventsContext(odataCalendarEventsContext); //// TODO use constructor injection
+        }
+
+        private CalendarEventsContext(
+            IGraphCalendarEventsContext graphCalendarEventsContext,
+            UriPath calendarUriPath,
+            DateTime startTime,
+            int pageSize,
+            DateTime? endTime,
+            bool? isCancelled)
+        {
+            this.graphCalendarEventsContext = graphCalendarEventsContext;
+            this.calendarUriPath = calendarUriPath;
+            this.startTime = startTime;
+            this.pageSize = pageSize;
+            this.endTime = endTime;
+            this.isCancelled = isCancelled;
         }
 
         private sealed class GraphClientToOdataClient : IOdataClient
@@ -100,7 +127,7 @@ namespace OddTrotter.Calendar
             //// TODO update this class to try using odataquerybuilder, odatarequestevaluator, etc; or maybe try adding the pending calendar events stuff first, and then update this class to make it easier to share code
 
             //// TODO use this.calendarUri
-            return Task.FromResult(this.GetEvents(this.graphClient, this.startTime, this.endTime, this.pageSize));
+            return Task.FromResult(this.GetEvents());
         }
 
         /// <summary>
@@ -120,10 +147,10 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetEvents(IGraphClient graphClient, DateTime startTime, DateTime endTime, int pageSize)
+        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetEvents()
         {
-            var instanceEvents = this.GetInstanceEvents(startTime, endTime, pageSize);
-            var seriesEvents = GetSeriesEvents(this.graphCalendarEventsContext, startTime, endTime, pageSize);
+            var instanceEvents = this.GetInstanceEvents();
+            var seriesEvents = this.GetSeriesEvents();
             //// TODO merge the sorted sequences instead of concat
             return instanceEvents.Concat(seriesEvents);
         }
@@ -152,15 +179,15 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetInstanceEvents(DateTime startTime, DateTime endTime, int pageSize)
+        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetInstanceEvents()
         {
             //// TODO make the calendar that's used configurable?
             var url =
                 $"/me/calendar/events?" +
                 $"$select=body,start,subject,isCancelled&" +
-                $"$top={pageSize}&" +
+                $"$top={this.pageSize}&" + //// TODO does pagesize actually do anything with the queryresult model? if it does, it's because the graph api is not implementing odata correctly and you should document this //// TODO do this for all URLs
                 $"$orderBy=start/dateTime&" +
-                $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false";
+                $"$filter=type eq 'singleInstance' and start/dateTime gt '{this.startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false";
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = this.graphCalendarEventsContext.Page(graphQuery);
             return Adapt(graphResponse);
@@ -183,13 +210,13 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private static QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEvents(IGraphCalendarEventsContext graphCalendarEventsContext, DateTime startTime, DateTime endTime, int pageSize)
+        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEvents()
         {
             var seriesEventMasters =
-                GetSeriesEventMasters(graphCalendarEventsContext, pageSize);
+                this.GetSeriesEventMasters();
             var mastersWithInstances = seriesEventMasters
                 .Select(either => either.VisitSelect(
-                    left => (left, GetFirstSeriesInstance(graphCalendarEventsContext, left, startTime, endTime)),
+                    left => (left, GetFirstSeriesInstance(left)),
                     right => right))
                 .Select(eventPair => eventPair.ShiftRight())
                 .Select(eventPair => eventPair.VisitSelect(
@@ -198,19 +225,16 @@ namespace OddTrotter.Calendar
             return mastersWithInstances;
         }
 
-        private static Either<CalendarEvent, CalendarEventsContextTranslationError> GetFirstSeriesInstance(
-            IGraphCalendarEventsContext graphCalendarEventsContext,
-            CalendarEvent seriesMaster,
-            DateTime startTime,
-            DateTime endTime)
+        private Either<CalendarEvent, CalendarEventsContextTranslationError> GetFirstSeriesInstance(
+            CalendarEvent seriesMaster)
         {
-            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body,isCancelled&$filter=isCancelled eq false";
+            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&endDateTime={this.endTime}&$top=1&$select=id,start,subject,body,isCancelled&$filter=isCancelled eq false";
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
 
             GraphCalendarEventsResponse graphResponse;
             try
             {
-                graphResponse = graphCalendarEventsContext.Evaluate(graphRequest); //// TODO do paging on the instances? it really shouldn't be necessary...
+                graphResponse = this.graphCalendarEventsContext.Evaluate(graphRequest); //// TODO do paging on the instances? it really shouldn't be necessary...
             }
             catch
             {
@@ -250,16 +274,16 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private static QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEventMasters(IGraphCalendarEventsContext graphCalendarEventsContext, int pageSize)
+        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEventMasters()
         {
             //// TODO make the calendar that's used configurable?
             var url = $"/me/calendar/events?" +
                 $"$select=body,start,subject,isCancelled&" +
-                $"$top={pageSize}&" +
+                $"$top={this.pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
-            var graphResponse = graphCalendarEventsContext.Page(graphRequest);
+            var graphResponse = this.graphCalendarEventsContext.Page(graphRequest);
             return Adapt(graphResponse);
         }
 

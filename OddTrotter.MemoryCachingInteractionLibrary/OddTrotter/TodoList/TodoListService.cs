@@ -242,11 +242,12 @@
             //// TODO you are here
             var calendarEventsContext = new CalendarEventsContext(
                 this.graphClient, 
-                new Uri("/me/calendar", UriKind.Relative).ToRelativeUri(),
-                originalLastRecordedEventTimeStamp, 
-                DateTime.UtcNow, 
+                new UriPath("/me/calendar"),
+                originalLastRecordedEventTimeStamp,
                 CalendarEventContextSettings.Default); //// TODO configure page size
-            calendarEventsContext = calendarEventsContext.Where(calendarEvent => calendarEvent.Start < DateTime.UtcNow);
+            calendarEventsContext = calendarEventsContext
+                .Where(calendarEvent => calendarEvent.Start < DateTime.UtcNow)
+                .Where(calendarEvent => !calendarEvent.IsCancelled);
             var calendarEvents = await calendarEventsContext.Evaluate().ConfigureAwait(false);
 
             //// TODO check all of the possible errors
