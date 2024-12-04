@@ -272,12 +272,16 @@
             var odataClient = new GraphClientToOdataClient(this.graphClient);
             var odataCalendarEventsContext = new OdataCalendarEventsContext(odataClient);
             var graphCalendarEventsContext = new GraphCalendarEventsContext(odataCalendarEventsContext);
-            //// TODO you are here
+            var calendarEventsContextSettings = new CalendarEventsContextSettings.Builder()
+            {
+                PageSize = this.calendarEventPageSize,
+            }.Build();
             var calendarEventsContext = new CalendarEventsContext(
-                graphCalendarEventsContext, 
+                graphCalendarEventsContext,
                 new UriPath("/me/calendar"),
                 originalLastRecordedEventTimeStamp,
-                CalendarEventContextSettings.Default); //// TODO configure page size
+                calendarEventsContextSettings);
+            //// TODO you are here
             calendarEventsContext = calendarEventsContext
                 .Where(CalendarEventsContext.StartLessThanNow)
                 .Where(CalendarEventsContext.IsNotCancelled);

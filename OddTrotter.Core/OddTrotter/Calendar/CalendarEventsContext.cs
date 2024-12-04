@@ -54,20 +54,20 @@ namespace OddTrotter.Calendar
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="settings"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphClient"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="calendarUriPath"/> or <paramref name="settings"/> is <see langword="null"/></exception>
         public CalendarEventsContext(
             IGraphCalendarEventsContext graphCalendarEventsContext,
             UriPath calendarUriPath,
             DateTime startTime,
-            CalendarEventContextSettings settings)
+            CalendarEventsContextSettings settings)
             : this(
-                  graphCalendarEventsContext,
-                  calendarUriPath,
+                  graphCalendarEventsContext ?? throw new ArgumentNullException(nameof(graphCalendarEventsContext)),
+                  calendarUriPath ?? throw new ArgumentNullException(nameof(calendarUriPath)),
                   startTime,
-                  settings.PageSize,
+                  settings?.PageSize ?? throw new ArgumentNullException(nameof(settings)), //// TODO i *really* don't like setting this precedence
                   null,
                   null)
-        {   
+        {
         }
 
         /// <summary>
