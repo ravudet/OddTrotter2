@@ -143,8 +143,18 @@ namespace OddTrotter.Calendar
     {
         private readonly IOdataClient odataClient;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="odataClient"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataClient"/> is <see langword="null"/></exception>
         public OdataCalendarEventsContext(IOdataClient odataClient)
         {
+            if (odataClient == null)
+            {
+                throw new ArgumentNullException(nameof(odataClient));
+            }
+
             this.odataClient = odataClient;
         }
 

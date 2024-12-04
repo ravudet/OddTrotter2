@@ -56,13 +56,12 @@ namespace OddTrotter.Calendar
         /// <param name="settings"></param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphClient"/> is <see langword="null"/></exception>
         public CalendarEventsContext(
-            IGraphClient graphClient,
+            IGraphCalendarEventsContext graphCalendarEventsContext,
             UriPath calendarUriPath,
             DateTime startTime,
             CalendarEventContextSettings settings)
             : this(
-                  //// TODO you are here
-                  CreateGraphCalendarEventsContext(graphClient ?? throw new ArgumentNullException(nameof(graphClient))),
+                  graphCalendarEventsContext,
                   calendarUriPath,
                   startTime,
                   settings.PageSize,
@@ -74,15 +73,12 @@ namespace OddTrotter.Calendar
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="graphClient"></param>
-        /// <returns></returns>
-        private static GraphCalendarEventsContext CreateGraphCalendarEventsContext(IGraphClient graphClient)
-        {
-            var odataClient = new GraphClientToOdataClient(graphClient);
-            var odataCalendarEventsContext = new OdataCalendarEventsContext(odataClient);
-            return new GraphCalendarEventsContext(odataCalendarEventsContext); //// TODO use constructor injection
-        }
-
+        /// <param name="graphCalendarEventsContext"></param>
+        /// <param name="calendarUriPath"></param>
+        /// <param name="startTime"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="endTime"></param>
+        /// <param name="isCancelled"></param>
         private CalendarEventsContext(
             IGraphCalendarEventsContext graphCalendarEventsContext,
             UriPath calendarUriPath,
@@ -97,21 +93,6 @@ namespace OddTrotter.Calendar
             this.pageSize = pageSize;
             this.endTime = endTime;
             this.isCancelled = isCancelled;
-        }
-
-        private sealed class GraphClientToOdataClient : IOdataClient
-        {
-            private readonly IGraphClient graphClient;
-
-            public GraphClientToOdataClient(IGraphClient graphClient)
-            {
-                this.graphClient = graphClient;
-            }
-
-            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
-            {
-                return await this.graphClient.GetAsync(relativeUri).ConfigureAwait(false);
-            }
         }
 
         public Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> Evaluate()
@@ -289,7 +270,33 @@ namespace OddTrotter.Calendar
 
         public CalendarEventsContext Where(Expression<Func<CalendarEvent, bool>> predicate)
         {
-            throw new NotImplementedException();
+            if (object.ReferenceEquals(predicate, StartLessThanNow))
+            {
+                var now = DateTime.UtcNow;
+                if (this.endTime != null && this.endTime < now)
+                {
+                    // we logically can see that this will always happen (they can only call set `endTime` to `DateTime.UtcNow`, so `now` will always been more in the future than `endTime`) 
+                    return this;
+                }
+
+                return new CalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath, this.startTime, this.pageSize, now, this.isCancelled);
+            }
+            else if (object.ReferenceEquals(predicate, IsNotCancelled))
+            {
+                if (this.isCancelled != null)
+                {
+                    // the caller can only provide `IsNotCancelled` right now, so if `isCancelled` is already set, it won't be changing
+                    return this;
+                }
+
+                return new CalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath, this.startTime, this.pageSize, this.endTime, false);
+            }
+
+            throw new NotImplementedException("TODO normalize the exceptions here");
         }
+
+        public static Expression<Func<CalendarEvent, bool>> StartLessThanNow { get; } = calendarEvent => calendarEvent.Start < DateTime.UtcNow; //// TODO will "now" constantly change?
+
+        public static Expression<Func<CalendarEvent, bool>> IsNotCancelled { get; } = calendarEvent => !calendarEvent.IsCancelled;
     }
 }

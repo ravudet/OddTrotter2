@@ -93,8 +93,18 @@
     {
         private readonly EvaluateVisitor evaluateVisitor;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="odataContext"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataContext"/> is <see langword="null"/></exception>
         public GraphCalendarEventsContext(IOdataStructuredContext odataContext)
         {
+            if (odataContext == null)
+            {
+                throw new ArgumentNullException(nameof(odataContext));
+            }
+
             this.evaluateVisitor = new EvaluateVisitor(odataContext);
         }
 
@@ -103,17 +113,24 @@
             return this.evaluateVisitor.Visit(graphQuery, default);
         }
 
-        /// <summary>
-        /// TODO should you pass the iodatastructuredcontext as the visitor context, or should it be a field in the visitor? i feel like the visitor context is supposed to be used for this that are contextual *per request*, so probably that means a field
-        /// </summary>
         private sealed class EvaluateVisitor : GraphQuery.Visitor<GraphCalendarEventsResponse, Void>
         {
             private readonly IOdataStructuredContext odataContext;
 
             private readonly GetEventsDispatchVisitor getEventsDispatchVisitor;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="odataContext"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataContext"/> is <see langword="null"/></exception>
             public EvaluateVisitor(IOdataStructuredContext odataContext)
             {
+                if (odataContext == null)
+                {
+                    throw new ArgumentNullException(nameof(odataContext));
+                }
+
                 this.odataContext = odataContext;
                 this.getEventsDispatchVisitor = GetEventsDispatchVisitor.Instance;
             }

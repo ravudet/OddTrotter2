@@ -170,6 +170,35 @@
         }
 
         /// <summary>
+        /// TODO is this class a good idea?
+        /// </summary>
+        private sealed class GraphClientToOdataClient : IOdataClient
+        {
+            private readonly IGraphClient graphClient;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="graphClient"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphClient"/> is <see langword="null"/></exception>
+            public GraphClientToOdataClient(IGraphClient graphClient)
+            {
+                if (graphClient == null)
+                {
+                    throw new ArgumentNullException(nameof(graphClient));
+                }
+
+                this.graphClient = graphClient;
+            }
+
+            /// <inheritdoc/>
+            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            {
+                return await this.graphClient.GetAsync(relativeUri).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
@@ -239,15 +268,19 @@
             }
 
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
+            //// TODO you are going to have to do multiple full passes through the new code to make sure everything is good to go and you like it
+            var odataClient = new GraphClientToOdataClient(this.graphClient);
+            var odataCalendarEventsContext = new OdataCalendarEventsContext(odataClient);
+            var graphCalendarEventsContext = new GraphCalendarEventsContext(odataCalendarEventsContext);
             //// TODO you are here
             var calendarEventsContext = new CalendarEventsContext(
-                this.graphClient, 
+                graphCalendarEventsContext, 
                 new UriPath("/me/calendar"),
                 originalLastRecordedEventTimeStamp,
                 CalendarEventContextSettings.Default); //// TODO configure page size
             calendarEventsContext = calendarEventsContext
-                .Where(calendarEvent => calendarEvent.Start < DateTime.UtcNow)
-                .Where(calendarEvent => !calendarEvent.IsCancelled);
+                .Where(CalendarEventsContext.StartLessThanNow)
+                .Where(CalendarEventsContext.IsNotCancelled);
             var calendarEvents = await calendarEventsContext.Evaluate().ConfigureAwait(false);
 
             //// TODO check all of the possible errors
