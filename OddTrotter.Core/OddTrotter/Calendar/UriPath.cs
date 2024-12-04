@@ -12,7 +12,7 @@
         /// </summary>
         /// <param name="path"></param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="path"/> is <see langword="null"/></exception>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="path"/> is the empty string or contains more URI components than just a URI path</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="path"/> is the empty string or contains more URI components than just a URI path or has a trailing '/'</exception>
         public UriPath(string path)
         {
             if (path == null)
@@ -31,6 +31,11 @@
             }
 
             if (path.Contains("?", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("TODO", nameof(path));
+            }
+
+            if (path.EndsWith("/", StringComparison.OrdinalIgnoreCase)) //// TODO is this check a good idea?
             {
                 throw new ArgumentException("TODO", nameof(path));
             }

@@ -97,43 +97,12 @@ namespace OddTrotter.Calendar
 
         public Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> Evaluate()
         {
-            //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
-
-            //// TODO you finished implementing one method in graphcalendareventscontext; you don't know if it works
-
-            //// TODO finish implementing this class
-            //// TODO implement query result using an abastract method
-            //// TODO write tests for todolistservice that confirm the URLs
-            //// TODO convert todolistservice to use this class
-            //// TODO update this class to try using odataquerybuilder, odatarequestevaluator, etc; or maybe try adding the pending calendar events stuff first, and then update this class to make it easier to share code
-
-            //// TODO use this.calendarUri
-            return Task.FromResult(this.GetEvents());
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="graphClient"></param>
-        /// <param name="startTime"></param>
-        /// <param name="endTime"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
-        /// <exception cref="UnauthorizedAccessTokenException">
-        /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
-        /// </exception>
-        /// <remarks>
-        /// The returned <see cref="ODataCollection{CalendarEvent}"/> will have its <see cref="ODataCollection{T}.LastRequestedPageUrl"/> be one of three values:
-        /// 1. <see langword="null"/> if no errors occurred retrieve any of the data
-        /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
-        /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
-        /// </remarks>
-        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetEvents()
-        {
+            //// TODO you are here
             var instanceEvents = this.GetInstanceEvents();
             var seriesEvents = this.GetSeriesEvents();
             //// TODO merge the sorted sequences instead of concat
-            return instanceEvents.Concat(seriesEvents);
+            var allEvents = instanceEvents.Concat(seriesEvents);
+            return Task.FromResult(allEvents);
         }
 
         private static
@@ -162,9 +131,10 @@ namespace OddTrotter.Calendar
         /// </exception>
         private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetInstanceEvents()
         {
-            //// TODO make the calendar that's used configurable?
+            //// TODO you are here
+            //// TODO make the calendar that's used configurable? do this everywhere
             var url =
-                $"/me/calendar/events?" +
+                $"{this.calendarUriPath.Path}/events?" +
                 $"$select=body,start,subject,isCancelled&" +
                 $"$top={this.pageSize}&" + //// TODO does pagesize actually do anything with the queryresult model? if it does, it's because the graph api is not implementing odata correctly and you should document this //// TODO do this for all URLs
                 $"$orderBy=start/dateTime&" +
@@ -268,8 +238,14 @@ namespace OddTrotter.Calendar
             return Adapt(graphResponse);
         }
 
+        /// <inheritdoc/>
         public CalendarEventsContext Where(Expression<Func<CalendarEvent, bool>> predicate)
         {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
             if (object.ReferenceEquals(predicate, StartLessThanNow))
             {
                 var now = DateTime.UtcNow;
@@ -292,7 +268,7 @@ namespace OddTrotter.Calendar
                 return new CalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath, this.startTime, this.pageSize, this.endTime, false);
             }
 
-            throw new NotImplementedException("TODO normalize the exceptions here");
+            throw new NotImplementedException("TODO");
         }
 
         public static Expression<Func<CalendarEvent, bool>> StartLessThanNow { get; } = calendarEvent => calendarEvent.Start < DateTime.UtcNow; //// TODO will "now" constantly change?

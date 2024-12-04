@@ -8,6 +8,11 @@ namespace OddTrotter.Calendar
 
     public interface IQueryContext<TValue, TError>
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        //// TODO you are here
         Task<QueryResult<TValue, TError>> Evaluate();
     }
 
