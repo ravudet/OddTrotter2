@@ -222,9 +222,12 @@
                     [JsonPropertyName("body")]
                     public BodyStructureBuilder? Body { get; set; }
 
+                    [JsonPropertyName("isCancelled")]
+                    public bool? IsCancelled { get; set; }
+
                     public Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError> Build()
                     {
-                        if (this.Id == null || this.Subject == null || this.Start == null || this.Body == null)
+                        if (this.Id == null || this.Subject == null || this.Start == null || this.Body == null || this.IsCancelled == null)
                         {
                             return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO
                         }
@@ -236,7 +239,7 @@
                             start
                             .Zip(body)
                             .VisitSelect(
-                                left => new GraphCalendarEvent(this.Id, this.Subject, left.Item1, left.Item2),
+                                left => new GraphCalendarEvent(this.Id, this.Subject, left.Item1, left.Item2, this.IsCancelled.Value),
                                 right => right);
                     }
                 }
@@ -281,12 +284,13 @@
 
     public sealed class GraphCalendarEvent
     {
-        public GraphCalendarEvent(string id, string subject, TimeStructure start, BodyStructure body)
+        public GraphCalendarEvent(string id, string subject, TimeStructure start, BodyStructure body, bool isCancelled)
         {
             this.Id = id;
             this.Subject = subject;
             this.Start = start;
             this.Body = body;
+            this.IsCancelled = isCancelled;
         }
 
         public string Id { get; set; }
@@ -296,6 +300,8 @@
         public TimeStructure Start { get; set; }
 
         public BodyStructure Body { get; set; }
+
+        public bool IsCancelled { get; set; }
     }
 
     public sealed class BodyStructure

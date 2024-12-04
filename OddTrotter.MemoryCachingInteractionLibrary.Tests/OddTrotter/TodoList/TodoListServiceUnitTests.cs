@@ -243,7 +243,7 @@
             var list = response.ToEnumerable();
         }*/
 
-        private sealed class GraphCalendarEvent
+        /*private sealed class GraphCalendarEvent
         {
             [JsonPropertyName("id")]
             public string? Id { get; set; }
@@ -292,7 +292,7 @@
 
             [JsonPropertyName("timeZone")]
             public string? TimeZone { get; set; }
-        }
+        }*/
 
         [TestMethod]
         public void QueryResult()

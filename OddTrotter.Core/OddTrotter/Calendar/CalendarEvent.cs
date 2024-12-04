@@ -5,7 +5,7 @@ namespace OddTrotter.Calendar
 
     public sealed class CalendarEvent
     {
-        public CalendarEvent(string id, string subject, string body, DateTimeOffset start)
+        public CalendarEvent(string id, string subject, string body, DateTimeOffset start, bool isCancelled)
         {
             if (id == null)
             {
@@ -18,6 +18,7 @@ namespace OddTrotter.Calendar
             Subject = subject;
             Body = body;
             Start = start;
+            IsCancelled = isCancelled;
         }
 
         public string Id { get; }
@@ -27,6 +28,8 @@ namespace OddTrotter.Calendar
         public string Body { get; }
 
         public DateTimeOffset Start { get; }
+
+        public bool IsCancelled { get; }
     }
 
     /// <summary>
@@ -41,5 +44,7 @@ namespace OddTrotter.Calendar
         public string? Body { get; set; }
 
         public string? Start { get; set; }
+
+        public bool? IsCancelled { get; set; }
     }
 }

@@ -157,7 +157,7 @@ namespace OddTrotter.Calendar
             //// TODO make the calendar that's used configurable?
             var url =
                 $"/me/calendar/events?" +
-                $"$select=body,start,subject&" +
+                $"$select=body,start,subject,isCancelled&" +
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 $"$filter=type eq 'singleInstance' and start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false";
@@ -204,7 +204,7 @@ namespace OddTrotter.Calendar
             DateTime startTime,
             DateTime endTime)
         {
-            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body&$filter=isCancelled eq false";
+            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endDateTime={endTime}&$top=1&$select=id,start,subject,body,isCancelled&$filter=isCancelled eq false";
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
 
             GraphCalendarEventsResponse graphResponse;
@@ -237,7 +237,8 @@ namespace OddTrotter.Calendar
                 graphCalendarEvent.Id,
                 graphCalendarEvent.Subject,
                 graphCalendarEvent.Body.Content,
-                DateTime.Parse(graphCalendarEvent.Start.DateTime)); //// TODO what about datetime parsing errors?
+                DateTime.Parse(graphCalendarEvent.Start.DateTime), //// TODO what about datetime parsing errors?
+                graphCalendarEvent.IsCancelled);
         }
 
         /// <summary>
@@ -253,7 +254,7 @@ namespace OddTrotter.Calendar
         {
             //// TODO make the calendar that's used configurable?
             var url = $"/me/calendar/events?" +
-                $"$select=body,start,subject&" +
+                $"$select=body,start,subject,isCancelled&" +
                 $"$top={pageSize}&" +
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
