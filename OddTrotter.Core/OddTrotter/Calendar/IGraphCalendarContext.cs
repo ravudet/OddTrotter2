@@ -33,9 +33,15 @@
             /// <param name="node"></param>
             /// <param name="context"></param>
             /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
             /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can thrown</exception> //// TODO is this good?
             public async Task<TResult> Visit(GraphQuery node, TContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
                 return await node.AcceptAsync(this, context).ConfigureAwait(false);
             }
 
@@ -45,6 +51,7 @@
             /// <param name="node"></param>
             /// <param name="context"></param>
             /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
             /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             public abstract Task<TResult> Dispatch(GraphQuery.Page node, TContext context);
 
@@ -54,6 +61,7 @@
             /// <param name="node"></param>
             /// <param name="context"></param>
             /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
             /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             internal abstract Task<TResult> Dispatch(GraphQuery.GetEvents node, TContext context);
         }
