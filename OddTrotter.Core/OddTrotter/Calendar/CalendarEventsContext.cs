@@ -134,9 +134,6 @@ namespace OddTrotter.Calendar
         /// </exception>
         private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetInstanceEvents()
         {
-            //// TODO you are here
-
-            //// TODO implement endtime and iscancelled here and other methods
             var url =
                 $"{this.calendarUriPath.Path}/events?" +
                 $"$select=body,start,subject,isCancelled&" +
@@ -154,6 +151,7 @@ namespace OddTrotter.Calendar
                 url += $" and isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
             }
 
+            //// TODO you are here
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = this.graphCalendarEventsContext.Page(graphQuery);
             return Adapt(graphResponse);
