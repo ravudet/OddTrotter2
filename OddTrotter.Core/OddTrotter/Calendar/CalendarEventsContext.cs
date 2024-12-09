@@ -129,6 +129,15 @@ namespace OddTrotter.Calendar
         /// <param name="endTime"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
@@ -151,8 +160,8 @@ namespace OddTrotter.Calendar
                 url += $" and isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
             }
 
-            //// TODO you are here
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
+            //// TODO you are here
             var graphResponse = this.graphCalendarEventsContext.Page(graphQuery);
             return Adapt(graphResponse);
         }

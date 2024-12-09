@@ -13,17 +13,47 @@
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="visitor"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can thrown</exception> //// TODO is this good?
         protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public abstract class Visitor<TResult, TContext>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can thrown</exception> //// TODO is this good?
             public TResult Visit(GraphQuery node, TContext context)
             {
                 return node.Accept(this, context);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             public abstract TResult Dispatch(GraphQuery.Page node, TContext context);
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             internal abstract TResult Dispatch(GraphQuery.GetEvents node, TContext context);
         }
 
@@ -43,6 +73,7 @@
 
             internal RelativeUri RelativeUri { get; }
 
+            /// <inheritdoc/>
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
                 return visitor.Dispatch(this, context);
@@ -51,13 +82,24 @@
 
         internal sealed class GetEvents : GraphQuery
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="relativeUri"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeUri"/> is <see langword="null"/></exception>
             public GetEvents(RelativeUri relativeUri)
             {
-                RelativeUri = relativeUri;
+                if (relativeUri == null)
+                {
+                    throw new ArgumentNullException(nameof(relativeUri));
+                }
+
+                this.RelativeUri = relativeUri;
             }
 
             public RelativeUri RelativeUri { get; }
 
+            /// <inheritdoc/>
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
                 return visitor.Dispatch(this, context);
@@ -67,6 +109,13 @@
 
     public interface IGraphCalendarEventsContext
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="graphQuery"></param>
+        /// <returns></returns>
+        /// 
+            //// TODO you are here
         GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery);
     }
 
@@ -108,8 +157,14 @@
             this.evaluateVisitor = new EvaluateVisitor(odataContext);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="graphQuery"></param>
+        /// <returns></returns>
         public GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery)
         {
+            //// TODO you are here
             return this.evaluateVisitor.Visit(graphQuery, default);
         }
 
@@ -135,13 +190,21 @@
                 this.getEventsDispatchVisitor = GetEventsDispatchVisitor.Instance;
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
             public override GraphCalendarEventsResponse Dispatch(GraphQuery.Page node, Void context)
             {
+                //// TODO you are here
                 return GetPage(node.RelativeUri).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO use async methods
             }
 
             internal override GraphCalendarEventsResponse Dispatch(GraphQuery.GetEvents node, Void context)
             {
+                //// TODO you are here
                 return GetPage(node.RelativeUri).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO use async methods
             }
 
@@ -380,30 +443,25 @@
                     return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Final();
                 }
 
-                return PageImpl(this.graphCalendarEventsContext, this.graphCalendarEventsResponse.NextPage);
+                return Page(this.graphCalendarEventsContext, this.graphCalendarEventsResponse.NextPage);
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="graphCalendarEventsContext"></param>
+        /// <param name="graphQuery">TODO this allows <paramref name="graphQuery"/> to be a paging query; do you want to protect against that for some reason?</param>
+        /// <returns></returns>
         public static QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> Page(
             this IGraphCalendarEventsContext graphCalendarEventsContext,
             GraphQuery graphQuery)
         {
-            if (!(graphQuery is GraphQuery.GetEvents))
-            {
-                throw new Exception("TODO don't page in the middle of pagination?");
-            }
-
-            return PageImpl(graphCalendarEventsContext, graphQuery);
-        }
-
-        private static QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> PageImpl(
-            this IGraphCalendarEventsContext graphCalendarEventsContext,
-            GraphQuery pageQuery)
-        {
             GraphCalendarEventsResponse response;
             try
             {
-                response = graphCalendarEventsContext.Evaluate(pageQuery);
+                //// TODO you are here
+                response = graphCalendarEventsContext.Evaluate(graphQuery);
             }
             catch
             {
@@ -418,7 +476,7 @@
                 }
                 else
                 {
-                    return PageImpl(graphCalendarEventsContext, response.NextPage);
+                    return Page(graphCalendarEventsContext, response.NextPage);
                 }
             }
 
