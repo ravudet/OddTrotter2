@@ -65,7 +65,7 @@ namespace OddTrotter.Calendar
 
             public TValue Value { get; }
 
-            public abstract QueryResult<TValue, TError> Next();
+            public abstract QueryResult<TValue, TError> Next(); //// TODO you previously tried using `task`s here, but you realized that the tasks were all running in the background, taking away any laziness that might be useful; could you have something like a `lazytask` that doesn't start until awaited or something? make it a struct?
 
             protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
