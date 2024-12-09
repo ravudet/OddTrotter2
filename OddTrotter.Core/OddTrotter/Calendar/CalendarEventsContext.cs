@@ -35,6 +35,8 @@ namespace OddTrotter.Calendar
 
         private readonly int pageSize;
 
+        private readonly TimeSpan firstInstanceInSeriesLookahead;
+
         /// <summary>
         /// TODO you will want to handle this better in the future when you have full support for different query options. For now, `null` means that they've not filtered on `startTime < {something}`, and not `null` means that this value is `{something}`
         /// </summary>
@@ -83,6 +85,7 @@ namespace OddTrotter.Calendar
             UriPath calendarUriPath,
             DateTime startTime,
             int pageSize,
+            TimeSpan firstInstanceInSeriesLookahead,
             DateTime? endTime,
             bool? isCancelled)
         {
@@ -90,6 +93,7 @@ namespace OddTrotter.Calendar
             this.calendarUriPath = calendarUriPath;
             this.startTime = startTime;
             this.pageSize = pageSize;
+            this.firstInstanceInSeriesLookahead = firstInstanceInSeriesLookahead;
             this.endTime = endTime;
             this.isCancelled = isCancelled;
         }
@@ -191,7 +195,27 @@ namespace OddTrotter.Calendar
             CalendarEvent seriesMaster)
         {
             //// TODO make the calendar configurable
-            var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&endDateTime={this.endTime}&$top=1&$select=id,start,subject,body,isCancelled&$filter=isCancelled eq false";
+            var url =
+                $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";
+
+            DateTime endTime;
+            if (this.endTime != null)
+            {
+                endTime = this.endTime.Value; //// TODO will it be confusing that this *always* overrides `firstInstanceInSeriesLookahead`?
+            }
+            else
+            {
+                endTime = this.startTime + this.firstInstanceInSeriesLookahead;
+            }
+
+            url += $"endDateTime={this.endTime}&" +
+                $"$top=1&$select=id,start,subject,body,isCancelled";
+
+            if (this.isCancelled != null)
+            {
+                url += $"&$filter=isCancelled eq {this.isCancelled.Value}";
+            }
+
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
 
             GraphCalendarEventsResponse graphResponse;
