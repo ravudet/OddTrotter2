@@ -21,6 +21,7 @@
         /// <param name="visitor"></param>
         /// <param name="context"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
         /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can thrown</exception> //// TODO is this good?
         protected abstract Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context);
 
@@ -76,6 +77,11 @@
             /// <inheritdoc/>
             protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return await visitor.Dispatch(this, context).ConfigureAwait(false);
             }
         }
@@ -102,6 +108,11 @@
             /// <inheritdoc/>
             protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return await visitor.Dispatch(this, context).ConfigureAwait(false);
             }
         }
@@ -443,7 +454,8 @@
                     return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Final();
                 }
 
-                return Page(this.graphCalendarEventsContext, this.graphCalendarEventsResponse.NextPage);
+                //// TODO figure out async `queryresult`s
+                return Page(this.graphCalendarEventsContext, this.graphCalendarEventsResponse.NextPage).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -453,15 +465,26 @@
         /// <param name="graphCalendarEventsContext"></param>
         /// <param name="graphQuery">TODO this allows <paramref name="graphQuery"/> to be a paging query; do you want to protect against that for some reason?</param>
         /// <returns></returns>
-        public static QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> Page(
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="graphQuery"/> is <see langword="null"</exception>
+        public static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>> Page(
             this IGraphCalendarEventsContext graphCalendarEventsContext,
             GraphQuery graphQuery)
-        {
+        {            
+            if (graphCalendarEventsContext == null)
+            {
+                throw new ArgumentNullException(nameof(graphCalendarEventsContext));
+            }
+
+            if (graphQuery == null)
+            {
+                throw new ArgumentNullException(nameof(graphQuery));
+            }
+
             GraphCalendarEventsResponse response;
             try
             {
                 //// TODO you are here
-                response = graphCalendarEventsContext.Evaluate(graphQuery);
+                response = await graphCalendarEventsContext.Evaluate(graphQuery).ConfigureAwait(false);
             }
             catch
             {
@@ -476,7 +499,7 @@
                 }
                 else
                 {
-                    return Page(graphCalendarEventsContext, response.NextPage);
+                    return await Page(graphCalendarEventsContext, response.NextPage).ConfigureAwait(false);
                 }
             }
 
