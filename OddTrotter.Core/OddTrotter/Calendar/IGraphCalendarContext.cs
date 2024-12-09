@@ -22,9 +22,9 @@
         /// <param name="context"></param>
         /// <returns></returns>
         /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can thrown</exception> //// TODO is this good?
-        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+        protected abstract Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context);
 
-        public abstract class Visitor<TResult, TContext>
+        public abstract class AsyncVisitor<TResult, TContext>
         {
             /// <summary>
             /// 
@@ -33,9 +33,9 @@
             /// <param name="context"></param>
             /// <returns></returns>
             /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can thrown</exception> //// TODO is this good?
-            public TResult Visit(GraphQuery node, TContext context)
+            public async Task<TResult> Visit(GraphQuery node, TContext context)
             {
-                return node.Accept(this, context);
+                return await node.AcceptAsync(this, context).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -45,7 +45,7 @@
             /// <param name="context"></param>
             /// <returns></returns>
             /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
-            public abstract TResult Dispatch(GraphQuery.Page node, TContext context);
+            public abstract Task<TResult> Dispatch(GraphQuery.Page node, TContext context);
 
             /// <summary>
             /// 
@@ -54,7 +54,7 @@
             /// <param name="context"></param>
             /// <returns></returns>
             /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
-            internal abstract TResult Dispatch(GraphQuery.GetEvents node, TContext context);
+            internal abstract Task<TResult> Dispatch(GraphQuery.GetEvents node, TContext context);
         }
 
         public sealed class Page : GraphQuery
@@ -74,9 +74,9 @@
             internal RelativeUri RelativeUri { get; }
 
             /// <inheritdoc/>
-            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
             {
-                return visitor.Dispatch(this, context);
+                return await visitor.Dispatch(this, context).ConfigureAwait(false);
             }
         }
 
@@ -100,9 +100,9 @@
             public RelativeUri RelativeUri { get; }
 
             /// <inheritdoc/>
-            protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
             {
-                return visitor.Dispatch(this, context);
+                return await visitor.Dispatch(this, context).ConfigureAwait(false);
             }
         }
     }
@@ -116,7 +116,7 @@
         /// <returns></returns>
         /// 
             //// TODO you are here
-        GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery);
+        Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery);
     }
 
     public sealed class GraphCalendarEventsResponse
@@ -162,13 +162,13 @@
         /// </summary>
         /// <param name="graphQuery"></param>
         /// <returns></returns>
-        public GraphCalendarEventsResponse Evaluate(GraphQuery graphQuery)
+        public async Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery)
         {
             //// TODO you are here
-            return this.evaluateVisitor.Visit(graphQuery, default);
+            return await this.evaluateVisitor.Visit(graphQuery, default).ConfigureAwait(false);
         }
 
-        private sealed class EvaluateVisitor : GraphQuery.Visitor<GraphCalendarEventsResponse, Void>
+        private sealed class EvaluateVisitor : GraphQuery.AsyncVisitor<GraphCalendarEventsResponse, Void>
         {
             private readonly IOdataStructuredContext odataContext;
 
@@ -196,16 +196,16 @@
             /// <param name="node"></param>
             /// <param name="context"></param>
             /// <returns></returns>
-            public override GraphCalendarEventsResponse Dispatch(GraphQuery.Page node, Void context)
+            public sealed override async Task<GraphCalendarEventsResponse> Dispatch(GraphQuery.Page node, Void context)
             {
                 //// TODO you are here
-                return GetPage(node.RelativeUri).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO use async methods
+                return await GetPage(node.RelativeUri).ConfigureAwait(false);
             }
 
-            internal override GraphCalendarEventsResponse Dispatch(GraphQuery.GetEvents node, Void context)
+            internal sealed override async Task<GraphCalendarEventsResponse> Dispatch(GraphQuery.GetEvents node, Void context)
             {
                 //// TODO you are here
-                return GetPage(node.RelativeUri).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO use async methods
+                return await GetPage(node.RelativeUri).ConfigureAwait(false);
             }
 
             private async Task<GraphCalendarEventsResponse> GetPage(RelativeUri url)
