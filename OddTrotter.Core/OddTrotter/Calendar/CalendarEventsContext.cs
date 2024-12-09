@@ -151,7 +151,7 @@ namespace OddTrotter.Calendar
 
             if (this.isCancelled != null)
             {
-                url += $" and isCancelled eq {this.isCancelled}";
+                url += $" and isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
             }
 
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
@@ -213,7 +213,7 @@ namespace OddTrotter.Calendar
 
             if (this.isCancelled != null)
             {
-                url += $"&$filter=isCancelled eq {this.isCancelled.Value}";
+                url += $"&$filter=isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
             }
 
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
@@ -268,7 +268,13 @@ namespace OddTrotter.Calendar
                 $"$select=body,start,subject,isCancelled&" +
                 $"$top={this.pageSize}&" + // the graph API does not implement `$top` correctly; it returns a `@nextLink` even if it gives you all `pageSize` elements that are requested; for this reason, we can use `$top` for page size here
                 $"$orderBy=start/dateTime&" +
-                "$filter=type eq 'seriesMaster' and isCancelled eq false";
+                "$filter=type eq 'seriesMaster'";
+
+            if (this.isCancelled != null)
+            {
+                url += $"and isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
+            }
+
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = this.graphCalendarEventsContext.Page(graphRequest);
             return Adapt(graphResponse);
