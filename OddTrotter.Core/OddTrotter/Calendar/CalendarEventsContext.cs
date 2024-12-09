@@ -131,12 +131,25 @@ namespace OddTrotter.Calendar
         private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetInstanceEvents()
         {
             //// TODO you are here
+
+            //// TODO implement endtime and iscancelled here and other methods
             var url =
                 $"{this.calendarUriPath.Path}/events?" +
                 $"$select=body,start,subject,isCancelled&" +
                 $"$top={this.pageSize}&" + // the graph API does not implement `$top` correctly; it returns a `@nextLink` even if it gives you all `pageSize` elements that are requested; for this reason, we can use `$top` for page size here
                 $"$orderBy=start/dateTime&" +
-                $"$filter=type eq 'singleInstance' and start/dateTime gt '{this.startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false";
+                $"$filter=type eq 'singleInstance' and start/dateTime gt '{this.startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'";
+
+            if (this.endTime != null)
+            {
+                url += $" and end/dateTime lt '{this.endTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'";
+            }
+
+            if (this.isCancelled != null)
+            {
+                url += $" and isCancelled eq {this.isCancelled}";
+            }
+
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = this.graphCalendarEventsContext.Page(graphQuery);
             return Adapt(graphResponse);
