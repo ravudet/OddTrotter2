@@ -24,7 +24,6 @@ namespace OddTrotter.Calendar
     /// </summary>
     public sealed class CalendarEventsContext : IQueryContext<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>, IWhereQueryContextMixin<CalendarEvent, CalendarEventsContextTranslationError, CalendarEventsContextPagingException, CalendarEventsContext>
     {
-        //// TODO can you use a more general context?
         private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
 
         private readonly UriPath calendarUriPath;
@@ -132,11 +131,10 @@ namespace OddTrotter.Calendar
         private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetInstanceEvents()
         {
             //// TODO you are here
-            //// TODO make the calendar that's used configurable? do this everywhere
             var url =
                 $"{this.calendarUriPath.Path}/events?" +
                 $"$select=body,start,subject,isCancelled&" +
-                $"$top={this.pageSize}&" + //// TODO does pagesize actually do anything with the queryresult model? if it does, it's because the graph api is not implementing odata correctly and you should document this //// TODO do this for all URLs
+                $"$top={this.pageSize}&" + // the graph API does not implement `$top` correctly; it returns a `@nextLink` even if it gives you all `pageSize` elements that are requested; for this reason, we can use `$top` for page size here
                 $"$orderBy=start/dateTime&" +
                 $"$filter=type eq 'singleInstance' and start/dateTime gt '{this.startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}' and isCancelled eq false";
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
@@ -179,6 +177,7 @@ namespace OddTrotter.Calendar
         private Either<CalendarEvent, CalendarEventsContextTranslationError> GetFirstSeriesInstance(
             CalendarEvent seriesMaster)
         {
+            //// TODO make the calendar configurable
             var url = $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&endDateTime={this.endTime}&$top=1&$select=id,start,subject,body,isCancelled&$filter=isCancelled eq false";
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
 
@@ -227,10 +226,10 @@ namespace OddTrotter.Calendar
         /// </exception>
         private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEventMasters()
         {
-            //// TODO make the calendar that's used configurable?
+            //// TODO make the calendar that's used configurable
             var url = $"/me/calendar/events?" +
                 $"$select=body,start,subject,isCancelled&" +
-                $"$top={this.pageSize}&" +
+                $"$top={this.pageSize}&" + // the graph API does not implement `$top` correctly; it returns a `@nextLink` even if it gives you all `pageSize` elements that are requested; for this reason, we can use `$top` for page size here
                 $"$orderBy=start/dateTime&" +
                 "$filter=type eq 'seriesMaster' and isCancelled eq false";
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
