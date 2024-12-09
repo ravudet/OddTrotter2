@@ -70,6 +70,11 @@
         {
             internal Page(RelativeUri relativeUri)
             {
+                if (relativeUri == null)
+                {
+                    throw new ArgumentNullException(nameof(relativeUri));
+                }
+
                 //// TODO make this private
                 this.RelativeUri = relativeUri;
             }
@@ -215,8 +220,14 @@
             /// <param name="node"></param>
             /// <param name="context"></param>
             /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
             public sealed override async Task<GraphCalendarEventsResponse> Dispatch(GraphQuery.Page node, Void context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
                 //// TODO you are here
                 return await GetPage(node.RelativeUri).ConfigureAwait(false);
             }
@@ -227,9 +238,15 @@
                 return await GetPage(node.RelativeUri).ConfigureAwait(false);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="url">assumed to not be <see langword="null"</param>
+            /// <returns></returns>
             private async Task<GraphCalendarEventsResponse> GetPage(RelativeUri url)
             {
                 var odataCollectionRequest = new OdataGetCollectionRequest(url);
+                //// TODO you are here
                 var odataCollectionResponse = await this.odataContext.GetCollection(odataCollectionRequest).ConfigureAwait(false);
 
                 return odataCollectionResponse

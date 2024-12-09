@@ -17,8 +17,18 @@ namespace OddTrotter.Calendar
 {
     public sealed class OdataGetCollectionRequest //// TODO are you sure that this is not a discriminated union?
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="relativeUri"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeUri"/> is <see langword="null"/></exception>
         internal OdataGetCollectionRequest(RelativeUri relativeUri)
         {
+            if (relativeUri == null)
+            {
+                throw new ArgumentNullException(nameof(relativeUri));
+            }
+
             this.RelativeUri = relativeUri;
         }
 
@@ -27,6 +37,12 @@ namespace OddTrotter.Calendar
 
     public interface IOdataStructuredContext
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        //// TODO you are here
         Task<Either<OdataCollectionResponse, OdataErrorResponse>> GetCollection(OdataGetCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
     }
 
@@ -158,8 +174,20 @@ namespace OddTrotter.Calendar
             this.odataClient = odataClient;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"</exception>
         public async Task<Either<OdataCollectionResponse, OdataErrorResponse>> GetCollection(OdataGetCollectionRequest request)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            //// TODO you are here
             HttpResponseMessage? httpResponseMessage = null;
             try
             {
