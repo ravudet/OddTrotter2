@@ -187,10 +187,17 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(request));
             }
 
-            //// TODO you are here
             HttpResponseMessage? httpResponseMessage = null;
             try
             {
+                //// TODO you are here
+                ////
+                //// TODO here's some thoughts on the `unauthorizedaccessexception` issue:
+                //// That exception is *really* a graph thing. *Graph*, not *odata*, is asking for the `Authorization` header to be provided in the request. Graph *also* sometimes asks for *other* headers in the request, or there is optional functionality from graph that can be obtained through additional headers. Those headers *really* are on a per-request basis, so you need a way for the caller of the `iodatastructuredcontext` to be able to provide headers anyway. If you're already having to allow headers, then there's really no difference between the `iodataclient` doing the auth stuff vs the `igraphcalendarcontext` (and any other graph context) doing the auth stuff. There's *maybe* an argument that the graph contexts will all have to do the header stuff, which is true but can be mitigated through composing some sort of token provider. *But*, even so, there are probably graph contexts out there which will need a different token for different requests (maybe based on permissions or something), so they will probably want to be providing the `authorization` header on a per-request basis as well. 
+                //// 
+                //// And also, you could do to `iodatastructuredcontext` what you did to `httpclient` where you have a `graphcontext` wrapper that delegates to a `iodatastructuredcontext` and provides the `authorization` header. 
+                //// 
+                //// If all of these things are reasonable and convincing, then `iodataclient` is really just `ihttpclient` and should be modeled as such.
                 httpResponseMessage = await this.odataClient.GetAsync(request.RelativeUri).ConfigureAwait(false);
                 try
                 {
