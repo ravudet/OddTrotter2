@@ -163,18 +163,40 @@ namespace OddTrotter.Calendar
         //// TODO finish implementing this
     }
 
-    public sealed class OdataDeserializationException : Exception
+    public sealed class OdataSuccessDeserializationException : Exception
     {
-        public OdataDeserializationException(string message)
+        public OdataSuccessDeserializationException(string message, string responseContents)
             : base(message)
         {
+            this.ResponseContents = responseContents;
         }
 
-        public OdataDeserializationException(string message, Exception e)
+        public OdataSuccessDeserializationException(string message, Exception e, string responseContents)
             : base(message, e)
         {
             //// TODO other overloads
+            this.ResponseContents = responseContents;
         }
+
+        public string ResponseContents { get; }
+    }
+
+    public sealed class OdataErrorDeserializationException : Exception
+    {
+        public OdataErrorDeserializationException(string message, string responseContents)
+            : base(message)
+        {
+            this.ResponseContents = responseContents;
+        }
+
+        public OdataErrorDeserializationException(string message, Exception e, string responseContents)
+            : base(message, e)
+        {
+            //// TODO other overloads
+            this.ResponseContents = responseContents;
+        }
+
+        public string ResponseContents { get; }
     }
 
     public sealed class OdataCalendarEventsContext : IOdataStructuredContext
@@ -221,6 +243,7 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"</exception>
         /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout</exception>
+        /// <exception cref="OdataDeserializationException">Thrown if an error occurred while deserializing the OData response</exception>
         public async Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request)
         {
             if (request == null)
@@ -232,23 +255,24 @@ namespace OddTrotter.Calendar
             try
             {
                 httpResponseMessage = await this.httpClient.GetAsync(CreateRequestUri(request.RelativeUri), request.Headers).ConfigureAwait(false);
+                var responseContents = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (!httpResponseMessage.IsSuccessStatusCode)
                 {
-                    //// TODO you are here
                     //// TODO this pattern of deserialization and error handling might be able to leverage an ibuilder and some extensions; look into that...
                     OdataErrorResponseBuilder? odataErrorResponseBuilder;
                     try
                     {
-                        odataErrorResponseBuilder = JsonSerializer.Deserialize<OdataErrorResponseBuilder>(await httpResponseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false));
+                        odataErrorResponseBuilder = JsonSerializer.Deserialize<OdataErrorResponseBuilder>(responseContents);
                     }
                     catch (JsonException jsonException)
                     {
-                        throw new OdataDeserializationException("TODO", jsonException); //// TODO should there be a separate exception for errors occurring when deserializing an odata error vs and odata success?
+                        //// TODO you are here
+                        throw new OdataErrorDeserializationException("Could not deserialize the OData error response", jsonException, responseContents);
                     }
 
                     if (odataErrorResponseBuilder == null)
                     {
-                        throw new OdataDeserializationException("TODO");
+                        throw new OdataErrorDeserializationException("TODO");
                     }
 
                     var odataErrorResponse = odataErrorResponseBuilder.Build().ThrowRight();
@@ -266,7 +290,7 @@ namespace OddTrotter.Calendar
                 OdataCollectionResponseBuilder? odataCollectionResponseBuilder;
                 try
                 {
-                    odataCollectionResponseBuilder = JsonSerializer.Deserialize<OdataCollectionResponseBuilder>(await httpResponseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false));
+                    odataCollectionResponseBuilder = JsonSerializer.Deserialize<OdataCollectionResponseBuilder>(responseContents);
                 }
                 catch (JsonException jsonException)
                 {
