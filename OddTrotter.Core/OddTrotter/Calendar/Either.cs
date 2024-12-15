@@ -236,6 +236,7 @@ namespace OddTrotter.Calendar
 
             var visitor = new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
             //// TODO you are here
+            //// TODO you actually skipped odataerrorresponsebuilder's use of either.left.right
             return visitor.Visit(either, context);
         }
 
