@@ -179,21 +179,34 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataCalendarEventsContext : IOdataStructuredContext
     {
+        private readonly AbsoluteUri rootUri;
+
         private readonly IHttpClient httpClient;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="httpClient"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="httpClient"/> is <see langword="null"/></exception>
-        public OdataCalendarEventsContext(IHttpClient httpClient)
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="rootUri"/> or <paramref name="httpClient"/> is <see langword="null"/></exception>
+        public OdataCalendarEventsContext(AbsoluteUri rootUri, IHttpClient httpClient)
         {
+            if (rootUri == null)
+            {
+                throw new ArgumentNullException(nameof(rootUri));
+            }
+
             if (httpClient == null)
             {
                 throw new ArgumentNullException(nameof(httpClient));
             }
 
+            this.rootUri = rootUri;
             this.httpClient = httpClient;
+        }
+
+        private AbsoluteUri CreateRequestUri(RelativeUri relativeUri)
+        {
+            return new Uri(this.rootUri, relativeUri).ToAbsoluteUri();
         }
 
         /// <summary>
@@ -213,7 +226,7 @@ namespace OddTrotter.Calendar
             try
             {
                 //// TODO you are here
-                httpResponseMessage = await this.httpClient.GetAsync(request.RelativeUri).ConfigureAwait(false);
+                httpResponseMessage = await this.httpClient.GetAsync(CreateRequestUri(request.RelativeUri), request.Headers).ConfigureAwait(false);
                 if (!httpResponseMessage.IsSuccessStatusCode)
                 {
                     //// TODO this pattern of deserialization and error handling might be able to leverage an ibuilder and some extensions; look into that...
