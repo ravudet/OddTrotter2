@@ -121,6 +121,10 @@ namespace OddTrotter.Calendar
         }
     }
 
+    /// <summary>
+    /// TODO reconcile this class with the extensions class
+    /// TODO are there any other variations of these methods that you should implement "out of the box"?
+    /// </summary>
     public static class Either
     {
         public sealed class RightFactory<TLeft>
@@ -202,12 +206,34 @@ namespace OddTrotter.Calendar
         /// <param name="rightDispatch"></param>
         /// <param name="context"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> or <paramref name="context"/> is <see langword="null"/></exception>
         public static TResult Visit<TLeft, TRight, TResult, TContext>(
             this Either<TLeft, TRight> either,
-            Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch, //// TODO should these delegates just give you the value instead of the left?
+            Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,
             Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch,
             TContext context)
         {
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            if (leftDispatch == null)
+            {
+                throw new ArgumentNullException(nameof(leftDispatch));
+            }
+
+            if (rightDispatch == null)
+            {
+                throw new ArgumentNullException(nameof(rightDispatch));
+            }
+
+            if (context == null)
+            {
+                //// TODO the purpose of `context` is to pass context into the dispatch method; it being `null` defeats the purpose of that concept, though maybe this is just being too strict; you do have `Void` if any caller really doesn't want to provide something; i'm not sure what's right
+                throw new ArgumentNullException(nameof(context));
+            }
+
             //// TODO you are here
             var visitor = new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
             return visitor.Visit(either, context);
