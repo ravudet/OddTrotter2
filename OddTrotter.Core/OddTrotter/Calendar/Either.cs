@@ -247,10 +247,6 @@ namespace OddTrotter.Calendar
             return new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
         }
 
-        private struct Test<TLeft, TRight>
-        {
-        }
-
         /// <summary>
         /// TODO should this be a struct?
         /// TODO it can't be a struct because the `Either.Visitor` is not an interface, and it "can't" be an interface because it has an implementation for `Visit` (i put "can't" in quotes because maybe there's a way around that)
