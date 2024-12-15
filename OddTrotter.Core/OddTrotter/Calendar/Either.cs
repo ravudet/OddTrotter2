@@ -258,7 +258,7 @@ namespace OddTrotter.Calendar
         /// TODO does this fix anything if you keep `either.visitor` as a class? and won't boxing occur when you pass the `dispatcher` into the constructor?
         /// TODO you can probably avoid the boxing if you type parameterize the `dispatcher`
         /// 
-        /// TODO i think you can actually address all of this with something like:
+        /// TODO i think you can actually address all of this with something like (but you need .net 9):
         /// public void M() {
         ///    var dispatcher = new Dispatcher<string>();
         ///    var visitor = new Visitor<string, Dispatcher<string>>(dispatcher);
