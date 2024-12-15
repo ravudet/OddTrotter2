@@ -18,7 +18,7 @@ namespace OddTrotter.Calendar
         public GraphOdataStructuredContext(IOdataStructuredContext odataStructuredContext, string accessToken)
         {
             this.odataStructuredContext = odataStructuredContext;
-            this.accessToken = accessToken;
+            this.accessToken = accessToken; //// TODO pull tests from graphclientunittests for anything that throws invalidaccesstokenexception
         }
 
         public async Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request)

@@ -3,6 +3,7 @@ namespace OddTrotter.Calendar
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="absoluteUri"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="absoluteUri"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="absoluteUri"/> or <paramref name="headers"/> is <see langword="null"/></exception>
         /// <exception cref="HttpRequestException">
         /// Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout
         /// </exception>
@@ -29,7 +30,6 @@ namespace OddTrotter.Calendar
     {
         public HttpHeader(string name, string value)
         {
-            //// TODO pull tests from graphclientunittests for anything that throws invalidaccesstokenexception
             if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
@@ -58,20 +58,43 @@ namespace OddTrotter.Calendar
     {
         private readonly HttpClient httpClient;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="httpClient"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="httpClient"/> is <see langword="null"/></exception>
         public HttpClientAdapter(HttpClient httpClient)
         {
+            if (httpClient == null)
+            {
+                throw new ArgumentNullException(nameof(httpClient));
+            }
+
             this.httpClient = httpClient;
         }
 
+        /// <inheritdoc/>
         public async Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri, IEnumerable<HttpHeader> headers)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, absoluteUri);
-            foreach (var header in headers)
+            if (absoluteUri == null)
             {
-                request.Headers.Add(header.Name, header.Value);
+                throw new ArgumentNullException(nameof(absoluteUri));
             }
 
-            return await this.httpClient.SendAsync(request).ConfigureAwait(false);
+            if (headers == null)
+            {
+                throw new ArgumentNullException(nameof(headers));
+            }
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, absoluteUri))
+            {
+                foreach (var header in headers.Where(_ => _ != null))
+                {
+                    request.Headers.Add(header.Name, header.Value);
+                }
+
+                return await this.httpClient.SendAsync(request).ConfigureAwait(false);
+            }
         }
     }
 }
