@@ -28,6 +28,13 @@ namespace OddTrotter.Calendar
     /// </summary>
     public sealed class HttpHeader
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="name"/> or <paramref name="value"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="name"/> is the empty string</exception>
         public HttpHeader(string name, string value)
         {
             if (name == null)

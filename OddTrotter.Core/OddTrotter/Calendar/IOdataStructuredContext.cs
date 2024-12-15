@@ -204,6 +204,11 @@ namespace OddTrotter.Calendar
             this.httpClient = httpClient;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="relativeUri"></param>
+        /// <returns></returns>
         private AbsoluteUri CreateRequestUri(RelativeUri relativeUri)
         {
             return new Uri(this.rootUri, relativeUri).ToAbsoluteUri();
@@ -215,6 +220,7 @@ namespace OddTrotter.Calendar
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"</exception>
+        /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout</exception>
         public async Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request)
         {
             if (request == null)
@@ -225,10 +231,10 @@ namespace OddTrotter.Calendar
             HttpResponseMessage? httpResponseMessage = null;
             try
             {
-                //// TODO you are here
                 httpResponseMessage = await this.httpClient.GetAsync(CreateRequestUri(request.RelativeUri), request.Headers).ConfigureAwait(false);
                 if (!httpResponseMessage.IsSuccessStatusCode)
                 {
+                    //// TODO you are here
                     //// TODO this pattern of deserialization and error handling might be able to leverage an ibuilder and some extensions; look into that...
                     OdataErrorResponseBuilder? odataErrorResponseBuilder;
                     try
