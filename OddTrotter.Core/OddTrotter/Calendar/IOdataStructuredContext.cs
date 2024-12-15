@@ -243,7 +243,7 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"</exception>
         /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout</exception>
-        /// <exception cref="OdataDeserializationException">Thrown if an error occurred while deserializing the OData response</exception>
+        /// <exception cref="OdataErrorDeserializationException">Thrown if an error occurred while deserializing the OData response</exception>
         public async Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request)
         {
             if (request == null)
@@ -266,16 +266,16 @@ namespace OddTrotter.Calendar
                     }
                     catch (JsonException jsonException)
                     {
-                        //// TODO you are here
                         throw new OdataErrorDeserializationException("Could not deserialize the OData error response", jsonException, responseContents);
                     }
 
                     if (odataErrorResponseBuilder == null)
                     {
-                        throw new OdataErrorDeserializationException("TODO");
+                        throw new OdataErrorDeserializationException("Could not deserialize the OData error response", responseContents);
                     }
 
-                    var odataErrorResponse = odataErrorResponseBuilder.Build().ThrowRight();
+                    //// TODO you are here
+                    var odataErrorResponse = odataErrorResponseBuilder.Build(responseContents).ThrowRight();
 
                     return new OdataResponse<OdataCollectionResponse>(
                         httpResponseMessage.StatusCode,
@@ -345,14 +345,29 @@ namespace OddTrotter.Calendar
 
             //// TODO finish implemting this
 
-            public Either<OdataErrorResponse, OdataDeserializationException> Build()
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
+            public Either<OdataErrorResponse, OdataErrorDeserializationException> Build(string responseContents)
             {
+                var invalidities = new List<string>();
                 if (this.Code == null || string.IsNullOrEmpty(this.Code))
                 {
-                    return Either.Left<OdataErrorResponse>().Right(new OdataDeserializationException("tODO"));
+                    invalidities.Add($"'{nameof(Code)}' cannot be null or empty");
                 }
 
-                return Either.Right<OdataDeserializationException>().Left(new OdataErrorResponse(this.Code));
+                if (invalidities.Count > 0)
+                {
+                    return Either
+                        .Left<OdataErrorResponse>()
+                        .Right(
+                            new OdataErrorDeserializationException(
+                                $"The error response was not a valid OData response: {string.Join(", ", invalidities)}", 
+                                responseContents));
+                }
+
+                return Either.Right<OdataErrorDeserializationException>().Left(new OdataErrorResponse(this.Code!)); //// TODO see if you can avoid the bang
             }
         }
     }

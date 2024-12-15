@@ -38,9 +38,8 @@ namespace OddTrotter.Calendar
                     request.RelativeUri.OriginalString,
                     this.accessToken,
                     response.ResponseContent.Visit(
-                        (left, context) => JsonSerializer.Serialize(left.Value),
-                        (right, context) => JsonSerializer.Serialize(right.Value),
-                        new Void()));
+                        left => JsonSerializer.Serialize(left),
+                        right => JsonSerializer.Serialize(right)));
             }
 
             return response;

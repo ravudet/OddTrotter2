@@ -151,12 +151,23 @@ namespace OddTrotter.Calendar
             return LeftFactory<TRight>.Instance;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static TLeft ThrowRight<TLeft, TRight>(this Either<TLeft, TRight> either) where TRight : Exception
         {
-            return either.Visit<TLeft, TRight, TLeft, Void>(
-                (left, context) => left.Value,
-                (right, context) => throw right.Value, //// TODO do we care about the extra frame on the stack trace?
-                default);
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            //// TODO you are here
+            return either.Visit(left => left, right => throw right);
         }
 
         public static Either<TLeft, TRightNew> SelectRight<TLeft, TRightOld, TRightNew>(this Either<TLeft, TRightOld> either, Func<TRightOld, TRightNew> selector)
@@ -167,12 +178,37 @@ namespace OddTrotter.Calendar
                 false);
         }
 
+        public static TResult Visit<TLeft, TRight, TResult>(
+            this Either<TLeft, TRight> either,
+            Func<TLeft, TResult> leftDispatch,
+            Func<TRight, TResult> rightDispatch)
+        {
+            //// TODO you are here
+            return either.Visit<TLeft, TRight, TResult, Void>(
+                (left, context) => leftDispatch(left.Value), //// TODO is there a way to wrap these without creating a closure?
+                (right, context) => rightDispatch(right.Value),
+                default);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="leftDispatch"></param>
+        /// <param name="rightDispatch"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public static TResult Visit<TLeft, TRight, TResult, TContext>(
             this Either<TLeft, TRight> either,
             Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch, //// TODO should these delegates just give you the value instead of the left?
             Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch,
             TContext context)
         {
+            //// TODO you are here
             var visitor = new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
             return visitor.Visit(either, context);
         }
@@ -184,6 +220,13 @@ namespace OddTrotter.Calendar
             return new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
         }
 
+        /// <summary>
+        /// TODO should this be a struct?
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
         private sealed class DelegateVisitor<TLeft, TRight, TResult, TContext> : Either<TLeft, TRight>.Visitor<TResult, TContext>
         {
             private readonly Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch;

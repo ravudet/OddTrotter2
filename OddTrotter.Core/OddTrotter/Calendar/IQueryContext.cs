@@ -125,7 +125,7 @@ namespace OddTrotter.Calendar
                         context.Item2(right.Value);
                         return new Void();
                     },
-                    new Void());
+                    new Void()); //// TODO shouldn't you pass in `context` instead of creating closures?
                 return default;
             }
 

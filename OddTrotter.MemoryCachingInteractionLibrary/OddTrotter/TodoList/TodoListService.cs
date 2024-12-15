@@ -290,10 +290,11 @@
             var calendarEvents = await calendarEventsContext.Evaluate().ConfigureAwait(false);
 
             //// TODO check all of the possible errors
-            var todoListEvents2 = calendarEvents.Where(calendarEvent => calendarEvent.Visit(
-                (left, context) => left.Value.Subject.Contains("todo list", StringComparison.OrdinalIgnoreCase),
-                (right, context) => true,
-                new OddTrotter.Calendar.Void()));
+            var todoListEvents2 = calendarEvents
+                .Where(calendarEvent => 
+                    calendarEvent.Visit(
+                        left => left.Subject.Contains("todo list", StringComparison.OrdinalIgnoreCase),
+                        right => true));
             var successes = new List<OddTrotter.Calendar.CalendarEvent>();
             var errors = new List<CalendarEventsContextTranslationError>();
             var pagingError = todoListEvents2.Split(successes.Add, errors.Add);
