@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.V2;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -21,25 +22,25 @@ namespace OddTrotter.Calendar
         /// 
         /// </summary>
         /// <param name="relativeUri"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeUri"/> is <see langword="null"/></exception>
-        internal OdataGetCollectionRequest(RelativeUri relativeUri)
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeUri"/> or <paramref name="headers"/> is <see langword="null"/></exception>
+        internal OdataGetCollectionRequest(RelativeUri relativeUri, IEnumerable<HttpHeader> headers)
         {
             if (relativeUri == null)
             {
                 throw new ArgumentNullException(nameof(relativeUri));
             }
 
+            if (headers == null)
+            {
+                throw new ArgumentNullException(nameof(headers));
+            }
+
             this.RelativeUri = relativeUri;
+            this.Headers = headers;
         }
 
         internal RelativeUri RelativeUri { get; }
-    }
-
-    internal sealed class OdataHeader
-    {
-        public OdataHeader(string name, string content)
-        {
-        }
+        internal IEnumerable<HttpHeader> Headers { get; }
     }
 
     public interface IOdataStructuredContext
@@ -50,7 +51,21 @@ namespace OddTrotter.Calendar
         /// <param name="request"></param>
         /// <returns></returns>
         //// TODO you are here
-        Task<Either<OdataCollectionResponse, OdataErrorResponse>> GetCollection(OdataGetCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
+        Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
+    }
+
+    public sealed class OdataResponse<T>
+    {
+        public OdataResponse(HttpStatusCode httpStatusCode, IEnumerable<HttpHeader> headers, Either<T, OdataErrorResponse> responseContent)
+        {
+            HttpStatusCode = httpStatusCode;
+            Headers = headers;
+            ResponseContent = responseContent;
+        }
+
+        public HttpStatusCode HttpStatusCode { get; }
+        public IEnumerable<HttpHeader> Headers { get; }
+        public Either<T, OdataErrorResponse> ResponseContent { get; }
     }
 
     public abstract class OdataCollectionResponse
@@ -164,21 +179,21 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataCalendarEventsContext : IOdataStructuredContext
     {
-        private readonly IOdataClient odataClient;
+        private readonly IHttpClient httpClient;
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="odataClient"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataClient"/> is <see langword="null"/></exception>
-        public OdataCalendarEventsContext(IOdataClient odataClient)
+        /// <param name="httpClient"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="httpClient"/> is <see langword="null"/></exception>
+        public OdataCalendarEventsContext(IHttpClient httpClient)
         {
-            if (odataClient == null)
+            if (httpClient == null)
             {
-                throw new ArgumentNullException(nameof(odataClient));
+                throw new ArgumentNullException(nameof(httpClient));
             }
 
-            this.odataClient = odataClient;
+            this.httpClient = httpClient;
         }
 
         /// <summary>
@@ -187,7 +202,7 @@ namespace OddTrotter.Calendar
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"</exception>
-        public async Task<Either<OdataCollectionResponse, OdataErrorResponse>> GetCollection(OdataGetCollectionRequest request)
+        public async Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request)
         {
             if (request == null)
             {
@@ -198,23 +213,9 @@ namespace OddTrotter.Calendar
             try
             {
                 //// TODO you are here
-                ////
-                //// TODO you've started implemented the below comment with `OdataHeader` above
-                //// TODO here's some thoughts on the `unauthorizedaccessexception` issue:
-                //// That exception is *really* a graph thing. *Graph*, not *odata*, is asking for the `Authorization` header to be provided in the request. Graph *also* sometimes asks for *other* headers in the request, or there is optional functionality from graph that can be obtained through additional headers. Those headers *really* are on a per-request basis, so you need a way for the caller of the `iodatastructuredcontext` to be able to provide headers anyway. If you're already having to allow headers, then there's really no difference between the `iodataclient` doing the auth stuff vs the `igraphcalendarcontext` (and any other graph context) doing the auth stuff. There's *maybe* an argument that the graph contexts will all have to do the header stuff, which is true but can be mitigated through composing some sort of token provider. *But*, even so, there are probably graph contexts out there which will need a different token for different requests (maybe based on permissions or something), so they will probably want to be providing the `authorization` header on a per-request basis as well. 
-                //// 
-                //// And also, you could do to `iodatastructuredcontext` what you did to `httpclient` where you have a `graphcontext` wrapper that delegates to a `iodatastructuredcontext` and provides the `authorization` header. 
-                //// 
-                //// If all of these things are reasonable and convincing, then `iodataclient` is really just `ihttpclient` and should be modeled as such.
-                httpResponseMessage = await this.odataClient.GetAsync(request.RelativeUri).ConfigureAwait(false);
-                try
+                httpResponseMessage = await this.httpClient.GetAsync(request.RelativeUri).ConfigureAwait(false);
+                if (!httpResponseMessage.IsSuccessStatusCode)
                 {
-                    httpResponseMessage.EnsureSuccessStatusCode();
-                }
-                catch (HttpRequestException)
-                {
-                    //// TODO how do you preserve the http status code? if you don't use the exception, then use issuccessstatuscode instead
-
                     //// TODO this pattern of deserialization and error handling might be able to leverage an ibuilder and some extensions; look into that...
                     OdataErrorResponseBuilder? odataErrorResponseBuilder;
                     try
@@ -233,7 +234,14 @@ namespace OddTrotter.Calendar
 
                     var odataErrorResponse = odataErrorResponseBuilder.Build().ThrowRight();
 
-                    return Either.Left<OdataCollectionResponse>().Right(odataErrorResponse);
+                    return new OdataResponse<OdataCollectionResponse>(
+                        httpResponseMessage.StatusCode,
+                        httpResponseMessage
+                            .Headers
+                            .SelectMany(header =>
+                                header.Value.Select(value => (header.Key, value)))
+                            .Select(header => new HttpHeader(header.Key, header.Key)),
+                        Either.Left<OdataCollectionResponse>().Right(odataErrorResponse));
                 }
 
                 OdataCollectionResponseBuilder? odataCollectionResponseBuilder;
@@ -253,7 +261,14 @@ namespace OddTrotter.Calendar
 
                 var odataCollectionResponse = odataCollectionResponseBuilder.Build().ThrowRight();
 
-                return Either.Right<OdataErrorResponse>().Left(odataCollectionResponse);
+                return new OdataResponse<OdataCollectionResponse>(
+                    httpResponseMessage.StatusCode,
+                    httpResponseMessage
+                        .Headers
+                        .SelectMany(header =>
+                            header.Value.Select(value => (header.Key, value)))
+                        .Select(header => new HttpHeader(header.Key, header.Key)),
+                    Either.Right<OdataErrorResponse>().Left(odataCollectionResponse));
             }
             finally
             {

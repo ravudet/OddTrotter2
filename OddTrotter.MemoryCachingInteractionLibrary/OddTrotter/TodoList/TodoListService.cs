@@ -172,7 +172,7 @@
         /// <summary>
         /// TODO is this class a good idea?
         /// </summary>
-        private sealed class GraphClientToOdataClient : IOdataClient
+        private sealed class GraphClientToOdataClient : IHttpClient
         {
             private readonly IGraphClient graphClient;
 

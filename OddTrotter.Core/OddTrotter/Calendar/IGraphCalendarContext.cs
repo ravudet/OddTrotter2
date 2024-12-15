@@ -169,16 +169,16 @@
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="odataContext"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataContext"/> is <see langword="null"/></exception>
-        public GraphCalendarEventsContext(IOdataStructuredContext odataContext)
+        /// <param name="graphOdataContext"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphOdataContext"/> is <see langword="null"/></exception>
+        public GraphCalendarEventsContext(IGraphOdataStructuredContext graphOdataContext)
         {
-            if (odataContext == null)
+            if (graphOdataContext == null)
             {
-                throw new ArgumentNullException(nameof(odataContext));
+                throw new ArgumentNullException(nameof(graphOdataContext));
             }
 
-            this.evaluateVisitor = new EvaluateVisitor(odataContext);
+            this.evaluateVisitor = new EvaluateVisitor(graphOdataContext);
         }
 
         /// <summary>
@@ -194,23 +194,23 @@
 
         private sealed class EvaluateVisitor : GraphQuery.AsyncVisitor<GraphCalendarEventsResponse, Void>
         {
-            private readonly IOdataStructuredContext odataContext;
+            private readonly IGraphOdataStructuredContext graphOdataContext;
 
             private readonly GetEventsDispatchVisitor getEventsDispatchVisitor;
 
             /// <summary>
             /// 
             /// </summary>
-            /// <param name="odataContext"></param>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataContext"/> is <see langword="null"/></exception>
-            public EvaluateVisitor(IOdataStructuredContext odataContext)
+            /// <param name="graphOdataContext"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphOdataContext"/> is <see langword="null"/></exception>
+            public EvaluateVisitor(IGraphOdataStructuredContext graphOdataContext)
             {
-                if (odataContext == null)
+                if (graphOdataContext == null)
                 {
-                    throw new ArgumentNullException(nameof(odataContext));
+                    throw new ArgumentNullException(nameof(graphOdataContext));
                 }
 
-                this.odataContext = odataContext;
+                this.graphOdataContext = graphOdataContext;
                 this.getEventsDispatchVisitor = GetEventsDispatchVisitor.Instance;
             }
 
@@ -245,11 +245,12 @@
             /// <returns></returns>
             private async Task<GraphCalendarEventsResponse> GetPage(RelativeUri url)
             {
-                var odataCollectionRequest = new OdataGetCollectionRequest(url);
+                var odataCollectionRequest = new OdataGetCollectionRequest(url, Enumerable.Empty<HttpHeader>());
                 //// TODO you are here
-                var odataCollectionResponse = await this.odataContext.GetCollection(odataCollectionRequest).ConfigureAwait(false);
+                var odataCollectionResponse = await this.graphOdataContext.GetCollection(odataCollectionRequest).ConfigureAwait(false);
 
                 return odataCollectionResponse
+                    .ResponseContent
                     .VisitSelect(
                         left => this.getEventsDispatchVisitor.Visit(left, default),
                         right => new Exception("TODO"))
