@@ -142,7 +142,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetInstanceEvents()
+        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> GetInstanceEvents()
         {
             var url =
                 $"{this.calendarUriPath.Path}/events?" +
@@ -163,7 +163,7 @@ namespace OddTrotter.Calendar
 
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             //// TODO you are here
-            var graphResponse = this.graphCalendarEventsContext.Page(graphQuery);
+            var graphResponse = await this.graphCalendarEventsContext.Page(graphQuery).ConfigureAwait(false);
             return Adapt(graphResponse);
         }
 
@@ -199,7 +199,7 @@ namespace OddTrotter.Calendar
             return mastersWithInstances;
         }
 
-        private Either<CalendarEvent, CalendarEventsContextTranslationError> GetFirstSeriesInstance(
+        private async Task<Either<CalendarEvent, CalendarEventsContextTranslationError>> GetFirstSeriesInstance(
             CalendarEvent seriesMaster)
         {
             //// TODO make the calendar configurable
@@ -229,7 +229,7 @@ namespace OddTrotter.Calendar
             GraphCalendarEventsResponse graphResponse;
             try
             {
-                graphResponse = this.graphCalendarEventsContext.Evaluate(graphRequest); //// TODO do paging on the instances? it really shouldn't be necessary...
+                graphResponse = await this.graphCalendarEventsContext.Evaluate(graphRequest).ConfigureAwait(false); //// TODO do paging on the instances? it really shouldn't be necessary...
             }
             catch
             {
@@ -269,7 +269,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEventMasters()
+        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
         {
             //// TODO make the calendar that's used configurable
             var url = $"/me/calendar/events?" +
@@ -284,7 +284,7 @@ namespace OddTrotter.Calendar
             }
 
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
-            var graphResponse = this.graphCalendarEventsContext.Page(graphRequest);
+            var graphResponse = await this.graphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false);
             return Adapt(graphResponse);
         }
 
