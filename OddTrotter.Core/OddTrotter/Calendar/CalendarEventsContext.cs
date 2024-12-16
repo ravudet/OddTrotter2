@@ -99,14 +99,14 @@ namespace OddTrotter.Calendar
             this.isCancelled = isCancelled;
         }
 
-        public Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> Evaluate()
+        public async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> Evaluate()
         {
             //// TODO you are here
-            var instanceEvents = this.GetInstanceEvents();
+            var instanceEvents = await this.GetInstanceEvents().ConfigureAwait(false);
             var seriesEvents = this.GetSeriesEvents();
             //// TODO merge the sorted sequences instead of concat
             var allEvents = instanceEvents.Concat(seriesEvents);
-            return Task.FromResult(allEvents);
+            return allEvents;
         }
 
         private static
