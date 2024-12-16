@@ -59,6 +59,7 @@
         [TestMethod]
         public void HttpClientHeaderTest()
         {
+            //// https://github.com/jeske/SimpleHttpServer/blob/master/SimpleHttpServer/HttpProcessor.cs
             var tokenSource = new CancellationTokenSource();
             Task.Factory.StartNew(() => Listen(tokenSource.Token));
             while (!Started)
