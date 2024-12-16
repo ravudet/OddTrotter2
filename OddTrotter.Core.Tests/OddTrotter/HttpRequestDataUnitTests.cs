@@ -54,19 +54,32 @@
             Assert.AreNotEqual(first.Id, second.Id);
         }
 
+        private static bool Started { get; set; } = false;
+
         [TestMethod]
         public void HttpClientHeaderTest()
         {
             var tokenSource = new CancellationTokenSource();
             Task.Factory.StartNew(() => Listen(tokenSource.Token));
+            while (!Started)
+            {
+            }
+
             Task.Factory.StartNew(() => Send(tokenSource.Token));
 
+            while (true)
+            {
+                Task.Delay(1000).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+#pragma warning disable CS0162 // Unreachable code detected
             tokenSource.Cancel();
+#pragma warning restore CS0162 // Unreachable code detected
         }
 
         private static void Send(CancellationToken token)
         {
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 using (var client = new HttpClient())
                 {
@@ -84,6 +97,7 @@
             var listener = new TcpListener(8080);
 #pragma warning restore CS0618 // Type or member is obsolete
             listener.Start();
+            Started = true;
             try
             {
                 while (!token.IsCancellationRequested)
