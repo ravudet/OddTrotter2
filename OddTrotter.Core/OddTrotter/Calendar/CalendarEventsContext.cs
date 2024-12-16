@@ -66,6 +66,7 @@ namespace OddTrotter.Calendar
                   calendarUriPath ?? throw new ArgumentNullException(nameof(calendarUriPath)),
                   startTime,
                   settings?.PageSize ?? throw new ArgumentNullException(nameof(settings)), //// TODO i *really* don't like setting this precedence
+                  settings?.FirstInstanceInSeriesLookahead ?? throw new ArgumentNullException(nameof(settings)),
                   null,
                   null)
         {

@@ -277,6 +277,7 @@
             var calendarEventsContextSettings = new CalendarEventsContextSettings.Builder()
             {
                 PageSize = this.calendarEventPageSize,
+                //// TODO configure firstinstanceinserieslookahead
             }.Build();
             var calendarEventsContext = new CalendarEventsContext(
                 graphCalendarEventsContext,
