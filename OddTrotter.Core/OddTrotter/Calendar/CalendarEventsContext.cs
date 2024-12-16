@@ -103,7 +103,7 @@ namespace OddTrotter.Calendar
         {
             //// TODO you are here
             var instanceEvents = await this.GetInstanceEvents().ConfigureAwait(false);
-            var seriesEvents = this.GetSeriesEvents();
+            var seriesEvents = await this.GetSeriesEvents().ConfigureAwait(false);
             //// TODO merge the sorted sequences instead of concat
             var allEvents = instanceEvents.Concat(seriesEvents);
             return allEvents;
