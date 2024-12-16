@@ -192,9 +192,10 @@
             }
 
             /// <inheritdoc/>
-            public async Task<HttpResponseMessage> GetAsync(RelativeUri relativeUri)
+            public async Task<HttpResponseMessage> GetAsync(AbsoluteUri absoluteUri, IEnumerable<HttpHeader> headers)
             {
-                return await this.graphClient.GetAsync(relativeUri).ConfigureAwait(false);
+                //// TODO honor the headers if you still end up using this class
+                return await this.graphClient.GetAsync(absoluteUri).ConfigureAwait(false);
             }
         }
 
@@ -272,7 +273,9 @@
             //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
             //// TODO write tests for todolistservice that confirm the URLs
             var odataClient = new GraphClientToOdataClient(this.graphClient);
-            var odataCalendarEventsContext = new OdataCalendarEventsContext(odataClient);
+            var odataCalendarEventsContext = new OdataCalendarEventsContext(
+                new Uri("https://graph.microsoft.com/v1.0/", UriKind.Absolute).ToAbsoluteUri(), //// TODO make this configurable
+                odataClient);
             var graphCalendarEventsContext = new GraphCalendarEventsContext(odataCalendarEventsContext);
             var calendarEventsContextSettings = new CalendarEventsContextSettings.Builder()
             {
