@@ -190,7 +190,7 @@ namespace OddTrotter.Calendar
                 await this.GetSeriesEventMasters().ConfigureAwait(false);
             var mastersWithInstances = seriesEventMasters
                 .Select(either => either.VisitSelect(
-                    async left => (left, await GetFirstSeriesInstance(left).ConfigureAwait(false)),
+                    left => (left, GetFirstSeriesInstance(left).ConfigureAwait(false).GetAwaiter().GetResult()), //// TODO figure out how to make this async
                     right => right))
                 .Select(eventPair => eventPair.ShiftRight())
                 .Select(eventPair => eventPair.VisitSelect(
