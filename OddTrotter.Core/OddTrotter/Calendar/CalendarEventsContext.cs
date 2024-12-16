@@ -305,7 +305,7 @@ namespace OddTrotter.Calendar
                     return this;
                 }
 
-                return new CalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath, this.startTime, this.pageSize, now, this.isCancelled);
+                return new CalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath, this.startTime, this.pageSize, this.firstInstanceInSeriesLookahead, now, this.isCancelled);
             }
             else if (object.ReferenceEquals(predicate, IsNotCancelled))
             {
@@ -315,7 +315,7 @@ namespace OddTrotter.Calendar
                     return this;
                 }
 
-                return new CalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath, this.startTime, this.pageSize, this.endTime, false);
+                return new CalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath, this.startTime, this.pageSize, this.firstInstanceInSeriesLookahead, this.endTime, false);
             }
 
             throw new NotImplementedException("TODO");
