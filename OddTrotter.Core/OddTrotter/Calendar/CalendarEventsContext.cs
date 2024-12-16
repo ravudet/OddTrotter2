@@ -184,13 +184,13 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException> GetSeriesEvents()
+        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> GetSeriesEvents()
         {
             var seriesEventMasters =
-                this.GetSeriesEventMasters();
+                await this.GetSeriesEventMasters().ConfigureAwait(false);
             var mastersWithInstances = seriesEventMasters
                 .Select(either => either.VisitSelect(
-                    left => (left, GetFirstSeriesInstance(left)),
+                    async left => (left, await GetFirstSeriesInstance(left).ConfigureAwait(false)),
                     right => right))
                 .Select(eventPair => eventPair.ShiftRight())
                 .Select(eventPair => eventPair.VisitSelect(
