@@ -283,7 +283,7 @@ namespace OddTrotter.Calendar
                             .Headers
                             .SelectMany(header =>
                                 header.Value.Select(value => (header.Key, value)))
-                            .Select(header => new HttpHeader(header.Key, header.Key)), //// TODO what does httpclient do if the response payload has bad headers?
+                            .Select(header => new HttpHeader(header.Key, header.Key)), //// TODO what does httpclient do if the response payload has bad headers? you are implement a test in HttpRequestDataUnitTests
                         Either.Left<OdataCollectionResponse>().Right(odataErrorResponse));
                 }
 

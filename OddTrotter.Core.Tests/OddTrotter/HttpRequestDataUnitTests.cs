@@ -2,7 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-
+    using System.Net.Http;
+    using System.Net.Sockets;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     /// <summary>
@@ -49,6 +52,66 @@
             var first = new HttpRequestData(new Dictionary<string, IReadOnlyList<string>>());
             var second = new HttpRequestData(new Dictionary<string, IReadOnlyList<string>>());
             Assert.AreNotEqual(first.Id, second.Id);
+        }
+
+        [TestMethod]
+        public void HttpClientHeaderTest()
+        {
+            var tokenSource = new CancellationTokenSource();
+            Task.Factory.StartNew(() => Listen(tokenSource.Token));
+            Task.Factory.StartNew(() => Send(tokenSource.Token));
+
+            tokenSource.Cancel();
+        }
+
+        private static void Send(CancellationToken token)
+        {
+            while (true)
+            {
+                using (var client = new HttpClient())
+                {
+                    using (var response = client.GetAsync("http://localhost:8080").ConfigureAwait(false).GetAwaiter().GetResult())
+                    {
+                        var responseContent = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    }
+                }
+            }
+        }
+
+        private static void Listen(CancellationToken token)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var listener = new TcpListener(8080);
+#pragma warning restore CS0618 // Type or member is obsolete
+            listener.Start();
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    using (var client = listener.AcceptTcpClient())
+                    {
+                        var networkStream = client.GetStream();
+                        var data = new byte[4 * 1024 * 1024];
+                        while (networkStream.Read(data, 0, data.Length) != 0)
+                        {
+                        }
+
+                        var response =
+"""
+HTTP/1.1 200 OK
+badheader
+
+the body
+""";
+                        var responseBytes = System.Text.Encoding.ASCII.GetBytes(response);
+                        networkStream.Write(responseBytes, 0, responseBytes.Length);
+                    }
+                }
+            }
+            finally
+            {
+                listener.Stop();
+            }
         }
     }
 }
