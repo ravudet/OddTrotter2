@@ -22,7 +22,7 @@
         /// <param name="context"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
-        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can thrown</exception> //// TODO is this good?
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="AsyncVisitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
         protected abstract Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context);
 
         public abstract class AsyncVisitor<TResult, TContext>
@@ -34,7 +34,7 @@
             /// <param name="context"></param>
             /// <returns></returns>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
-            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can thrown</exception> //// TODO is this good?
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can throw</exception> //// TODO is this good?
             public async Task<TResult> Visit(GraphQuery node, TContext context)
             {
                 if (node == null)

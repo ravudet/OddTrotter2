@@ -9,17 +9,56 @@ namespace OddTrotter.Calendar
         {
         }
 
+        /// <summary>
+        /// TODO normalize all of your visitors with the pattern (naming, internal protected in the visitor, etc) that you are using in other repos
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="visitor"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
         protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public abstract class Visitor<TResult, TContext>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can throw</exception> //// TODO is this good?
             public TResult Visit(Either<TLeft, TRight> node, TContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
                 return node.Accept(this, context);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             public abstract TResult Dispatch(Left node, TContext context);
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             public abstract TResult Dispatch(Right node, TContext context);
         }
 
@@ -32,14 +71,24 @@ namespace OddTrotter.Calendar
 
             public TLeft Value { get; }
 
+            /// <inheritdoc/>
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Dispatch(this, context);
             }
         }
 
         public sealed class Right : Either<TLeft, TRight>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="value"></param>
             public Right(TRight value)
             {
                 Value = value;
@@ -47,8 +96,14 @@ namespace OddTrotter.Calendar
 
             public TRight Value { get; }
 
+            /// <inheritdoc/>
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Dispatch(this, context);
             }
         }
@@ -64,12 +119,20 @@ namespace OddTrotter.Calendar
 
     public static class EitherExtensions
     {
-        public static Either<TLeft, TRight> Left<TLeft, TRight>(this Either.LeftFactory<TRight> leftFactory, TLeft value)
+        public static Either<TLeft, TRight> Left<TLeft, TRight>(this Either.FactoryLeft<TRight> leftFactory, TLeft value)
         {
             return new Either<TLeft, TRight>.Left(value);
         }
 
-        public static Either<TLeft, TRight> Right<TLeft, TRight>(this Either.RightFactory<TLeft> rightFactory, TRight value)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="rightFactory"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Either<TLeft, TRight> Right<TLeft, TRight>(this Either.FactoryRight<TLeft> rightFactory, TRight value)
         {
             return new Either<TLeft, TRight>.Right(value);
         }
@@ -127,32 +190,51 @@ namespace OddTrotter.Calendar
     /// </summary>
     public static class Either
     {
-        public sealed class RightFactory<TLeft>
+        /// <summary>
+        /// you named it this way so that the `right` method and `rightfactory` don't conflict in the intellisense prompts
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        public sealed class FactoryRight<TLeft>
         {
-            private RightFactory()
+            /// <summary>
+            /// 
+            /// </summary>
+            private FactoryRight()
             {
             }
 
-            public static RightFactory<TLeft> Instance { get; } = new RightFactory<TLeft>();
+            /// <summary>
+            /// 
+            /// </summary>
+            public static FactoryRight<TLeft> Instance { get; } = new FactoryRight<TLeft>();
         }
 
-        public static RightFactory<TLeft> Left<TLeft>()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <returns></returns>
+        public static FactoryRight<TLeft> Left<TLeft>()
         {
-            return RightFactory<TLeft>.Instance;
+            return FactoryRight<TLeft>.Instance;
         }
 
-        public sealed class LeftFactory<TRight>
+        /// <summary>
+        /// you named it this way so that the `left` method and `leftfactory` don't conflict in the intellisense prompts
+        /// </summary>
+        /// <typeparam name="TRight"></typeparam>
+        public sealed class FactoryLeft<TRight>
         {
-            private LeftFactory()
+            private FactoryLeft()
             {
             }
 
-            public static LeftFactory<TRight> Instance { get; } = new LeftFactory<TRight>();
+            public static FactoryLeft<TRight> Instance { get; } = new FactoryLeft<TRight>();
         }
 
-        public static LeftFactory<TRight> Right<TRight>()
+        public static FactoryLeft<TRight> Right<TRight>()
         {
-            return LeftFactory<TRight>.Instance;
+            return FactoryLeft<TRight>.Instance;
         }
 
         /// <summary>
@@ -163,6 +245,7 @@ namespace OddTrotter.Calendar
         /// <param name="either"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        /// <exception cref="TRight">Thrown if <paramref name="either"/> is <see cref="Either{TLeft, TRight}.Right"/></exception>
         public static TLeft ThrowRight<TLeft, TRight>(this Either<TLeft, TRight> either) where TRight : Exception
         {
             if (either == null)
@@ -170,7 +253,6 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(either));
             }
 
-            //// TODO you are here
             return either.Visit(left => left, right => throw right);
         }
 
@@ -182,12 +264,38 @@ namespace OddTrotter.Calendar
                 false);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="leftDispatch"></param>
+        /// <param name="rightDispatch"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> can throw</exception> //// TODO is this good?
         public static TResult Visit<TLeft, TRight, TResult>(
             this Either<TLeft, TRight> either,
             Func<TLeft, TResult> leftDispatch,
             Func<TRight, TResult> rightDispatch)
         {
-            //// TODO you are here
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            if (leftDispatch == null)
+            {
+                throw new ArgumentNullException(nameof(leftDispatch));
+            }
+
+            if (rightDispatch == null)
+            {
+                throw new ArgumentNullException(nameof(rightDispatch));
+            }
+
             return either.Visit<TLeft, TRight, TResult, Void>(
                 (left, context) => leftDispatch(left.Value), //// TODO is there a way to wrap these without creating a closure?
                 (right, context) => rightDispatch(right.Value),
@@ -207,6 +315,7 @@ namespace OddTrotter.Calendar
         /// <param name="context"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> or <paramref name="context"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> can throw</exception> //// TODO is this good?
         public static TResult Visit<TLeft, TRight, TResult, TContext>(
             this Either<TLeft, TRight> either,
             Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,
@@ -230,14 +339,14 @@ namespace OddTrotter.Calendar
 
             if (context == null)
             {
-                //// TODO the purpose of `context` is to pass context into the dispatch method; it being `null` defeats the purpose of that concept, though maybe this is just being too strict; you do have `Void` if any caller really doesn't want to provide something; i'm not sure what's right
+                //// TODO the purpose of `context` is to pass context into the dispatch method; it being `null` defeats the purpose of that concept, though maybe this is just being too strict; you do have `Void` if any caller really doesn't want to provide something; i'm not sure what's right; whichever you decide (keep this check or remove it), you need to be consistent across all of the visitors
                 throw new ArgumentNullException(nameof(context));
             }
 
             var visitor = new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
-            //// TODO you are here
-            //// TODO you actually skipped odataerrorresponsebuilder's use of either.left.right
             return visitor.Visit(either, context);
+
+
         }
 
         public static Either<TLeft, TRight>.Visitor<TResult, TContext> Visitor<TLeft, TRight, TResult, TContext>(
@@ -309,11 +418,15 @@ namespace OddTrotter.Calendar
                 this.rightDispatch = rightDispatch;
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="DelegateVisitor{TLeft, TRight, TResult, TContext}.leftDispatch"/> delegate can throw</exception> //// TODO is this good?
             public override TResult Dispatch(Either<TLeft, TRight>.Left node, TContext context)
             {
                 return this.leftDispatch(node, context);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="DelegateVisitor{TLeft, TRight, TResult, TContext}.rightDispatch"/> delegate can throw</exception> //// TODO is this good?
             public override TResult Dispatch(Either<TLeft, TRight>.Right node, TContext context)
             {
                 return this.rightDispatch(node, context);

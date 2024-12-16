@@ -274,16 +274,16 @@ namespace OddTrotter.Calendar
                         throw new OdataErrorDeserializationException("Could not deserialize the OData error response", responseContents);
                     }
 
-                    //// TODO you are here
                     var odataErrorResponse = odataErrorResponseBuilder.Build(responseContents).ThrowRight();
 
+                    //// TODO you are here
                     return new OdataResponse<OdataCollectionResponse>(
                         httpResponseMessage.StatusCode,
                         httpResponseMessage
                             .Headers
                             .SelectMany(header =>
                                 header.Value.Select(value => (header.Key, value)))
-                            .Select(header => new HttpHeader(header.Key, header.Key)),
+                            .Select(header => new HttpHeader(header.Key, header.Key)), //// TODO what does httpclient do if the response payload has bad headers?
                         Either.Left<OdataCollectionResponse>().Right(odataErrorResponse));
                 }
 
@@ -294,12 +294,12 @@ namespace OddTrotter.Calendar
                 }
                 catch (JsonException jsonException)
                 {
-                    throw new OdataDeserializationException("tODO", jsonException);
+                    throw new OdataSuccessDeserializationException("tODO", jsonException, "TODO");
                 }
 
                 if (odataCollectionResponseBuilder == null)
                 {
-                    throw new OdataDeserializationException("TODO");
+                    throw new OdataSuccessDeserializationException("TODO", "TODO");
                 }
 
                 var odataCollectionResponse = odataCollectionResponseBuilder.Build().ThrowRight();
@@ -327,14 +327,14 @@ namespace OddTrotter.Calendar
             [JsonPropertyName("@odata.nextLink")]
             public string? NextLink { get; set; }
 
-            public Either<OdataCollectionResponse, OdataDeserializationException> Build()
+            public Either<OdataCollectionResponse, OdataSuccessDeserializationException> Build()
             {
                 if (this.Value == null)
                 {
-                    return Either.Left<OdataCollectionResponse>().Right(new OdataDeserializationException("TODO"));
+                    return Either.Left<OdataCollectionResponse>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                 }
 
-                return new Either<OdataCollectionResponse, OdataDeserializationException>.Left(new OdataCollectionResponse.Values(this.Value.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), this.NextLink)); //// TODO you can't use the `either` helper factories because the return type is more general than `success`; should discriminated unions have like a "tobasetype" extension or something? or is this an issue with `either` and covariance?
+                return new Either<OdataCollectionResponse, OdataSuccessDeserializationException>.Left(new OdataCollectionResponse.Values(this.Value.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), this.NextLink)); //// TODO you can't use the `either` helper factories because the return type is more general than `success`; should discriminated unions have like a "tobasetype" extension or something? or is this an issue with `either` and covariance?
             }
         }
 
