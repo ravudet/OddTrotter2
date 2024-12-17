@@ -51,7 +51,10 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        //// TODO you are here
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"</exception>
+        /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout, or the server responded with a payload that was not valid HTTP</exception> //// TODO this part about the invalid HTTP needs to be added to all of your xmldoc where you get an httprequestexception from httpclient
+        /// <exception cref="OdataErrorDeserializationException">Thrown if an error occurred while deserializing the OData error response</exception>
+        /// <exception cref="OdataSuccessDeserializationException">Thrown if an error occurred while deserializing the OData success response</exception>
         Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request); //// TODO you can get a legal odata response from any url, even ones that are not valid odata urls; maybe you should have an adapter from things like odatacollectionrequest to httprequestmessage?
     }
 
@@ -118,14 +121,28 @@ namespace OddTrotter.Calendar
             public abstract TResult Dispatch(OdataCollectionResponse.Values node, TContext context);
         }
 
-        public sealed class Values : OdataCollectionResponse //// TODO change the class name
+        public sealed class Values : OdataCollectionResponse //// TODO change the class name; probably i need to know what other derived types there may be before really deciding on a new name...; maybe i should make it internal in the meantime?
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="nextLink"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/></exception>
             public Values(IReadOnlyList<OdataCollectionValue> value, string? nextLink)
             {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
                 this.Value = value;
                 this.NextLink = nextLink;
             }
 
+            /// <summary>
+            /// GOTCHA: nulls are allowed as elements in some odata collections depending on the EDM model, so make sure to check for that
+            /// </summary>
             public IReadOnlyList<OdataCollectionValue> Value { get; }
 
             public string? NextLink { get; }
@@ -159,9 +176,19 @@ namespace OddTrotter.Calendar
 
         internal sealed class Json : OdataCollectionValue
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
             public Json(JsonNode node)
             {
-                Node = node;
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                this.Node = node;
             }
 
             public JsonNode Node { get; }
@@ -334,8 +361,7 @@ namespace OddTrotter.Calendar
                     throw new OdataSuccessDeserializationException("Could not deserialize the OData response payload", responseContents);
                 }
 
-                //// TODO you are here
-                var odataCollectionResponse = odataCollectionResponseBuilder.Build().ThrowRight();
+                var odataCollectionResponse = odataCollectionResponseBuilder.Build(responseContents).ThrowRight();
 
                 return new OdataResponse<OdataCollectionResponse>(
                     httpResponseMessage.StatusCode,
@@ -343,7 +369,7 @@ namespace OddTrotter.Calendar
                         .Headers
                         .SelectMany(header =>
                             header.Value.Select(value => (header.Key, value)))
-                        .Select(header => new HttpHeader(header.Key, header.Key)),
+                        .Select(header => new HttpHeader(header.Key, header.Key)),  // `HttpClient` validates the headers for us, so we don't have to worry about `HttpHeader` throwing
                     Either.Right<OdataErrorResponse>().Left(odataCollectionResponse));
             }
             finally
@@ -360,6 +386,11 @@ namespace OddTrotter.Calendar
             [JsonPropertyName("@odata.nextLink")]
             public string? NextLink { get; set; }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="responseContents"></param>
+            /// <returns></returns>
             public Either<OdataCollectionResponse, OdataSuccessDeserializationException> Build(string responseContents)
             {
                 var invalidities = new List<string>();
@@ -377,9 +408,14 @@ namespace OddTrotter.Calendar
                                 $"The response payload was not a valid OData response: {string.Join(", ", invalidities)}", responseContents));
                 }
 
-                //// TODO you are here
                 //// TODO see if you can avoid the bang
-                return Either.Right<OdataSuccessDeserializationException>().Left(new OdataCollectionResponse.Values(this.Value!.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), this.NextLink).AsBase());
+                return Either
+                    .Right<OdataSuccessDeserializationException>()
+                    .Left(
+                        new OdataCollectionResponse.Values(
+                            this.Value!.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), //// TODO do you want to make this list lazy?
+                            this.NextLink)
+                        .AsBase());
             }
         }
 

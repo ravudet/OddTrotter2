@@ -5,6 +5,9 @@ namespace OddTrotter.Calendar
 {
     public abstract class Either<TLeft, TRight>
     {
+        /// <summary>
+        /// 
+        /// </summary>
         private Either()
         {
         }
@@ -64,6 +67,10 @@ namespace OddTrotter.Calendar
 
         public sealed class Left : Either<TLeft, TRight>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="value"></param>
             public Left(TLeft value)
             {
                 Value = value;
@@ -129,7 +136,8 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         public static Either<TLeft, TRight> Left<TLeft, TRight>(this Either.FactoryLeft<TRight> leftFactory, TLeft value)
         {
-            //// TODO you are here
+            // `leftfactory` is only be used to "carry" the `tright` type, so you don't need to do any assertions on it; `value` is allowed to be whatever the caller wants, so we don't do any assertions on it
+
             return new Either<TLeft, TRight>.Left(value);
         }
 
@@ -143,6 +151,8 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         public static Either<TLeft, TRight> Right<TLeft, TRight>(this Either.FactoryRight<TLeft> rightFactory, TRight value)
         {
+            // `rightfactory` is only be used to "carry" the `tleft` type, so you don't need to do any assertions on it; `value` is allowed to be whatever the caller wants, so we don't do any assertions on it
+
             return new Either<TLeft, TRight>.Right(value);
         }
 
