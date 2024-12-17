@@ -196,7 +196,7 @@
         {
             private readonly IGraphOdataStructuredContext graphOdataContext;
 
-            private readonly GetEventsDispatchVisitor getEventsDispatchVisitor;
+            private readonly GetPageVisitor getPageVisitor;
 
             /// <summary>
             /// 
@@ -211,7 +211,7 @@
                 }
 
                 this.graphOdataContext = graphOdataContext;
-                this.getEventsDispatchVisitor = GetEventsDispatchVisitor.Instance;
+                this.getPageVisitor = GetPageVisitor.Instance;
             }
 
             /// <summary>
@@ -241,32 +241,41 @@
             /// <summary>
             /// 
             /// </summary>
-            /// <param name="url">assumed to not be <see langword="null"</param>
+            /// <param name="url"></param>
             /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="url"/> is <see langword="null"/></exception>
+            /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout, or the server responded with a payload that was not valid HTTP</exception> //// TODO this part about the invalid HTTP needs to be added to all of your xmldoc where you get an httprequestexception from httpclient
+            /// <exception cref="OdataErrorDeserializationException">Thrown if an error occurred while deserializing the OData error response</exception>
+            /// <exception cref="OdataSuccessDeserializationException">Thrown if an error occurred while deserializing the OData success response</exception>
             private async Task<GraphCalendarEventsResponse> GetPage(RelativeUri url)
             {
+                if (url == null)
+                {
+                    throw new ArgumentNullException(nameof(url));
+                }
+
                 var odataCollectionRequest = new OdataGetCollectionRequest(url, Enumerable.Empty<HttpHeader>());
-                //// TODO you are here
                 var odataCollectionResponse = await this.graphOdataContext.GetCollection(odataCollectionRequest).ConfigureAwait(false);
 
+                //// TODO you are here
                 return odataCollectionResponse
                     .ResponseContent
                     .VisitSelect(
-                        left => this.getEventsDispatchVisitor.Visit(left, default),
+                        left => this.getPageVisitor.Visit(left, default),
                         right => new Exception("TODO"))
                     .ThrowRight();
             }
 
-            private sealed class GetEventsDispatchVisitor : OdataCollectionResponse.Visitor<GraphCalendarEventsResponse, Void>
+            private sealed class GetPageVisitor : OdataCollectionResponse.Visitor<GraphCalendarEventsResponse, Void>
             {
                 private readonly OdataCollectionValueVisitor odataCollectionValueVisitor;
 
-                private GetEventsDispatchVisitor()
+                private GetPageVisitor()
                 {
                     this.odataCollectionValueVisitor = OdataCollectionValueVisitor.Instance;
                 }
 
-                public static GetEventsDispatchVisitor Instance { get; } = new GetEventsDispatchVisitor();
+                public static GetPageVisitor Instance { get; } = new GetPageVisitor();
 
                 public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Void context)
                 {

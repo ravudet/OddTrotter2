@@ -156,15 +156,42 @@ namespace OddTrotter.Calendar
             return new Either<TLeft, TRight>.Right(value);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeftOld"></typeparam>
+        /// <typeparam name="TRightOld"></typeparam>
+        /// <typeparam name="TLeftNew"></typeparam>
+        /// <typeparam name="TRightNew"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="leftSelector"></param>
+        /// <param name="rightSelector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> or <paramref name="rightSelector"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw</exception> //// TODO is this good?
         public static Either<TLeftNew, TRightNew> VisitSelect<TLeftOld, TRightOld, TLeftNew, TRightNew>(
             this Either<TLeftOld, TRightOld> either,
             Func<TLeftOld, TLeftNew> leftSelector,
             Func<TRightOld, TRightNew> rightSelector)
         {
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            if (leftSelector == null)
+            {
+                throw new ArgumentNullException(nameof(leftSelector));
+            }
+
+            if (rightSelector == null)
+            {
+                throw new ArgumentNullException(nameof(rightSelector));
+            }
+
             return either.Visit(
-                (left, context) => Either.Right<TRightNew>().Left(leftSelector(left.Value)),
-                (right, context) => Either.Left<TLeftNew>().Right(rightSelector(right.Value)),
-                new Void());
+                left => Either.Right<TRightNew>().Left(leftSelector(left)), //// TODO can you avoid these closures somehow?
+                right => Either.Left<TLeftNew>().Right(rightSelector(right)));
         }
 
         public static Either<(T1, T2), TRight> ShiftRight<T1, T2, TRight>(this Either<(T1, Either<T2, TRight>), TRight> either)
