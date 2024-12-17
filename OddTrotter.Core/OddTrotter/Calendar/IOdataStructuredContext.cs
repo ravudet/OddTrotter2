@@ -1,5 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.V2;
@@ -56,16 +57,47 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataResponse<T>
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="httpStatusCode"></param>
+        /// <param name="headers"></param>
+        /// <param name="responseContent"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="headers"/> or <paramref name="responseContent"/> is <see langword="null"/></exception>
         public OdataResponse(HttpStatusCode httpStatusCode, IEnumerable<HttpHeader> headers, Either<T, OdataErrorResponse> responseContent)
         {
+            if (headers == null)
+            {
+                throw new ArgumentNullException(nameof(headers));
+            }
+
+            if (responseContent == null)
+            {
+                throw new ArgumentNullException(nameof(responseContent));
+            }
+
             HttpStatusCode = httpStatusCode;
-            Headers = headers;
+            Headers = headers; //// TODO do you want to start documenting that there are no guarantees that the elements aren't null?
             ResponseContent = responseContent;
         }
 
         public HttpStatusCode HttpStatusCode { get; }
         public IEnumerable<HttpHeader> Headers { get; }
         public Either<T, OdataErrorResponse> ResponseContent { get; }
+    }
+
+    public static class OdataCollectionResponseExtensions
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        public static OdataCollectionResponse AsBase(this OdataCollectionResponse response)
+        {
+            //// TODO do you want to have a method like this for all discriminated unions? you implemented this method specifically because you are lacking covariance in `either`, bu this might just be helpful overall?
+            return response;
+        }
     }
 
     public abstract class OdataCollectionResponse
@@ -242,8 +274,9 @@ namespace OddTrotter.Calendar
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"</exception>
-        /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout</exception>
-        /// <exception cref="OdataErrorDeserializationException">Thrown if an error occurred while deserializing the OData response</exception>
+        /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout, or the server responded with a payload that was not valid HTTP</exception> //// TODO this part about the invalid HTTP needs to be added to all of your xmldoc where you get an httprequestexception from httpclient
+        /// <exception cref="OdataErrorDeserializationException">Thrown if an error occurred while deserializing the OData error response</exception>
+        /// <exception cref="OdataSuccessDeserializationException">Thrown if an error occurred while deserializing the OData success response</exception>
         public async Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request)
         {
             if (request == null)
@@ -276,14 +309,13 @@ namespace OddTrotter.Calendar
 
                     var odataErrorResponse = odataErrorResponseBuilder.Build(responseContents).ThrowRight();
 
-                    //// TODO you are here
                     return new OdataResponse<OdataCollectionResponse>(
                         httpResponseMessage.StatusCode,
                         httpResponseMessage
                             .Headers
                             .SelectMany(header =>
                                 header.Value.Select(value => (header.Key, value)))
-                            .Select(header => new HttpHeader(header.Key, header.Key)), //// TODO what does httpclient do if the response payload has bad headers? you are implement a test in HttpRequestDataUnitTests
+                            .Select(header => new HttpHeader(header.Key, header.Key)), // `HttpClient` validates the headers for us, so we don't have to worry about `HttpHeader` throwing
                         Either.Left<OdataCollectionResponse>().Right(odataErrorResponse));
                 }
 
@@ -294,14 +326,15 @@ namespace OddTrotter.Calendar
                 }
                 catch (JsonException jsonException)
                 {
-                    throw new OdataSuccessDeserializationException("tODO", jsonException, "TODO");
+                    throw new OdataSuccessDeserializationException("Could not deserialize the OData response payload", jsonException, responseContents);
                 }
 
                 if (odataCollectionResponseBuilder == null)
                 {
-                    throw new OdataSuccessDeserializationException("TODO", "TODO");
+                    throw new OdataSuccessDeserializationException("Could not deserialize the OData response payload", responseContents);
                 }
 
+                //// TODO you are here
                 var odataCollectionResponse = odataCollectionResponseBuilder.Build().ThrowRight();
 
                 return new OdataResponse<OdataCollectionResponse>(
@@ -327,14 +360,26 @@ namespace OddTrotter.Calendar
             [JsonPropertyName("@odata.nextLink")]
             public string? NextLink { get; set; }
 
-            public Either<OdataCollectionResponse, OdataSuccessDeserializationException> Build()
+            public Either<OdataCollectionResponse, OdataSuccessDeserializationException> Build(string responseContents)
             {
+                var invalidities = new List<string>();
                 if (this.Value == null)
                 {
-                    return Either.Left<OdataCollectionResponse>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
+                    invalidities.Add($"'{nameof(Value)}' cannot be null");
                 }
 
-                return new Either<OdataCollectionResponse, OdataSuccessDeserializationException>.Left(new OdataCollectionResponse.Values(this.Value.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), this.NextLink)); //// TODO you can't use the `either` helper factories because the return type is more general than `success`; should discriminated unions have like a "tobasetype" extension or something? or is this an issue with `either` and covariance?
+                if (invalidities.Count > 0)
+                {
+                    return Either
+                        .Left<OdataCollectionResponse>()
+                        .Right(
+                            new OdataSuccessDeserializationException(
+                                $"The response payload was not a valid OData response: {string.Join(", ", invalidities)}", responseContents));
+                }
+
+                //// TODO you are here
+                //// TODO see if you can avoid the bang
+                return Either.Right<OdataSuccessDeserializationException>().Left(new OdataCollectionResponse.Values(this.Value!.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), this.NextLink).AsBase());
             }
         }
 

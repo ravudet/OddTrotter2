@@ -119,8 +119,17 @@ namespace OddTrotter.Calendar
 
     public static class EitherExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="leftFactory"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static Either<TLeft, TRight> Left<TLeft, TRight>(this Either.FactoryLeft<TRight> leftFactory, TLeft value)
         {
+            //// TODO you are here
             return new Either<TLeft, TRight>.Left(value);
         }
 
@@ -225,13 +234,24 @@ namespace OddTrotter.Calendar
         /// <typeparam name="TRight"></typeparam>
         public sealed class FactoryLeft<TRight>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private FactoryLeft()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static FactoryLeft<TRight> Instance { get; } = new FactoryLeft<TRight>();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TRight"></typeparam>
+        /// <returns></returns>
         public static FactoryLeft<TRight> Right<TRight>()
         {
             return FactoryLeft<TRight>.Instance;
