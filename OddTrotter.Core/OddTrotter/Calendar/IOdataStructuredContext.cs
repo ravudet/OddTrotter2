@@ -113,8 +113,15 @@ namespace OddTrotter.Calendar
 
         public abstract class Visitor<TResult, TContext>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
             public TResult Visit(OdataCollectionResponse node, TContext context)
             {
+                //// TODO you are here
                 return node.Accept(this, context);
             }
 
