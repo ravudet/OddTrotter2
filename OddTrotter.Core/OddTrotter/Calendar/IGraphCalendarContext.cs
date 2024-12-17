@@ -270,11 +270,17 @@
             {
                 private readonly OdataCollectionValueVisitor odataCollectionValueVisitor;
 
+                /// <summary>
+                /// 
+                /// </summary>
                 private GetPageVisitor()
                 {
                     this.odataCollectionValueVisitor = OdataCollectionValueVisitor.Instance;
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
                 public static GetPageVisitor Instance { get; } = new GetPageVisitor();
 
                 public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Void context)
@@ -307,10 +313,16 @@
 
                 private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, Void>
                 {
+                    /// <summary>
+                    /// 
+                    /// </summary>
                     private OdataCollectionValueVisitor()
                     {
                     }
 
+                    /// <summary>
+                    /// 
+                    /// </summary>
                     public static OdataCollectionValueVisitor Instance { get; } = new OdataCollectionValueVisitor();
 
                     internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError> Dispatch(OdataCollectionValue.Json node, Void context)
