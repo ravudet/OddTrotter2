@@ -307,7 +307,6 @@ namespace OddTrotter.Calendar
         public OdataSuccessDeserializationException(string message, Exception e, string responseContents)
             : base(message, e)
         {
-            //// TODO other overloads
             this.ResponseContents = responseContents;
         }
 
@@ -322,10 +321,9 @@ namespace OddTrotter.Calendar
             this.ResponseContents = responseContents;
         }
 
-        public OdataErrorDeserializationException(string message, Exception e, string responseContents)
-            : base(message, e)
+        public OdataErrorDeserializationException(string message, Exception innerException, string responseContents)
+            : base(message, innerException)
         {
-            //// TODO other overloads
             this.ResponseContents = responseContents;
         }
 

@@ -146,20 +146,33 @@
     public sealed class GraphCalendarEventsResponse
     {
         public GraphCalendarEventsResponse(
-            IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>> events,
+            IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> events,
             GraphQuery.Page? nextPage)
         {
             this.Events = events;
             this.NextPage = nextPage;
         }
 
-        public IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>> Events { get; }
+        public IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> Events { get; }
 
         public GraphQuery.Page? NextPage { get; }
     }
 
-    public sealed class GraphCalendarEventsContextTranslationError
+    public sealed class GraphCalendarEventsContextTranslationException : Exception
     {
+        public GraphCalendarEventsContextTranslationException(string message, string rawEventContents)
+            : base(message)
+        {
+            this.RawEventContents = rawEventContents; ///// tODO make sure you are doing `this.` everywhere
+        }
+
+        public GraphCalendarEventsContextTranslationException(string message, Exception e, string rawEventContents)
+            : base(message, e)
+        {
+            this.RawEventContents = rawEventContents;
+        }
+
+        public string RawEventContents { get; }
     }
 
     public sealed class GraphCalendarEventsContext : IGraphCalendarEventsContext
@@ -318,7 +331,7 @@
                     return new GraphCalendarEventsResponse(graphCalendarEvents, nextPage);
                 }
 
-                private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, Void>
+                private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, Void>
                 {
                     /// <summary>
                     /// 
@@ -333,29 +346,39 @@
                     public static OdataCollectionValueVisitor Instance { get; } = new OdataCollectionValueVisitor();
 
                     /// <inheritdoc/>
-                    internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError> Dispatch(OdataCollectionValue.Json node, Void context)
+                    internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Dispatch(OdataCollectionValue.Json node, Void context)
                     {
                         if (node == null)
                         {
                             throw new ArgumentNullException(nameof(node));
                         }
 
-                        //// TODO you are here
                         GraphCalendarEventBuilder? graphCalendarEvent;
                         try
                         {
                             graphCalendarEvent = JsonSerializer.Deserialize<GraphCalendarEventBuilder>(node.Node);
                         }
-                        catch
+                        catch (JsonException jsonException) //// TODO always write out the exception name
                         {
-                            return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO presrve exception
+                            return Either
+                                .Left<GraphCalendarEvent>()
+                                .Right(new GraphCalendarEventsContextTranslationException(
+                                    "An error occurred while translating the OData collection element into a Graph calendar event",
+                                    jsonException,
+                                    node.Node.ToString()));
                         }
 
                         if (graphCalendarEvent == null)
                         {
-                            return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationError());
+                            // OData allows null element in collections, but we know that graph is not supposed to return null events
+                            return Either
+                                .Left<GraphCalendarEvent>()
+                                .Right(new GraphCalendarEventsContextTranslationException(
+                                    "An error occurred while translating the OData collection element into a Graph calendar event",
+                                    node.Node.ToString()));
                         }
 
+                        //// TODO you are here
                         return graphCalendarEvent.Build();
                     }
                 }
@@ -377,11 +400,11 @@
                     [JsonPropertyName("isCancelled")]
                     public bool? IsCancelled { get; set; }
 
-                    public Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError> Build()
+                    public Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Build()
                     {
                         if (this.Id == null || this.Subject == null || this.Start == null || this.Body == null || this.IsCancelled == null)
                         {
-                            return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO
+                            return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationException()); //// TODO
                         }
 
                         var start = this.Start.Build();
@@ -401,14 +424,14 @@
                     [JsonPropertyName("context")]
                     public string? Content { get; set; }
 
-                    public Either<BodyStructure, GraphCalendarEventsContextTranslationError> Build()
+                    public Either<BodyStructure, GraphCalendarEventsContextTranslationException> Build()
                     {
                         if (this.Content == null)
                         {
-                            return Either.Left<BodyStructure>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO
+                            return Either.Left<BodyStructure>().Right(new GraphCalendarEventsContextTranslationException()); //// TODO
                         }
 
-                        return Either.Right<GraphCalendarEventsContextTranslationError>().Left(new BodyStructure(this.Content));
+                        return Either.Right<GraphCalendarEventsContextTranslationException>().Left(new BodyStructure(this.Content));
                     }
                 }
 
@@ -420,14 +443,14 @@
                     [JsonPropertyName("timeZone")]
                     public string? TimeZone { get; set; }
 
-                    public Either<TimeStructure, GraphCalendarEventsContextTranslationError> Build()
+                    public Either<TimeStructure, GraphCalendarEventsContextTranslationException> Build()
                     {
                         if (this.DateTime == null || this.TimeZone == null)
                         {
-                            return Either.Left<TimeStructure>().Right(new GraphCalendarEventsContextTranslationError()); //// TODO
+                            return Either.Left<TimeStructure>().Right(new GraphCalendarEventsContextTranslationException()); //// TODO
                         }
 
-                        return Either.Right<GraphCalendarEventsContextTranslationError>().Left(new TimeStructure(this.DateTime, this.TimeZone));
+                        return Either.Right<GraphCalendarEventsContextTranslationException>().Left(new TimeStructure(this.DateTime, this.TimeZone));
                     }
                 }
             }
@@ -489,7 +512,7 @@
 
     public static class GraphCalendarEventsContextExtensions
     {
-        private sealed class PageQueryResult : QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Element
+        private sealed class PageQueryResult : QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Element
         {
             private readonly GraphCalendarEventsResponse graphCalendarEventsResponse;
             private readonly int index;
@@ -503,7 +526,7 @@
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
             }
 
-            public override QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> Next()
+            public override QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> Next()
             {
                 if (this.index + 1 < this.graphCalendarEventsResponse.Events.Count)
                 {
@@ -512,7 +535,7 @@
 
                 if (this.graphCalendarEventsResponse.NextPage == null)
                 {
-                    return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Final();
+                    return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final();
                 }
 
                 //// TODO figure out async `queryresult`s
@@ -527,7 +550,7 @@
         /// <param name="graphQuery">TODO this allows <paramref name="graphQuery"/> to be a paging query; do you want to protect against that for some reason?</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="graphQuery"/> is <see langword="null"</exception>
-        public static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>> Page(
+        public static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
             this IGraphCalendarEventsContext graphCalendarEventsContext,
             GraphQuery graphQuery)
         {            
@@ -549,14 +572,14 @@
             }
             catch
             {
-                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Partial(new GraphPagingException("TODO preserve exception"));
+                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Partial(new GraphPagingException("TODO preserve exception"));
             }
 
             if (response.Events.Count == 0)
             {
                 if (response.NextPage == null)
                 {
-                    return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException>.Final();
+                    return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final();
                 }
                 else
                 {

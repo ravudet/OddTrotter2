@@ -112,7 +112,7 @@ namespace OddTrotter.Calendar
         private static
             QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>
             Adapt(
-            QueryResult<Either<OddTrotter.Calendar.GraphCalendarEvent, GraphCalendarEventsContextTranslationError>, GraphPagingException> graphResponse)
+            QueryResult<Either<OddTrotter.Calendar.GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> graphResponse)
         {
             return graphResponse
                 .Error(graphPageingException => new CalendarEventsContextPagingException("TODO presreve the exception"))
