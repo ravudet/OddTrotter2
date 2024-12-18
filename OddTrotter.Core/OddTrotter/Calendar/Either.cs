@@ -225,10 +225,10 @@ namespace OddTrotter.Calendar
         /// <param name="first"></param>
         /// <param name="second"></param>
         /// <returns></returns>
-        public static Either<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(this Either<TLeftFirst, TRight> first, Either<TLeftSecond, TRight> second)
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="first"/> or <paramref name="second"/> or <paramref name="rightAggregator"/> is <see langword="null"/></exception>
+        public static Either<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(this Either<TLeftFirst, TRight> first, Either<TLeftSecond, TRight> second, Func<TRight, TRight, TRight> rightAggregator)
         {
-            //// TODO you are here
-            //// TODO is this actually a selectmany?
+            //// TODO what is the right name for this method?
 
             if (first == null)
             {
@@ -240,12 +240,33 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(second));
             }
 
+            if (rightAggregator == null)
+            {
+                throw new ArgumentNullException(nameof(rightAggregator));
+            }
+
+            //// TODO please figure out how you want to do all this newline formatting, you can't seem to get it right and be consistent; make sur ethat you consider having too many generic type arguments
             return first.Visit(
-                leftFirst => second.Visit(
-                    (leftSecond, contextSecond) => Either.Right<TRight>().Left((leftFirst, leftSecond.Value)),
-                    (rightSecond, contextSecond) => Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightSecond.Value),
-                    new Void()),
-                rightFirst => Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightFirst)); //// TODO if second is *also* right, you lose track of that one; do you want a TRight aggregator?);
+                leftFirst => second
+                    .Visit(
+                        leftSecond => Either
+                            .Right<TRight>()
+                            .Left(
+                                (leftFirst, leftSecond)),
+                                rightSecond => Either
+                                    .Left<(TLeftFirst, TLeftSecond)>()
+                                    .Right(
+                                        rightSecond)),
+                rightFirst => second
+                    .Visit(
+                        leftSecond => Either
+                            .Left<(TLeftFirst, TLeftSecond)>()
+                            .Right(
+                                rightFirst),
+                        rightSecond => Either
+                            .Left<(TLeftFirst, TLeftSecond)>()
+                            .Right(
+                                rightAggregator(rightFirst, rightSecond))));
         }
     }
 

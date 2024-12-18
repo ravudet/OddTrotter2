@@ -450,8 +450,12 @@
 
                         return
                             start
+                            .Zip(
+                                body,
+                                (startError, bodyError) => new GraphCalendarEventsContextTranslationException(
+                                    $"{startError.Message}. {bodyError}.", //// TODO the period here is why every exception message should use proper punctuation
+                                    rawEventContents))
                         //// TODO you are here
-                            .Zip(body)
                             .VisitSelect(
                                 left => new GraphCalendarEvent(this.Id, this.Subject, left.Item1, left.Item2, this.IsCancelled.Value),
                                 right => right);
