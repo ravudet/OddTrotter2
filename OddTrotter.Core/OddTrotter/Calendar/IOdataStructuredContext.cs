@@ -109,6 +109,16 @@ namespace OddTrotter.Calendar
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="visitor"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
         protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public abstract class Visitor<TResult, TContext>
@@ -119,12 +129,26 @@ namespace OddTrotter.Calendar
             /// <param name="node"></param>
             /// <param name="context"></param>
             /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
             public TResult Visit(OdataCollectionResponse node, TContext context)
             {
-                //// TODO you are here
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
                 return node.Accept(this, context);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             public abstract TResult Dispatch(OdataCollectionResponse.Values node, TContext context);
         }
 
@@ -147,17 +171,20 @@ namespace OddTrotter.Calendar
                 this.NextLink = nextLink;
             }
 
-            /// <summary>
-            /// GOTCHA: nulls are allowed as elements in some odata collections depending on the EDM model, so make sure to check for that
-            /// </summary>
             public IReadOnlyList<OdataCollectionValue> Value { get; }
 
             public string? NextLink { get; }
 
             //// TODO any other properties?
 
+            /// <inheritdoc/>
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Dispatch(this, context);
             }
         }
@@ -169,15 +196,46 @@ namespace OddTrotter.Calendar
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="visitor"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
         protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public abstract class Visitor<TResult, TContext>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
             public TResult Visit(OdataCollectionValue node, TContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
                 return node.Accept(this, context);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             internal abstract TResult Dispatch(OdataCollectionValue.Json node, TContext context);
         }
 
@@ -198,10 +256,19 @@ namespace OddTrotter.Calendar
                 this.Node = node;
             }
 
+            /// <summary>
+            /// GOTCHA: nulls are allowed as elements in some odata collections depending on the EDM model, so make sure to check for that
+            /// </summary>
             public JsonNode Node { get; }
 
+            /// <inheritdoc/>
             protected sealed override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Dispatch(this, context);
             }
         }

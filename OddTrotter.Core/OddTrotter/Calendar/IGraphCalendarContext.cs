@@ -283,10 +283,17 @@
                 /// </summary>
                 public static GetPageVisitor Instance { get; } = new GetPageVisitor();
 
+                /// <inheritdoc/>
                 public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Void context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
                     var graphCalendarEvents = node
                         .Value
+                    //// TODO you are here
                         .Select(odataCollectionValue => this.odataCollectionValueVisitor.Visit(odataCollectionValue, default))
                         .ToList();
 
@@ -325,8 +332,15 @@
                     /// </summary>
                     public static OdataCollectionValueVisitor Instance { get; } = new OdataCollectionValueVisitor();
 
+                    /// <inheritdoc/>
                     internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationError> Dispatch(OdataCollectionValue.Json node, Void context)
                     {
+                        if (node == null)
+                        {
+                            throw new ArgumentNullException(nameof(node));
+                        }
+
+                        //// TODO you are here
                         GraphCalendarEventBuilder? graphCalendarEvent;
                         try
                         {
