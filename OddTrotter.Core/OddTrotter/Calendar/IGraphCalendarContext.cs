@@ -312,7 +312,7 @@
                                 .Visit(
                                     odataCollectionValue,
                                     default))
-                        .ToList();
+                        .ToList(); //// TODO do you want this to be lazy?
 
                     //// TODO you are here
                     GraphQuery.Page? nextPage = null;
