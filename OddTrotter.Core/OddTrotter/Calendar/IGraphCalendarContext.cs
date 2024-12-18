@@ -445,7 +445,7 @@
                         }
 
                         //// TODO see if you can avoid the bangs in the rest of the method
-                        var start = this.Start!.Build(rawEventContents;
+                        var start = this.Start!.Build(rawEventContents);
                         var body = this.Body!.Build(rawEventContents);
 
                         return

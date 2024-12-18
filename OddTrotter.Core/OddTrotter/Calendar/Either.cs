@@ -241,12 +241,11 @@ namespace OddTrotter.Calendar
             }
 
             return first.Visit(
-                (leftFirst, contextFirst) => second.Visit(
-                    (leftSecond, contextSecond) => Either.Right<TRight>().Left((leftFirst.Value, leftSecond.Value)),
+                leftFirst => second.Visit(
+                    (leftSecond, contextSecond) => Either.Right<TRight>().Left((leftFirst, leftSecond.Value)),
                     (rightSecond, contextSecond) => Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightSecond.Value),
                     new Void()),
-                (rightFirst, contextFirst) => Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightFirst.Value), //// TODO if second is *also* right, you lose track of that one; do you want a TRight aggregator?
-                new Void());
+                rightFirst => Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightFirst)); //// TODO if second is *also* right, you lose track of that one; do you want a TRight aggregator?);
         }
     }
 
