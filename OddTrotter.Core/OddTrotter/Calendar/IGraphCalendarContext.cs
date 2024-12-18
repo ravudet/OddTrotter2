@@ -400,16 +400,48 @@
                     [JsonPropertyName("isCancelled")]
                     public bool? IsCancelled { get; set; }
 
-                    public Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Build()
+                    public Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
                     {
-                        if (this.Id == null || this.Subject == null || this.Start == null || this.Body == null || this.IsCancelled == null)
+                        var invalidities = new List<string>();
+
+                        if (this.Id == null)
                         {
-                            return Either.Left<GraphCalendarEvent>().Right(new GraphCalendarEventsContextTranslationException()); //// TODO
+                            invalidities.Add($"'{nameof(Id)}' cannot be null");
                         }
 
-                        var start = this.Start.Build();
-                        var body = this.Body.Build();
+                        if (this.Subject == null)
+                        {
+                            invalidities.Add($"'{nameof(Subject)}' cannot be null");
+                        }
 
+                        if (this.Start == null)
+                        {
+                            invalidities.Add($"'{nameof(Start)}' cannot be null");
+                        }
+
+                        if (this.Body == null)
+                        {
+                            invalidities.Add($"'{nameof(Body)}' cannot be null");
+                        }
+
+                        if (this.IsCancelled == null)
+                        {
+                            invalidities.Add($"'{nameof(IsCancelled)}' cannot be null");
+                        }
+
+                        if (invalidities.Count > 0)
+                        { 
+                            return Either
+                                .Left<GraphCalendarEvent>()
+                                .Right(new GraphCalendarEventsContextTranslationException(
+                                    $"An error occurred while translating the OData collection element into a Graph calendar event: {string.Join(", ", invalidities)}",
+                                    rawEventContents));
+                        }
+
+                        var start = this.Start!.Build(); //// TODO see if you can avoid the bang
+                        var body = this.Body!.Build(); //// TODO see if you can avoid the bang
+
+                        //// TODO you are here
                         return 
                             start
                             .Zip(body)
