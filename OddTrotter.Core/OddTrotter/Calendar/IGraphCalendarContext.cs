@@ -307,10 +307,14 @@
 
                     var graphCalendarEvents = node
                         .Value
-                    //// TODO you are here
-                        .Select(odataCollectionValue => this.odataCollectionValueVisitor.Visit(odataCollectionValue, default))
+                        .Select(
+                            odataCollectionValue => this.odataCollectionValueVisitor
+                                .Visit(
+                                    odataCollectionValue,
+                                    default))
                         .ToList();
 
+                    //// TODO you are here
                     GraphQuery.Page? nextPage = null;
                     if (node.NextLink != null)
                     {
@@ -379,8 +383,7 @@
                                     node.Node.ToString()));
                         }
 
-                        //// TODO you are here
-                        return graphCalendarEvent.Build();
+                        return graphCalendarEvent.Build(node.Node.ToString());
                     }
                 }
 
@@ -455,9 +458,13 @@
                                 (startError, bodyError) => new GraphCalendarEventsContextTranslationException(
                                     $"{startError.Message}. {bodyError}.", //// TODO the period here is why every exception message should use proper punctuation
                                     rawEventContents))
-                        //// TODO you are here
                             .VisitSelect(
-                                left => new GraphCalendarEvent(this.Id, this.Subject, left.Item1, left.Item2, this.IsCancelled.Value),
+                                left => new GraphCalendarEvent(
+                                    this.Id!,
+                                    this.Subject!,
+                                    left.Item1,
+                                    left.Item2,
+                                    this.IsCancelled!.Value),
                                 right => right);
                     }
                 }
@@ -545,8 +552,37 @@
 
     public sealed class GraphCalendarEvent
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="subject"></param>
+        /// <param name="start"></param>
+        /// <param name="body"></param>
+        /// <param name="isCancelled"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="id"/> or <paramref name="subject"/> or <paramref name="start"/> or <paramref name="body"/> is <see langword="null"/></exception>
         public GraphCalendarEvent(string id, string subject, TimeStructure start, BodyStructure body, bool isCancelled)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (subject == null)
+            {
+                throw new ArgumentNullException(nameof(subject));
+            }
+
+            if (start == null)
+            {
+                throw new ArgumentNullException(nameof(start));
+            }
+
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
+
             this.Id = id;
             this.Subject = subject;
             this.Start = start;
