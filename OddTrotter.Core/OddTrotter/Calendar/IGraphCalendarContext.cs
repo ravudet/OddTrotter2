@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public abstract class GraphQuery //// TODO graphrequest?
@@ -400,6 +401,11 @@
                     [JsonPropertyName("isCancelled")]
                     public bool? IsCancelled { get; set; }
 
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="rawEventContents"></param>
+                    /// <returns></returns>
                     public Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
                     {
                         var invalidities = new List<string>();
@@ -438,12 +444,13 @@
                                     rawEventContents));
                         }
 
-                        var start = this.Start!.Build(); //// TODO see if you can avoid the bang
-                        var body = this.Body!.Build(); //// TODO see if you can avoid the bang
+                        //// TODO see if you can avoid the bangs in the rest of the method
+                        var start = this.Start!.Build(rawEventContents;
+                        var body = this.Body!.Build(rawEventContents);
 
-                        //// TODO you are here
-                        return 
+                        return
                             start
+                        //// TODO you are here
                             .Zip(body)
                             .VisitSelect(
                                 left => new GraphCalendarEvent(this.Id, this.Subject, left.Item1, left.Item2, this.IsCancelled.Value),
@@ -456,14 +463,32 @@
                     [JsonPropertyName("context")]
                     public string? Content { get; set; }
 
-                    public Either<BodyStructure, GraphCalendarEventsContextTranslationException> Build()
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <returns></returns>
+                    public Either<BodyStructure, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
                     {
+                        var invalidities = new List<string>();
+
                         if (this.Content == null)
                         {
-                            return Either.Left<BodyStructure>().Right(new GraphCalendarEventsContextTranslationException()); //// TODO
+                            invalidities.Add($"'{nameof(Content)}' cannot be null");
                         }
 
-                        return Either.Right<GraphCalendarEventsContextTranslationException>().Left(new BodyStructure(this.Content));
+                        if (invalidities.Count > 0)
+                        {
+                            return Either
+                                .Left<BodyStructure>()
+                                .Right(new GraphCalendarEventsContextTranslationException(
+                                    $"An error occurred while translating the OData collection element into the '{nameof(GraphCalendarEventBuilder.Body)}' portion of a Graph calendar event: {string.Join(", ", invalidities)}",
+                                    rawEventContents));
+                        }
+
+                        return Either
+                            .Right<GraphCalendarEventsContextTranslationException>()
+                            .Left(new BodyStructure(
+                                this.Content!)); //// TODO see if you can avoid the bang
                     }
                 }
 
@@ -475,14 +500,39 @@
                     [JsonPropertyName("timeZone")]
                     public string? TimeZone { get; set; }
 
-                    public Either<TimeStructure, GraphCalendarEventsContextTranslationException> Build()
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <returns></returns>
+                    public Either<TimeStructure, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
                     {
-                        if (this.DateTime == null || this.TimeZone == null)
+                        var invalidities = new List<string>();
+
+                        if (this.DateTime == null)
                         {
-                            return Either.Left<TimeStructure>().Right(new GraphCalendarEventsContextTranslationException()); //// TODO
+                            invalidities.Add($"'{nameof(DateTime)}' cannot be null");
                         }
 
-                        return Either.Right<GraphCalendarEventsContextTranslationException>().Left(new TimeStructure(this.DateTime, this.TimeZone));
+                        if (this.TimeZone == null)
+                        {
+                            invalidities.Add($"'{nameof(TimeZone)}' cannot be null");
+                        }
+
+                        if (invalidities.Count > 0)
+                        {
+                            return Either
+                                .Left<TimeStructure>()
+                                .Right(new GraphCalendarEventsContextTranslationException(
+                                    $"An error occurred while translating the OData collection element into the '{nameof(GraphCalendarEventBuilder.Start)}' portion of a Graph calendar event: {string.Join(", ", invalidities)}",
+                                    rawEventContents));
+                        }
+
+                        //// TODO see if you can avoid the bangs in the rest of this methods
+                        return Either
+                            .Right<GraphCalendarEventsContextTranslationException>()
+                            .Left(new TimeStructure(
+                                this.DateTime!, 
+                                this.TimeZone!));
                     }
                 }
             }
@@ -513,8 +563,18 @@
 
     public sealed class BodyStructure
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="content"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="content"/> is <see langword="null"/></exception>
         public BodyStructure(string content)
         {
+            if (content == null)
+            {
+                throw new ArgumentNullException(nameof(content));
+            }
+
             this.Content = content;
         }
 
@@ -523,8 +583,24 @@
 
     public sealed class TimeStructure
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <param name="timeZone"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="dateTime"/> or <paramref name="timeZone"/> is <see langword="null"/></exception>
         public TimeStructure(string dateTime, string timeZone)
         {
+            if (dateTime == null)
+            {
+                throw new ArgumentNullException(nameof(dateTime));
+            }
+
+            if (timeZone == null)
+            {
+                throw new ArgumentNullException(nameof(timeZone));
+            }
+
             this.DateTime = dateTime;
             this.TimeZone = timeZone;
         }

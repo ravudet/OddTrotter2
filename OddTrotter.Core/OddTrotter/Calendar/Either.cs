@@ -216,9 +216,29 @@ namespace OddTrotter.Calendar
                 new Void());
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeftFirst"></typeparam>
+        /// <typeparam name="TLeftSecond"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <returns></returns>
         public static Either<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(this Either<TLeftFirst, TRight> first, Either<TLeftSecond, TRight> second)
         {
+            //// TODO you are here
             //// TODO is this actually a selectmany?
+
+            if (first == null)
+            {
+                throw new ArgumentNullException(nameof(first));
+            }
+
+            if (second == null)
+            {
+                throw new ArgumentNullException(nameof(second));
+            }
 
             return first.Visit(
                 (leftFirst, contextFirst) => second.Visit(
