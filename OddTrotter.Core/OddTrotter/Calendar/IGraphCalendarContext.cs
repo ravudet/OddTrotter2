@@ -69,14 +69,20 @@
 
         public sealed class Page : GraphQuery
         {
-            internal Page(RelativeUri relativeUri)
+            internal Page(ServiceRoot serviceRoot, RelativeUri relativeUri)
             {
+                if (serviceRoot == null)
+                {
+                    throw new ArgumentNullException(nameof(serviceRoot));
+                }
+
                 if (relativeUri == null)
                 {
                     throw new ArgumentNullException(nameof(relativeUri));
                 }
 
                 //// TODO make this private
+                this.ServiceRoot = serviceRoot; //// TODO should both of these actually be in the odatastructuredcontext layer?
                 this.RelativeUri = relativeUri;
             }
 
@@ -85,6 +91,8 @@
 
             //// TODO you should really do this, and have a lookup of the iodatastructuredcontext based on the schema + authority
             //// internal UriAuthority Authority { get; }
+
+            internal ServiceRoot ServiceRoot { get; }
 
             internal RelativeUri RelativeUri { get; }
 
@@ -128,6 +136,98 @@
                 }
 
                 return await visitor.Dispatch(this, context).ConfigureAwait(false);
+            }
+        }
+    }
+
+    internal sealed class ServiceRoot
+    {
+        public ServiceRoot(Inners.Scheme scheme, string host, uint port, IEnumerable<Inners.Segment> segments)
+        {
+            Scheme = scheme;
+            Host = host;
+            Port = port;
+            Segments = segments;
+        }
+
+        public Inners.Scheme Scheme { get; }
+        public string Host { get; }
+        public uint Port { get; }
+        public IEnumerable<Inners.Segment> Segments { get; }
+
+        public static class Inners
+        {
+            public abstract class Scheme
+            {
+                private Scheme()
+                {
+                }
+
+                public sealed class Https : Scheme
+                {
+                    private Https()
+                    {
+                    }
+
+                    public static Https Instance { get; } = new Https();
+                }
+
+                public sealed class Http : Scheme
+                {
+                    private Http()
+                    {
+                    }
+
+                    public static Http Instance { get; } = new Http();
+                }
+            }
+
+            public sealed class Host
+            {
+                public Host(string value)
+                {
+                    if (value.Contains("/") || value.Contains(":") || value.Contains("?") || value.Contains("#"))
+                    {
+                        throw new ArgumentException("TODO");
+                    }
+
+                    try
+                    {
+                        new Uri(value);
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+
+                    Value = value;
+                }
+
+                public string Value { get; }
+            }
+
+            public sealed class Segment
+            {
+                public Segment(string value)
+                {
+                    if (value.Contains("/") || value.Contains("?") || value.Contains("#"))
+                    {
+                        throw new ArgumentException("TODO");
+                    }
+
+                    try
+                    {
+                        new Uri(value);
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+
+                    Value = value;
+                }
+
+                public string Value { get; }
             }
         }
     }
@@ -286,6 +386,7 @@
                     .ResponseContent
                     .VisitSelect(
                 //// TODO you are here
+                //// TODO you skipped documenting the getcolleciton call above
                         left => this.getPageVisitor.Visit(left, default),
                         right => new Exception("TODO"))
                     .ThrowRight();
