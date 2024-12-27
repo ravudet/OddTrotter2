@@ -167,13 +167,24 @@
             this.RawEventContents = rawEventContents; ///// tODO make sure you are doing `this.` everywhere
         }
 
-        public GraphCalendarEventsContextTranslationException(string message, Exception e, string rawEventContents)
-            : base(message, e)
+        public GraphCalendarEventsContextTranslationException(string message, Exception innerException, string rawEventContents)
+            : base(message, innerException)
         {
             this.RawEventContents = rawEventContents;
         }
 
         public string RawEventContents { get; }
+    }
+
+    public sealed class InvalidNextLinkException : Exception
+    {
+        public InvalidNextLinkException(string message, Exception innerException, string rawNextLink)
+            : base(message, innerException)
+        {
+            this.rawNextLink = rawNextLink;
+        }
+
+        public string rawNextLink { get; }
     }
 
     public sealed class GraphCalendarEventsContext : IGraphCalendarEventsContext
@@ -271,10 +282,10 @@
                 var odataCollectionRequest = new OdataGetCollectionRequest(url, Enumerable.Empty<HttpHeader>());
                 var odataCollectionResponse = await this.graphOdataContext.GetCollection(odataCollectionRequest).ConfigureAwait(false);
 
-                //// TODO you are here
                 return odataCollectionResponse
                     .ResponseContent
                     .VisitSelect(
+                //// TODO you are here
                         left => this.getPageVisitor.Visit(left, default),
                         right => new Exception("TODO"))
                     .ThrowRight();
@@ -298,6 +309,7 @@
                 public static GetPageVisitor Instance { get; } = new GetPageVisitor();
 
                 /// <inheritdoc/>
+                /// <exception cref="InvalidNextLinkException">Thrown if the response contains a "@odata.nextLink" that is not a valid URI</exception>
                 public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Void context)
                 {
                     if (node == null)
@@ -314,14 +326,23 @@
                                     default))
                         .ToList(); //// TODO do you want this to be lazy?
 
-                    //// TODO you are here
                     GraphQuery.Page? nextPage = null;
                     if (node.NextLink != null)
                     {
-                        var nextLink = new Uri(node.NextLink);
+                        Uri nextLink;
+                        try
+                        {
+                            nextLink = new Uri(node.NextLink);
+                        }
+                        catch (UriFormatException uriFormatException)
+                        {
+                            throw new InvalidNextLinkException("Graph responded with a '@odata.nextLink' that is not a valid URI.", uriFormatException, node.NextLink);
+                        }
+
                         RelativeUri relativeUri;
                         if (nextLink.IsAbsoluteUri)
                         {
+                            //// TODO you are here
                             //// TODO this assumes that the servicehost for the nextlink is the same as the one used in the odatacontext; this is not guaranteed
                             relativeUri = nextLink.ToAbsoluteUri().GetRelativeUri();
                         }
@@ -456,7 +477,7 @@
                             .Zip(
                                 body,
                                 (startError, bodyError) => new GraphCalendarEventsContextTranslationException(
-                                    $"{startError.Message}. {bodyError}.", //// TODO the period here is why every exception message should use proper punctuation
+                                    $"{startError.Message}. {bodyError.Message}.", //// TODO the period here is why every exception message should use proper punctuation
                                     rawEventContents))
                             .VisitSelect(
                                 left => new GraphCalendarEvent(
