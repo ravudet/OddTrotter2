@@ -442,6 +442,7 @@
                         if (nextLink.IsAbsoluteUri)
                         {
                             //// TODO you are here
+                            //// TODO you've now implemented the serviceroot + relative stuff here, you need to make sure that callers are leveraging it correctly
                             //// TODO this assumes that the servicehost for the nextlink is the same as the one used in the odatacontext; this is not guaranteed
                             (serviceRoot, relativeUri) = Parse(nextLink.ToAbsoluteUri());
                         }
