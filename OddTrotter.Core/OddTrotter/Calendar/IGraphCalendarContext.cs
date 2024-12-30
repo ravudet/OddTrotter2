@@ -900,7 +900,25 @@
         public static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
             this IGraphCalendarEventsContext graphCalendarEventsContext,
             GraphQuery graphQuery)
-        {            
+        {
+            //// TODO preconditiosn check
+            
+            //// TODO you are here
+            return await graphCalendarEventsContext.Page(graphQuery, page => graphCalendarEventsContext).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="graphCalendarEventsContext"></param>
+        /// <param name="graphQuery">TODO this allows <paramref name="graphQuery"/> to be a paging query; do you want to protect against that for some reason?</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="graphQuery"/> is <see langword="null"</exception>
+        public static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
+            this IGraphCalendarEventsContext graphCalendarEventsContext,
+            GraphQuery graphQuery,
+            Func<GraphQuery.Page, IGraphCalendarEventsContext> contextGenerator)
+        {
             if (graphCalendarEventsContext == null)
             {
                 throw new ArgumentNullException(nameof(graphCalendarEventsContext));
