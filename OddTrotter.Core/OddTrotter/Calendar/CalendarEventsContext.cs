@@ -163,6 +163,7 @@ namespace OddTrotter.Calendar
 
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             //// TODO you are here
+            //// TODO check what you've written for paging in getserieseventmasters
             var graphResponse = await this.graphCalendarEventsContext.Page(graphQuery).ConfigureAwait(false);
             return Adapt(graphResponse);
         }
@@ -230,7 +231,7 @@ namespace OddTrotter.Calendar
             try
             {
                 //// TODO this response now has a "serviceroot" component; do you need to leverage it here?
-                graphResponse = await this.graphCalendarEventsContext.Evaluate(graphRequest).ConfigureAwait(false); //// TODO do paging on the instances? it really shouldn't be necessary...
+                graphResponse = await this.graphCalendarEventsContext.Evaluate(graphRequest).ConfigureAwait(false); //// TODO do paging on the instances? it really shouldn't be necessary... //// TODO technically the serivce could return a bunch of empty pages with nextlinks...
             }
             catch
             {
