@@ -455,8 +455,21 @@
                     return new GraphCalendarEventsResponse(graphCalendarEvents, nextPage);
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="absoluteUri"></param>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="absoluteUri"/> is <see langword="null"/></exception>
                 private static (ServiceRoot ServiceRoot, RelativeUri RelativeUri) Parse(AbsoluteUri absoluteUri)
                 {
+                    if (absoluteUri == null)
+                    {
+                        throw new ArgumentNullException(nameof(absoluteUri));
+                    }
+
+                    //// TODO you are here
+                    //// TODO you are currently adding this as odatanextlink in the iodatastructuredcontext
                     //// TODO shouldn't this be in the odata layer somewhere?
                     //// TODO you should probably do a proper parsing instead of all of this string manipulation
                     var schemeDelimiter = "://";

@@ -190,6 +190,192 @@ namespace OddTrotter.Calendar
         }
     }
 
+    public abstract class OdataNextLink
+    {
+        private OdataNextLink()
+        {
+        }
+
+        protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class Visitor<TResult, TContext>
+        {
+            public TResult Visit(OdataNextLink node, TContext context)
+            {
+                return node.Dispatch(this, context);
+            }
+
+            protected internal abstract TResult Accept(Null node, TContext context);
+            protected internal abstract TResult Accept(Relative node, TContext context);
+            protected internal abstract TResult Accept(Absolute node, TContext context);
+        }
+
+        public sealed class Null : OdataNextLink
+        {
+            private Null()
+            {
+            }
+
+            public static Null Instance { get; } = new Null();
+        }
+
+        public sealed class Relative : OdataNextLink
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="segments"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="segments"/> is <see langword="null"/></exception>
+            public Relative(IEnumerable<Inners.Segment> segments)
+            {
+                if (segments == null)
+                {
+                    throw new ArgumentNullException(nameof(segments));
+                }
+
+                //// TODO what about queryoptions and fragments?
+                this.Segments = segments;
+            }
+
+            public IEnumerable<Inners.Segment> Segments { get; }
+        }
+
+        public sealed class Absolute : OdataNextLink
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="absoluteNextLink"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="absoluteNextLink"/> is <see langword="null"/></exception>
+            public Absolute(Inners.AbsoluteNextLink absoluteNextLink)
+            {
+                if (absoluteNextLink == null)
+                {
+                    throw new ArgumentNullException(nameof(absoluteNextLink));
+                }
+
+                //// TODO what about queryoptions and fragments?
+                this.AbsoluteNextLink = absoluteNextLink;
+            }
+
+            public Inners.AbsoluteNextLink AbsoluteNextLink { get; }
+        }
+
+        //// TODO i really don't like this name
+        public static class Inners
+        {
+            public sealed class Segment
+            {
+                public Segment(string value)
+                {
+                    if (value.Contains("/") || value.Contains("?") || value.Contains("#"))
+                    {
+                        throw new ArgumentException("TODO");
+                    }
+
+                    try
+                    {
+                        new Uri(value);
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+
+                    Value = value;
+                }
+
+                public string Value { get; }
+            }
+
+            public abstract class AbsoluteNextLink
+            {
+                private AbsoluteNextLink()
+                {
+                }
+
+                public sealed class WithPort : AbsoluteNextLink
+                {
+                    public WithPort(Inners.Scheme scheme, Inners.Host host, uint port, IEnumerable<Segment> segments)
+                    {
+                        this.Scheme = scheme;
+                        this.Host = host;
+                        this.Port = port;
+                        this.Segments = segments;
+                    }
+
+                    public Scheme Scheme { get; }
+                    public Host Host { get; }
+                    public uint Port { get; }
+                    public IEnumerable<Segment> Segments { get; }
+                }
+
+                public sealed class WithoutPort : AbsoluteNextLink
+                {
+                    public WithoutPort(Inners.Scheme scheme, Inners.Host host, IEnumerable<Segment> segments)
+                    {
+                        this.Scheme = scheme;
+                        this.Host = host;
+                        this.Segments = segments;
+                    }
+
+                    public Scheme Scheme { get; }
+                    public Host Host { get; }
+                    public IEnumerable<Segment> Segments { get; }
+                }
+            }
+
+            public abstract class Scheme
+            {
+                private Scheme()
+                {
+                }
+
+                public sealed class Https : Scheme
+                {
+                    private Https()
+                    {
+                    }
+
+                    public static Https Instance { get; } = new Https();
+                }
+
+                public sealed class Http : Scheme
+                {
+                    private Http()
+                    {
+                    }
+
+                    public static Http Instance { get; } = new Http();
+                }
+            }
+
+            public sealed class Host
+            {
+                public Host(string value)
+                {
+                    if (value.Contains("/") || value.Contains(":") || value.Contains("?") || value.Contains("#"))
+                    {
+                        throw new ArgumentException("TODO");
+                    }
+
+                    try
+                    {
+                        new Uri(value);
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+
+                    Value = value;
+                }
+
+                public string Value { get; }
+            }
+        }
+    }
+
     public abstract class OdataCollectionValue
     {
         private OdataCollectionValue()
