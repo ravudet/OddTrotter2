@@ -460,6 +460,7 @@
                 private static (ServiceRoot ServiceRoot, RelativeUri RelativeUri) Parse(AbsoluteUri absoluteUri)
                 {
                     //// TODO shouldn't this be in the odata layer somewhere?
+                    //// TODO you should probably do a proper parsing instead of all of this string manipulation
                     var schemeDelimiter = "://";
                     var schemeIndex = absoluteUri.OriginalString.IndexOf(schemeDelimiter, 0);
                     if (schemeIndex < 0)
@@ -915,6 +916,7 @@
             {
                 //// TODO you are here
                 response = await graphCalendarEventsContext.Evaluate(graphQuery).ConfigureAwait(false);
+                //// TODO this response now has a "serviceroot" component; do you need to leverage it here?
             }
             catch
             {

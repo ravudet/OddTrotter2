@@ -229,6 +229,7 @@ namespace OddTrotter.Calendar
             GraphCalendarEventsResponse graphResponse;
             try
             {
+                //// TODO this response now has a "serviceroot" component; do you need to leverage it here?
                 graphResponse = await this.graphCalendarEventsContext.Evaluate(graphRequest).ConfigureAwait(false); //// TODO do paging on the instances? it really shouldn't be necessary...
             }
             catch
