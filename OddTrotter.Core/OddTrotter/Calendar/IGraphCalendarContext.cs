@@ -864,20 +864,22 @@
             private readonly GraphCalendarEventsResponse graphCalendarEventsResponse;
             private readonly int index;
             private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
+            private readonly Func<GraphQuery.Page, IGraphCalendarEventsContext> contextGenerator;
 
-            public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, IGraphCalendarEventsContext graphCalendarEventsContext)
+            public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, IGraphCalendarEventsContext graphCalendarEventsContext, Func<GraphQuery.Page, IGraphCalendarEventsContext> contextGenerator)
                 : base(graphCalendarEventsResponse.Events[index])
             {
                 this.graphCalendarEventsResponse = graphCalendarEventsResponse;
                 this.index = index;
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
+                this.contextGenerator = contextGenerator;
             }
 
             public override QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> Next()
             {
                 if (this.index + 1 < this.graphCalendarEventsResponse.Events.Count)
                 {
-                    return new PageQueryResult(this.graphCalendarEventsResponse, this.index + 1, this.graphCalendarEventsContext);
+                    return new PageQueryResult(this.graphCalendarEventsResponse, this.index + 1, this.graphCalendarEventsContext, this.contextGenerator);
                 }
 
                 if (this.graphCalendarEventsResponse.NextPage == null)
@@ -886,7 +888,8 @@
                 }
 
                 //// TODO figure out async `queryresult`s
-                return Page(this.graphCalendarEventsContext, this.graphCalendarEventsResponse.NextPage).ConfigureAwait(false).GetAwaiter().GetResult();
+                var nextContext = this.contextGenerator(this.graphCalendarEventsResponse.NextPage);
+                return Page(nextContext, this.graphCalendarEventsResponse.NextPage, this.contextGenerator).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -901,7 +904,15 @@
             this IGraphCalendarEventsContext graphCalendarEventsContext,
             GraphQuery graphQuery)
         {
-            //// TODO preconditiosn check
+            if (graphCalendarEventsContext == null)
+            {
+                throw new ArgumentNullException(nameof(graphCalendarEventsContext));
+            }
+
+            if (graphQuery == null)
+            {
+                throw new ArgumentNullException(nameof(graphQuery));
+            }
             
             //// TODO you are here
             return await graphCalendarEventsContext.Page(graphQuery, page => graphCalendarEventsContext).ConfigureAwait(false);
@@ -913,7 +924,7 @@
         /// <param name="graphCalendarEventsContext"></param>
         /// <param name="graphQuery">TODO this allows <paramref name="graphQuery"/> to be a paging query; do you want to protect against that for some reason?</param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="graphQuery"/> is <see langword="null"</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="graphQuery"/> or <paramref name="contextGenerator"/> is <see langword="null"</exception>
         public static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
             this IGraphCalendarEventsContext graphCalendarEventsContext,
             GraphQuery graphQuery,
@@ -929,12 +940,16 @@
                 throw new ArgumentNullException(nameof(graphQuery));
             }
 
+            if (contextGenerator == null)
+            {
+                throw new ArgumentNullException(nameof(contextGenerator));
+            }
+
             GraphCalendarEventsResponse response;
             try
             {
                 //// TODO you are here
                 response = await graphCalendarEventsContext.Evaluate(graphQuery).ConfigureAwait(false);
-                //// TODO this response now has a "serviceroot" component; do you need to leverage it here?
             }
             catch
             {
@@ -949,11 +964,13 @@
                 }
                 else
                 {
-                    return await Page(graphCalendarEventsContext, response.NextPage).ConfigureAwait(false);
+                    var nextContext = contextGenerator(response.NextPage);
+
+                    return await Page(nextContext, response.NextPage, contextGenerator).ConfigureAwait(false);
                 }
             }
 
-            return new PageQueryResult(response, 0, graphCalendarEventsContext);
+            return new PageQueryResult(response, 0, graphCalendarEventsContext, contextGenerator);
         }
     }
 }
