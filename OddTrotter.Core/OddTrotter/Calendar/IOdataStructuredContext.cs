@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using static OddTrotter.Calendar.OdataNextLink.Inners;
 
 namespace OddTrotter.Calendar
 {
@@ -736,14 +737,14 @@ namespace OddTrotter.Calendar
                     }
 
                     var providedScheme = Substring2(uri.OriginalString, 0, schemeIndex);
-                    ServiceRoot.Inners.Scheme scheme;
+                    OdataNextLink.Inners.Scheme scheme;
                     if (string.Equals(providedScheme, "https", StringComparison.OrdinalIgnoreCase))
                     {
-                        scheme = ServiceRoot.Inners.Scheme.Https.Instance;
+                        scheme = OdataNextLink.Inners.Scheme.Https.Instance;
                     }
                     else if (string.Equals(providedScheme, "http", StringComparison.OrdinalIgnoreCase))
                     {
-                        scheme = ServiceRoot.Inners.Scheme.Http.Instance;
+                        scheme = OdataNextLink.Inners.Scheme.Http.Instance;
                     }
                     else
                     {
@@ -761,16 +762,16 @@ namespace OddTrotter.Calendar
                     var portDelimiter = ":";
                     var portIndex = fullHost.IndexOf(portDelimiter, 0);
                     uint? port;
-                    ServiceRoot.Inners.Host host;
+                    OdataNextLink.Inners.Host host;
                     if (portIndex < 0)
                     {
-                        host = new ServiceRoot.Inners.Host(fullHost);
+                        host = new OdataNextLink.Inners.Host(fullHost);
                         port = null;
                     }
                     else
                     {
                         var providedHost = Substring2(fullHost, 0, portIndex);
-                        host = new ServiceRoot.Inners.Host(providedHost);
+                        host = new OdataNextLink.Inners.Host(providedHost);
 
                         var providedPort = Substring2(fullHost, portIndex + portDelimiter.Length, fullHost.Length);
                         try
@@ -783,44 +784,65 @@ namespace OddTrotter.Calendar
                         }
                     }
 
-                    //// TODO we are assuming that there are no segments in the service root; this is not a legitimate assumption overall, but it will work for graph requests
-
                     var providedRelativeUri = Substring2(uri.OriginalString, hostIndex + 1, uri.OriginalString.Length);
-                    return
-                        (
-                            new ServiceRoot(
-                                scheme,
-                                host,
-                                port,
-                                Enumerable.Empty<ServiceRoot.Inners.Segment>()),
-                            new Uri(providedRelativeUri, UriKind.Relative).ToRelativeUri()
-                        );
+                    var segments = ParseSegments(providedRelativeUri)
+                        .Select(segment => new OdataNextLink.Inners.Segment(segment));
 
-                    return 
+                    if (port == null)
+                    {
+                        return Either
+                            .Right<OdataSuccessDeserializationException>()
+                            .Left(
+                                new OdataNextLink.Absolute(
+                                    new OdataNextLink.Inners.AbsoluteNextLink.WithoutPort(
+                                        scheme,
+                                        host,
+                                        segments))
+                                .AsBase());
+                    }
+                    else
+                    {
+                        return Either
+                            .Right<OdataSuccessDeserializationException>()
+                            .Left(
+                                new OdataNextLink.Absolute(
+                                    new OdataNextLink.Inners.AbsoluteNextLink.WithPort(
+                                        scheme,
+                                        host,
+                                        port.Value,
+                                        segments))
+                                .AsBase());
+
+                    }
                 }
                 else
                 {
-                    var segmentDelimiter = "/";
-                    var segments = new List<string>();
-                    var lastIndex = 0;
-                    while (true)
-                    {
-                        var segmentIndex = uri.OriginalString.IndexOf(segmentDelimiter, lastIndex);
-                        if (segmentIndex < 0)
-                        {
-                            segments.Add(Substring2(uri.OriginalString, lastIndex, uri.OriginalString.Length));
-                            return Either
-                                .Right<OdataSuccessDeserializationException>()
-                                .Left(
-                                    new OdataNextLink.Relative(segments
-                                        .Select(segment => 
-                                            new OdataNextLink.Inners.Segment(
-                                                segment))).AsBase());
-                        }
+                    return Either
+                            .Right<OdataSuccessDeserializationException>()
+                            .Left(
+                                new OdataNextLink.Relative(ParseSegments(uri)
+                                    .Select(segment =>
+                                        new OdataNextLink.Inners.Segment(
+                                            segment))).AsBase());
+                }
+            }
 
-                        segments.Add(Substring2(uri.OriginalString, lastIndex, segmentIndex));
-                        lastIndex = segmentIndex + segmentDelimiter.Length;
+            private static IEnumerable<string> ParseSegments(string uri)
+            {
+                var segmentDelimiter = "/";
+                var segments = new List<string>();
+                var lastIndex = 0;
+                while (true)
+                {
+                    var segmentIndex = uri.IndexOf(segmentDelimiter, lastIndex);
+                    if (segmentIndex < 0)
+                    {
+                        yield return Substring2(uri, lastIndex, uri.Length);
+                        break;
                     }
+
+                    yield return Substring2(uri, lastIndex, segmentIndex);
+                    lastIndex = segmentIndex + segmentDelimiter.Length;
                 }
             }
 
