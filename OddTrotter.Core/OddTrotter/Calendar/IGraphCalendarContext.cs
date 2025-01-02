@@ -70,28 +70,17 @@
 
         public sealed class Page : GraphQuery
         {
-            internal Page(ServiceRoot? serviceRoot, RelativeUri relativeUri)
+            internal Page(OdataNextLink nextLink)
             {
-                //// TODO make serviceroot non-nullable
-                if (relativeUri == null)
+                if (nextLink == null)
                 {
-                    throw new ArgumentNullException(nameof(relativeUri));
+                    throw new ArgumentNullException(nameof(nextLink));
                 }
 
-                //// TODO make this private
-                this.ServiceRoot = serviceRoot; //// TODO should both of these actually be in the odatastructuredcontext layer?
-                this.RelativeUri = relativeUri;
+                this.NextLink = nextLink;
             }
 
-            //// TODO you should really do this, and have a lookup of the iodatastructuredcontext based on the schema + authority
-            //// internal UriScheme Schema { get; }
-
-            //// TODO you should really do this, and have a lookup of the iodatastructuredcontext based on the schema + authority
-            //// internal UriAuthority Authority { get; }
-
-            internal ServiceRoot? ServiceRoot { get; }
-
-            internal RelativeUri RelativeUri { get; }
+            internal OdataNextLink NextLink { get; }
 
             /// <inheritdoc/>
             protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
