@@ -730,6 +730,73 @@ namespace OddTrotter.Calendar
                 {
                     var schemeDelimiter = "://";
                     var schemeIndex = nextLink.IndexOf(schemeDelimiter, 0);
+                    if (schemeIndex < 0)
+                    {
+                        throw new Exception("TODO");
+                    }
+
+                    var providedScheme = Substring2(uri.OriginalString, 0, schemeIndex);
+                    ServiceRoot.Inners.Scheme scheme;
+                    if (string.Equals(providedScheme, "https", StringComparison.OrdinalIgnoreCase))
+                    {
+                        scheme = ServiceRoot.Inners.Scheme.Https.Instance;
+                    }
+                    else if (string.Equals(providedScheme, "http", StringComparison.OrdinalIgnoreCase))
+                    {
+                        scheme = ServiceRoot.Inners.Scheme.Http.Instance;
+                    }
+                    else
+                    {
+                        throw new Exception("TODO");
+                    }
+
+                    var hostDelimiter = "/";
+                    var hostIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeIndex + 1);
+                    if (hostIndex < 0)
+                    {
+                        throw new Exception("TODO");
+                    }
+
+                    var fullHost = Substring2(uri.OriginalString, schemeIndex + schemeDelimiter.Length, hostIndex);
+                    var portDelimiter = ":";
+                    var portIndex = fullHost.IndexOf(portDelimiter, 0);
+                    uint? port;
+                    ServiceRoot.Inners.Host host;
+                    if (portIndex < 0)
+                    {
+                        host = new ServiceRoot.Inners.Host(fullHost);
+                        port = null;
+                    }
+                    else
+                    {
+                        var providedHost = Substring2(fullHost, 0, portIndex);
+                        host = new ServiceRoot.Inners.Host(providedHost);
+
+                        var providedPort = Substring2(fullHost, portIndex + portDelimiter.Length, fullHost.Length);
+                        try
+                        {
+                            port = uint.Parse(providedPort);
+                        }
+                        catch
+                        {
+                            throw;
+                        }
+                    }
+
+                    //// TODO we are assuming that there are no segments in the service root; this is not a legitimate assumption overall, but it will work for graph requests
+
+                    var providedRelativeUri = Substring2(uri.OriginalString, hostIndex + 1, uri.OriginalString.Length);
+                    return
+                        (
+                            new ServiceRoot(
+                                scheme,
+                                host,
+                                port,
+                                Enumerable.Empty<ServiceRoot.Inners.Segment>()),
+                            new Uri(providedRelativeUri, UriKind.Relative).ToRelativeUri()
+                        );
+
+                    return 
                 }
                 else
                 {
@@ -750,6 +817,9 @@ namespace OddTrotter.Calendar
                                             new OdataNextLink.Inners.Segment(
                                                 segment))).AsBase());
                         }
+
+                        segments.Add(Substring2(uri.OriginalString, lastIndex, segmentIndex));
+                        lastIndex = segmentIndex + segmentDelimiter.Length;
                     }
                 }
             }
