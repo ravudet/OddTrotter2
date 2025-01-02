@@ -645,6 +645,8 @@ namespace OddTrotter.Calendar
                     throw new OdataSuccessDeserializationException("Could not deserialize the OData response payload", responseContents);
                 }
 
+                //// TODO you need to make sure you don't overpivot on the `either` stuff; for example, here the builder should just be throwing since you're not doing any looping
+                //// TODO with that in mind, do you want to surface a nextlink that may have issues in it so that the caller can at least get the values in such an event?
                 var odataCollectionResponse = odataCollectionResponseBuilder.Build(responseContents).ThrowRight();
 
                 return new OdataResponse<OdataCollectionResponse>(
@@ -713,7 +715,48 @@ namespace OddTrotter.Calendar
                         .Left(OdataNextLink.Null.Instance.AsBase());
                 }
 
+                //// TODO you need to actually find a proper combinator parsing library instead of all of this string manipulation
+                Uri uri;
+                try
+                {
+                    uri = new Uri(nextLink);
+                }
+                catch (UriFormatException uriFormatException)
+                {
+                    return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", uriFormatException, "TODO"));
+                }
 
+                if (uri.IsAbsoluteUri)
+                {
+                    var schemeDelimiter = "://";
+                    var schemeIndex = nextLink.IndexOf(schemeDelimiter, 0);
+                }
+                else
+                {
+                    var segmentDelimiter = "/";
+                    var segments = new List<string>();
+                    var lastIndex = 0;
+                    while (true)
+                    {
+                        var segmentIndex = uri.OriginalString.IndexOf(segmentDelimiter, lastIndex);
+                        if (segmentIndex < 0)
+                        {
+                            segments.Add(Substring2(uri.OriginalString, lastIndex, uri.OriginalString.Length));
+                            return Either
+                                .Right<OdataSuccessDeserializationException>()
+                                .Left(
+                                    new OdataNextLink.Relative(segments
+                                        .Select(segment => 
+                                            new OdataNextLink.Inners.Segment(
+                                                segment))).AsBase());
+                        }
+                    }
+                }
+            }
+
+            private static string Substring2(string value, int inclusiveStartIndex, int exclusiveEndIndex)
+            {
+                return value.Substring(inclusiveStartIndex, exclusiveEndIndex - inclusiveStartIndex);
             }
         }
 
