@@ -159,12 +159,17 @@ namespace OddTrotter.Calendar
             /// </summary>
             /// <param name="value"></param>
             /// <param name="nextLink"></param>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/></exception>
-            public Values(IReadOnlyList<OdataCollectionValue> value, string? nextLink)
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> or <paramref name="nextLink"/> is <see langword="null"/></exception>
+            public Values(IReadOnlyList<OdataCollectionValue> value, OdataNextLink nextLink)
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException(nameof(value));
+                }
+
+                if (nextLink == null)
+                {
+                    throw new ArgumentNullException(nameof(nextLink));
                 }
 
                 this.Value = value;
@@ -173,7 +178,7 @@ namespace OddTrotter.Calendar
 
             public IReadOnlyList<OdataCollectionValue> Value { get; }
 
-            public string? NextLink { get; }
+            public OdataNextLink NextLink { get; }
 
             //// TODO any other properties?
 
@@ -198,6 +203,12 @@ namespace OddTrotter.Calendar
 
         protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
+        public OdataNextLink AsBase()
+        {
+            //// TODO extension method?
+            return this;
+        }
+
         public abstract class Visitor<TResult, TContext>
         {
             public TResult Visit(OdataNextLink node, TContext context)
@@ -217,6 +228,11 @@ namespace OddTrotter.Calendar
             }
 
             public static Null Instance { get; } = new Null();
+
+            protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Accept(this, context);
+            }
         }
 
         public sealed class Relative : OdataNextLink
@@ -238,6 +254,11 @@ namespace OddTrotter.Calendar
             }
 
             public IEnumerable<Inners.Segment> Segments { get; }
+
+            protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Accept(this, context);
+            }
         }
 
         public sealed class Absolute : OdataNextLink
@@ -259,6 +280,11 @@ namespace OddTrotter.Calendar
             }
 
             public Inners.AbsoluteNextLink AbsoluteNextLink { get; }
+
+            protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Accept(this, context);
+            }
         }
 
         //// TODO i really don't like this name
@@ -666,14 +692,28 @@ namespace OddTrotter.Calendar
                                 $"The response payload was not a valid OData response: {string.Join(", ", invalidities)}", responseContents));
                 }
 
-                //// TODO see if you can avoid the bang
-                return Either
-                    .Right<OdataSuccessDeserializationException>()
-                    .Left(
-                        new OdataCollectionResponse.Values(
-                            this.Value!.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), //// TODO do you want to make this list lazy?
-                            this.NextLink)
-                        .AsBase());
+                //// TODO dcouemnt exceptions
+                var odataNextLink = Parse(this.NextLink);
+
+                //// TODO document exceptions
+                return odataNextLink.SelectLeft(left => 
+                    new OdataCollectionResponse.Values(
+                        //// TODO see if you can avoid the bang
+                        this.Value!.Select(jsonNode => new OdataCollectionValue.Json(jsonNode)).ToList(), //// TODO do you want to make this list lazy?
+                        left)
+                    .AsBase());
+            }
+
+            private static Either<OdataNextLink, OdataSuccessDeserializationException> Parse(string? nextLink)
+            {
+                if (nextLink == null)
+                {
+                    return Either
+                        .Right<OdataSuccessDeserializationException>()
+                        .Left(OdataNextLink.Null.Instance.AsBase());
+                }
+
+
             }
         }
 
@@ -702,7 +742,7 @@ namespace OddTrotter.Calendar
                         .Left<OdataErrorResponse>()
                         .Right(
                             new OdataErrorDeserializationException(
-                                $"The error response was not a valid OData response: {string.Join(", ", invalidities)}", 
+                                $"The error response was not a valid OData response: {string.Join(", ", invalidities)}",
                                 responseContents));
                 }
 
