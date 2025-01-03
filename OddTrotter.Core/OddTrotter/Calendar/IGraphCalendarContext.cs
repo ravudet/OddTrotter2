@@ -394,6 +394,7 @@
                     .ResponseContent
                     .VisitSelect(
                 //// TODO you are here
+                //// you have finished getpagevisitor.visit; you are working on a new portion in iodatastructuredcontext odatanextlink = parse(this.nextlink);
                 //// TODO you skipped documenting the getcolleciton call above
                         left => this.getPageVisitor.Visit(left, default),
                         right => new Exception("TODO"))

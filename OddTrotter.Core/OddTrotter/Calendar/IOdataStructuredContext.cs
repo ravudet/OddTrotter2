@@ -939,6 +939,7 @@ namespace OddTrotter.Calendar
                                 $"The response payload was not a valid OData response: {string.Join(", ", invalidities)}", responseContents));
                 }
 
+                //// TODO you are here
                 //// TODO dcouemnt exceptions
                 var odataNextLink = Parse(this.NextLink);
 
@@ -952,6 +953,7 @@ namespace OddTrotter.Calendar
 
             private static Either<OdataNextLink, OdataSuccessDeserializationException> Parse(string? nextLink)
             {
+                //// TODO you are here
                 if (nextLink == null)
                 {
                     return Either
