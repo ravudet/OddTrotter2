@@ -15,6 +15,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using static OddTrotter.Calendar.OdataNextLink.Inners;
+using static OddTrotter.Calendar.OdataNextLink.Inners.AbsoluteNextLink;
 
 namespace OddTrotter.Calendar
 {
@@ -207,7 +208,72 @@ namespace OddTrotter.Calendar
 
         internal RelativeUri GetUri(OdataNextLink.Absolute odataNextLink)
         {
-            
+            return this.absoluteUri.MakeRelativeUri(odataNextLink.ToAbsoluteUri()).ToRelativeUri();
+        }
+    }
+
+    public static class OdataNextLinkExtensions
+    {
+        public static AbsoluteUri ToAbsoluteUri(this OdataNextLink.Absolute odataNextLink)
+        {
+            var uri = InnerTranscriber.Instance.Visit(odataNextLink.AbsoluteNextLink, default);
+            return new Uri(uri, UriKind.Absolute).ToAbsoluteUri();
+        }
+
+        private sealed class InnerTranscriber : OdataNextLink.Inners.AbsoluteNextLink.Visitor<string, Void>
+        {
+            private InnerTranscriber()
+            {
+            }
+
+            public static InnerTranscriber Instance { get; } = new InnerTranscriber();
+
+            protected internal override string Accept(AbsoluteNextLink.WithPort node, Void context)
+            {
+                var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
+                var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
+                return $"{scheme}://{node.Host.Value}:{node.Port}/{segments}";
+            }
+
+            protected internal override string Accept(AbsoluteNextLink.WithoutPort node, Void context)
+            {
+                var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
+                var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
+                return $"{scheme}://{node.Host.Value}/{segments}";
+            }
+
+            private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<string, Void>
+            {
+                private SchemeTranscriber()
+                {
+                }
+
+                public static SchemeTranscriber Instance { get; } = new SchemeTranscriber();
+
+                protected internal override string Accept(Scheme.Https node, Void context)
+                {
+                    return "https";
+                }
+
+                protected internal override string Accept(Scheme.Http node, Void context)
+                {
+                    return "http";
+                }
+            }
+
+            private sealed class SegmentsTranscriber
+            {
+                private SegmentsTranscriber()
+                {
+                }
+
+                public static SegmentsTranscriber Instance { get; } = new SegmentsTranscriber();
+
+                public string Transcribe(IEnumerable<OdataNextLink.Inners.Segment> segments)
+                {
+                    return string.Join("/", segments.Select(segment => segment.Value));
+                }
+            }
         }
     }
 
@@ -336,6 +402,19 @@ namespace OddTrotter.Calendar
                 {
                 }
 
+                protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+                public abstract class Visitor<TResult, TContext>
+                {
+                    public TResult Visit(AbsoluteNextLink node, TContext context)
+                    {
+                        return node.Dispatch(this, context);
+                    }
+
+                    protected internal abstract TResult Accept(WithPort node, TContext context);
+                    protected internal abstract TResult Accept(WithoutPort node, TContext context);
+                }
+
                 public sealed class WithPort : AbsoluteNextLink
                 {
                     public WithPort(Inners.Scheme scheme, Inners.Host host, uint port, IEnumerable<Segment> segments)
@@ -350,6 +429,11 @@ namespace OddTrotter.Calendar
                     public Host Host { get; }
                     public uint Port { get; }
                     public IEnumerable<Segment> Segments { get; }
+
+                    protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+                    {
+                        return visitor.Accept(this, context);
+                    }
                 }
 
                 public sealed class WithoutPort : AbsoluteNextLink
@@ -364,6 +448,11 @@ namespace OddTrotter.Calendar
                     public Scheme Scheme { get; }
                     public Host Host { get; }
                     public IEnumerable<Segment> Segments { get; }
+
+                    protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+                    {
+                        return visitor.Accept(this, context);
+                    }
                 }
             }
 
@@ -373,6 +462,19 @@ namespace OddTrotter.Calendar
                 {
                 }
 
+                protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+                public abstract class Visitor<TResult, TContext>
+                {
+                    public TResult Visit(Scheme node, TContext context)
+                    {
+                        return node.Dispatch(this, context);
+                    }
+
+                    protected internal abstract TResult Accept(Https node, TContext context);
+                    protected internal abstract TResult Accept(Http node, TContext context);
+                }
+
                 public sealed class Https : Scheme
                 {
                     private Https()
@@ -380,6 +482,11 @@ namespace OddTrotter.Calendar
                     }
 
                     public static Https Instance { get; } = new Https();
+
+                    protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+                    {
+                        return visitor.Accept(this, context);
+                    }
                 }
 
                 public sealed class Http : Scheme
@@ -389,6 +496,11 @@ namespace OddTrotter.Calendar
                     }
 
                     public static Http Instance { get; } = new Http();
+
+                    protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+                    {
+                        return visitor.Accept(this, context);
+                    }
                 }
             }
 
