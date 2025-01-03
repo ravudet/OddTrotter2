@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.V2;
+    using System.Net;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading;
@@ -281,15 +282,19 @@
         public string RawEventContents { get; }
     }
 
-    public sealed class InvalidNextLinkException : Exception
+    public sealed class GraphProcessingException : Exception
     {
-        public InvalidNextLinkException(string message, Exception innerException, string rawNextLink)
-            : base(message, innerException)
+        public GraphProcessingException(HttpStatusCode httpStatusCode, IEnumerable<HttpHeader> headers, OdataErrorResponse odataErrorResponse, string message)
+            : base(message)
         {
-            this.rawNextLink = rawNextLink;
+            this.HttpStatusCode = httpStatusCode;
+            this.Headers = headers;
+            this.OdataErrorResponse = odataErrorResponse;
         }
 
-        public string rawNextLink { get; }
+        public HttpStatusCode HttpStatusCode { get; }
+        public IEnumerable<HttpHeader> Headers { get; }
+        public OdataErrorResponse OdataErrorResponse { get; }
     }
 
     public sealed class GraphCalendarEventsContext : IGraphCalendarEventsContext
@@ -381,6 +386,7 @@
             /// <exception cref="OdataErrorDeserializationException">Thrown if an error occurred while deserializing the OData error response</exception>
             /// <exception cref="OdataSuccessDeserializationException">Thrown if an error occurred while deserializing the OData success response</exception>
             /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
+            /// <exception cref="GraphProcessingException">Thrown if graph encountered an error processing the request</exception>
             private async Task<GraphCalendarEventsResponse> GetPage(RelativeUri url)
             {
                 if (url == null)
@@ -395,8 +401,11 @@
                     .ResponseContent
                     .VisitSelect(
                         left => this.getPageVisitor.Visit(left, default),
-                        //// TODO you are here
-                        right => new Exception("TODO"))
+                        right => new GraphProcessingException(
+                            odataCollectionResponse.HttpStatusCode,
+                            odataCollectionResponse.Headers,
+                            right,
+                            $"An error occurred in graph while processing the request to '{url.OriginalString}'."))
                     .ThrowRight();
             }
 
@@ -418,7 +427,6 @@
                 public static GetPageVisitor Instance { get; } = new GetPageVisitor();
 
                 /// <inheritdoc/>
-                /// <exception cref="InvalidNextLinkException">Thrown if the response contains a "@odata.nextLink" that is not a valid URI</exception>
                 public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Void context)
                 {
                     if (node == null)
