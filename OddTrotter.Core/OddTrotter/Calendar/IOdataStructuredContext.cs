@@ -55,7 +55,7 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"/></exception>
         /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout, or the server responded with a payload that was not valid HTTP</exception> //// TODO this part about the invalid HTTP needs to be added to all of your xmldoc where you get an httprequestexception from httpclient
         /// <exception cref="OdataErrorDeserializationException">Thrown if an error occurred while deserializing the OData error response</exception>
         /// <exception cref="OdataSuccessDeserializationException">Thrown if an error occurred while deserializing the OData success response</exception>

@@ -30,6 +30,19 @@
         public string AccessToken { get; }
     }
 
+    public sealed class UnauthorizedAccessTokenException : Exception
+    {
+        public UnauthorizedAccessTokenException(string url, string accessToken, string message)
+            : base(message)
+        {
+            Url = url;
+            AccessToken = accessToken;
+        }
+
+        public string Url { get; }
+
+        public string AccessToken { get; }
+    }
 
     public sealed class GraphOdataStructuredContext : IGraphOdataStructuredContext
     {
@@ -87,7 +100,10 @@
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="request"/> is <see langword="null"/></exception>
-        /// <exception cref="GraphClient.UnauthorizedAccessTokenException"></exception>
+        /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout, or the server responded with a payload that was not valid HTTP</exception> //// TODO this part about the invalid HTTP needs to be added to all of your xmldoc where you get an httprequestexception from httpclient
+        /// <exception cref="OdataErrorDeserializationException">Thrown if an error occurred while deserializing the OData error response</exception>
+        /// <exception cref="OdataSuccessDeserializationException">Thrown if an error occurred while deserializing the OData success response</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
         public async Task<OdataResponse<OdataCollectionResponse>> GetCollection(OdataGetCollectionRequest request)
         {
             if (request == null)
@@ -95,7 +111,6 @@
                 throw new ArgumentNullException(nameof(request));
             }
 
-            //// TODO you are here
             var authorizedRequest = new OdataGetCollectionRequest(
                 request.RelativeUri,
                 request
@@ -107,6 +122,7 @@
 
             if (response.HttpStatusCode == System.Net.HttpStatusCode.Unauthorized || response.HttpStatusCode == System.Net.HttpStatusCode.Forbidden)
             {
+                //// TODO you are here
                 throw new GraphClient.UnauthorizedAccessTokenException(
                     request.RelativeUri.OriginalString,
                     this.accessToken,
