@@ -1024,7 +1024,7 @@ namespace OddTrotter.Calendar
                     }
 
                     var hostDelimiter = "/";
-                    var hostDelimiterIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeDelimiterIndex + 1); // we know it's a valid URI, so if there was a scheme, there must be a host
+                    var hostDelimiterIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeDelimiterIndex + schemeDelimiter.Length); // we know it's a valid URI, so if there was a scheme, there must be a host
                     if (hostDelimiterIndex < 0)
                     {
                         return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
@@ -1064,7 +1064,13 @@ namespace OddTrotter.Calendar
                     }
 
                     //// TODO you are here
-                    var providedRelativeUri = Substring2(uri.OriginalString, hostDelimiterIndex + 1, uri.OriginalString.Length);
+                    var segmentsStartIndex = hostDelimiterIndex + hostDelimiter.Length;
+                    if (segmentsStartIndex == uri.OriginalString.Length)
+                    {
+                        //// TODO there are no segments
+                    }
+
+                    var providedRelativeUri = Substring2(uri.OriginalString, segmentsStartIndex, uri.OriginalString.Length);
                     var segments = ParseSegments(providedRelativeUri)
                         .Select(segment => new OdataNextLink.Inners.Segment(segment));
 
