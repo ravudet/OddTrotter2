@@ -237,7 +237,7 @@
     {
         public GraphCalendarEventsResponse(
             IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> events,
-            GraphQuery.Page? nextPage)
+            OdataNextLink nextPage)
         {
             this.Events = events;
             this.NextPage = nextPage;
@@ -416,126 +416,8 @@
                                     default))
                         .ToList(); //// TODO do you want this to be lazy?
 
-                    GraphQuery.Page? nextPage = null;
-                    if (node.NextLink != null)
-                    {
-                        Uri nextLink;
-                        try
-                        {
-                            nextLink = new Uri(node.NextLink);
-                        }
-                        catch (UriFormatException uriFormatException)
-                        {
-                            throw new InvalidNextLinkException("Graph responded with a '@odata.nextLink' that is not a valid URI.", uriFormatException, node.NextLink);
-                        }
-
-                        ServiceRoot? serviceRoot = null;
-                        RelativeUri relativeUri;
-                        if (nextLink.IsAbsoluteUri)
-                        {
-                            //// TODO you are here
-                            (serviceRoot, relativeUri) = Parse(nextLink.ToAbsoluteUri());
-                        }
-                        else
-                        {
-                            relativeUri = nextLink.ToRelativeUri();
-                        }
-
-                        nextPage = new GraphQuery.Page(serviceRoot, relativeUri);
-                    }
-
-                    return new GraphCalendarEventsResponse(graphCalendarEvents, nextPage);
-                }
-
-                /// <summary>
-                /// 
-                /// </summary>
-                /// <param name="absoluteUri"></param>
-                /// <returns></returns>
-                /// <exception cref="ArgumentNullException">Thrown if <paramref name="absoluteUri"/> is <see langword="null"/></exception>
-                private static (ServiceRoot ServiceRoot, RelativeUri RelativeUri) Parse(AbsoluteUri absoluteUri)
-                {
-                    if (absoluteUri == null)
-                    {
-                        throw new ArgumentNullException(nameof(absoluteUri));
-                    }
-
                     //// TODO you are here
-                    //// TODO you are currently adding this as odatanextlink in the iodatastructuredcontext
-                    //// TODO shouldn't this be in the odata layer somewhere?
-                    //// TODO you should probably do a proper parsing instead of all of this string manipulation
-                    var schemeDelimiter = "://";
-                    var schemeIndex = absoluteUri.OriginalString.IndexOf(schemeDelimiter, 0);
-                    if (schemeIndex < 0)
-                    {
-                        throw new Exception("TODO");
-                    }
-
-                    var providedScheme = Substring2(absoluteUri.OriginalString, 0, schemeIndex);
-                    ServiceRoot.Inners.Scheme scheme;
-                    if (string.Equals(providedScheme, "https", StringComparison.OrdinalIgnoreCase))
-                    {
-                        scheme = ServiceRoot.Inners.Scheme.Https.Instance;
-                    }
-                    else if (string.Equals(providedScheme, "http", StringComparison.OrdinalIgnoreCase))
-                    {
-                        scheme = ServiceRoot.Inners.Scheme.Http.Instance;
-                    }
-                    else
-                    {
-                        throw new Exception("TODO");
-                    }
-
-                    var hostDelimiter = "/";
-                    var hostIndex = absoluteUri.OriginalString.IndexOf(hostDelimiter, schemeIndex + 1);
-                    if (hostIndex < 0)
-                    {
-                        throw new Exception("TODO");
-                    }
-
-                    var fullHost = Substring2(absoluteUri.OriginalString, schemeIndex + schemeDelimiter.Length, hostIndex);
-                    var portDelimiter = ":";
-                    var portIndex = fullHost.IndexOf(portDelimiter, 0);
-                    uint? port;
-                    ServiceRoot.Inners.Host host;
-                    if (portIndex < 0)
-                    {
-                        host = new ServiceRoot.Inners.Host(fullHost);
-                        port = null;
-                    }
-                    else
-                    {
-                        var providedHost = Substring2(fullHost, 0, portIndex);
-                        host = new ServiceRoot.Inners.Host(providedHost);
-
-                        var providedPort = Substring2(fullHost, portIndex + portDelimiter.Length, fullHost.Length);
-                        try
-                        {
-                            port = uint.Parse(providedPort);
-                        }
-                        catch
-                        {
-                            throw;
-                        }
-                    }
-
-                    //// TODO we are assuming that there are no segments in the service root; this is not a legitimate assumption overall, but it will work for graph requests
-
-                    var providedRelativeUri = Substring2(absoluteUri.OriginalString, hostIndex + 1, absoluteUri.OriginalString.Length);
-                    return
-                        (
-                            new ServiceRoot(
-                                scheme,
-                                host,
-                                port,
-                                Enumerable.Empty<ServiceRoot.Inners.Segment>()),
-                            new Uri(providedRelativeUri, UriKind.Relative).ToRelativeUri()
-                        );
-                }
-
-                private static string Substring2(string value, int inclusiveStartIndex, int exclusiveEndIndex)
-                {
-                    return value.Substring(inclusiveStartIndex, exclusiveEndIndex - inclusiveStartIndex);
+                    return new GraphCalendarEventsResponse(graphCalendarEvents, node.NextLink);
                 }
 
                 private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, Void>
