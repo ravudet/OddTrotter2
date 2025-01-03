@@ -789,20 +789,18 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataCalendarEventsContext : IOdataStructuredContext
     {
-        private readonly AbsoluteUri rootUri;
-
         private readonly IHttpClient httpClient;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="httpClient"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="rootUri"/> or <paramref name="httpClient"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="serviceRoot"/> or <paramref name="httpClient"/> is <see langword="null"/></exception>
         public OdataCalendarEventsContext(OdataServiceRoot serviceRoot, IHttpClient httpClient)
         {
-            if (rootUri == null)
+            if (serviceRoot == null)
             {
-                throw new ArgumentNullException(nameof(rootUri));
+                throw new ArgumentNullException(nameof(serviceRoot));
             }
 
             if (httpClient == null)
@@ -823,7 +821,7 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         private AbsoluteUri CreateRequestUri(RelativeUri relativeUri)
         {
-            return new Uri(this.rootUri, relativeUri).ToAbsoluteUri();
+            return new Uri(this.ServiceRoot.ToAbsoluteUri(), relativeUri).ToAbsoluteUri();
         }
 
         /// <summary>
