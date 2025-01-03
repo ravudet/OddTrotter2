@@ -997,13 +997,13 @@ namespace OddTrotter.Calendar
                     }
 
                     var hostDelimiter = "/";
-                    //// TODO you are here
-                    var hostIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeIndex + 1);
+                    var hostIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeIndex + 1); // we know it's a valid URI, so if there was a scheme, there must be a host
                     if (hostIndex < 0)
                     {
                         return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
+                    //// TODO you are here
                     var fullHost = Substring2(uri.OriginalString, schemeIndex + schemeDelimiter.Length, hostIndex);
                     var portDelimiter = ":";
                     var portIndex = fullHost.IndexOf(portDelimiter, 0);

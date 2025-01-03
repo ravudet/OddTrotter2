@@ -295,6 +295,12 @@
         }*/
 
         [TestMethod]
+        public void FOo()
+        {
+            new Uri("https://");
+        }
+
+        [TestMethod]
         public void QueryResult()
         {
             var items = new[] { "asdf", "qwer", "1234", "zxcv" };
