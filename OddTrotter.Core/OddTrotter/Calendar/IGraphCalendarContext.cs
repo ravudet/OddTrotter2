@@ -5,11 +5,10 @@
     using System.Linq;
     using System.Linq.V2;
     using System.Net;
+    using System.Net.Http;
     using System.Text.Json;
     using System.Text.Json.Serialization;
-    using System.Threading;
     using System.Threading.Tasks;
-    using System.Xml.Serialization;
 
     public abstract class GraphQuery //// TODO graphrequest?
     {
@@ -26,7 +25,7 @@
         /// <param name="context"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
-        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="AsyncVisitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="AsyncVisitor{TResult, TContext}.DispatchAsync"/> overloads can throw</exception> //// TODO is this good?
         protected abstract Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context);
 
         public abstract class AsyncVisitor<TResult, TContext>
@@ -38,8 +37,8 @@
             /// <param name="context"></param>
             /// <returns></returns>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
-            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can throw</exception> //// TODO is this good?
-            public async Task<TResult> Visit(GraphQuery node, TContext context)
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="DispatchAsync"/> overloads can throw</exception> //// TODO is this good?
+            public async Task<TResult> VisitAsync(GraphQuery node, TContext context)
             {
                 if (node == null)
                 {
@@ -57,7 +56,7 @@
             /// <returns></returns>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
             /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
-            public abstract Task<TResult> Dispatch(GraphQuery.Page node, TContext context);
+            public abstract Task<TResult> DispatchAsync(GraphQuery.Page node, TContext context);
 
             /// <summary>
             /// 
@@ -67,7 +66,7 @@
             /// <returns></returns>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
             /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
-            internal abstract Task<TResult> Dispatch(GraphQuery.GetEvents node, TContext context);
+            internal abstract Task<TResult> DispatchAsync(GraphQuery.GetEvents node, TContext context);
         }
 
         public sealed class Page : GraphQuery
@@ -92,7 +91,7 @@
                     throw new ArgumentNullException(nameof(visitor));
                 }
 
-                return await visitor.Dispatch(this, context).ConfigureAwait(false);
+                return await visitor.DispatchAsync(this, context).ConfigureAwait(false);
             }
         }
 
@@ -123,7 +122,7 @@
                     throw new ArgumentNullException(nameof(visitor));
                 }
 
-                return await visitor.Dispatch(this, context).ConfigureAwait(false);
+                return await visitor.DispatchAsync(this, context).ConfigureAwait(false);
             }
         }
     }
@@ -327,7 +326,7 @@
         public async Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery)
         {
             //// TODO you are here
-            return await this.evaluateVisitor.Visit(graphQuery, default).ConfigureAwait(false);
+            return await this.evaluateVisitor.VisitAsync(graphQuery, default).ConfigureAwait(false);
         }
 
         private sealed class EvaluateVisitor : GraphQuery.AsyncVisitor<GraphCalendarEventsResponse, Void>
@@ -352,14 +351,8 @@
                 this.getPageVisitor = GetPageVisitor.Instance;
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="node"></param>
-            /// <param name="context"></param>
-            /// <returns></returns>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
-            public sealed override async Task<GraphCalendarEventsResponse> Dispatch(GraphQuery.Page node, Void context)
+            /// <inheritdoc/>
+            public sealed override async Task<GraphCalendarEventsResponse> DispatchAsync(GraphQuery.Page node, Void context)
             {
                 if (node == null)
                 {
@@ -370,9 +363,15 @@
                 return await this.GetPage(node.RelativeUri).ConfigureAwait(false);
             }
 
-            internal sealed override async Task<GraphCalendarEventsResponse> Dispatch(GraphQuery.GetEvents node, Void context)
+            /// <inheritdoc/>
+            internal sealed override async Task<GraphCalendarEventsResponse> DispatchAsync(GraphQuery.GetEvents node, Void context)
             {
                 //// TODO you are here
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
                 return await this.GetPage(node.RelativeUri).ConfigureAwait(false);
             }
 
