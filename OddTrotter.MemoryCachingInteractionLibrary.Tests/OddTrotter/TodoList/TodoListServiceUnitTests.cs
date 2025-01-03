@@ -299,6 +299,7 @@
         {
             ////new Uri("https://");
             new Uri("https://a:");
+            new Uri("https://:");
         }
 
         [TestMethod]

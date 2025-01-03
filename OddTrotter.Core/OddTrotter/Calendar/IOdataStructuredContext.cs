@@ -1002,13 +1002,13 @@ namespace OddTrotter.Calendar
                 if (uri.IsAbsoluteUri)
                 {
                     var schemeDelimiter = "://";
-                    var schemeIndex = nextLink.IndexOf(schemeDelimiter, 0);
-                    if (schemeIndex < 0)
+                    var schemeDelimiterIndex = nextLink.IndexOf(schemeDelimiter, 0);
+                    if (schemeDelimiterIndex < 0)
                     {
                         return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
-                    var providedScheme = Substring2(uri.OriginalString, 0, schemeIndex); // we know that it's a valid URI, so if the scheme delimiter is present, there must be a scheme
+                    var providedScheme = Substring2(uri.OriginalString, 0, schemeDelimiterIndex); // we know that it's a valid URI, so if the scheme delimiter is present, there must be a scheme
                     OdataNextLink.Inners.Scheme scheme;
                     if (string.Equals(providedScheme, "https", StringComparison.OrdinalIgnoreCase))
                     {
@@ -1024,30 +1024,36 @@ namespace OddTrotter.Calendar
                     }
 
                     var hostDelimiter = "/";
-                    var hostIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeIndex + 1); // we know it's a valid URI, so if there was a scheme, there must be a host
-                    if (hostIndex < 0)
+                    var hostDelimiterIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeDelimiterIndex + 1); // we know it's a valid URI, so if there was a scheme, there must be a host
+                    if (hostDelimiterIndex < 0)
                     {
                         return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
-                    var fullHost = Substring2(uri.OriginalString, schemeIndex + schemeDelimiter.Length, hostIndex); // we know it's a valid URI, so if there was a scheme, there must be a host
+                    var fullHost = Substring2(uri.OriginalString, schemeDelimiterIndex + schemeDelimiter.Length, hostDelimiterIndex); // we know it's a valid URI, so if there was a scheme, there must be a host
                     var portDelimiter = ":";
-                    var portIndex = fullHost.IndexOf(portDelimiter, 0);
+                    var portDelimiterIndex = fullHost.IndexOf(portDelimiter, 0);
                     uint? port;
                     OdataNextLink.Inners.Host host;
-                    if (portIndex < 0)
+                    if (portDelimiterIndex < 0)
                     {
                         host = new OdataNextLink.Inners.Host(fullHost);
                         port = null;
                     }
                     else
                     {
-                        //// TODO you are here
-                        //// TODO the port delimiter can be present but not a port
-                        var providedHost = Substring2(fullHost, 0, portIndex);
+                        var providedHost = Substring2(fullHost, 0, portDelimiterIndex); // we know it's a valid URI, so if there's a port delimiter, there must be a host
                         host = new OdataNextLink.Inners.Host(providedHost);
 
-                        var providedPort = Substring2(fullHost, portIndex + portDelimiter.Length, fullHost.Length);
+                        var portStartIndex = portDelimiterIndex + portDelimiter.Length;
+                        if (portStartIndex == fullHost.Length)
+                        {
+                            // it's legal for a URI to have a port delimiter without a port
+                            return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
+                        }
+
+                        //// TODO you are here
+                        var providedPort = Substring2(fullHost, portStartIndex, fullHost.Length);
                         try
                         {
                             port = uint.Parse(providedPort);
@@ -1058,7 +1064,7 @@ namespace OddTrotter.Calendar
                         }
                     }
 
-                    var providedRelativeUri = Substring2(uri.OriginalString, hostIndex + 1, uri.OriginalString.Length);
+                    var providedRelativeUri = Substring2(uri.OriginalString, hostDelimiterIndex + 1, uri.OriginalString.Length);
                     var segments = ParseSegments(providedRelativeUri)
                         .Select(segment => new OdataNextLink.Inners.Segment(segment));
 
@@ -1108,15 +1114,15 @@ namespace OddTrotter.Calendar
                 var lastIndex = 0;
                 while (true)
                 {
-                    var segmentIndex = uri.IndexOf(segmentDelimiter, lastIndex);
-                    if (segmentIndex < 0)
+                    var segmentDelimiterIndex = uri.IndexOf(segmentDelimiter, lastIndex);
+                    if (segmentDelimiterIndex < 0)
                     {
                         yield return Substring2(uri, lastIndex, uri.Length);
                         break;
                     }
 
-                    yield return Substring2(uri, lastIndex, segmentIndex);
-                    lastIndex = segmentIndex + segmentDelimiter.Length;
+                    yield return Substring2(uri, lastIndex, segmentDelimiterIndex);
+                    lastIndex = segmentDelimiterIndex + segmentDelimiter.Length;
                 }
             }
 
