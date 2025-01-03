@@ -1003,9 +1003,9 @@ namespace OddTrotter.Calendar
                         return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
-                    //// TODO you are here
-                    var fullHost = Substring2(uri.OriginalString, schemeIndex + schemeDelimiter.Length, hostIndex);
+                    var fullHost = Substring2(uri.OriginalString, schemeIndex + schemeDelimiter.Length, hostIndex); // we know it's a valid URI, so if there was a scheme, there must be a host
                     var portDelimiter = ":";
+                    //// TODO you are here
                     var portIndex = fullHost.IndexOf(portDelimiter, 0);
                     uint? port;
                     OdataNextLink.Inners.Host host;
