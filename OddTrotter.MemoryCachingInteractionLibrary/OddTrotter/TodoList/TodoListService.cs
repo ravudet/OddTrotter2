@@ -274,8 +274,13 @@
             //// TODO write tests for todolistservice that confirm the URLs
             var odataClient = new GraphClientToOdataClient(this.graphClient);
             var odataCalendarEventsContext = new OdataCalendarEventsContext(
-                new OdataServiceRoot
-                new Uri("https://graph.microsoft.com/v1.0/", UriKind.Absolute).ToAbsoluteUri(), //// TODO get from this.graphclient
+                new OdataServiceRoot.WithoutPort(
+                    OdataNextLink.Inners.Scheme.Https.Instance,
+                    new OdataNextLink.Inners.Host("graph.microsoft.com"),
+                    new[]
+                    {
+                        new OdataNextLink.Inners.Segment("v1.0"),
+                    }), //// TODO get from this.graphclient
                 odataClient);
             var graphOdataStructuredContext = new GraphOdataStructuredContext(odataCalendarEventsContext, "TODO get from this.graphclient");
             var graphCalendarEventsContext = new GraphCalendarEventsContext(graphOdataStructuredContext);
