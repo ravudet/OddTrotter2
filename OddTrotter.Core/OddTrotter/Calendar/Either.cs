@@ -353,8 +353,31 @@ namespace OddTrotter.Calendar
             return either.Visit(left => left, right => throw right);
         }
 
-        public static Either<TLeftNew, TRight> SelectLeft<TLeftOld, TRight, TLeftNew>(this Either<TLeftOld, TRight> either, Func<TLeftOld, TLeftNew> selector)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeftOld"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TLeftNew"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="selector"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="selector"/> can throw</exception> //// TODO is this good?
+        public static Either<TLeftNew, TRight> SelectLeft<TLeftOld, TRight, TLeftNew>(
+            this Either<TLeftOld, TRight> either, 
+            Func<TLeftOld, TLeftNew> selector)
         {
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
+
             return either.VisitSelect(selector, _ => _);
         }
 

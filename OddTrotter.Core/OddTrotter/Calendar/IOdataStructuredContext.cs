@@ -942,7 +942,6 @@ namespace OddTrotter.Calendar
                 //// TODO dcouemnt exceptions
                 var odataNextLink = Parse(this.NextLink);
 
-                //// TODO document exceptions
                 return odataNextLink.SelectLeft(left => 
                     new OdataCollectionResponse.Values(
                         //// TODO see if you can avoid the bang
@@ -977,7 +976,7 @@ namespace OddTrotter.Calendar
                     var schemeIndex = nextLink.IndexOf(schemeDelimiter, 0);
                     if (schemeIndex < 0)
                     {
-                        throw new Exception("TODO");
+                        return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
                     var providedScheme = Substring2(uri.OriginalString, 0, schemeIndex);
@@ -992,14 +991,14 @@ namespace OddTrotter.Calendar
                     }
                     else
                     {
-                        throw new Exception("TODO");
+                        return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
                     var hostDelimiter = "/";
                     var hostIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeIndex + 1);
                     if (hostIndex < 0)
                     {
-                        throw new Exception("TODO");
+                        return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
                     var fullHost = Substring2(uri.OriginalString, schemeIndex + schemeDelimiter.Length, hostIndex);
@@ -1024,7 +1023,7 @@ namespace OddTrotter.Calendar
                         }
                         catch
                         {
-                            throw;
+                            return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO")); //// TODO preserve exception
                         }
                     }
 
