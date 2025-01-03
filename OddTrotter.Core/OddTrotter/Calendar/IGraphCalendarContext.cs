@@ -235,10 +235,26 @@
 
     public sealed class GraphCalendarEventsResponse
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="events"></param>
+        /// <param name="nextPage"></param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="events"/> or <paramref name="nextPage"/> is <see langword="null"/></exception>
         public GraphCalendarEventsResponse(
             IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> events,
             OdataNextLink nextPage)
         {
+            if (events == null)
+            {
+                throw new ArgumentNullException(nameof(events));
+            }
+
+            if (nextPage == null)
+            {
+                throw new ArgumentNullException(nameof(nextPage));
+            }
+
             this.Events = events;
             this.NextPage = nextPage;
         }
@@ -416,7 +432,6 @@
                                     default))
                         .ToList(); //// TODO do you want this to be lazy?
 
-                    //// TODO you are here
                     return new GraphCalendarEventsResponse(graphCalendarEvents, node.NextLink);
                 }
 
