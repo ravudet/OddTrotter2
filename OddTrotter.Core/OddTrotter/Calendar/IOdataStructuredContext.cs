@@ -413,6 +413,10 @@ namespace OddTrotter.Calendar
 
         protected abstract Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public OdataNextLink AsBase()
         {
             //// TODO extension method?
@@ -463,6 +467,9 @@ namespace OddTrotter.Calendar
                 this.Segments = segments;
             }
 
+            /// <summary>
+            /// NOTE: may contain segments that are <see cref="string.Empty"/>
+            /// </summary>
             public IEnumerable<Inners.Segment> Segments { get; }
 
             protected sealed override async Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
@@ -502,25 +509,39 @@ namespace OddTrotter.Calendar
         {
             public sealed class Segment
             {
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="value"></param>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/></exception>
+                /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not a valid URI segment</exception>
                 internal Segment(string value)
                 {
+                    if (value == null)
+                    {
+                        throw new ArgumentNullException(nameof(value));
+                    }
+
                     if (value.Contains("/") || value.Contains("?") || value.Contains("#"))
                     {
-                        throw new ArgumentException("TODO");
+                        throw new ArgumentException($"'{nameof(value)}' is not a valid URI segment. The provided was value '{value}'.");
                     }
 
                     try
                     {
                         new Uri(value);
                     }
-                    catch
+                    catch (UriFormatException uriFormatException)
                     {
-                        throw;
+                        throw new ArgumentException($"'{nameof(value)}' is not a valid URI segment. The provided was value '{value}'.", uriFormatException);
                     }
 
                     Value = value;
                 }
 
+                /// <summary>
+                /// NOTE: may be <see cref="string.Empty"/> if it represents the "segment" between two contiguous '/' characters
+                /// </summary>
                 internal string Value { get; }
             }
 
@@ -545,8 +566,31 @@ namespace OddTrotter.Calendar
 
                 public sealed class WithPort : AbsoluteNextLink
                 {
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="scheme"></param>
+                    /// <param name="host"></param>
+                    /// <param name="port"></param>
+                    /// <param name="segments"></param>
+                    /// <exception cref="ArgumentNullException">Thrown if <paramref name="scheme"/> or <paramref name="host"/> or <paramref name="segments"/> is <see langword="null"/></exception>
                     public WithPort(Inners.Scheme scheme, Inners.Host host, uint port, IEnumerable<Segment> segments)
                     {
+                        if (scheme == null)
+                        {
+                            throw new ArgumentNullException(nameof(scheme));
+                        }
+
+                        if (host == null)
+                        {
+                            throw new ArgumentNullException(nameof(host));
+                        }
+
+                        if (segments == null)
+                        {
+                            throw new ArgumentNullException(nameof(segments));
+                        }
+
                         this.Scheme = scheme;
                         this.Host = host;
                         this.Port = port;
@@ -556,6 +600,10 @@ namespace OddTrotter.Calendar
                     public Scheme Scheme { get; }
                     public Host Host { get; }
                     public uint Port { get; }
+
+                    /// <summary>
+                    /// NOTE: may contain segments that are <see cref="string.Empty"/>
+                    /// </summary>
                     public IEnumerable<Segment> Segments { get; }
 
                     protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
@@ -566,8 +614,30 @@ namespace OddTrotter.Calendar
 
                 public sealed class WithoutPort : AbsoluteNextLink
                 {
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="scheme"></param>
+                    /// <param name="host"></param>
+                    /// <param name="segments"></param>
+                    /// <exception cref="ArgumentNullException">Thrown if <paramref name="scheme"/> or <paramref name="host"/> or <paramref name="segments"/> is <see langword="null"/></exception>
                     public WithoutPort(Inners.Scheme scheme, Inners.Host host, IEnumerable<Segment> segments)
                     {
+                        if (scheme == null)
+                        {
+                            throw new ArgumentNullException(nameof(scheme));
+                        }
+
+                        if (host == null)
+                        {
+                            throw new ArgumentNullException(nameof(host));
+                        }
+
+                        if (segments == null)
+                        {
+                            throw new ArgumentNullException(nameof(segments));
+                        }
+
                         this.Scheme = scheme;
                         this.Host = host;
                         this.Segments = segments;
@@ -575,6 +645,10 @@ namespace OddTrotter.Calendar
 
                     public Scheme Scheme { get; }
                     public Host Host { get; }
+
+                    /// <summary>
+                    /// NOTE: may contain segments that are <see cref="string.Empty"/>
+                    /// </summary>
                     public IEnumerable<Segment> Segments { get; }
 
                     protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
@@ -639,7 +713,7 @@ namespace OddTrotter.Calendar
                 /// </summary>
                 /// <param name="value"></param>
                 /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/></exception>
-                /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not a valid URI</exception>
+                /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not a valid host name</exception>
                 internal Host(string value)
                 {
                     if (value == null)
@@ -654,7 +728,7 @@ namespace OddTrotter.Calendar
 
                     if (value.Contains("/") || value.Contains(":") || value.Contains("?") || value.Contains("#"))
                     {
-                        throw new ArgumentException($"'{nameof(value)}' is not a valid URI. The provided was value '{value}'.");
+                        throw new ArgumentException($"'{nameof(value)}' is not a valid host name. The provided was value '{value}'.");
                     }
 
                     try
@@ -663,7 +737,7 @@ namespace OddTrotter.Calendar
                     }
                     catch (UriFormatException uriFormatException)
                     {
-                        throw new ArgumentException($"'{nameof(value)}' is not a valid URI. The provided was value '{value}'.", uriFormatException);
+                        throw new ArgumentException($"'{nameof(value)}' is not a valid host name. The provided was value '{value}'.", uriFormatException);
                     }
 
                     Value = value;
@@ -966,8 +1040,6 @@ namespace OddTrotter.Calendar
                                 $"The response payload was not a valid OData response: {string.Join(", ", invalidities)}", responseContents));
                 }
 
-                //// TODO you are here
-                //// TODO dcouemnt exceptions
                 var odataNextLink = Parse(this.NextLink);
 
                 return odataNextLink.SelectLeft(left => 
@@ -978,6 +1050,11 @@ namespace OddTrotter.Calendar
                     .AsBase());
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="nextLink"></param>
+            /// <returns></returns>
             private static Either<OdataNextLink, OdataSuccessDeserializationException> Parse(string? nextLink)
             {
                 if (nextLink == null)
@@ -1063,14 +1140,14 @@ namespace OddTrotter.Calendar
                         }
                     }
 
-                    //// TODO you are here
                     var segmentsStartIndex = hostDelimiterIndex + hostDelimiter.Length;
                     if (segmentsStartIndex == uri.OriginalString.Length)
                     {
-                        //// TODO there are no segments
+                        return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO this is a legal service root, but not a legal nextlink", "TODO"));
                     }
 
                     var providedRelativeUri = Substring2(uri.OriginalString, segmentsStartIndex, uri.OriginalString.Length);
+
                     var segments = ParseSegments(providedRelativeUri)
                         .Select(segment => new OdataNextLink.Inners.Segment(segment));
 
@@ -1109,12 +1186,24 @@ namespace OddTrotter.Calendar
                                 new OdataNextLink.Relative(ParseSegments(uri.OriginalString)
                                     .Select(segment =>
                                         new OdataNextLink.Inners.Segment(
-                                            segment))).AsBase());
+                                            segment)))
+                                .AsBase());
                 }
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="uri"></param>
+            /// <returns>NOTE: might contain <see cref="string.Empty"/> elements if there are contiguous '/' characters</returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="uri"/> is <see langword="null"/></exception>
             private static IEnumerable<string> ParseSegments(string uri)
             {
+                if (uri == null)
+                {
+                    throw new ArgumentNullException(nameof(uri));
+                }
+
                 var segmentDelimiter = "/";
                 var segments = new List<string>();
                 var lastIndex = 0;
@@ -1127,7 +1216,14 @@ namespace OddTrotter.Calendar
                         break;
                     }
 
-                    yield return Substring2(uri, lastIndex, segmentDelimiterIndex);
+                    if (lastIndex == segmentDelimiterIndex)
+                    {
+                        yield return string.Empty;
+                    }
+                    else
+                    {
+                        yield return Substring2(uri, lastIndex, segmentDelimiterIndex);
+                    }
                     lastIndex = segmentDelimiterIndex + segmentDelimiter.Length;
                 }
             }
