@@ -1052,7 +1052,6 @@ namespace OddTrotter.Calendar
                             return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                         }
 
-                        //// TODO you are here
                         var providedPort = Substring2(fullHost, portStartIndex, fullHost.Length);
                         try
                         {
@@ -1064,6 +1063,7 @@ namespace OddTrotter.Calendar
                         }
                     }
 
+                    //// TODO you are here
                     var providedRelativeUri = Substring2(uri.OriginalString, hostDelimiterIndex + 1, uri.OriginalString.Length);
                     var segments = ParseSegments(providedRelativeUri)
                         .Select(segment => new OdataNextLink.Inners.Segment(segment));
