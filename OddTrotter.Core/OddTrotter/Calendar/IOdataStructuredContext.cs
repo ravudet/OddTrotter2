@@ -810,7 +810,7 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(httpClient));
             }
 
-            this.rootUri = rootUri;
+            this.ServiceRoot = serviceRoot;
             this.httpClient = httpClient;
         }
 
@@ -1066,7 +1066,7 @@ namespace OddTrotter.Calendar
                     return Either
                             .Right<OdataSuccessDeserializationException>()
                             .Left(
-                                new OdataNextLink.Relative(ParseSegments(uri)
+                                new OdataNextLink.Relative(ParseSegments(uri.OriginalString)
                                     .Select(segment =>
                                         new OdataNextLink.Inners.Segment(
                                             segment))).AsBase());
