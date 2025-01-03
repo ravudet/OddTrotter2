@@ -201,6 +201,17 @@ namespace OddTrotter.Calendar
 
     public abstract class OdataServiceRoot
     {
+        /// <summary>
+        /// TODO remove this once you have this whole class and its related types as ASTs
+        /// </summary>
+        public static OdataServiceRoot MicrosoftGraph { get; } = new OdataServiceRoot.WithoutPort(
+            OdataNextLink.Inners.Scheme.Https.Instance,
+            new OdataNextLink.Inners.Host("graph.microsoft.com"),
+            new[]
+            {
+                new OdataNextLink.Inners.Segment("v1.0"),
+            });
+
         private OdataServiceRoot()
         {
         }
@@ -491,7 +502,7 @@ namespace OddTrotter.Calendar
         {
             public sealed class Segment
             {
-                public Segment(string value)
+                internal Segment(string value)
                 {
                     if (value.Contains("/") || value.Contains("?") || value.Contains("#"))
                     {
@@ -510,7 +521,7 @@ namespace OddTrotter.Calendar
                     Value = value;
                 }
 
-                public string Value { get; }
+                internal string Value { get; }
             }
 
             public abstract class AbsoluteNextLink
@@ -623,7 +634,12 @@ namespace OddTrotter.Calendar
 
             public sealed class Host
             {
-                public Host(string value)
+                /// <summary>
+                /// TODO this should be modeled as an AST; remove <see cref="OdataServiceRoot.MicrosoftGraph"/> was you have modeled it that way
+                /// </summary>
+                /// <param name="value"></param>
+                /// <exception cref="ArgumentException"></exception>
+                internal Host(string value)
                 {
                     //// TODO you are here
                     if (value.Contains("/") || value.Contains(":") || value.Contains("?") || value.Contains("#"))
@@ -643,7 +659,7 @@ namespace OddTrotter.Calendar
                     Value = value;
                 }
 
-                public string Value { get; }
+                internal string Value { get; }
             }
         }
     }
