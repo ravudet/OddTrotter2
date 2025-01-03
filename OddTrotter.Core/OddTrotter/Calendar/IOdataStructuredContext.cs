@@ -625,6 +625,7 @@ namespace OddTrotter.Calendar
             {
                 public Host(string value)
                 {
+                    //// TODO you are here
                     if (value.Contains("/") || value.Contains(":") || value.Contains("?") || value.Contains("#"))
                     {
                         throw new ArgumentException("TODO");
@@ -1005,12 +1006,12 @@ namespace OddTrotter.Calendar
 
                     var fullHost = Substring2(uri.OriginalString, schemeIndex + schemeDelimiter.Length, hostIndex); // we know it's a valid URI, so if there was a scheme, there must be a host
                     var portDelimiter = ":";
-                    //// TODO you are here
                     var portIndex = fullHost.IndexOf(portDelimiter, 0);
                     uint? port;
                     OdataNextLink.Inners.Host host;
                     if (portIndex < 0)
                     {
+                        //// TODO you are here
                         host = new OdataNextLink.Inners.Host(fullHost);
                         port = null;
                     }
