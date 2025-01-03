@@ -71,17 +71,17 @@
 
         public sealed class Page : GraphQuery
         {
-            internal Page(RelativeUri nextLink)
+            internal Page(RelativeUri relativeUri)
             {
-                if (nextLink == null)
+                if (relativeUri == null)
                 {
-                    throw new ArgumentNullException(nameof(nextLink));
+                    throw new ArgumentNullException(nameof(relativeUri));
                 }
 
-                this.NextLink = nextLink;
+                this.RelativeUri = relativeUri;
             }
 
-            internal RelativeUri NextLink { get; }
+            internal RelativeUri RelativeUri { get; }
 
             /// <inheritdoc/>
             protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
@@ -309,7 +309,10 @@
             }
 
             this.evaluateVisitor = new EvaluateVisitor(graphOdataContext);
+            this.ServiceRoot = graphOdataContext.ServiceRoot;
         }
+
+        public OdataServiceRoot ServiceRoot { get; }
 
         /// <summary>
         /// 
@@ -359,13 +362,13 @@
                 }
 
                 //// TODO you are here
-                return await GetPage(node.RelativeUri).ConfigureAwait(false);
+                return await this.GetPage(node.RelativeUri).ConfigureAwait(false);
             }
 
             internal sealed override async Task<GraphCalendarEventsResponse> Dispatch(GraphQuery.GetEvents node, Void context)
             {
                 //// TODO you are here
-                return await GetPage(node.RelativeUri).ConfigureAwait(false);
+                return await this.GetPage(node.RelativeUri).ConfigureAwait(false);
             }
 
             /// <summary>

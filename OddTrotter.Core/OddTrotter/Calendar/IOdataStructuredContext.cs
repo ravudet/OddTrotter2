@@ -48,6 +48,8 @@ namespace OddTrotter.Calendar
 
     public interface IOdataStructuredContext
     {
+        OdataServiceRoot ServiceRoot { get; }
+
         /// <summary>
         /// 
         /// </summary>
@@ -199,16 +201,61 @@ namespace OddTrotter.Calendar
 
     public sealed class OdataServiceRoot
     {
-        private readonly AbsoluteUri absoluteUri;
-
-        internal OdataServiceRoot(AbsoluteUri absoluteUri)
+        public OdataServiceRoot(Inners.OdataServiceRoot serviceRoot)
         {
-            this.absoluteUri = absoluteUri;
+            this.ServiceRoot = serviceRoot;
         }
+
+        public Inners.OdataServiceRoot ServiceRoot { get; }
 
         internal RelativeUri GetUri(OdataNextLink.Absolute odataNextLink)
         {
             return this.absoluteUri.MakeRelativeUri(odataNextLink.ToAbsoluteUri()).ToRelativeUri();
+        }
+
+        /// <summary>
+        /// TODO i really don't like this name
+        /// </summary>
+        public static class Inners
+        {
+            public abstract class OdataServiceRoot
+            {
+                private OdataServiceRoot()
+                {
+                }
+
+                //// TODO the re-used types should actually be part of an "odatauri" or something
+                
+                public sealed class WithPort : OdataServiceRoot
+                {
+                    public WithPort(OdataNextLink.Inners.Scheme scheme, OdataNextLink.Inners.Host host, uint port, IEnumerable<Segment> segments)
+                    {
+                        this.Scheme = scheme;
+                        this.Host = host;
+                        this.Port = port;
+                        this.Segments = segments;
+                    }
+
+                    public Scheme Scheme { get; }
+                    public Host Host { get; }
+                    public uint Port { get; }
+                    public IEnumerable<Segment> Segments { get; }
+                }
+
+                public sealed class WithoutPort : OdataServiceRoot
+                {
+                    public WithoutPort(OdataNextLink.Inners.Scheme scheme, OdataNextLink.Inners.Host host, IEnumerable<Segment> segments)
+                    {
+                        this.Scheme = scheme;
+                        this.Host = host;
+                        this.Segments = segments;
+                    }
+
+                    public Scheme Scheme { get; }
+                    public Host Host { get; }
+                    public IEnumerable<Segment> Segments { get; }
+                }
+            }
         }
     }
 
@@ -681,7 +728,7 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="httpClient"></param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="rootUri"/> or <paramref name="httpClient"/> is <see langword="null"/></exception>
-        public OdataCalendarEventsContext(AbsoluteUri rootUri, IHttpClient httpClient)
+        public OdataCalendarEventsContext(OdataServiceRoot serviceRoot, IHttpClient httpClient)
         {
             if (rootUri == null)
             {
@@ -696,6 +743,8 @@ namespace OddTrotter.Calendar
             this.rootUri = rootUri;
             this.httpClient = httpClient;
         }
+
+        public OdataServiceRoot ServiceRoot { get; }
 
         /// <summary>
         /// 
