@@ -296,6 +296,22 @@
         public OdataErrorResponse OdataErrorResponse { get; }
     }
 
+    public sealed class GraphErrorDeserializationException : Exception
+    {
+        public GraphErrorDeserializationException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+
+    public sealed class GraphSuccessDeserializationException : Exception
+    {
+        public GraphSuccessDeserializationException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+
     public sealed class GraphCalendarEventsContext : IGraphCalendarEventsContext
     {
         private readonly EvaluateVisitor evaluateVisitor;
@@ -323,10 +339,28 @@
         /// </summary>
         /// <param name="graphQuery"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphQuery"/> is <see langword="null"/></exception>
         public async Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery)
         {
+            if (graphQuery == null)
+            {
+                throw new ArgumentNullException(nameof(graphQuery));
+            }
+
             //// TODO you are here
-            return await this.evaluateVisitor.VisitAsync(graphQuery, default).ConfigureAwait(false);
+            //// TODO fix graphprocessexception to not directly depend on odata
+            try
+            {
+                return await this.evaluateVisitor.VisitAsync(graphQuery, default).ConfigureAwait(false);
+            }
+            catch (OdataErrorDeserializationException odataErrorDeserializationException)
+            {
+                throw new GraphErrorDeserializationException("TODO", odataErrorDeserializationException);
+            }
+            catch (OdataSuccessDeserializationException odataSuccessDeserializationException)
+            {
+                throw new GraphSuccessDeserializationException("TODO", odataSuccessDeserializationException);
+            }
         }
 
         private sealed class EvaluateVisitor : GraphQuery.AsyncVisitor<GraphCalendarEventsResponse, Void>
