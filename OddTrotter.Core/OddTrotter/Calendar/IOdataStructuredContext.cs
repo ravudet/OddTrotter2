@@ -199,63 +199,133 @@ namespace OddTrotter.Calendar
         }
     }
 
-    public sealed class OdataServiceRoot
+    public abstract class OdataServiceRoot
     {
-        public OdataServiceRoot(Inners.OdataServiceRoot serviceRoot)
+        private OdataServiceRoot()
         {
-            this.ServiceRoot = serviceRoot;
         }
 
-        public Inners.OdataServiceRoot ServiceRoot { get; }
+        protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
-        internal RelativeUri GetUri(OdataNextLink.Absolute odataNextLink)
+        public abstract class Visitor<TResult, TContext>
         {
-            return this.absoluteUri.MakeRelativeUri(odataNextLink.ToAbsoluteUri()).ToRelativeUri();
-        }
-
-        /// <summary>
-        /// TODO i really don't like this name
-        /// </summary>
-        public static class Inners
-        {
-            public abstract class OdataServiceRoot
+            public TResult Visit(OdataServiceRoot node, TContext context)
             {
-                private OdataServiceRoot()
+                return node.Dispatch(this, context);
+            }
+
+            protected internal abstract TResult Accept(WithPort node, TContext context);
+            protected internal abstract TResult Accept(WithoutPort node, TContext context);
+        }
+
+        public sealed class WithPort : OdataServiceRoot
+        {
+            public WithPort(OdataNextLink.Inners.Scheme scheme, OdataNextLink.Inners.Host host, uint port, IEnumerable<Segment> segments)
+            {
+                this.Scheme = scheme;
+                this.Host = host;
+                this.Port = port;
+                this.Segments = segments;
+            }
+
+            public Scheme Scheme { get; }
+            public Host Host { get; }
+            public uint Port { get; }
+            public IEnumerable<Segment> Segments { get; }
+
+            protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Accept(this, context);
+            }
+        }
+
+        public sealed class WithoutPort : OdataServiceRoot
+        {
+            public WithoutPort(OdataNextLink.Inners.Scheme scheme, OdataNextLink.Inners.Host host, IEnumerable<Segment> segments)
+            {
+                this.Scheme = scheme;
+                this.Host = host;
+                this.Segments = segments;
+            }
+
+            public Scheme Scheme { get; }
+            public Host Host { get; }
+            public IEnumerable<Segment> Segments { get; }
+
+            protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            {
+                return visitor.Accept(this, context);
+            }
+        }
+    }
+
+    public static class OdataServiceRootExtensions
+    {
+        public static AbsoluteUri ToAbsoluteUri(this OdataServiceRoot odataServiceRoot)
+        {
+            var uri = OdataServiceRootTranscriber.Instance.Visit(odataServiceRoot, default);
+            return new Uri(uri, UriKind.Absolute).ToAbsoluteUri();
+        }
+
+        private sealed class OdataServiceRootTranscriber : OdataServiceRoot.Visitor<string, Void>
+        {
+            private OdataServiceRootTranscriber()
+            {
+            }
+
+            public static OdataServiceRootTranscriber Instance { get; } = new OdataServiceRootTranscriber();
+
+            protected internal override string Accept(OdataServiceRoot.WithPort node, Void context)
+            {
+                var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
+                var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
+                return $"{scheme}://{node.Host.Value}:{node.Port}/{segments}";
+            }
+
+            protected internal override string Accept(OdataServiceRoot.WithoutPort node, Void context)
+            {
+                var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
+                var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
+                return $"{scheme}://{node.Host.Value}/{segments}";
+            }
+
+            private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<string, Void>
+            {
+                private SchemeTranscriber()
                 {
                 }
 
-                //// TODO the re-used types should actually be part of an "odatauri" or something
-                
-                public sealed class WithPort : OdataServiceRoot
-                {
-                    public WithPort(OdataNextLink.Inners.Scheme scheme, OdataNextLink.Inners.Host host, uint port, IEnumerable<Segment> segments)
-                    {
-                        this.Scheme = scheme;
-                        this.Host = host;
-                        this.Port = port;
-                        this.Segments = segments;
-                    }
+                public static SchemeTranscriber Instance { get; } = new SchemeTranscriber();
 
-                    public Scheme Scheme { get; }
-                    public Host Host { get; }
-                    public uint Port { get; }
-                    public IEnumerable<Segment> Segments { get; }
+                protected internal override string Accept(Scheme.Https node, Void context)
+                {
+                    return "https";
                 }
 
-                public sealed class WithoutPort : OdataServiceRoot
+                protected internal override string Accept(Scheme.Http node, Void context)
                 {
-                    public WithoutPort(OdataNextLink.Inners.Scheme scheme, OdataNextLink.Inners.Host host, IEnumerable<Segment> segments)
-                    {
-                        this.Scheme = scheme;
-                        this.Host = host;
-                        this.Segments = segments;
-                    }
-
-                    public Scheme Scheme { get; }
-                    public Host Host { get; }
-                    public IEnumerable<Segment> Segments { get; }
+                    return "http";
                 }
             }
+
+            private sealed class SegmentsTranscriber
+            {
+                private SegmentsTranscriber()
+                {
+                }
+
+                public static SegmentsTranscriber Instance { get; } = new SegmentsTranscriber();
+
+                public string Transcribe(IEnumerable<OdataNextLink.Inners.Segment> segments)
+                {
+                    return string.Join("/", segments.Select(segment => segment.Value));
+                }
+            }
+        }
+
+        internal static RelativeUri GetUri(this OdataServiceRoot odataServiceRoot, OdataNextLink.Absolute odataNextLink)
+        {
+            return odataServiceRoot.ToAbsoluteUri().MakeRelativeUri(odataNextLink.ToAbsoluteUri()).ToRelativeUri();
         }
     }
 
@@ -275,14 +345,14 @@ namespace OddTrotter.Calendar
 
             public static InnerTranscriber Instance { get; } = new InnerTranscriber();
 
-            protected internal override string Accept(AbsoluteNextLink.WithPort node, Void context)
+            protected internal override string Accept(OdataNextLink.Inners.AbsoluteNextLink.WithPort node, Void context)
             {
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
                 var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
                 return $"{scheme}://{node.Host.Value}:{node.Port}/{segments}";
             }
 
-            protected internal override string Accept(AbsoluteNextLink.WithoutPort node, Void context)
+            protected internal override string Accept(OdataNextLink.Inners.AbsoluteNextLink.WithoutPort node, Void context)
             {
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
                 var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
