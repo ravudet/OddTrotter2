@@ -196,13 +196,28 @@ namespace OddTrotter.Calendar
         }
     }
 
+    public sealed class OdataServiceRoot
+    {
+        private readonly AbsoluteUri absoluteUri;
+
+        internal OdataServiceRoot(AbsoluteUri absoluteUri)
+        {
+            this.absoluteUri = absoluteUri;
+        }
+
+        internal RelativeUri GetUri(OdataNextLink.Absolute odataNextLink)
+        {
+            
+        }
+    }
+
     public abstract class OdataNextLink
     {
         private OdataNextLink()
         {
         }
 
-        protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+        protected abstract Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public OdataNextLink AsBase()
         {
@@ -212,14 +227,14 @@ namespace OddTrotter.Calendar
 
         public abstract class Visitor<TResult, TContext>
         {
-            public TResult Visit(OdataNextLink node, TContext context)
+            public async Task<TResult> VisitAsync(OdataNextLink node, TContext context)
             {
-                return node.Dispatch(this, context);
+                return await node.DispatchAsync(this, context).ConfigureAwait(false);
             }
 
-            protected internal abstract TResult Accept(Null node, TContext context);
-            protected internal abstract TResult Accept(Relative node, TContext context);
-            protected internal abstract TResult Accept(Absolute node, TContext context);
+            protected internal abstract Task<TResult> AcceptAsync(Null node, TContext context);
+            protected internal abstract Task<TResult> AcceptAsync(Relative node, TContext context);
+            protected internal abstract Task<TResult> AcceptAsync(Absolute node, TContext context);
         }
 
         public sealed class Null : OdataNextLink
@@ -230,9 +245,9 @@ namespace OddTrotter.Calendar
 
             public static Null Instance { get; } = new Null();
 
-            protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected sealed override async Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
-                return visitor.Accept(this, context);
+                return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }
 
@@ -256,9 +271,9 @@ namespace OddTrotter.Calendar
 
             public IEnumerable<Inners.Segment> Segments { get; }
 
-            protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected sealed override async Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
-                return visitor.Accept(this, context);
+                return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }
 
@@ -282,9 +297,9 @@ namespace OddTrotter.Calendar
 
             public Inners.AbsoluteNextLink AbsoluteNextLink { get; }
 
-            protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected sealed override async Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
-                return visitor.Accept(this, context);
+                return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }
 

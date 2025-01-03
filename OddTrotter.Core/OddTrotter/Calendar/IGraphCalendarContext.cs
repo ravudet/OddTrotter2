@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Linq.V2;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading;
@@ -70,7 +71,7 @@
 
         public sealed class Page : GraphQuery
         {
-            internal Page(OdataNextLink nextLink)
+            internal Page(RelativeUri nextLink)
             {
                 if (nextLink == null)
                 {
@@ -80,7 +81,7 @@
                 this.NextLink = nextLink;
             }
 
-            internal OdataNextLink NextLink { get; }
+            internal RelativeUri NextLink { get; }
 
             /// <inheritdoc/>
             protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
@@ -228,6 +229,8 @@
         /// 
             //// TODO you are here
         Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery);
+
+        OdataServiceRoot ServiceRoot { get; }
     }
 
     public sealed class GraphCalendarEventsResponse
@@ -242,7 +245,7 @@
 
         public IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> Events { get; }
 
-        public GraphQuery.Page? NextPage { get; }
+        public OdataNextLink NextPage { get; }
     }
 
     public sealed class GraphCalendarEventsContextTranslationException : Exception
@@ -864,9 +867,9 @@
             private readonly GraphCalendarEventsResponse graphCalendarEventsResponse;
             private readonly int index;
             private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
-            private readonly Func<GraphQuery.Page, IGraphCalendarEventsContext> contextGenerator;
+            private readonly Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator;
 
-            public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, IGraphCalendarEventsContext graphCalendarEventsContext, Func<GraphQuery.Page, IGraphCalendarEventsContext> contextGenerator)
+            public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, IGraphCalendarEventsContext graphCalendarEventsContext, Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator)
                 : base(graphCalendarEventsResponse.Events[index])
             {
                 this.graphCalendarEventsResponse = graphCalendarEventsResponse;
@@ -882,14 +885,8 @@
                     return new PageQueryResult(this.graphCalendarEventsResponse, this.index + 1, this.graphCalendarEventsContext, this.contextGenerator);
                 }
 
-                if (this.graphCalendarEventsResponse.NextPage == null)
-                {
-                    return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final();
-                }
-
                 //// TODO figure out async `queryresult`s
-                var nextContext = this.contextGenerator(this.graphCalendarEventsResponse.NextPage);
-                return Page(nextContext, this.graphCalendarEventsResponse.NextPage, this.contextGenerator).ConfigureAwait(false).GetAwaiter().GetResult();
+                return new OdataNextLinkVisitor(this.graphCalendarEventsContext, this.contextGenerator).VisitAsync(this.graphCalendarEventsResponse.NextPage, default).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -928,7 +925,7 @@
         public static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
             this IGraphCalendarEventsContext graphCalendarEventsContext,
             GraphQuery graphQuery,
-            Func<GraphQuery.Page, IGraphCalendarEventsContext> contextGenerator)
+            Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator)
         {
             if (graphCalendarEventsContext == null)
             {
@@ -958,19 +955,57 @@
 
             if (response.Events.Count == 0)
             {
-                if (response.NextPage == null)
-                {
-                    return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final();
-                }
-                else
-                {
-                    var nextContext = contextGenerator(response.NextPage);
-
-                    return await Page(nextContext, response.NextPage, contextGenerator).ConfigureAwait(false);
-                }
+                //// TODO figure out using a single visitor for the entire query result
+                return await new OdataNextLinkVisitor(graphCalendarEventsContext, contextGenerator).VisitAsync(response.NextPage, default).ConfigureAwait(false);
             }
 
             return new PageQueryResult(response, 0, graphCalendarEventsContext, contextGenerator);
+        }
+
+        private sealed class OdataNextLinkVisitor : OdataNextLink.Visitor<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>, Void>
+        {
+            private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
+            private readonly Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator;
+
+            public OdataNextLinkVisitor(
+                IGraphCalendarEventsContext graphCalendarEventsContext, 
+                Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator)
+            {
+                this.graphCalendarEventsContext = graphCalendarEventsContext;
+                this.contextGenerator = contextGenerator;
+            }
+
+            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Null node, Void context)
+            {
+                //// TODO terrible, fix this
+                await Task.CompletedTask.ConfigureAwait(false);
+                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final();
+            }
+
+            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Relative node, Void context)
+            {
+                return await this.graphCalendarEventsContext.Page(new GraphQuery.Page(ToRelativeUri(node))).ConfigureAwait(false);
+            }
+
+            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Absolute node, Void context)
+            {
+                var nextContext = this.contextGenerator(node);
+                return await nextContext.Page(new GraphQuery.Page(nextContext.ServiceRoot.GetUri(node)), this.contextGenerator).ConfigureAwait(false);
+            }
+        }
+
+        private static RelativeUri ToRelativeUri(OdataNextLink.Relative odataNextLink)
+        {
+            //// TODO this should be like a transcriber (or maybe just copy this extension publicly?) in the odata layer
+            return new Uri(
+                string.Join(
+                    string.Empty, 
+                    odataNextLink
+                        .Segments
+                        .Select(segment => 
+                            $"/{segment}")),
+                UriKind.Relative)
+                .ToRelativeUri();
         }
     }
 }
