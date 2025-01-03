@@ -297,7 +297,8 @@
         [TestMethod]
         public void FOo()
         {
-            new Uri("https://");
+            ////new Uri("https://");
+            new Uri("https://a:");
         }
 
         [TestMethod]

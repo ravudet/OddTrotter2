@@ -638,22 +638,32 @@ namespace OddTrotter.Calendar
                 /// TODO this should be modeled as an AST; remove <see cref="OdataServiceRoot.MicrosoftGraph"/> was you have modeled it that way
                 /// </summary>
                 /// <param name="value"></param>
-                /// <exception cref="ArgumentException"></exception>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/></exception>
+                /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not a valid URI</exception>
                 internal Host(string value)
                 {
-                    //// TODO you are here
+                    if (value == null)
+                    {
+                        throw new ArgumentNullException(nameof(value));
+                    }
+
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        throw new ArgumentException(nameof(value));
+                    }
+
                     if (value.Contains("/") || value.Contains(":") || value.Contains("?") || value.Contains("#"))
                     {
-                        throw new ArgumentException("TODO");
+                        throw new ArgumentException($"'{nameof(value)}' is not a valid URI. The provided was value '{value}'.");
                     }
 
                     try
                     {
                         new Uri(value);
                     }
-                    catch
+                    catch (UriFormatException uriFormatException)
                     {
-                        throw;
+                        throw new ArgumentException($"'{nameof(value)}' is not a valid URI. The provided was value '{value}'.", uriFormatException);
                     }
 
                     Value = value;
@@ -1027,12 +1037,13 @@ namespace OddTrotter.Calendar
                     OdataNextLink.Inners.Host host;
                     if (portIndex < 0)
                     {
-                        //// TODO you are here
                         host = new OdataNextLink.Inners.Host(fullHost);
                         port = null;
                     }
                     else
                     {
+                        //// TODO you are here
+                        //// TODO the port delimiter can be present but not a port
                         var providedHost = Substring2(fullHost, 0, portIndex);
                         host = new OdataNextLink.Inners.Host(providedHost);
 
