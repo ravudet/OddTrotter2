@@ -953,7 +953,6 @@ namespace OddTrotter.Calendar
 
             private static Either<OdataNextLink, OdataSuccessDeserializationException> Parse(string? nextLink)
             {
-                //// TODO you are here
                 if (nextLink == null)
                 {
                     return Either
@@ -969,6 +968,7 @@ namespace OddTrotter.Calendar
                 }
                 catch (UriFormatException uriFormatException)
                 {
+                    //// TODO i think your exception parameter pattern should be: exception specific stuff, message, inner
                     return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", uriFormatException, "TODO"));
                 }
 
@@ -981,7 +981,7 @@ namespace OddTrotter.Calendar
                         return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
-                    var providedScheme = Substring2(uri.OriginalString, 0, schemeIndex);
+                    var providedScheme = Substring2(uri.OriginalString, 0, schemeIndex); // we know that it's a valid URI, so if the scheme delimiter is present, there must be a scheme
                     OdataNextLink.Inners.Scheme scheme;
                     if (string.Equals(providedScheme, "https", StringComparison.OrdinalIgnoreCase))
                     {
@@ -997,6 +997,7 @@ namespace OddTrotter.Calendar
                     }
 
                     var hostDelimiter = "/";
+                    //// TODO you are here
                     var hostIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeIndex + 1);
                     if (hostIndex < 0)
                     {
@@ -1091,8 +1092,37 @@ namespace OddTrotter.Calendar
                 }
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="inclusiveStartIndex"></param>
+            /// <param name="exclusiveEndIndex"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/></exception>
+            /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="inclusiveStartIndex"/> is negative, <paramref name="exclusiveEndIndex"/> is less than or equal to <paramref name="inclusiveStartIndex"/>, or <paramref name="exclusiveEndIndex"/> is larger than the <see cref="string.Length"/> or <paramref name="value"/></exception>
             private static string Substring2(string value, int inclusiveStartIndex, int exclusiveEndIndex)
             {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (inclusiveStartIndex < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(inclusiveStartIndex), $"'{nameof(inclusiveStartIndex)}' cannot be negative. The provided value was '{inclusiveStartIndex}'.");
+                }
+
+                if (exclusiveEndIndex <= inclusiveStartIndex)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(exclusiveEndIndex), $"'{nameof(exclusiveEndIndex)}' must be greater than '{nameof(inclusiveStartIndex)}'. The provided end index was '{exclusiveEndIndex}'. The provided start index was '{inclusiveStartIndex}'.");
+                }
+
+                if (exclusiveEndIndex > value.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(exclusiveEndIndex), $"'{nameof(exclusiveEndIndex)}' cannot be greater than the length of the string. The provided index was '{exclusiveEndIndex}'. The length of the string was '{value.Length}'.");
+                }
+
                 return value.Substring(inclusiveStartIndex, exclusiveEndIndex - inclusiveStartIndex);
             }
         }
