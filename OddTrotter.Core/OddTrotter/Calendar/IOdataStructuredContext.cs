@@ -441,6 +441,8 @@ namespace OddTrotter.Calendar
             /// <param name="node"></param>
             /// <param name="context"></param>
             /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="AcceptAsync"/> overloads can throw</exception> //// TODO is this good?
             public async Task<TResult> VisitAsync(OdataNextLink node, TContext context)
             {
                 if (node == null)
@@ -448,7 +450,6 @@ namespace OddTrotter.Calendar
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                //// TODO you are here
                 return await node.DispatchAsync(this, context).ConfigureAwait(false);
             }
 
