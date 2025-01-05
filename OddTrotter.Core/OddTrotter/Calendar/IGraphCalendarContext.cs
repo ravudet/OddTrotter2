@@ -990,20 +990,41 @@
                 this.contextGenerator = contextGenerator;
             }
 
+            /// <inheritdoc/>
             protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Null node, Void context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                //// TODO you are here
                 //// TODO terrible, fix this
                 await Task.CompletedTask.ConfigureAwait(false);
                 return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final();
             }
 
+            /// <inheritdoc/>
             protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Relative node, Void context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                //// TODO you are here
                 return await this.graphCalendarEventsContext.Page(new GraphQuery.Page(ToRelativeUri(node))).ConfigureAwait(false);
             }
 
+            /// <inheritdoc/>
             protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Absolute node, Void context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                //// TODO you are here
                 var nextContext = this.contextGenerator(node);
                 return await nextContext.Page(new GraphQuery.Page(nextContext.ServiceRoot.GetUri(node)), this).ConfigureAwait(false);
             }
