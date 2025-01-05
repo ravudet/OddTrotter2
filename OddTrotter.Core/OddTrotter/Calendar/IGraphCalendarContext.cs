@@ -226,8 +226,12 @@
         /// </summary>
         /// <param name="graphQuery"></param>
         /// <returns></returns>
-        /// 
-            //// TODO you are here
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphQuery"/> is <see langword="null"/></exception>
+        /// <exception cref="HttpRequestException">Thrown if the request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout, or the server responded with a payload that was not valid HTTP</exception> //// TODO this part about the invalid HTTP needs to be added to all of your xmldoc where you get an httprequestexception from httpclient
+        /// <exception cref="GraphErrorDeserializationException">Thrown if an error occurred while deserializing the error response</exception>
+        /// <exception cref="GraphSuccessDeserializationException">Thrown if an error occurred while deserializing success response</exception>
+        /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
+        /// <exception cref="GraphProcessingException">Thrown if graph encountered an error processing the request</exception>
         Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery);
 
         OdataServiceRoot ServiceRoot { get; }
@@ -356,12 +360,7 @@
 
         public OdataServiceRoot ServiceRoot { get; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="graphQuery"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphQuery"/> is <see langword="null"/></exception>
+        /// <inheritdoc/>
         public async Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery)
         {
             if (graphQuery == null)
@@ -369,7 +368,6 @@
                 throw new ArgumentNullException(nameof(graphQuery));
             }
 
-            //// TODO you are here
             try
             {
                 return await this.evaluateVisitor.VisitAsync(graphQuery, default).ConfigureAwait(false);
