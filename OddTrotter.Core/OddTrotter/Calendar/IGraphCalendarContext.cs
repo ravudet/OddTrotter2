@@ -991,7 +991,7 @@
             }
 
             /// <inheritdoc/>
-            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Null node, Void context)
+            protected internal override Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Null node, Void context)
             {
                 if (node == null)
                 {
@@ -999,9 +999,7 @@
                 }
 
                 //// TODO you are here
-                //// TODO terrible, fix this
-                await Task.CompletedTask.ConfigureAwait(false);
-                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final();
+                return Task.FromResult(new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final().AsBase());
             }
 
             /// <inheritdoc/>
@@ -1013,7 +1011,7 @@
                 }
 
                 //// TODO you are here
-                return await this.graphCalendarEventsContext.Page(new GraphQuery.Page(ToRelativeUri(node))).ConfigureAwait(false);
+                return await this.graphCalendarEventsContext.Page(new GraphQuery.Page(ToRelativeUri(node)), this).ConfigureAwait(false);
             }
 
             /// <inheritdoc/>

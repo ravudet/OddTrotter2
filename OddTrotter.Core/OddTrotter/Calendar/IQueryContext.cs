@@ -99,6 +99,11 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultExtensions
     {
+        public static QueryResult<TValue, TError> AsBase<TValue, TError>(this QueryResult<TValue, TError> queryResult)
+        {
+            return queryResult;
+        }
+
         private sealed class SplitVisitor<TValue, TError, TRight> : QueryResult<Either<TValue, TRight>, TError>.Visitor<TError?, (Action<TValue>, Action<TRight>)>
         {
             private SplitVisitor()
