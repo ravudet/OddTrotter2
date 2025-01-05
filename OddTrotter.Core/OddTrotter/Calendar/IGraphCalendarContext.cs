@@ -952,9 +952,9 @@
                 return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Partial(new GraphPagingException("TODO", exception));
             }
 
-            //// TODO you are here
             if (response.Events.Count == 0)
             {
+                //// TODO you are here
                 return await odataNextLinkVisitor.VisitAsync(response.NextPage, default).ConfigureAwait(false);
             }
 

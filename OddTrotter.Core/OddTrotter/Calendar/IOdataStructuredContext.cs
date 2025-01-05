@@ -411,6 +411,16 @@ namespace OddTrotter.Calendar
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="visitor"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.AcceptAsync"/> overloads can throw</exception> //// TODO is this good?
         protected abstract Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         /// <summary>
@@ -425,13 +435,51 @@ namespace OddTrotter.Calendar
 
         public abstract class Visitor<TResult, TContext>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
             public async Task<TResult> VisitAsync(OdataNextLink node, TContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                //// TODO you are here
                 return await node.DispatchAsync(this, context).ConfigureAwait(false);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             protected internal abstract Task<TResult> AcceptAsync(Null node, TContext context);
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             protected internal abstract Task<TResult> AcceptAsync(Relative node, TContext context);
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             protected internal abstract Task<TResult> AcceptAsync(Absolute node, TContext context);
         }
 
@@ -443,8 +491,14 @@ namespace OddTrotter.Calendar
 
             public static Null Instance { get; } = new Null();
 
+            /// <inheritdoc/>
             protected sealed override async Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }
@@ -472,8 +526,14 @@ namespace OddTrotter.Calendar
             /// </summary>
             public IEnumerable<Inners.Segment> Segments { get; }
 
+            /// <inheritdoc/>
             protected sealed override async Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }
@@ -498,8 +558,14 @@ namespace OddTrotter.Calendar
 
             public Inners.AbsoluteNextLink AbsoluteNextLink { get; }
 
+            /// <inheritdoc/>
             protected sealed override async Task<TResult> DispatchAsync<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }

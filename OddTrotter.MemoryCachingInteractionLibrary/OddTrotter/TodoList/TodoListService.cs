@@ -269,7 +269,10 @@
             }
 
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
-            //// TODO you are going to have to do multiple full passes through the new code to make sure everything is good to go and you like it
+            //// TODO finish first pass
+            //// TODO address todos
+            //// TODO add unit tests
+            //// TODO do another pass (you will likely need at least one more pass after this)
             //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
             //// TODO write tests for todolistservice that confirm the URLs
             var odataClient = new GraphClientToOdataClient(this.graphClient);
