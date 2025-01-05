@@ -822,8 +822,8 @@
 
     public sealed class GraphPagingException : Exception
     {
-        public GraphPagingException(string message)
-            : base(message)
+        public GraphPagingException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
     }
@@ -913,14 +913,14 @@
             GraphCalendarEventsResponse response;
             try
             {
-                //// TODO you are here
                 response = await graphCalendarEventsContext.Evaluate(graphQuery).ConfigureAwait(false);
             }
-            catch
+            catch (Exception exception) when (exception is HttpRequestException or GraphErrorDeserializationException or GraphSuccessDeserializationException or UnauthorizedAccessException or GraphProcessingException)
             {
-                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Partial(new GraphPagingException("TODO preserve exception"));
+                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Partial(new GraphPagingException("TODO", exception));
             }
 
+            //// TODO you are here
             if (response.Events.Count == 0)
             {
                 //// TODO figure out using a single visitor for the entire query result
