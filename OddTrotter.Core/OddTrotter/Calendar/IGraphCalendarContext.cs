@@ -955,7 +955,6 @@
             //// TODO you are here
             if (response.Events.Count == 0)
             {
-                //// TODO figure out using a single visitor for the entire query result
                 return await odataNextLinkVisitor.VisitAsync(response.NextPage, default).ConfigureAwait(false);
             }
 
