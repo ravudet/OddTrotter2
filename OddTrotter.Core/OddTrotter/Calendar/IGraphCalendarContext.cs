@@ -261,7 +261,7 @@
 
         public IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> Events { get; }
 
-        public OdataNextLink NextPage { get; }
+        public OdataNextLink NextPage { get; } //// TODO this adds a direct dependency on odata; is that ok?
     }
 
     public sealed class GraphCalendarEventsContextTranslationException : Exception
@@ -370,7 +370,6 @@
             }
 
             //// TODO you are here
-            //// TODO fix graphprocessexception to not directly depend on odata
             try
             {
                 return await this.evaluateVisitor.VisitAsync(graphQuery, default).ConfigureAwait(false);
@@ -467,7 +466,7 @@
                         right => new GraphProcessingException(
                             odataCollectionResponse.HttpStatusCode,
                             odataCollectionResponse.Headers,
-                            right,
+                            new GraphErrorResponse(right.Code),
                             $"An error occurred in graph while processing the request to '{url.OriginalString}'."))
                     .ThrowRight();
             }
