@@ -283,17 +283,39 @@
 
     public sealed class GraphProcessingException : Exception
     {
-        public GraphProcessingException(HttpStatusCode httpStatusCode, IEnumerable<HttpHeader> headers, OdataErrorResponse odataErrorResponse, string message)
+        public GraphProcessingException(HttpStatusCode httpStatusCode, IEnumerable<HttpHeader> headers, GraphErrorResponse graphErrorResponse, string message)
             : base(message)
         {
             this.HttpStatusCode = httpStatusCode;
             this.Headers = headers;
-            this.OdataErrorResponse = odataErrorResponse;
+            this.GraphErrorResponse = graphErrorResponse;
         }
 
         public HttpStatusCode HttpStatusCode { get; }
         public IEnumerable<HttpHeader> Headers { get; }
-        public OdataErrorResponse OdataErrorResponse { get; }
+        public GraphErrorResponse GraphErrorResponse { get; }
+    }
+
+    public sealed class GraphErrorResponse
+    {
+        public GraphErrorResponse(string code)
+        {
+            if (code == null)
+            {
+                throw new ArgumentNullException(nameof(code));
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new ArgumentException("TODO cannot be empty", nameof(code));
+            }
+
+            this.Code = code;
+        }
+
+        public string Code { get; }
+
+        //// TODO finish implementing this
     }
 
     public sealed class GraphErrorDeserializationException : Exception
