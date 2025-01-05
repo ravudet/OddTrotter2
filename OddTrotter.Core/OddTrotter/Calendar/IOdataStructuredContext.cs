@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices.JavaScript;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -344,6 +345,7 @@ namespace OddTrotter.Calendar
     {
         public static AbsoluteUri ToAbsoluteUri(this OdataNextLink.Absolute odataNextLink)
         {
+            //// TODO use stringbuilder
             var uri = InnerTranscriber.Instance.Visit(odataNextLink.AbsoluteNextLink, default);
             return new Uri(uri, UriKind.Absolute).ToAbsoluteUri();
         }
@@ -399,8 +401,68 @@ namespace OddTrotter.Calendar
 
                 public string Transcribe(IEnumerable<OdataNextLink.Inners.Segment> segments)
                 {
+                    //// TODO re-use class from relative uri
                     return string.Join("/", segments.Select(segment => segment.Value));
                 }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="odataNextLink"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataNextLink"/> is <see langword="null"/></exception>
+        public static RelativeUri ToRelativeUri(this OdataNextLink.Relative odataNextLink)
+        {
+            if (odataNextLink == null)
+            {
+                throw new ArgumentNullException(nameof(odataNextLink));
+            }
+
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append("/");
+            SegmentsTranscriber.Instance.Transcribe(odataNextLink.Segments, stringBuilder);
+
+            return new Uri(stringBuilder.ToString(), UriKind.Relative).ToRelativeUri();
+        }
+
+        private sealed class SegmentsTranscriber
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            private SegmentsTranscriber()
+            {
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public static SegmentsTranscriber Instance { get; } = new SegmentsTranscriber();
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="segments"></param>
+            /// <param name="builder"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="segments"/> or <paramref name="builder"/> is <see langword="null"/></exception>
+            public void Transcribe(IEnumerable<OdataNextLink.Inners.Segment> segments, StringBuilder builder)
+            {
+                //// TODO you should probably establish an interface for transcribers (pull from other repo?)
+                //// TODO you could then have an extension that `tostring`s a transcriber
+                //// TODO should transcribers return the stringbuilder?
+                if (segments == null)
+                {
+                    throw new ArgumentNullException(nameof(segments));
+                }
+
+                if (builder == null)
+                {
+                    throw new ArgumentNullException(nameof(builder));
+                }
+
+                builder.AppendJoin("/", segments.Select(segment => segment?.Value)); //// TODO you are being very strict here; technically, the link constructor hasn't asserted that there are no null elements; i don't know if this is worth it
             }
         }
     }

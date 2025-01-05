@@ -71,6 +71,11 @@
 
         public sealed class Page : GraphQuery
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="relativeUri"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeUri"/> is <see langword="null"/></exception>
             internal Page(RelativeUri relativeUri)
             {
                 if (relativeUri == null)
@@ -998,7 +1003,6 @@
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                //// TODO you are here
                 return Task.FromResult(new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final().AsBase());
             }
 
@@ -1010,8 +1014,15 @@
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                //// TODO you are here
-                return await this.graphCalendarEventsContext.Page(new GraphQuery.Page(ToRelativeUri(node)), this).ConfigureAwait(false);
+                //// TODO this has mutual recursion, so you need to make sure `.page` and this `acceptasync` overload have the same exceptions documented
+                return await this
+                    .graphCalendarEventsContext
+                    .Page(
+                        new GraphQuery
+                            .Page(
+                                node.ToRelativeUri()), 
+                        this)
+                    .ConfigureAwait(false);
             }
 
             /// <inheritdoc/>
@@ -1026,20 +1037,6 @@
                 var nextContext = this.contextGenerator(node);
                 return await nextContext.Page(new GraphQuery.Page(nextContext.ServiceRoot.GetUri(node)), this).ConfigureAwait(false);
             }
-        }
-
-        private static RelativeUri ToRelativeUri(OdataNextLink.Relative odataNextLink)
-        {
-            //// TODO this should be like a transcriber (or maybe just copy this extension publicly?) in the odata layer
-            return new Uri(
-                string.Join(
-                    string.Empty, 
-                    odataNextLink
-                        .Segments
-                        .Select(segment => 
-                            $"/{segment}")),
-                UriKind.Relative)
-                .ToRelativeUri();
         }
     }
 }

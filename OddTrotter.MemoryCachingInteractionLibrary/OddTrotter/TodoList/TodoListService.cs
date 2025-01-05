@@ -272,6 +272,7 @@
             //// TODO finish first pass
             //// TODO address todos
             //// TODO add unit tests
+            //// TODO make sure anything that is not completely accurate is marked as `internal`
             //// TODO do another pass (you will likely need at least one more pass after this)
             //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
             //// TODO write tests for todolistservice that confirm the URLs
