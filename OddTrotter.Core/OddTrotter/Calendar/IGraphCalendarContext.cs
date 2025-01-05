@@ -834,27 +834,25 @@
         {
             private readonly GraphCalendarEventsResponse graphCalendarEventsResponse;
             private readonly int index;
-            private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
-            private readonly Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator;
+            private readonly OdataNextLinkVisitor odataNextLinkVisitor;
 
-            public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, IGraphCalendarEventsContext graphCalendarEventsContext, Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator)
+            public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, OdataNextLinkVisitor odataNextLinkVisitor)
                 : base(graphCalendarEventsResponse.Events[index])
             {
                 this.graphCalendarEventsResponse = graphCalendarEventsResponse;
                 this.index = index;
-                this.graphCalendarEventsContext = graphCalendarEventsContext;
-                this.contextGenerator = contextGenerator;
+                this.odataNextLinkVisitor = odataNextLinkVisitor;
             }
 
             public override QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> Next()
             {
                 if (this.index + 1 < this.graphCalendarEventsResponse.Events.Count)
                 {
-                    return new PageQueryResult(this.graphCalendarEventsResponse, this.index + 1, this.graphCalendarEventsContext, this.contextGenerator);
+                    return new PageQueryResult(this.graphCalendarEventsResponse, this.index + 1, this.odataNextLinkVisitor);
                 }
 
                 //// TODO figure out async `queryresult`s
-                return new OdataNextLinkVisitor(this.graphCalendarEventsContext, this.contextGenerator).VisitAsync(this.graphCalendarEventsResponse.NextPage, default).ConfigureAwait(false).GetAwaiter().GetResult();
+                return this.odataNextLinkVisitor.VisitAsync(this.graphCalendarEventsResponse.NextPage, default).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -910,6 +908,40 @@
                 throw new ArgumentNullException(nameof(contextGenerator));
             }
 
+            //// TODO you are here
+            return await Page(
+                graphCalendarEventsContext,
+                graphQuery,
+                new OdataNextLinkVisitor(graphCalendarEventsContext, contextGenerator)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="graphCalendarEventsContext"></param>
+        /// <param name="graphQuery">TODO this allows <paramref name="graphQuery"/> to be a paging query; do you want to protect against that for some reason?</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="graphQuery"/> or <paramref name="odataNextLinkVisitor"/> is <see langword="null"</exception>
+        private static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
+            this IGraphCalendarEventsContext graphCalendarEventsContext,
+            GraphQuery graphQuery,
+            OdataNextLinkVisitor odataNextLinkVisitor)
+        {
+            if (graphCalendarEventsContext == null)
+            {
+                throw new ArgumentNullException(nameof(graphCalendarEventsContext));
+            }
+
+            if (graphQuery == null)
+            {
+                throw new ArgumentNullException(nameof(graphQuery));
+            }
+
+            if (odataNextLinkVisitor == null)
+            {
+                throw new ArgumentNullException(nameof(odataNextLinkVisitor));
+            }
+
             GraphCalendarEventsResponse response;
             try
             {
@@ -924,10 +956,10 @@
             if (response.Events.Count == 0)
             {
                 //// TODO figure out using a single visitor for the entire query result
-                return await new OdataNextLinkVisitor(graphCalendarEventsContext, contextGenerator).VisitAsync(response.NextPage, default).ConfigureAwait(false);
+                return await odataNextLinkVisitor.VisitAsync(response.NextPage, default).ConfigureAwait(false);
             }
 
-            return new PageQueryResult(response, 0, graphCalendarEventsContext, contextGenerator);
+            return new PageQueryResult(response, 0, odataNextLinkVisitor);
         }
 
         private sealed class OdataNextLinkVisitor : OdataNextLink.Visitor<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>, Void>
@@ -935,10 +967,26 @@
             private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
             private readonly Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="graphCalendarEventsContext"></param>
+            /// <param name="contextGenerator"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="contextGenerator"/> is <see langword="null"/></exception>
             public OdataNextLinkVisitor(
                 IGraphCalendarEventsContext graphCalendarEventsContext, 
                 Func<OdataNextLink.Absolute, IGraphCalendarEventsContext> contextGenerator)
             {
+                if (graphCalendarEventsContext == null)
+                {
+                    throw new ArgumentNullException(nameof(graphCalendarEventsContext));
+                }
+
+                if (contextGenerator == null)
+                {
+                    throw new ArgumentNullException(nameof(contextGenerator));
+                }
+
                 this.graphCalendarEventsContext = graphCalendarEventsContext;
                 this.contextGenerator = contextGenerator;
             }
@@ -958,7 +1006,7 @@
             protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Absolute node, Void context)
             {
                 var nextContext = this.contextGenerator(node);
-                return await nextContext.Page(new GraphQuery.Page(nextContext.ServiceRoot.GetUri(node)), this.contextGenerator).ConfigureAwait(false);
+                return await nextContext.Page(new GraphQuery.Page(nextContext.ServiceRoot.GetUri(node)), this).ConfigureAwait(false);
             }
         }
 
