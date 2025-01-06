@@ -279,8 +279,14 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="graphCalendarEvent"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEvent"/> is <see langword="null"/></exception>
         private static Either<CalendarEvent, CalendarEventsContextTranslationError> ToCalendarEvent(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
         {
+            if (graphCalendarEvent == null)
+            {
+                throw new ArgumentNullException(nameof(graphCalendarEvent));
+            }
+
             //// TODO you are here
             var dateTime = ToDateTime(graphCalendarEvent.Start);
 
@@ -294,9 +300,31 @@ namespace OddTrotter.Calendar
                         graphCalendarEvent.IsCancelled));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="timeStructure"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="timeStructure"/> is <see langword="null"/></exception>
         private static Either<DateTime, CalendarEventsContextTranslationError> ToDateTime(OddTrotter.Calendar.TimeStructure timeStructure)
         {
-            //// TODO you are here
+            if (timeStructure == null)
+            {
+                throw new ArgumentNullException(nameof(timeStructure));
+            }
+
+            //// TODO handle timezone...
+            try
+            {
+                return Either
+                    .Right<CalendarEventsContextTranslationError>()
+                    .Left(DateTime.Parse(timeStructure.DateTime));
+            }
+            catch (FormatException)
+            {
+                //// TODO you are here
+                return Either.Left<DateTime>().Right(new CalendarEventsContextTranslationError()); //// TODO preserve exception
+            }
         }
 
         /// <summary>
