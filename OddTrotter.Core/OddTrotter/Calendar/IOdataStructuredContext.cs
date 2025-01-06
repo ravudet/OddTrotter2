@@ -358,15 +358,29 @@ namespace OddTrotter.Calendar
             /// </summary>
             public static OdataServiceRootTranscriber Instance { get; } = new OdataServiceRootTranscriber();
 
+            /// <inheritdoc/>
             protected internal override string Accept(OdataServiceRoot.WithPort node, Void context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                //// TODO you are here
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
                 var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
                 return $"{scheme}://{node.Host.Value}:{node.Port}/{segments}";
             }
 
+            /// <inheritdoc/>
             protected internal override string Accept(OdataServiceRoot.WithoutPort node, Void context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                //// TODO you are here
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
                 var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
                 return $"{scheme}://{node.Host.Value}/{segments}";
@@ -374,10 +388,16 @@ namespace OddTrotter.Calendar
 
             private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<string, Void>
             {
+                /// <summary>
+                /// 
+                /// </summary>
                 private SchemeTranscriber()
                 {
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
                 public static SchemeTranscriber Instance { get; } = new SchemeTranscriber();
 
                 protected internal override string Accept(Scheme.Https node, Void context)
@@ -887,16 +907,56 @@ namespace OddTrotter.Calendar
                 {
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <typeparam name="TResult"></typeparam>
+                /// <typeparam name="TContext"></typeparam>
+                /// <param name="visitor"></param>
+                /// <param name="context"></param>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+                /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Accept"/> overloads can throw</exception> //// TODO is this good?
                 protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
                 public abstract class Visitor<TResult, TContext>
                 {
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="node"></param>
+                    /// <param name="context"></param>
+                    /// <returns></returns>
+                    /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                    /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Accept"/> overloads can throw</exception> //// TODO is this good?
                     public TResult Visit(Scheme node, TContext context)
                     {
+                        if (node == null)
+                        {
+                            throw new ArgumentNullException(nameof(node));
+                        }
+
                         return node.Dispatch(this, context);
                     }
 
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="node"></param>
+                    /// <param name="context"></param>
+                    /// <returns></returns>
+                    /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                    /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
                     protected internal abstract TResult Accept(Https node, TContext context);
+
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="node"></param>
+                    /// <param name="context"></param>
+                    /// <returns></returns>
+                    /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                    /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
                     protected internal abstract TResult Accept(Http node, TContext context);
                 }
 
@@ -908,8 +968,14 @@ namespace OddTrotter.Calendar
 
                     public static Https Instance { get; } = new Https();
 
+                    /// <inheritdoc/>
                     protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
                     {
+                        if (visitor == null)
+                        {
+                            throw new ArgumentNullException(nameof(visitor));
+                        }
+
                         return visitor.Accept(this, context);
                     }
                 }
@@ -922,8 +988,14 @@ namespace OddTrotter.Calendar
 
                     public static Http Instance { get; } = new Http();
 
+                    /// <inheritdoc/>
                     protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
                     {
+                        if (visitor == null)
+                        {
+                            throw new ArgumentNullException(nameof(visitor));
+                        }
+
                         return visitor.Accept(this, context);
                     }
                 }
