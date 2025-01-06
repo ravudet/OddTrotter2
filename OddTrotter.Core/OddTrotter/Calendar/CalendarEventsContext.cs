@@ -129,11 +129,14 @@ namespace OddTrotter.Calendar
                 .ErrorSelect(
                     graphPagingException => 
                         new CalendarEventsContextPagingException("An error occurred while paging through all of the calendar events.", graphPagingException))
-            //// TODO you are here
-                .Select(graphCalendarEvent =>
-                    graphCalendarEvent.VisitSelect(
-                        left => ToCalendarEvent(left),
-                        right => new CalendarEventsContextTranslationError()));
+                .Select(
+                    graphCalendarEvent =>
+                        graphCalendarEvent
+                            .VisitSelect(
+                                //// TODO you are here
+                                left => ToCalendarEvent(left),
+                                right => new CalendarEventsContextTranslationError())
+                            .ShiftRight());
         }
 
         /// <summary>
@@ -267,17 +270,33 @@ namespace OddTrotter.Calendar
                 .Events[0]
                 .VisitSelect(
                     left => ToCalendarEvent(left),
-                    right => new CalendarEventsContextTranslationError()); //// TODO
+                    right => new CalendarEventsContextTranslationError()) //// TODO
+                .ShiftRight();
         }
 
-        private static CalendarEvent ToCalendarEvent(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="graphCalendarEvent"></param>
+        /// <returns></returns>
+        private static Either<CalendarEvent, CalendarEventsContextTranslationError> ToCalendarEvent(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
         {
-            return new CalendarEvent(
-                graphCalendarEvent.Id,
-                graphCalendarEvent.Subject,
-                graphCalendarEvent.Body.Content,
-                DateTime.Parse(graphCalendarEvent.Start.DateTime), //// TODO what about datetime parsing errors?
-                graphCalendarEvent.IsCancelled);
+            //// TODO you are here
+            var dateTime = ToDateTime(graphCalendarEvent.Start);
+
+            return dateTime
+                .SelectLeft(
+                    left => new CalendarEvent(
+                        graphCalendarEvent.Id,
+                        graphCalendarEvent.Subject,
+                        graphCalendarEvent.Body.Content,
+                        left,
+                        graphCalendarEvent.IsCancelled));
+        }
+
+        private static Either<DateTime, CalendarEventsContextTranslationError> ToDateTime(OddTrotter.Calendar.TimeStructure timeStructure)
+        {
+            //// TODO you are here
         }
 
         /// <summary>
