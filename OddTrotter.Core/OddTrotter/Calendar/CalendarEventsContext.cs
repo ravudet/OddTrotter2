@@ -114,13 +114,19 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="graphResponse"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphResponse"/> is <see langword="null"/></exception>
         private static
             QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>
             Adapt(
             QueryResult<Either<OddTrotter.Calendar.GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> graphResponse)
         {
-            //// TODO you are here
+            if (graphResponse == null)
+            {
+                throw new ArgumentNullException(nameof(graphResponse));
+            }
+
             return graphResponse
+            //// TODO you are here
                 .ErrorSelect(graphPageingException => new CalendarEventsContextPagingException("TODO presreve the exception"))
                 .Select(graphCalendarEvent =>
                     graphCalendarEvent.VisitSelect(
