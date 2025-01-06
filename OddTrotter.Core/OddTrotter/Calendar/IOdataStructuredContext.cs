@@ -482,39 +482,104 @@ namespace OddTrotter.Calendar
                 .ToRelativeUri();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="odataNextLink"></param>
+        /// <param name="odataServiceRoot"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataNextLink"/> or <paramref name="odataServiceRoot"/> is <see langword="null"/></exception>
         internal static bool StartsWith(this OdataNextLink.Absolute odataNextLink, OdataServiceRoot odataServiceRoot)
         {
+            if (odataNextLink == null)
+            {
+                throw new ArgumentNullException(nameof(odataNextLink));
+            }
+
+            if (odataServiceRoot == null)
+            {
+                throw new ArgumentNullException(nameof(odataServiceRoot));
+            }
+
             return StartsWithVisitor.Instance.Visit(odataNextLink.AbsoluteNextLink, odataServiceRoot);
         }
 
         private sealed class StartsWithVisitor : OdataNextLink.Inners.AbsoluteNextLink.Visitor<bool, OdataServiceRoot>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private StartsWithVisitor()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static StartsWithVisitor Instance { get; } = new StartsWithVisitor();
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             protected internal override bool Accept(WithPort node, OdataServiceRoot context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return OdataServiceRootWithPortVisitor.Instance.Visit(context, node);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             protected internal override bool Accept(WithoutPort node, OdataServiceRoot context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return OdataServiceRootWithoutPortVisitor.Instance.Visit(context, node);
             }
 
             private sealed class OdataServiceRootWithPortVisitor : OdataServiceRoot.Visitor<bool, OdataNextLink.Inners.AbsoluteNextLink.WithPort>
             {
+                /// <summary>
+                /// 
+                /// </summary>
                 private OdataServiceRootWithPortVisitor()
                 {
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
                 public static OdataServiceRootWithPortVisitor Instance { get; } = new OdataServiceRootWithPortVisitor();
 
+                /// <inheritdoc/>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
                 protected internal override bool Accept(OdataServiceRoot.WithPort node, OdataNextLink.Inners.AbsoluteNextLink.WithPort context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException(nameof(context));
+                    }
+
                     //// TODO have a comparer for each portion of the nodes?
 
                     if (!SchemeVisitor.Instance.Visit(node.Scheme, context.Scheme))
@@ -559,27 +624,69 @@ namespace OddTrotter.Calendar
                     return true;
                 }
 
+                /// <inheritdoc/>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
                 protected internal override bool Accept(OdataServiceRoot.WithoutPort node, OdataNextLink.Inners.AbsoluteNextLink.WithPort context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException(nameof(context));
+                    }
+
                     return false;
                 }
             }
 
             private sealed class OdataServiceRootWithoutPortVisitor : OdataServiceRoot.Visitor<bool, OdataNextLink.Inners.AbsoluteNextLink.WithoutPort>
             {
+                /// <summary>
+                /// 
+                /// </summary>
                 private OdataServiceRootWithoutPortVisitor()
                 {
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
                 public static OdataServiceRootWithoutPortVisitor Instance { get; } = new OdataServiceRootWithoutPortVisitor();
 
+                /// <inheritdoc/>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
                 protected internal override bool Accept(OdataServiceRoot.WithPort node, WithoutPort context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException(nameof(context));
+                    }
+
                     return false;
                 }
 
+                /// <inheritdoc/>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
                 protected internal override bool Accept(OdataServiceRoot.WithoutPort node, WithoutPort context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException(nameof(context));
+                    }
+
                     //// TODO have a comparer for each portion of the nodes?
 
                     if (!SchemeVisitor.Instance.Visit(node.Scheme, context.Scheme))
@@ -622,19 +729,49 @@ namespace OddTrotter.Calendar
 
             private sealed class SchemeVisitor : OdataNextLink.Inners.Scheme.Visitor<bool, OdataNextLink.Inners.Scheme>
             {
+                /// <summary>
+                /// 
+                /// </summary>
                 private SchemeVisitor()
                 {
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
                 public static SchemeVisitor Instance { get; } = new SchemeVisitor();
 
+                /// <inheritdoc/>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
                 protected internal override bool Accept(Scheme.Https node, Scheme context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException(nameof(context));
+                    }
+
                     return context is Scheme.Https;
                 }
 
+                /// <inheritdoc/>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
                 protected internal override bool Accept(Scheme.Http node, Scheme context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException(nameof(context));
+                    }
+
                     return context is Scheme.Http;
                 }
             }
