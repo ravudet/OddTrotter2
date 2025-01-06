@@ -4,6 +4,7 @@ namespace OddTrotter.Calendar
     using OddTrotter.TodoList;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Threading.Tasks;
 
     public interface IQueryContext<TValue, TError>
@@ -27,30 +28,86 @@ namespace OddTrotter.Calendar
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="visitor"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
         protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public abstract class Visitor<TResult, TContext>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can throw</exception> //// TODO is this good?
             public TResult Visit(QueryResult<TValue, TError> node, TContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
                 return node.Accept(this, context);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             public abstract TResult Dispatch(Final node, TContext context);
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             public abstract TResult Dispatch(Element node, TContext context);
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             public abstract TResult Dispatch(Partial node, TContext context);
         }
 
         public sealed class Final : QueryResult<TValue, TError>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             public Final()
             {
             }
 
+            /// <inheritdoc/>
             protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Dispatch(this, context);
             }
         }
@@ -67,8 +124,14 @@ namespace OddTrotter.Calendar
 
             public abstract QueryResult<TValue, TError> Next(); //// TODO you previously tried using `task`s here, but you realized that the tasks were all running in the background, taking away any laziness that might be useful; could you have something like a `lazytask` that doesn't start until awaited or something? make it a struct?
 
+            /// <inheritdoc/>
             protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Dispatch(this, context);
             }
         }
@@ -82,8 +145,14 @@ namespace OddTrotter.Calendar
 
             public TError Error { get; }
 
+            /// <inheritdoc/>
             protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Dispatch(this, context);
             }
         }
@@ -164,9 +233,20 @@ namespace OddTrotter.Calendar
             private readonly QueryResult<TValue, TErrorStart>.Element queryResult;
             private readonly Func<TErrorStart, TErrorEnd> selector;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="queryResult"></param>
+            /// <param name="selector"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="selector"/> is <see langword="null"/></exception>
             public ErrorResult(QueryResult<TValue, TErrorStart>.Element queryResult, Func<TErrorStart, TErrorEnd> selector)
-                : base(queryResult.Value)
+                : base((queryResult ?? throw new ArgumentNullException(nameof(queryResult))).Value)
             {
+                if (selector == null)
+                {
+                    throw new ArgumentNullException(nameof(selector));
+                }
+
                 this.queryResult = queryResult;
                 this.selector = selector;
             }
@@ -179,24 +259,66 @@ namespace OddTrotter.Calendar
 
         private sealed class ErrorVisitor<TValue, TErrorStart, TErrorEnd> : QueryResult<TValue, TErrorStart>.Visitor<QueryResult<TValue, TErrorEnd>, Func<TErrorStart, TErrorEnd>>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private ErrorVisitor()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static ErrorVisitor<TValue, TErrorStart, TErrorEnd> Instance { get; } = new ErrorVisitor<TValue, TErrorStart, TErrorEnd>();
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override QueryResult<TValue, TErrorEnd> Dispatch(QueryResult<TValue, TErrorStart>.Final node, Func<TErrorStart, TErrorEnd> context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return new QueryResult<TValue, TErrorEnd>.Final();
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override QueryResult<TValue, TErrorEnd> Dispatch(QueryResult<TValue, TErrorStart>.Element node, Func<TErrorStart, TErrorEnd> context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return new ErrorResult<TValue, TErrorStart, TErrorEnd>(node, context);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override QueryResult<TValue, TErrorEnd> Dispatch(QueryResult<TValue, TErrorStart>.Partial node, Func<TErrorStart, TErrorEnd> context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return new QueryResult<TValue, TErrorEnd>.Partial(context(node.Error));
             }
         }
@@ -210,9 +332,20 @@ namespace OddTrotter.Calendar
         /// <param name="queryResult"></param>
         /// <param name="selector"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="selector"/> is <see langword="null"/></exception>
         public static QueryResult<TValue, TErrorEnd> ErrorSelect<TValue, TErrorStart, TErrorEnd>(this QueryResult<TValue, TErrorStart> queryResult, Func<TErrorStart, TErrorEnd> selector)
         {
-            //// TODO do you like this name? do you want to normalize with names used in `either`?
+            //// TODO do you like this method name? do you want to normalize with names used in `either`?
+
+            if (queryResult == null)
+            {
+                throw new ArgumentNullException(nameof(queryResult));
+            }
+
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
 
             return ErrorVisitor<TValue, TErrorStart, TErrorEnd>.Instance.Visit(queryResult, selector);
         }

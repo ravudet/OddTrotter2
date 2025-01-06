@@ -9,8 +9,8 @@ namespace OddTrotter.Calendar
 
     public sealed class CalendarEventsContextPagingException : Exception
     {
-        public CalendarEventsContextPagingException(string message)
-            : base(message)
+        public CalendarEventsContextPagingException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
     }
@@ -127,7 +127,7 @@ namespace OddTrotter.Calendar
 
             return graphResponse
             //// TODO you are here
-                .ErrorSelect(graphPageingException => new CalendarEventsContextPagingException("TODO presreve the exception"))
+                .ErrorSelect(graphPagingException => new CalendarEventsContextPagingException("TODO presreve the exception", graphPagingException))
                 .Select(graphCalendarEvent =>
                     graphCalendarEvent.VisitSelect(
                         left => ToCalendarEvent(left),
