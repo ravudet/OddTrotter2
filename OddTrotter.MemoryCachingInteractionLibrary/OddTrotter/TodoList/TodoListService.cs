@@ -306,7 +306,7 @@
                         left => left.Subject.Contains("todo list", StringComparison.OrdinalIgnoreCase),
                         right => true));
             var successes = new List<OddTrotter.Calendar.CalendarEvent>();
-            var errors = new List<CalendarEventsContextTranslationError>();
+            var errors = new List<CalendarEventsContextTranslationException>();
             var pagingError = todoListEvents2.Split(successes.Add, errors.Add);
 
             var successesWithParsedBodies = successes.Select(success => ParseEventBody(success.Body)); //// TODO handle errors

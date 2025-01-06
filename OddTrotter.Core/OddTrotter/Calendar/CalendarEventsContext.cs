@@ -15,14 +15,18 @@ namespace OddTrotter.Calendar
         }
     }
 
-    public sealed class CalendarEventsContextTranslationError
+    public sealed class CalendarEventsContextTranslationException : Exception
     {
+        public CalendarEventsContextTranslationException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    public sealed class CalendarEventsContext : IQueryContext<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>, IWhereQueryContextMixin<CalendarEvent, CalendarEventsContextTranslationError, CalendarEventsContextPagingException, CalendarEventsContext>
+    public sealed class CalendarEventsContext : IQueryContext<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>, IWhereQueryContextMixin<CalendarEvent, CalendarEventsContextTranslationException, CalendarEventsContextPagingException, CalendarEventsContext>
     {
         private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
 
@@ -99,7 +103,7 @@ namespace OddTrotter.Calendar
             this.isCancelled = isCancelled;
         }
 
-        public async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> Evaluate()
+        public async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> Evaluate()
         {
             //// TODO you are here
             var instanceEvents = await this.GetInstanceEvents().ConfigureAwait(false);
@@ -116,7 +120,7 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphResponse"/> is <see langword="null"/></exception>
         private static
-            QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>
+            QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>
             Adapt(
             QueryResult<Either<OddTrotter.Calendar.GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> graphResponse)
         {
@@ -135,7 +139,7 @@ namespace OddTrotter.Calendar
                             .VisitSelect(
                                 //// TODO you are here
                                 left => ToCalendarEvent(left),
-                                right => new CalendarEventsContextTranslationError())
+                                right => new CalendarEventsContextTranslationException())
                             .ShiftRight());
         }
 
@@ -159,7 +163,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> GetInstanceEvents()
+        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstanceEvents()
         {
             var url =
                 $"{this.calendarUriPath.Path}/events?" +
@@ -206,7 +210,7 @@ namespace OddTrotter.Calendar
         /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
         /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
         /// </remarks>
-        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> GetSeriesEvents()
+        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEvents()
         {
             var seriesEventMasters =
                 await this.GetSeriesEventMasters().ConfigureAwait(false);
@@ -221,7 +225,7 @@ namespace OddTrotter.Calendar
             return mastersWithInstances;
         }
 
-        private async Task<Either<CalendarEvent, CalendarEventsContextTranslationError>> GetFirstSeriesInstance(
+        private async Task<Either<CalendarEvent, CalendarEventsContextTranslationException>> GetFirstSeriesInstance(
             CalendarEvent seriesMaster)
         {
             //// TODO make the calendar configurable
@@ -256,21 +260,21 @@ namespace OddTrotter.Calendar
             }
             catch
             {
-                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationError()); //// TODO
+                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException()); //// TODO
             }
 
 
             //// TODO do you want to do this check in the caller? someone up in the call stack probably wants to differentiate between mechanical errors vs the logical error of there being no instance events for a series
             if (graphResponse.Events.Count == 0)
             {
-                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationError()); //// TODO
+                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException()); //// TODO
             }
 
             return graphResponse
                 .Events[0]
                 .VisitSelect(
                     left => ToCalendarEvent(left),
-                    right => new CalendarEventsContextTranslationError()) //// TODO
+                    right => new CalendarEventsContextTranslationException()) //// TODO
                 .ShiftRight();
         }
 
@@ -280,7 +284,7 @@ namespace OddTrotter.Calendar
         /// <param name="graphCalendarEvent"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEvent"/> is <see langword="null"/></exception>
-        private static Either<CalendarEvent, CalendarEventsContextTranslationError> ToCalendarEvent(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
+        private static Either<CalendarEvent, CalendarEventsContextTranslationException> ToCalendarEvent(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
         {
             if (graphCalendarEvent == null)
             {
@@ -306,7 +310,7 @@ namespace OddTrotter.Calendar
         /// <param name="timeStructure"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="timeStructure"/> is <see langword="null"/></exception>
-        private static Either<DateTime, CalendarEventsContextTranslationError> ToDateTime(OddTrotter.Calendar.TimeStructure timeStructure)
+        private static Either<DateTime, CalendarEventsContextTranslationException> ToDateTime(OddTrotter.Calendar.TimeStructure timeStructure)
         {
             if (timeStructure == null)
             {
@@ -317,13 +321,13 @@ namespace OddTrotter.Calendar
             try
             {
                 return Either
-                    .Right<CalendarEventsContextTranslationError>()
+                    .Right<CalendarEventsContextTranslationException>()
                     .Left(DateTime.Parse(timeStructure.DateTime));
             }
             catch (FormatException)
             {
                 //// TODO you are here
-                return Either.Left<DateTime>().Right(new CalendarEventsContextTranslationError()); //// TODO preserve exception
+                return Either.Left<DateTime>().Right(new CalendarEventsContextTranslationException()); //// TODO preserve exception
             }
         }
 
@@ -336,7 +340,7 @@ namespace OddTrotter.Calendar
         /// <exception cref="UnauthorizedAccessTokenException">
         /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
         /// </exception>
-        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
+        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
         {
             //// TODO make the calendar that's used configurable
             var url = $"/me/calendar/events?" +
