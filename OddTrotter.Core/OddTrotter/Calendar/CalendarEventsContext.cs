@@ -163,8 +163,9 @@ namespace OddTrotter.Calendar
 
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             //// TODO you are here
-            //// TODO check what you've written for paging in getserieseventmasters
-            var graphResponse = await this.graphCalendarEventsContext.Page(graphQuery).ConfigureAwait(false);
+            //// TODO odataserviceroot.geturi calls makerelativeuri and you never checked the exception documentation for that
+            //// TODO how do you want to deal with the `contextGenerator` here? if the next page goes to a different service altogether, then your access token won't work anymore; however, nothing is exposed yet that will let you know if your current graph context has the correct service root; the `contextGenerator` *could* throw if a service root is returned that isn't the current one, but again, that information isn't exposed on the graph context interface; always using the current context is an option (you should leave a comment if this is what you do) because graph doesn't currently ever point you somewhere else, but doing this would mean if graph ever *did* start doing that, it would be harder to debug
+            var graphResponse = await this.graphCalendarEventsContext.Page(graphQuery, ).ConfigureAwait(false);
             return Adapt(graphResponse);
         }
 
