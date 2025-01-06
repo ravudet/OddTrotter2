@@ -459,7 +459,7 @@ namespace OddTrotter.Calendar
         /// 
         /// </summary>
         /// <param name="odataServiceRoot"></param>
-        /// <param name="odataNextLink"></param>
+        /// <param name="odataNextLink">This is assumed to start with <paramref name="odataServiceRoot"/>; strange things will be returned (and not thrown) if this is not the case</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataServiceRoot"/> or <paramref name="odataNextLink"/> is <see langword="null"/></exception>
         internal static RelativeUri GetUri(this OdataServiceRoot odataServiceRoot, OdataNextLink.Absolute odataNextLink)
@@ -476,7 +476,7 @@ namespace OddTrotter.Calendar
 
             return odataServiceRoot
                 .ToAbsoluteUri()
-                .MakeRelativeUri(
+                .MakeRelativeUri( //// TODO this does some weird things if `odatanextlink` doesn't start with `odataserviceroot`; do you need to write your own code for this?
                     odataNextLink
                         .ToAbsoluteUri())
                 .ToRelativeUri();
