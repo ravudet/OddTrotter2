@@ -845,9 +845,33 @@
             private readonly int index;
             private readonly OdataNextLinkVisitor odataNextLinkVisitor;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="graphCalendarEventsResponse"></param>
+            /// <param name="index"></param>
+            /// <param name="odataNextLinkVisitor"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsResponse"/> or <paramref name="odataNextLinkVisitor"/> is <see langword="null"/></exception>
+            /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is negative</exception>
             public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, OdataNextLinkVisitor odataNextLinkVisitor)
                 : base(graphCalendarEventsResponse.Events[index])
             {
+                //// TODO you are here
+                if (graphCalendarEventsResponse == null)
+                {
+                    throw new ArgumentNullException(nameof(graphCalendarEventsResponse));
+                }
+
+                if (index < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index), $"'{nameof(index)}' must not be a negative value. The provided value was '{index}'.");
+                }
+
+                if (odataNextLinkVisitor == null)
+                {
+                    throw new ArgumentNullException(nameof(odataNextLinkVisitor));
+                }
+
                 this.graphCalendarEventsResponse = graphCalendarEventsResponse;
                 this.index = index;
                 this.odataNextLinkVisitor = odataNextLinkVisitor;
@@ -917,7 +941,6 @@
                 throw new ArgumentNullException(nameof(contextGenerator));
             }
 
-            //// TODO you are here
             return await Page(
                 graphCalendarEventsContext,
                 graphQuery,
@@ -966,7 +989,6 @@
                 return await odataNextLinkVisitor.VisitAsync(response.NextPage, default).ConfigureAwait(false);
             }
 
-            //// TODO you are here
             return new PageQueryResult(response, 0, odataNextLinkVisitor);
         }
 
