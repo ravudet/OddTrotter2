@@ -217,16 +217,56 @@ namespace OddTrotter.Calendar
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="visitor"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Accept"/> overloads can throw</exception> //// TODO is this good?
         protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public abstract class Visitor<TResult, TContext>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Accept"/> overloads can throw</exception> //// TODO is this good?
             public TResult Visit(OdataServiceRoot node, TContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
                 return node.Dispatch(this, context);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             protected internal abstract TResult Accept(WithPort node, TContext context);
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
             protected internal abstract TResult Accept(WithoutPort node, TContext context);
         }
 
@@ -245,8 +285,14 @@ namespace OddTrotter.Calendar
             public uint Port { get; }
             public IEnumerable<Segment> Segments { get; }
 
+            /// <inheritdoc/>
             protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Accept(this, context);
             }
         }
@@ -264,8 +310,14 @@ namespace OddTrotter.Calendar
             public Host Host { get; }
             public IEnumerable<Segment> Segments { get; }
 
+            /// <inheritdoc/>
             protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
                 return visitor.Accept(this, context);
             }
         }
@@ -273,18 +325,37 @@ namespace OddTrotter.Calendar
 
     public static class OdataServiceRootExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="odataServiceRoot"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataServiceRoot"/> is <see langword="null"/></exception>
         public static AbsoluteUri ToAbsoluteUri(this OdataServiceRoot odataServiceRoot)
         {
+            if (odataServiceRoot == null)
+            {
+                throw new ArgumentNullException(nameof(odataServiceRoot));
+            }
+
+            //// TODO share transcribers with the nextlink extensions below
+            //// TODO you are here
             var uri = OdataServiceRootTranscriber.Instance.Visit(odataServiceRoot, default);
             return new Uri(uri, UriKind.Absolute).ToAbsoluteUri();
         }
 
         private sealed class OdataServiceRootTranscriber : OdataServiceRoot.Visitor<string, Void>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private OdataServiceRootTranscriber()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static OdataServiceRootTranscriber Instance { get; } = new OdataServiceRootTranscriber();
 
             protected internal override string Accept(OdataServiceRoot.WithPort node, Void context)
@@ -335,9 +406,32 @@ namespace OddTrotter.Calendar
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="odataServiceRoot"></param>
+        /// <param name="odataNextLink"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataServiceRoot"/> or <paramref name="odataNextLink"/> is <see langword="null"/></exception>
         internal static RelativeUri GetUri(this OdataServiceRoot odataServiceRoot, OdataNextLink.Absolute odataNextLink)
         {
-            return odataServiceRoot.ToAbsoluteUri().MakeRelativeUri(odataNextLink.ToAbsoluteUri()).ToRelativeUri();
+            if (odataServiceRoot == null)
+            {
+                throw new ArgumentNullException(nameof(odataServiceRoot));
+            }
+
+            if (odataNextLink == null)
+            {
+                throw new ArgumentNullException(nameof(odataNextLink));
+            }
+
+            return odataServiceRoot
+            //// TODO you are here
+                .ToAbsoluteUri()
+                .MakeRelativeUri(
+                    odataNextLink
+                        .ToAbsoluteUri())
+                .ToRelativeUri();
         }
     }
 

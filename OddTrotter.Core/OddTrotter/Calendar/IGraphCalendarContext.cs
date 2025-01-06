@@ -239,6 +239,9 @@
         /// <exception cref="GraphProcessingException">Thrown if graph encountered an error processing the request</exception>
         Task<GraphCalendarEventsResponse> Evaluate(GraphQuery graphQuery);
 
+        /// <summary>
+        /// 
+        /// </summary>
         OdataServiceRoot ServiceRoot { get; }
     }
 
@@ -363,6 +366,7 @@
             this.ServiceRoot = graphOdataContext.ServiceRoot;
         }
 
+        /// <inheritdoc/>
         public OdataServiceRoot ServiceRoot { get; }
 
         /// <inheritdoc/>
@@ -1018,8 +1022,7 @@
                 return await this
                     .graphCalendarEventsContext
                     .Page(
-                        new GraphQuery
-                            .Page(
+                        new GraphQuery.Page(
                                 node.ToRelativeUri()), 
                         this)
                     .ConfigureAwait(false);
@@ -1033,9 +1036,18 @@
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                //// TODO you are here
                 var nextContext = this.contextGenerator(node);
-                return await nextContext.Page(new GraphQuery.Page(nextContext.ServiceRoot.GetUri(node)), this).ConfigureAwait(false);
+                //// TODO this has mutual recursion, so you need to make sure `.page` and this `acceptasync` overload have the same exceptions documented
+                return await nextContext
+                    .Page(
+                        new GraphQuery.Page(
+                            nextContext
+                                .ServiceRoot
+                //// TODO you are here
+                                .GetUri(
+                                    node)),
+                        this)
+                    .ConfigureAwait(false);
             }
         }
     }
