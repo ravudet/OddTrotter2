@@ -856,7 +856,6 @@
             public PageQueryResult(GraphCalendarEventsResponse graphCalendarEventsResponse, int index, OdataNextLinkVisitor odataNextLinkVisitor)
                 : base(graphCalendarEventsResponse.Events[index])
             {
-                //// TODO you are here
                 if (graphCalendarEventsResponse == null)
                 {
                     throw new ArgumentNullException(nameof(graphCalendarEventsResponse));
@@ -1063,7 +1062,6 @@
                         new GraphQuery.Page(
                             nextContext
                                 .ServiceRoot
-                //// TODO you are here
                                 .GetUri(
                                     node)),
                         this)
