@@ -477,7 +477,6 @@ namespace OddTrotter.Calendar
                 .ToAbsoluteUri()
                 .MakeRelativeUri(
                     odataNextLink
-            //// TODO you are here
                         .ToAbsoluteUri())
                 .ToRelativeUri();
         }
@@ -498,7 +497,6 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(odataNextLink));
             }
 
-            //// TODO you are here
             var stringBuilder = new StringBuilder();
             InnerTranscriber.Instance.Visit(odataNextLink.AbsoluteNextLink, stringBuilder);
             var uri = stringBuilder.ToString();
@@ -507,14 +505,32 @@ namespace OddTrotter.Calendar
 
         private sealed class InnerTranscriber : OdataNextLink.Inners.AbsoluteNextLink.Visitor<Void, StringBuilder>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private InnerTranscriber()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static InnerTranscriber Instance { get; } = new InnerTranscriber();
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             protected internal override Void Accept(OdataNextLink.Inners.AbsoluteNextLink.WithPort node, StringBuilder context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
                 context.Append("://");
                 context.Append(node.Host.Value);
@@ -526,8 +542,20 @@ namespace OddTrotter.Calendar
                 return default;
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             protected internal override Void Accept(OdataNextLink.Inners.AbsoluteNextLink.WithoutPort node, StringBuilder context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
                 context.Append("://");
                 context.Append(node.Host.Value);
@@ -539,21 +567,51 @@ namespace OddTrotter.Calendar
 
             private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<Void, StringBuilder>
             {
+                /// <summary>
+                /// 
+                /// </summary>
                 private SchemeTranscriber()
                 {
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
                 public static SchemeTranscriber Instance { get; } = new SchemeTranscriber();
 
+                /// <inheritdoc/>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
                 protected internal override Void Accept(Scheme.Https node, StringBuilder context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException(nameof(context));
+                    }
+
                     context.Append("https");
 
                     return default;
                 }
 
+                /// <inheritdoc/>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
                 protected internal override Void Accept(Scheme.Http node, StringBuilder context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    if (context == null)
+                    {
+                        throw new ArgumentNullException(nameof(context));
+                    }
+
                     context.Append("https");
 
                     return default;
@@ -834,16 +892,56 @@ namespace OddTrotter.Calendar
                 {
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <typeparam name="TResult"></typeparam>
+                /// <typeparam name="TContext"></typeparam>
+                /// <param name="visitor"></param>
+                /// <param name="context"></param>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+                /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Accept"/> overloads can throw</exception> //// TODO is this good?
                 protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
                 public abstract class Visitor<TResult, TContext>
                 {
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="node"></param>
+                    /// <param name="context"></param>
+                    /// <returns></returns>
+                    /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                    /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Accept"/> overloads can throw</exception> //// TODO is this good?
                     public TResult Visit(AbsoluteNextLink node, TContext context)
                     {
+                        if (node == null)
+                        {
+                            throw new ArgumentNullException(nameof(node));
+                        }
+
                         return node.Dispatch(this, context);
                     }
 
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="node"></param>
+                    /// <param name="context"></param>
+                    /// <returns></returns>
+                    /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                    /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
                     protected internal abstract TResult Accept(WithPort node, TContext context);
+
+                    /// <summary>
+                    /// 
+                    /// </summary>
+                    /// <param name="node"></param>
+                    /// <param name="context"></param>
+                    /// <returns></returns>
+                    /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                    /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
                     protected internal abstract TResult Accept(WithoutPort node, TContext context);
                 }
 
@@ -889,8 +987,14 @@ namespace OddTrotter.Calendar
                     /// </summary>
                     public IEnumerable<Segment> Segments { get; }
 
+                    /// <inheritdoc/>
                     protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
                     {
+                        if (visitor == null)
+                        {
+                            throw new ArgumentNullException(nameof(visitor));
+                        }
+
                         return visitor.Accept(this, context);
                     }
                 }
@@ -934,8 +1038,14 @@ namespace OddTrotter.Calendar
                     /// </summary>
                     public IEnumerable<Segment> Segments { get; }
 
+                    /// <inheritdoc/>
                     protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
                     {
+                        if (visitor == null)
+                        {
+                            throw new ArgumentNullException(nameof(visitor));
+                        }
+
                         return visitor.Accept(this, context);
                     }
                 }
