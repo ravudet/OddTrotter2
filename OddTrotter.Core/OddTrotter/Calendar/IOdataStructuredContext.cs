@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.V2;
 using System.Net;
@@ -483,6 +484,7 @@ namespace OddTrotter.Calendar
 
         internal static bool StartsWith(this OdataNextLink.Absolute odataNextLink, OdataServiceRoot odataServiceRoot)
         {
+            return StartsWithVisitor.Instance.Visit(odataNextLink.AbsoluteNextLink, odataServiceRoot);
         }
 
         private sealed class StartsWithVisitor : OdataNextLink.Inners.AbsoluteNextLink.Visitor<bool, OdataServiceRoot>
@@ -495,12 +497,12 @@ namespace OddTrotter.Calendar
 
             protected internal override bool Accept(WithPort node, OdataServiceRoot context)
             {
-                return OdataServiceRootWithPortVisitor.Instance.Visit(context, node));
+                return OdataServiceRootWithPortVisitor.Instance.Visit(context, node);
             }
 
             protected internal override bool Accept(WithoutPort node, OdataServiceRoot context)
             {
-                return OdataServiceRootWithoutPortVisitor.Instance.Visit(context, node));
+                return OdataServiceRootWithoutPortVisitor.Instance.Visit(context, node);
             }
 
             private sealed class OdataServiceRootWithPortVisitor : OdataServiceRoot.Visitor<bool, OdataNextLink.Inners.AbsoluteNextLink.WithPort>
@@ -513,12 +515,48 @@ namespace OddTrotter.Calendar
 
                 protected internal override bool Accept(OdataServiceRoot.WithPort node, OdataNextLink.Inners.AbsoluteNextLink.WithPort context)
                 {
+                    //// TODO have a comparer for each portion of the nodes?
+
                     if (!SchemeVisitor.Instance.Visit(node.Scheme, context.Scheme))
                     {
                         return false;
                     }
 
+                    if (!string.Equals(node.Host.Value, context.Host.Value, StringComparison.OrdinalIgnoreCase)) //// TODO do you want to parameterize the comparison?
+                    {
+                        return false;
+                    }
 
+                    if (node.Port != context.Port)
+                    {
+                        return false;
+                    }
+
+                    using (var serviceRootEnumerator = node.Segments.GetEnumerator())
+                    {
+                        using (var nextLinkEnumerator = context.Segments.GetEnumerator())
+                        {
+                            while (serviceRootEnumerator.MoveNext())
+                            {
+                                if (!nextLinkEnumerator.MoveNext())
+                                {
+                                    // the serviceroot had another segment, but the nextlink did not, so the nextlink does not start with the serviceroot
+                                    return false;
+                                }
+
+                                var serviceRootSegment = serviceRootEnumerator.Current;
+                                var nextLinkSegment = nextLinkEnumerator.Current;
+
+                                if (!string.Equals(serviceRootSegment.Value, nextLinkSegment.Value, StringComparison.OrdinalIgnoreCase)) //// TODO parameterize comparison?
+                                {
+                                    return false;
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
                 }
 
                 protected internal override bool Accept(OdataServiceRoot.WithoutPort node, OdataNextLink.Inners.AbsoluteNextLink.WithPort context)
@@ -542,6 +580,43 @@ namespace OddTrotter.Calendar
 
                 protected internal override bool Accept(OdataServiceRoot.WithoutPort node, WithoutPort context)
                 {
+                    //// TODO have a comparer for each portion of the nodes?
+
+                    if (!SchemeVisitor.Instance.Visit(node.Scheme, context.Scheme))
+                    {
+                        return false;
+                    }
+
+                    if (!string.Equals(node.Host.Value, context.Host.Value, StringComparison.OrdinalIgnoreCase)) //// TODO do you want to parameterize the comparison?
+                    {
+                        return false;
+                    }
+
+                    using (var serviceRootEnumerator = node.Segments.GetEnumerator())
+                    {
+                        using (var nextLinkEnumerator = context.Segments.GetEnumerator())
+                        {
+                            while (serviceRootEnumerator.MoveNext())
+                            {
+                                if (!nextLinkEnumerator.MoveNext())
+                                {
+                                    // the serviceroot had another segment, but the nextlink did not, so the nextlink does not start with the serviceroot
+                                    return false;
+                                }
+
+                                var serviceRootSegment = serviceRootEnumerator.Current;
+                                var nextLinkSegment = nextLinkEnumerator.Current;
+
+                                if (!string.Equals(serviceRootSegment.Value, nextLinkSegment.Value, StringComparison.OrdinalIgnoreCase)) //// TODO parameterize comparison?
+                                {
+                                    return false;
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
                 }
             }
 
