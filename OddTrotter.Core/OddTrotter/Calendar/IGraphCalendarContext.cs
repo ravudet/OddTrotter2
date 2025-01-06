@@ -909,7 +909,6 @@
                 throw new ArgumentNullException(nameof(graphQuery));
             }
             
-            //// TODO you are here
             return await graphCalendarEventsContext.Page(graphQuery, page => graphCalendarEventsContext).ConfigureAwait(false);
         }
 
