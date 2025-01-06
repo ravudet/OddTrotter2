@@ -126,8 +126,10 @@ namespace OddTrotter.Calendar
             }
 
             return graphResponse
+                .ErrorSelect(
+                    graphPagingException => 
+                        new CalendarEventsContextPagingException("An error occurred while paging through all of the calendar events.", graphPagingException))
             //// TODO you are here
-                .ErrorSelect(graphPagingException => new CalendarEventsContextPagingException("TODO presreve the exception", graphPagingException))
                 .Select(graphCalendarEvent =>
                     graphCalendarEvent.VisitSelect(
                         left => ToCalendarEvent(left),
