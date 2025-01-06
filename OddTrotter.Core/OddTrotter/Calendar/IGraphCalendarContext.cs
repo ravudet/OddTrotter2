@@ -963,10 +963,10 @@
 
             if (response.Events.Count == 0)
             {
-                //// TODO you are here
                 return await odataNextLinkVisitor.VisitAsync(response.NextPage, default).ConfigureAwait(false);
             }
 
+            //// TODO you are here
             return new PageQueryResult(response, 0, odataNextLinkVisitor);
         }
 
@@ -1018,7 +1018,6 @@
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                //// TODO this has mutual recursion, so you need to make sure `.page` and this `acceptasync` overload have the same exceptions documented
                 return await this
                     .graphCalendarEventsContext
                     .Page(
@@ -1037,7 +1036,6 @@
                 }
 
                 var nextContext = this.contextGenerator(node);
-                //// TODO this has mutual recursion, so you need to make sure `.page` and this `acceptasync` overload have the same exceptions documented
                 return await nextContext
                     .Page(
                         new GraphQuery.Page(
