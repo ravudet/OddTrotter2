@@ -380,8 +380,8 @@ namespace OddTrotter.Calendar
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                //// TODO you are here
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
+                //// TODO you are here
                 var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
                 return $"{scheme}://{node.Host.Value}/{segments}";
             }
@@ -400,13 +400,25 @@ namespace OddTrotter.Calendar
                 /// </summary>
                 public static SchemeTranscriber Instance { get; } = new SchemeTranscriber();
 
+                /// <inheritdoc/>
                 protected internal override string Accept(Scheme.Https node, Void context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
                     return "https";
                 }
 
+                /// <inheritdoc/>
                 protected internal override string Accept(Scheme.Http node, Void context)
                 {
+                    if (node == null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
                     return "http";
                 }
             }
