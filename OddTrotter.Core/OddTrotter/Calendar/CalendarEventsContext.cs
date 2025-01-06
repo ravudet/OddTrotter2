@@ -166,7 +166,12 @@ namespace OddTrotter.Calendar
             //// TODO you are currently implementing a `startswith` check in odatastructuredcontext to see if the nextlink starts with the service root
             //// TODO odataserviceroot.geturi calls makerelativeuri and you never checked the exception documentation for that
             //// TODO how do you want to deal with the `contextGenerator` here? if the next page goes to a different service altogether, then your access token won't work anymore; however, nothing is exposed yet that will let you know if your current graph context has the correct service root; the `contextGenerator` *could* throw if a service root is returned that isn't the current one, but again, that information isn't exposed on the graph context interface; always using the current context is an option (you should leave a comment if this is what you do) because graph doesn't currently ever point you somewhere else, but doing this would mean if graph ever *did* start doing that, it would be harder to debug
-            var graphResponse = await this.graphCalendarEventsContext.Page(graphQuery, ).ConfigureAwait(false);
+            var graphResponse = await this
+                .graphCalendarEventsContext
+                .Page(
+                    graphQuery, 
+                    nextLink =>  nextLink.StartsWith(this.graphCalendarEventsContext.ServiceRoot) ? this.graphCalendarEventsContext : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff
+                .ConfigureAwait(false);
             return Adapt(graphResponse);
         }
 
