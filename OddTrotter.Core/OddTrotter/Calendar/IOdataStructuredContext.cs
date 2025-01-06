@@ -2,10 +2,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Linq.V2;
 using System.Net;
 using System.Net.Http;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices.JavaScript;
@@ -339,7 +341,6 @@ namespace OddTrotter.Calendar
             }
 
             //// TODO share transcribers with the nextlink extensions below
-            //// TODO you are here
             var uri = OdataServiceRootTranscriber.Instance.Visit(odataServiceRoot, default);
             return new Uri(uri, UriKind.Absolute).ToAbsoluteUri();
         }
@@ -366,7 +367,6 @@ namespace OddTrotter.Calendar
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                //// TODO you are here
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
                 var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
                 return $"{scheme}://{node.Host.Value}:{node.Port}/{segments}";
@@ -381,7 +381,6 @@ namespace OddTrotter.Calendar
                 }
 
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
-                //// TODO you are here
                 var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
                 return $"{scheme}://{node.Host.Value}/{segments}";
             }
@@ -425,15 +424,32 @@ namespace OddTrotter.Calendar
 
             private sealed class SegmentsTranscriber
             {
+                /// <summary>
+                /// 
+                /// </summary>
                 private SegmentsTranscriber()
                 {
                 }
 
+                /// <summary>
+                /// 
+                /// </summary>
                 public static SegmentsTranscriber Instance { get; } = new SegmentsTranscriber();
 
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="segments"></param>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="segments"/> is <see langword="null"/></exception>
                 public string Transcribe(IEnumerable<OdataNextLink.Inners.Segment> segments)
                 {
-                    return string.Join("/", segments.Select(segment => segment.Value));
+                    if (segments == null)
+                    {
+                        throw new ArgumentNullException(nameof(segments));
+                    }
+
+                    return string.Join("/", segments.Select(segment => segment?.Value)); //// TODO you are being very strict here; technically, the link constructor hasn't asserted that there are no null elements; i don't know if this is worth it
                 }
             }
         }
@@ -458,10 +474,10 @@ namespace OddTrotter.Calendar
             }
 
             return odataServiceRoot
-            //// TODO you are here
                 .ToAbsoluteUri()
                 .MakeRelativeUri(
                     odataNextLink
+            //// TODO you are here
                         .ToAbsoluteUri())
                 .ToRelativeUri();
         }
@@ -469,14 +485,27 @@ namespace OddTrotter.Calendar
 
     public static class OdataNextLinkExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="odataNextLink"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="odataNextLink"/> is <see langword="null"/></exception>
         public static AbsoluteUri ToAbsoluteUri(this OdataNextLink.Absolute odataNextLink)
         {
-            //// TODO use stringbuilder
-            var uri = InnerTranscriber.Instance.Visit(odataNextLink.AbsoluteNextLink, default);
+            if (odataNextLink == null)
+            {
+                throw new ArgumentNullException(nameof(odataNextLink));
+            }
+
+            //// TODO you are here
+            var stringBuilder = new StringBuilder();
+            InnerTranscriber.Instance.Visit(odataNextLink.AbsoluteNextLink, stringBuilder);
+            var uri = stringBuilder.ToString();
             return new Uri(uri, UriKind.Absolute).ToAbsoluteUri();
         }
 
-        private sealed class InnerTranscriber : OdataNextLink.Inners.AbsoluteNextLink.Visitor<string, Void>
+        private sealed class InnerTranscriber : OdataNextLink.Inners.AbsoluteNextLink.Visitor<Void, StringBuilder>
         {
             private InnerTranscriber()
             {
@@ -484,21 +513,31 @@ namespace OddTrotter.Calendar
 
             public static InnerTranscriber Instance { get; } = new InnerTranscriber();
 
-            protected internal override string Accept(OdataNextLink.Inners.AbsoluteNextLink.WithPort node, Void context)
+            protected internal override Void Accept(OdataNextLink.Inners.AbsoluteNextLink.WithPort node, StringBuilder context)
             {
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
-                var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
-                return $"{scheme}://{node.Host.Value}:{node.Port}/{segments}";
+                context.Append("://");
+                context.Append(node.Host.Value);
+                context.Append(":");
+                context.Append(node.Port);
+                context.Append("/");
+                SegmentsTranscriber.Instance.Transcribe(node.Segments, context);
+
+                return default;
             }
 
-            protected internal override string Accept(OdataNextLink.Inners.AbsoluteNextLink.WithoutPort node, Void context)
+            protected internal override Void Accept(OdataNextLink.Inners.AbsoluteNextLink.WithoutPort node, StringBuilder context)
             {
                 var scheme = SchemeTranscriber.Instance.Visit(node.Scheme, context);
-                var segments = SegmentsTranscriber.Instance.Transcribe(node.Segments);
-                return $"{scheme}://{node.Host.Value}/{segments}";
+                context.Append("://");
+                context.Append(node.Host.Value);
+                context.Append("/");
+                SegmentsTranscriber.Instance.Transcribe(node.Segments, context);
+
+                return default;
             }
 
-            private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<string, Void>
+            private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<Void, StringBuilder>
             {
                 private SchemeTranscriber()
                 {
@@ -506,29 +545,18 @@ namespace OddTrotter.Calendar
 
                 public static SchemeTranscriber Instance { get; } = new SchemeTranscriber();
 
-                protected internal override string Accept(Scheme.Https node, Void context)
+                protected internal override Void Accept(Scheme.Https node, StringBuilder context)
                 {
-                    return "https";
+                    context.Append("https");
+
+                    return default;
                 }
 
-                protected internal override string Accept(Scheme.Http node, Void context)
+                protected internal override Void Accept(Scheme.Http node, StringBuilder context)
                 {
-                    return "http";
-                }
-            }
+                    context.Append("https");
 
-            private sealed class SegmentsTranscriber
-            {
-                private SegmentsTranscriber()
-                {
-                }
-
-                public static SegmentsTranscriber Instance { get; } = new SegmentsTranscriber();
-
-                public string Transcribe(IEnumerable<OdataNextLink.Inners.Segment> segments)
-                {
-                    //// TODO re-use class from relative uri
-                    return string.Join("/", segments.Select(segment => segment.Value));
+                    return default;
                 }
             }
         }

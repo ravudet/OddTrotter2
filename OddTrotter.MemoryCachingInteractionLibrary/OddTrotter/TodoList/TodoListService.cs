@@ -270,7 +270,9 @@
 
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
             //// TODO finish first pass
+            //// TODO have you actually done the linq part yet? (or rather, the queryresult part...; the monad + mixin stuff)
             //// TODO address todos
+            //// TODO separate files and namespaces and such
             //// TODO add unit tests
             //// TODO make sure anything that is not completely accurate is marked as `internal`
             //// TODO do another pass (you will likely need at least one more pass after this)
