@@ -298,8 +298,13 @@
         public void FOo()
         {
             ////new Uri("https://");
-            new Uri("https://a:");
-            new Uri("https://:");
+            ////new Uri("https://a:");
+            ////new Uri("https://:");
+
+
+            var first = new Uri("http://www.google.com/foo.html");
+            var second = new Uri("http://www.microsoft.com/bar.html");
+            var third = first.MakeRelativeUri(second);
         }
 
         [TestMethod]

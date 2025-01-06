@@ -480,6 +480,90 @@ namespace OddTrotter.Calendar
                         .ToAbsoluteUri())
                 .ToRelativeUri();
         }
+
+        internal static bool StartsWith(this OdataNextLink.Absolute odataNextLink, OdataServiceRoot odataServiceRoot)
+        {
+        }
+
+        private sealed class StartsWithVisitor : OdataNextLink.Inners.AbsoluteNextLink.Visitor<bool, OdataServiceRoot>
+        {
+            private StartsWithVisitor()
+            {
+            }
+
+            public static StartsWithVisitor Instance { get; } = new StartsWithVisitor();
+
+            protected internal override bool Accept(WithPort node, OdataServiceRoot context)
+            {
+                return OdataServiceRootWithPortVisitor.Instance.Visit(context, node));
+            }
+
+            protected internal override bool Accept(WithoutPort node, OdataServiceRoot context)
+            {
+                return OdataServiceRootWithoutPortVisitor.Instance.Visit(context, node));
+            }
+
+            private sealed class OdataServiceRootWithPortVisitor : OdataServiceRoot.Visitor<bool, OdataNextLink.Inners.AbsoluteNextLink.WithPort>
+            {
+                private OdataServiceRootWithPortVisitor()
+                {
+                }
+
+                public static OdataServiceRootWithPortVisitor Instance { get; } = new OdataServiceRootWithPortVisitor();
+
+                protected internal override bool Accept(OdataServiceRoot.WithPort node, OdataNextLink.Inners.AbsoluteNextLink.WithPort context)
+                {
+                    if (!SchemeVisitor.Instance.Visit(node.Scheme, context.Scheme))
+                    {
+                        return false;
+                    }
+
+
+                }
+
+                protected internal override bool Accept(OdataServiceRoot.WithoutPort node, OdataNextLink.Inners.AbsoluteNextLink.WithPort context)
+                {
+                    return false;
+                }
+            }
+
+            private sealed class OdataServiceRootWithoutPortVisitor : OdataServiceRoot.Visitor<bool, OdataNextLink.Inners.AbsoluteNextLink.WithoutPort>
+            {
+                private OdataServiceRootWithoutPortVisitor()
+                {
+                }
+
+                public static OdataServiceRootWithoutPortVisitor Instance { get; } = new OdataServiceRootWithoutPortVisitor();
+
+                protected internal override bool Accept(OdataServiceRoot.WithPort node, WithoutPort context)
+                {
+                    return false;
+                }
+
+                protected internal override bool Accept(OdataServiceRoot.WithoutPort node, WithoutPort context)
+                {
+                }
+            }
+
+            private sealed class SchemeVisitor : OdataNextLink.Inners.Scheme.Visitor<bool, OdataNextLink.Inners.Scheme>
+            {
+                private SchemeVisitor()
+                {
+                }
+
+                public static SchemeVisitor Instance { get; } = new SchemeVisitor();
+
+                protected internal override bool Accept(Scheme.Https node, Scheme context)
+                {
+                    return context is Scheme.Https;
+                }
+
+                protected internal override bool Accept(Scheme.Http node, Scheme context)
+                {
+                    return context is Scheme.Http;
+                }
+            }
+        }
     }
 
     public static class OdataNextLinkExtensions
