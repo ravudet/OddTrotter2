@@ -201,8 +201,19 @@ namespace OddTrotter.Calendar
             }
         }
 
-        public static QueryResult<TValue, TErrorEnd> Error<TValue, TErrorStart, TErrorEnd>(this QueryResult<TValue, TErrorStart> queryResult, Func<TErrorStart, TErrorEnd> selector)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TErrorStart"></typeparam>
+        /// <typeparam name="TErrorEnd"></typeparam>
+        /// <param name="queryResult"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static QueryResult<TValue, TErrorEnd> ErrorSelect<TValue, TErrorStart, TErrorEnd>(this QueryResult<TValue, TErrorStart> queryResult, Func<TErrorStart, TErrorEnd> selector)
         {
+            //// TODO do you like this name? do you want to normalize with names used in `either`?
+
             return ErrorVisitor<TValue, TErrorStart, TErrorEnd>.Instance.Visit(queryResult, selector);
         }
 

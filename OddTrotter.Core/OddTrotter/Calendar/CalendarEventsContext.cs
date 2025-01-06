@@ -109,13 +109,19 @@ namespace OddTrotter.Calendar
             return allEvents;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="graphResponse"></param>
+        /// <returns></returns>
         private static
             QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationError>, CalendarEventsContextPagingException>
             Adapt(
             QueryResult<Either<OddTrotter.Calendar.GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> graphResponse)
         {
+            //// TODO you are here
             return graphResponse
-                .Error(graphPageingException => new CalendarEventsContextPagingException("TODO presreve the exception"))
+                .ErrorSelect(graphPageingException => new CalendarEventsContextPagingException("TODO presreve the exception"))
                 .Select(graphCalendarEvent =>
                     graphCalendarEvent.VisitSelect(
                         left => ToCalendarEvent(left),
