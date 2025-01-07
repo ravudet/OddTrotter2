@@ -203,6 +203,8 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEvents()
         {
+            await DoWork(Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException("TODO"))).ConfigureAwait(false);
+
             var seriesEventMasters =
                 await this.GetSeriesEventMasters().ConfigureAwait(false);
             var mastersWithInstances = seriesEventMasters
@@ -217,6 +219,70 @@ namespace OddTrotter.Calendar
                     left => left.Item1,
                     right => right));
             return mastersWithInstances;
+        }
+
+        private static string FixEvent1(CalendarEvent calendarEvent)
+        {
+            return calendarEvent.Id;
+        }
+
+        private static async Task<string> FixEvent2(CalendarEvent calendarEvent)
+        {
+            return await Task.FromResult(calendarEvent.Id).ConfigureAwait(false);
+        }
+
+        private static async Task DoWork(Either<CalendarEvent, CalendarEventsContextTranslationException> either)
+        {
+            var first = Select1(either, left => FixEvent1(left), _ => _);
+            Process(first);
+
+            var second = Select1(either, left => FixEvent2(left), _ => _);
+            //// Process(second); this doesn't work because left is a task<string>
+
+            var third = Select1(either, async left => await FixEvent2(left).ConfigureAwait(false), _ => _);
+            //// Process(third); this doens't work because left is a task<string>
+
+            var fourth = await Select2(either, left => FixEvent2(left), _ => Task.FromResult(_)).ConfigureAwait(false);
+            Process(fourth);
+
+            var fifth = await Select2(either, left => Task.FromResult(FixEvent1(left)), _ => Task.FromResult(_)).ConfigureAwait(false);
+            Process(fifth);
+        }
+
+        private static void Process(Either<string, CalendarEventsContextTranslationException> either)
+        {
+        }
+
+        private static async Task<Either<TLeftResult, TRightResult>> Select2<TLeftSource, TLeftResult, TRightSource, TRightResult>(Either<TLeftSource, TRightSource> either, Func<TLeftSource, Task<TLeftResult>> leftSelector, Func<TRightSource, Task<TRightResult>> rightSelector)
+        {
+            if (either is Either<TLeftSource, TRightSource>.Left left)
+            {
+                return Either.Right<TRightResult>().Left(await leftSelector(left.Value).ConfigureAwait(false));
+            }
+            else if (either is Either<TLeftSource, TRightSource>.Right right)
+            {
+                return Either.Left<TLeftResult>().Right(await rightSelector(right.Value).ConfigureAwait(false));
+            }
+            else
+            {
+                throw new Exception("TODO visitor");
+            }
+        }
+
+        private static Either<TLeftResult, TRightResult> Select1<TLeftSource, TLeftResult, TRightSource, TRightResult>(Either<TLeftSource, TRightSource> either, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector)
+        {
+            if (either is Either<TLeftSource, TRightSource>.Left left)
+            {
+                return Either.Right<TRightResult>().Left(leftSelector(left.Value));
+            }
+            else if (either is Either<TLeftSource, TRightSource>.Right right)
+            {
+                return Either.Left<TLeftResult>().Right(rightSelector(right.Value));
+            }
+            else
+            {
+                throw new Exception("TODO visitor");
+            }
         }
 
         /// <summary>
