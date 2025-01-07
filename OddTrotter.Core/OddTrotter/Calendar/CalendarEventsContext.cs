@@ -201,15 +201,6 @@ namespace OddTrotter.Calendar
         /// <param name="endTime"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        /// <exception cref="UnauthorizedAccessTokenException">
-        /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
-        /// </exception>
-        /// <remarks>
-        /// The returned <see cref="ODataCollection{CalendarEvent}"/> will have its <see cref="ODataCollection{T}.LastRequestedPageUrl"/> be one of three values:
-        /// 1. <see langword="null"/> if no errors occurred retrieve any of the data
-        /// 2. The URL of series master entity for which an error occurred while retrieving the instance events
-        /// 3. The URL of the nextLink for which an error occurred while retrieving the that URL's page
-        /// </remarks>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEvents()
         {
             //// TODO you are here
@@ -325,9 +316,6 @@ namespace OddTrotter.Calendar
         /// <param name="graphClient"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        /// <exception cref="UnauthorizedAccessTokenException">
-        /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
-        /// </exception>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
         {
             var url = 
@@ -342,10 +330,13 @@ namespace OddTrotter.Calendar
                 url += $"and isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
             }
 
-            //// TODO you are here
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
-            //// TODO how do you want to deal with the `contextGenerator` here? if the next page goes to a different service altogether, then your access token won't work anymore; however, nothing is exposed yet that will let you know if your current graph context has the correct service root; the `contextGenerator` *could* throw if a service root is returned that isn't the current one, but again, that information isn't exposed on the graph context interface; always using the current context is an option (you should leave a comment if this is what you do) because graph doesn't currently ever point you somewhere else, but doing this would mean if graph ever *did* start doing that, it would be harder to debug
-            var graphResponse = await this.graphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false);
+            var graphResponse = await this
+                .graphCalendarEventsContext
+                .Page(
+                    graphRequest,
+                    nextLink => nextLink.StartsWith(this.graphCalendarEventsContext.ServiceRoot) ? this.graphCalendarEventsContext : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff
+                .ConfigureAwait(false);
             return Adapt(graphResponse);
         }
 
