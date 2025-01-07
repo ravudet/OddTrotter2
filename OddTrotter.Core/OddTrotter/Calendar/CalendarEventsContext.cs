@@ -330,9 +330,8 @@ namespace OddTrotter.Calendar
         /// </exception>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
         {
-            //// TODO you are here
-            //// TODO make the calendar that's used configurable
-            var url = $"/me/calendar/events?" +
+            var url = 
+                $"{this.calendarUriPath.Path}/events?" +
                 $"$select=body,start,subject,isCancelled&" +
                 $"$top={this.pageSize}&" + // the graph API does not implement `$top` correctly; it returns a `@nextLink` even if it gives you all `pageSize` elements that are requested; for this reason, we can use `$top` for page size here
                 $"$orderBy=start/dateTime&" +
@@ -343,6 +342,7 @@ namespace OddTrotter.Calendar
                 url += $"and isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
             }
 
+            //// TODO you are here
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             //// TODO how do you want to deal with the `contextGenerator` here? if the next page goes to a different service altogether, then your access token won't work anymore; however, nothing is exposed yet that will let you know if your current graph context has the correct service root; the `contextGenerator` *could* throw if a service root is returned that isn't the current one, but again, that information isn't exposed on the graph context interface; always using the current context is an option (you should leave a comment if this is what you do) because graph doesn't currently ever point you somewhere else, but doing this would mean if graph ever *did* start doing that, it would be harder to debug
             var graphResponse = await this.graphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false);
