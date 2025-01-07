@@ -212,6 +212,7 @@ namespace OddTrotter.Calendar
                     either => either
                         .VisitSelect(
                             //// TODO you are here
+                            //// TODO you are currently use the below static methods that play with async delegates to implement eitherasyncextensions in the either file
                             left => (left, GetFirstSeriesInstance(left).ConfigureAwait(false).GetAwaiter().GetResult()), //// TODO figure out how to make this async
                             right => right))
                 .Select(eventPair => eventPair.ShiftRight())

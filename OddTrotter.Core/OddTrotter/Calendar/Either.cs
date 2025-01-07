@@ -1,5 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using System;
+using System.Threading.Tasks;
 
 namespace OddTrotter.Calendar
 {
@@ -23,6 +24,49 @@ namespace OddTrotter.Calendar
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
         /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
         protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+        protected abstract Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context);
+
+        public abstract class AsyncVisitor<TResult, TContext>
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can throw</exception> //// TODO is this good?
+            public async Task<TResult> VisitAsync(Either<TLeft, TRight> node, TContext context)
+            {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                return await node.AcceptAsync(this, context).ConfigureAwait(false);
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
+            public abstract Task<TResult> DispatchAsync(Left node, TContext context);
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="node"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
+            public abstract Task<TResult> DispatchAsync(Right node, TContext context);
+        }
 
         public abstract class Visitor<TResult, TContext>
         {
@@ -88,6 +132,17 @@ namespace OddTrotter.Calendar
 
                 return visitor.Dispatch(this, context);
             }
+
+            /// <inheritdoc/>
+            protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
+            {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
+                return await visitor.DispatchAsync(this, context).ConfigureAwait(false);
+            }
         }
 
         public sealed class Right : Either<TLeft, TRight>
@@ -112,6 +167,17 @@ namespace OddTrotter.Calendar
                 }
 
                 return visitor.Dispatch(this, context);
+            }
+
+            /// <inheritdoc/>
+            protected sealed override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
+            {
+                if (visitor == null)
+                {
+                    throw new ArgumentNullException(nameof(visitor));
+                }
+
+                return await visitor.DispatchAsync(this, context).ConfigureAwait(false);
             }
         }
     }
@@ -267,6 +333,45 @@ namespace OddTrotter.Calendar
                             .Left<(TLeftFirst, TLeftSecond)>()
                             .Right(
                                 rightAggregator(rightFirst, rightSecond))));
+        }
+    }
+
+    public static class EitherAsyncExtensions
+    {
+        public static async Task<Either<TLeftNew, TRightNew>> VisitSelectAsync<TLeftOld, TRightOld, TLeftNew, TRightNew>(
+            this Either<TLeftOld, TRightOld> either,
+            Func<TLeftOld, TLeftNew> leftSelector,
+            Func<TRightOld, TRightNew> rightSelector)
+        {
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            if (leftSelector == null)
+            {
+                throw new ArgumentNullException(nameof(leftSelector));
+            }
+
+            if (rightSelector == null)
+            {
+                throw new ArgumentNullException(nameof(rightSelector));
+            }
+
+
+        }
+
+        private sealed class DelegateVisitor<TLeft, TRight, TResult, TContext> : Either<TLeft, TRight>.AsyncVisitor<TResult, TContext>
+        {
+            public override Task<TResult> DispatchAsync(Either<TLeft, TRight>.Left node, TContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Task<TResult> DispatchAsync(Either<TLeft, TRight>.Right node, TContext context)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 
@@ -470,8 +575,6 @@ namespace OddTrotter.Calendar
 
             var visitor = new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
             return visitor.Visit(either, context);
-
-
         }
 
         public static Either<TLeft, TRight>.Visitor<TResult, TContext> Visitor<TLeft, TRight, TResult, TContext>(
