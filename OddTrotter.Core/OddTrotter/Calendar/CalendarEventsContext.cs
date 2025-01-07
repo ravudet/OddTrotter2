@@ -4,8 +4,10 @@ namespace OddTrotter.Calendar
     using System;
     using System.Linq.Expressions;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using OddTrotter.GraphClient;
+    using OddTrotter.TodoList;
 
     public sealed class CalendarEventsContextPagingException : Exception
     {
@@ -291,16 +293,31 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(graphCalendarEvent));
             }
 
-            //// TODO you are here
-            var dateTime = ToDateTime(graphCalendarEvent.Start);
+            DateTime start;
+            try
+            {
+                //// TODO handle timezone...
+                start = DateTime.Parse(graphCalendarEvent.Start.DateTime);
+            }
+            catch (FormatException formatException)
+            {
+                return Either
+                    .Left<CalendarEvent>()
+                    .Right(
+                        new CalendarEventsContextTranslationException(
+                            $"An error occurred while parsing the start time of the event: '{JsonSerializer.Serialize(graphCalendarEvent)}'.", // we are trusting that we can serialize without exception since we have a non-null instance of a highly structured type
+                            formatException));
+            }
 
-            return dateTime
-                .SelectLeft(
-                    left => new CalendarEvent(
+            //// TODO you are here
+            return Either
+                .Right<CalendarEventsContextTranslationException>()
+                .Left(
+                    new CalendarEvent(
                         graphCalendarEvent.Id,
                         graphCalendarEvent.Subject,
                         graphCalendarEvent.Body.Content,
-                        left,
+                        start,
                         graphCalendarEvent.IsCancelled));
         }
 
@@ -309,25 +326,29 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="timeStructure"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="timeStructure"/> is <see langword="null"/></exception>
-        private static Either<DateTime, CalendarEventsContextTranslationException> ToDateTime(OddTrotter.Calendar.TimeStructure timeStructure)
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEvent"/> is <see langword="null"/></exception>
+        private static Either<DateTime, CalendarEventsContextTranslationException> ToDateTime(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
         {
-            if (timeStructure == null)
+            if (graphCalendarEvent == null)
             {
-                throw new ArgumentNullException(nameof(timeStructure));
+                throw new ArgumentNullException(nameof(graphCalendarEvent));
             }
 
-            //// TODO handle timezone...
+            var timeStructure = graphCalendarEvent.Start;
+
             try
             {
                 return Either
                     .Right<CalendarEventsContextTranslationException>()
                     .Left(DateTime.Parse(timeStructure.DateTime));
             }
-            catch (FormatException)
+            catch (FormatException formatException)
             {
                 //// TODO you are here
-                return Either.Left<DateTime>().Right(new CalendarEventsContextTranslationException()); //// TODO preserve exception
+                return Either
+                    .Left<DateTime>()
+                    .Right(
+                        new CalendarEventsContextTranslationException()); //// TODO preserve exception
             }
         }
 

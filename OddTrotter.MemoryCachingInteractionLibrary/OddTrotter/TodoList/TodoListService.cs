@@ -271,7 +271,7 @@
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
             //// TODO finish first pass
             //// TODO address todos
-            //// TODO separate files and namespaces and line lengths and stuff like that
+            //// TODO separate files and namespaces, remove dead code, normalzie line lengths, stuff like that
             //// TODO add unit tests
             //// TODO make sure anything that is not completely accurate is marked as `internal`
             //// TODO do another pass (you will likely need at least one more pass after this)
