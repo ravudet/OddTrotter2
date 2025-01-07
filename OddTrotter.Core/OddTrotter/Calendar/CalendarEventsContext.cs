@@ -110,10 +110,14 @@ namespace OddTrotter.Calendar
             this.isCancelled = isCancelled;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> Evaluate()
         {
-            //// TODO you are here
             var instanceEvents = await this.GetInstanceEvents().ConfigureAwait(false);
+            //// TODO you are here
             var seriesEvents = await this.GetSeriesEvents().ConfigureAwait(false);
             //// TODO merge the sorted sequences instead of concat
             var allEvents = instanceEvents.Concat(seriesEvents);
@@ -144,9 +148,11 @@ namespace OddTrotter.Calendar
                     graphCalendarEvent =>
                         graphCalendarEvent
                             .VisitSelect(
-                                //// TODO you are here
                                 left => ToCalendarEvent(left),
-                                right => new CalendarEventsContextTranslationException("TODO"))
+                                right => 
+                                    new CalendarEventsContextTranslationException(
+                                        $"An error occurred while translating the OData response into a Graph calendar event",
+                                        right))
                             .ShiftRight());
         }
 
@@ -158,18 +164,6 @@ namespace OddTrotter.Calendar
         /// <param name="endTime"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// <exception cref="UnauthorizedAccessTokenException">
-        /// Thrown if the access token configured on <paramref name="graphClient"/> is invalid or provides insufficient privileges for the requests
-        /// </exception>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstanceEvents()
         {
             var url =
@@ -196,7 +190,6 @@ namespace OddTrotter.Calendar
                     graphQuery, 
                     nextLink =>  nextLink.StartsWith(this.graphCalendarEventsContext.ServiceRoot) ? this.graphCalendarEventsContext : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff
                 .ConfigureAwait(false);
-            //// TODO you are here
             return Adapt(graphResponse);
         }
 
@@ -219,6 +212,7 @@ namespace OddTrotter.Calendar
         /// </remarks>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEvents()
         {
+            //// TODO you are here
             var seriesEventMasters =
                 await this.GetSeriesEventMasters().ConfigureAwait(false);
             var mastersWithInstances = seriesEventMasters
@@ -336,6 +330,7 @@ namespace OddTrotter.Calendar
         /// </exception>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
         {
+            //// TODO you are here
             //// TODO make the calendar that's used configurable
             var url = $"/me/calendar/events?" +
                 $"$select=body,start,subject,isCancelled&" +
