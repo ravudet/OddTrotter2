@@ -19,6 +19,11 @@ namespace OddTrotter.Calendar
 
     public sealed class CalendarEventsContextTranslationException : Exception
     {
+        public CalendarEventsContextTranslationException(string message)
+            : base(message)
+        {
+        }
+
         public CalendarEventsContextTranslationException(string message, Exception innerException)
             : base(message, innerException)
         {
@@ -141,7 +146,7 @@ namespace OddTrotter.Calendar
                             .VisitSelect(
                                 //// TODO you are here
                                 left => ToCalendarEvent(left),
-                                right => new CalendarEventsContextTranslationException())
+                                right => new CalendarEventsContextTranslationException("TODO"))
                             .ShiftRight());
         }
 
@@ -262,21 +267,21 @@ namespace OddTrotter.Calendar
             }
             catch
             {
-                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException()); //// TODO
+                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException("TODO")); //// TODO
             }
 
 
             //// TODO do you want to do this check in the caller? someone up in the call stack probably wants to differentiate between mechanical errors vs the logical error of there being no instance events for a series
             if (graphResponse.Events.Count == 0)
             {
-                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException()); //// TODO
+                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException("TODO")); //// TODO
             }
 
             return graphResponse
                 .Events[0]
                 .VisitSelect(
                     left => ToCalendarEvent(left),
-                    right => new CalendarEventsContextTranslationException()) //// TODO
+                    right => new CalendarEventsContextTranslationException("TODO")) //// TODO
                 .ShiftRight();
         }
 
@@ -309,7 +314,6 @@ namespace OddTrotter.Calendar
                             formatException));
             }
 
-            //// TODO you are here
             return Either
                 .Right<CalendarEventsContextTranslationException>()
                 .Left(
@@ -319,37 +323,6 @@ namespace OddTrotter.Calendar
                         graphCalendarEvent.Body.Content,
                         start,
                         graphCalendarEvent.IsCancelled));
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="timeStructure"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEvent"/> is <see langword="null"/></exception>
-        private static Either<DateTime, CalendarEventsContextTranslationException> ToDateTime(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
-        {
-            if (graphCalendarEvent == null)
-            {
-                throw new ArgumentNullException(nameof(graphCalendarEvent));
-            }
-
-            var timeStructure = graphCalendarEvent.Start;
-
-            try
-            {
-                return Either
-                    .Right<CalendarEventsContextTranslationException>()
-                    .Left(DateTime.Parse(timeStructure.DateTime));
-            }
-            catch (FormatException formatException)
-            {
-                //// TODO you are here
-                return Either
-                    .Left<DateTime>()
-                    .Right(
-                        new CalendarEventsContextTranslationException()); //// TODO preserve exception
-            }
         }
 
         /// <summary>
