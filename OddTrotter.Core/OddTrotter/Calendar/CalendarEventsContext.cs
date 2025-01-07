@@ -203,13 +203,15 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEvents()
         {
-            //// TODO you are here
             var seriesEventMasters =
                 await this.GetSeriesEventMasters().ConfigureAwait(false);
             var mastersWithInstances = seriesEventMasters
-                .Select(either => either.VisitSelect(
-                    left => (left, GetFirstSeriesInstance(left).ConfigureAwait(false).GetAwaiter().GetResult()), //// TODO figure out how to make this async
-                    right => right))
+                .Select(
+                    either => either
+                        .VisitSelect(
+                            //// TODO you are here
+                            left => (left, GetFirstSeriesInstance(left).ConfigureAwait(false).GetAwaiter().GetResult()), //// TODO figure out how to make this async
+                            right => right))
                 .Select(eventPair => eventPair.ShiftRight())
                 .Select(eventPair => eventPair.VisitSelect(
                     left => left.Item1,
@@ -217,9 +219,20 @@ namespace OddTrotter.Calendar
             return mastersWithInstances;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="seriesMaster"></param>
+        /// <returns></returns>
         private async Task<Either<CalendarEvent, CalendarEventsContextTranslationException>> GetFirstSeriesInstance(
             CalendarEvent seriesMaster)
         {
+            //// TODO you are here
+            if (seriesMaster == null)
+            {
+                throw new ArgumentNullException(nameof(seriesMaster));
+            }
+
             //// TODO make the calendar configurable
             var url =
                 $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";
