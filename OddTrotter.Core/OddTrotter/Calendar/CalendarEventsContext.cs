@@ -205,21 +205,19 @@ namespace OddTrotter.Calendar
         {
             var seriesEventMasters =
                 await this.GetSeriesEventMasters().ConfigureAwait(false);
-            var mastersWithInstances = //// TODO i really hate the spacing here...
-                //// TODO you added these async variants for `either` and `queryresult` but you didn't actually put thought into if these work as expected; for example, does it actually make sense to await the `queryresult.selectasync` call here? or does that imply something about the lazy evaluation that you don't want to actually do; would it make sense to have a `selectasync` method overload that is on `task<queryresult>` as well so that you can chain them?
-                (await seriesEventMasters
-                    .SelectAsync(
-                        either => either
-                            //// TODO you are here
-                            .SelectAsync(
-                                left => GetFirstSeriesInstance(left).ContinueWith(task => (left, task.Result)), //// TODO is this the best way to get a tuple result here?
-                                right => Task.FromResult(right)))
-                    .ConfigureAwait(false)
-                )
+            var mastersWithInstances = await seriesEventMasters
+                    //// TODO you added these async variants for `either` and `queryresult` but you didn't actually put thought into if these work as expected; for example, does it actually make sense to await the `queryresult.selectasync` call here? or does that imply something about the lazy evaluation that you don't want to actually do; would it make sense to have a `selectasync` method overload that is on `task<queryresult>` as well so that you can chain them? //// TODO you wrote a "convenience" overload for now, but you should reall revisit this and think it all the way through; i know you have doing that, but probably unit tests will help
+                .SelectAsync(
+                    either => either
+                        //// TODO you are here
+                        .SelectAsync(
+                            left => GetFirstSeriesInstance(left).ContinueWith(task => (left, task.Result)), //// TODO is this the best way to get a tuple result here?
+                            right => Task.FromResult(right)))
                 .Select(eventPair => eventPair.ShiftRight())
                 .Select(eventPair => eventPair.VisitSelect(
                     left => left.Item1,
-                    right => right));
+                    right => right))
+                .ConfigureAwait(false);
             return mastersWithInstances;
         }
 

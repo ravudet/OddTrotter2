@@ -264,6 +264,20 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultAsyncExtensions
     {
+        public static async Task<QueryResult<TResult, TError>> Select<TSource, TError, TResult>(
+            this Task<QueryResult<TSource, TError>> queryResult,
+            Func<TSource, TResult> selector)
+        {
+            return (await queryResult.ConfigureAwait(false)).Select(selector);
+        }
+
+        public static async Task<QueryResult<TResult, TError>> SelectAsync<TSource, TError, TResult>(
+            this Task<QueryResult<TSource, TError>> queryResult,
+            Func<TSource, Task<TResult>> selector)
+        {
+            return await (await queryResult.ConfigureAwait(false)).SelectAsync(selector).ConfigureAwait(false);
+        }
+
         public static async Task<QueryResult<TResult, TError>> SelectAsync<TSource, TError, TResult>(
             this QueryResult<TSource, TError> queryResult,
             Func<TSource, Task<TResult>> selector)
