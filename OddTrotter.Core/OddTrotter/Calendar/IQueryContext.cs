@@ -196,6 +196,13 @@ namespace OddTrotter.Calendar
 
             public TValue Value { get; }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
+            /// <remarks>
+            /// this method should not throw; cases where throwing might make sense should instead be handled by returning <see cref="QueryResult{TValue, TError}.Partial"/>
+            /// </remarks>
             public abstract QueryResult<TValue, TError> Next(); //// TODO you previously tried using `task`s here, but you realized that the tasks were all running in the background, taking away any laziness that might be useful; could you have something like a `lazytask` that doesn't start until awaited or something? make it a struct?
 
             /// <inheritdoc/>
@@ -223,6 +230,10 @@ namespace OddTrotter.Calendar
 
         public sealed class Partial : QueryResult<TValue, TError>
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="error"></param>
             public Partial(TError error)
             {
                 this.Error = error;
@@ -278,10 +289,30 @@ namespace OddTrotter.Calendar
             return await (await queryResult.ConfigureAwait(false)).SelectAsync(selector).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="queryResult"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="selector"/> is <see langword="null"/></exception>
         public static async Task<QueryResult<TResult, TError>> SelectAsync<TSource, TError, TResult>(
             this QueryResult<TSource, TError> queryResult,
             Func<TSource, Task<TResult>> selector)
         {
+            if (queryResult == null)
+            {
+                throw new ArgumentNullException(nameof(queryResult));
+            }
+
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
+
             return await SelectAsyncVisitor<TSource, TError, TResult>.Instance.VisitAsync(queryResult, selector).ConfigureAwait(false);
         }
 
@@ -290,41 +321,90 @@ namespace OddTrotter.Calendar
             private readonly QueryResult<TSource, TError>.Element queryResult;
             private readonly Func<TSource, Task<TResult>> selector;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="queryResult"></param>
+            /// <param name="selector"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="selector"/> or <paramref name="queryResult"/> is <see langword="null"/></exception>
             public SelectAsyncResult(
                 QueryResult<TSource, TError>.Element queryResult,
                 Func<TSource, Task<TResult>> selector)
-                :base(selector(queryResult.Value).ConfigureAwait(false).GetAwaiter().GetResult()) //// TODO you should getresult here, you should have an async queryresult variant... //// TODO does this mean that `queryresult` should *not* have an async visitor, and `asyncqueryresult` should not have a synchronous visitor?
+                :base((selector ?? throw new ArgumentNullException(nameof(selector)))((queryResult ?? throw new ArgumentNullException(nameof(queryResult))).Value).ConfigureAwait(false).GetAwaiter().GetResult()) //// TODO you should getresult here, you should have an async queryresult variant... //// TODO does this mean that `queryresult` should *not* have an async visitor, and `asyncqueryresult` should not have a synchronous visitor?
             {
                 this.queryResult = queryResult;
                 this.selector = selector;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<TResult, TError> Next()
             {
                 return SelectAsyncVisitor<TSource, TError, TResult>.Instance.VisitAsync(this.queryResult.Next(), this.selector).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
-        private sealed class SelectAsyncVisitor<TSource, TError, TResult> : QueryResult<TSource, TError>.AsyncVisitor<QueryResult<TResult, TError>, Func<TSource, Task<TResult>>>
+        private class SelectAsyncVisitor<TSource, TError, TResult> : QueryResult<TSource, TError>.AsyncVisitor<QueryResult<TResult, TError>, Func<TSource, Task<TResult>>>
         {
-            private SelectAsyncVisitor()
+            /// <summary>
+            /// 
+            /// </summary>
+            protected SelectAsyncVisitor()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static SelectAsyncVisitor<TSource, TError, TResult> Instance { get; } = new SelectAsyncVisitor<TSource, TError, TResult>();
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/>  is <see langword="null"/></exception> 
             public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TSource, TError>.Final node, Func<TSource, Task<TResult>> context)
             {
-                return await Task.FromResult(new QueryResult<TResult, TError>.Final().AsBase()).ConfigureAwait(false);
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
+                return await Task.FromResult(new QueryResult<TResult, TError>.Final()).ConfigureAwait(false);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/>  is <see langword="null"/></exception> 
             public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TSource, TError>.Element node, Func<TSource, Task<TResult>> context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return await Task.FromResult(new SelectAsyncResult<TSource, TError, TResult>(node, context)).ConfigureAwait(false);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/>  is <see langword="null"/></exception> 
             public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TSource, TError>.Partial node, Func<TSource, Task<TResult>> context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return await Task.FromResult(new QueryResult<TResult, TError>.Partial(node.Error)).ConfigureAwait(false);
             }
         }
@@ -332,6 +412,13 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <param name="queryResult"></param>
+        /// <returns></returns>
         public static QueryResult<TValue, TError> AsBase<TValue, TError>(this QueryResult<TValue, TError> queryResult)
         {
             return queryResult;

@@ -349,6 +349,18 @@ namespace OddTrotter.Calendar
 
     public static class EitherAsyncExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeftOld"></typeparam>
+        /// <typeparam name="TRightOld"></typeparam>
+        /// <typeparam name="TLeftNew"></typeparam>
+        /// <typeparam name="TRightNew"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="leftSelector"></param>
+        /// <param name="rightSelector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> or <paramref name="rightSelector"/> is <see langword="null"/></exception>
         public static async Task<Either<TLeftNew, TRightNew>> SelectAsync<TLeftOld, TRightOld, TLeftNew, TRightNew>(
             this Either<TLeftOld, TRightOld> either,
             Func<TLeftOld, Task<TLeftNew>> leftSelector,
@@ -369,6 +381,7 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(rightSelector));
             }
 
+            //// TODO you are here
             return await either
                 .VisitAsync(
                     async (left, context) => Either.Right<TRightNew>().Left(await leftSelector(left.Value).ConfigureAwait(false)),
