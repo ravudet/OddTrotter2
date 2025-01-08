@@ -211,6 +211,7 @@ namespace OddTrotter.Calendar
                     either => either
                         //// TODO you are here
                         .SelectAsync(
+                            //// TODO you are here
                             left => GetFirstSeriesInstance(left).ContinueWith(task => (left, task.Result)), //// TODO is this the best way to get a tuple result here?
                             right => Task.FromResult(right)))
                 .Select(eventPair => eventPair.ShiftRight())
@@ -226,19 +227,19 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="seriesMaster"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="seriesMaster"/> is <see langword="null"/></exception>
         private async Task<Either<CalendarEvent, CalendarEventsContextTranslationException>> GetFirstSeriesInstance(
             CalendarEvent seriesMaster)
         {
-            //// TODO you are here
             if (seriesMaster == null)
             {
                 throw new ArgumentNullException(nameof(seriesMaster));
             }
 
-            //// TODO make the calendar configurable
             var url =
-                $"/me/calendar/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";
+                $"{this.calendarUriPath.Path}/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";
 
+            //// TODO you are here
             DateTime endTime;
             if (this.endTime != null)
             {
