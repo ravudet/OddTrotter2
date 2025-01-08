@@ -381,8 +381,8 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(rightSelector));
             }
 
-            //// TODO you are here
             return await either
+            //// TODO you are here
                 .VisitAsync(
                     async (left, context) => Either.Right<TRightNew>().Left(await leftSelector(left.Value).ConfigureAwait(false)),
                     async (right, context) => Either.Left<TLeftNew>().Right(await rightSelector(right.Value).ConfigureAwait(false)),
@@ -390,12 +390,41 @@ namespace OddTrotter.Calendar
                 .ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="leftDispatch"></param>
+        /// <param name="rightDispatch"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> is <see langword="null"/></exception>
         public static async Task<TResult> VisitAsync<TLeft, TRight, TResult, TContext>(
             this Either<TLeft, TRight> either,
             Func<Either<TLeft, TRight>.Left, TContext, Task<TResult>> leftDispatch,
             Func<Either<TLeft, TRight>.Right, TContext, Task<TResult>> rightDispatch,
             TContext context)
         {
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            if (leftDispatch == null)
+            {
+                throw new ArgumentNullException(nameof(leftDispatch));
+            }
+
+            if (rightDispatch == null)
+            {
+                throw new ArgumentNullException(nameof(rightDispatch));
+            }
+
+            //// TODO you are here
             return await new DelegateVisitor<TLeft, TRight, TResult, TContext>(
                 leftDispatch,
                 rightDispatch)
