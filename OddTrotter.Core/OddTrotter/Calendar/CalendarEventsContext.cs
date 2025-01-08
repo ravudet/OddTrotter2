@@ -243,7 +243,7 @@ namespace OddTrotter.Calendar
             DateTime endTime;
             if (this.endTime != null)
             {
-                endTime = this.endTime.Value; //// TODO will it be confusing that this *always* overrides `firstInstanceInSeriesLookahead`?
+                endTime = this.endTime.Value; //// TODO will it be confusing that this *always* overrides `firstInstanceInSeriesLookahead`? //// TODO you should probably actually use the `recurrence` property (https://learn.microsoft.com/en-us/graph/api/resources/patternedrecurrence?view=graph-rest-1.0) to compute when the last possible instance is, add some configurable lookahead, and then take the minimum //// TODO that's not the confusing part buddy; the confusing part is if the set endtime to 6 months from now, but the lookahead is 2 months from now; the lookahead is not honored; the real question is to override, or take the minimum
             }
             else
             {
