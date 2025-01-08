@@ -361,6 +361,7 @@ namespace OddTrotter.Calendar
         /// <param name="rightSelector"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> or <paramref name="rightSelector"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw</exception> //// TODO is this good?
         public static async Task<Either<TLeftNew, TRightNew>> SelectAsync<TLeftOld, TRightOld, TLeftNew, TRightNew>(
             this Either<TLeftOld, TRightOld> either,
             Func<TLeftOld, Task<TLeftNew>> leftSelector,
@@ -382,7 +383,6 @@ namespace OddTrotter.Calendar
             }
 
             return await either
-            //// TODO you are here
                 .VisitAsync(
                     async (left, context) => Either.Right<TRightNew>().Left(await leftSelector(left.Value).ConfigureAwait(false)),
                     async (right, context) => Either.Left<TLeftNew>().Right(await rightSelector(right.Value).ConfigureAwait(false)),
@@ -403,6 +403,7 @@ namespace OddTrotter.Calendar
         /// <param name="context"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> can throw</exception> //// TODO is this good?
         public static async Task<TResult> VisitAsync<TLeft, TRight, TResult, TContext>(
             this Either<TLeft, TRight> either,
             Func<Either<TLeft, TRight>.Left, TContext, Task<TResult>> leftDispatch,
@@ -424,7 +425,6 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(rightDispatch));
             }
 
-            //// TODO you are here
             return await new DelegateVisitor<TLeft, TRight, TResult, TContext>(
                 leftDispatch,
                 rightDispatch)
@@ -437,19 +437,40 @@ namespace OddTrotter.Calendar
             private readonly Func<Either<TLeft, TRight>.Left, TContext, Task<TResult>> leftDispatch;
             private readonly Func<Either<TLeft, TRight>.Right, TContext, Task<TResult>> rightDispatch;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="leftDispatch"></param>
+            /// <param name="rightDispatch"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> is <see langword="null"/></exception>
             public DelegateVisitor(
                 Func<Either<TLeft, TRight>.Left, TContext, Task<TResult>> leftDispatch,
                 Func<Either<TLeft, TRight>.Right, TContext, Task<TResult>> rightDispatch)
             {
+                if (leftDispatch == null)
+                {
+                    //// TODO use argumentnullexception.throwifnull
+                    throw new ArgumentNullException(nameof(leftDispatch));
+                }
+
+                if (rightDispatch == null)
+                {
+                    throw new ArgumentNullException(nameof(rightDispatch));
+                }
+
                 this.leftDispatch = leftDispatch;
                 this.rightDispatch = rightDispatch;
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="DelegateVisitor{TLeft, TRight, TResult, TContext}.leftDispatch"/> delegate can throw</exception> //// TODO is this good?
             public override async Task<TResult> DispatchAsync(Either<TLeft, TRight>.Left node, TContext context)
             {
                 return await this.leftDispatch(node, context).ConfigureAwait(false);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="DelegateVisitor{TLeft, TRight, TResult, TContext}.leftDispatch"/> delegate can throw</exception> //// TODO is this good?
             public override async Task<TResult> DispatchAsync(Either<TLeft, TRight>.Right node, TContext context)
             {
                 return await this.rightDispatch(node, context).ConfigureAwait(false);
