@@ -1,5 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OddTrotter.Calendar
@@ -25,6 +26,16 @@ namespace OddTrotter.Calendar
         /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
         protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
+        /// <summary>
+        /// TODO normalize all of your visitors with the pattern (naming, internal protected in the visitor, etc) that you are using in other repos
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="visitor"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
         protected abstract Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context);
 
         public abstract class AsyncVisitor<TResult, TContext>
@@ -338,10 +349,10 @@ namespace OddTrotter.Calendar
 
     public static class EitherAsyncExtensions
     {
-        public static async Task<Either<TLeftNew, TRightNew>> VisitSelectAsync<TLeftOld, TRightOld, TLeftNew, TRightNew>(
+        public static async Task<Either<TLeftNew, TRightNew>> SelectAsync<TLeftOld, TRightOld, TLeftNew, TRightNew>(
             this Either<TLeftOld, TRightOld> either,
-            Func<TLeftOld, TLeftNew> leftSelector,
-            Func<TRightOld, TRightNew> rightSelector)
+            Func<TLeftOld, Task<TLeftNew>> leftSelector,
+            Func<TRightOld, Task<TRightNew>> rightSelector)
         {
             if (either == null)
             {
@@ -358,19 +369,48 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(rightSelector));
             }
 
+            return await either
+                .VisitAsync(
+                    async (left, context) => Either.Right<TRightNew>().Left(await leftSelector(left.Value).ConfigureAwait(false)),
+                    async (right, context) => Either.Left<TLeftNew>().Right(await rightSelector(right.Value).ConfigureAwait(false)),
+                    new Void())
+                .ConfigureAwait(false);
+        }
 
+        public static async Task<TResult> VisitAsync<TLeft, TRight, TResult, TContext>(
+            this Either<TLeft, TRight> either,
+            Func<Either<TLeft, TRight>.Left, TContext, Task<TResult>> leftDispatch,
+            Func<Either<TLeft, TRight>.Right, TContext, Task<TResult>> rightDispatch,
+            TContext context)
+        {
+            return await new DelegateVisitor<TLeft, TRight, TResult, TContext>(
+                leftDispatch,
+                rightDispatch)
+                .VisitAsync(either, context)
+                .ConfigureAwait(false);
         }
 
         private sealed class DelegateVisitor<TLeft, TRight, TResult, TContext> : Either<TLeft, TRight>.AsyncVisitor<TResult, TContext>
         {
-            public override Task<TResult> DispatchAsync(Either<TLeft, TRight>.Left node, TContext context)
+            private readonly Func<Either<TLeft, TRight>.Left, TContext, Task<TResult>> leftDispatch;
+            private readonly Func<Either<TLeft, TRight>.Right, TContext, Task<TResult>> rightDispatch;
+
+            public DelegateVisitor(
+                Func<Either<TLeft, TRight>.Left, TContext, Task<TResult>> leftDispatch,
+                Func<Either<TLeft, TRight>.Right, TContext, Task<TResult>> rightDispatch)
             {
-                throw new NotImplementedException();
+                this.leftDispatch = leftDispatch;
+                this.rightDispatch = rightDispatch;
             }
 
-            public override Task<TResult> DispatchAsync(Either<TLeft, TRight>.Right node, TContext context)
+            public override async Task<TResult> DispatchAsync(Either<TLeft, TRight>.Left node, TContext context)
             {
-                throw new NotImplementedException();
+                return await this.leftDispatch(node, context).ConfigureAwait(false);
+            }
+
+            public override async Task<TResult> DispatchAsync(Either<TLeft, TRight>.Right node, TContext context)
+            {
+                return await this.rightDispatch(node, context).ConfigureAwait(false);
             }
         }
     }
