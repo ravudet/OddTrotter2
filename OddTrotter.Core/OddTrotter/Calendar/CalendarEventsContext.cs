@@ -216,9 +216,9 @@ namespace OddTrotter.Calendar
                             //// TODO you are here
                             left => GetFirstSeriesInstance(left).ContinueWith(task => (left, task.Result)), //// TODO is this the best way to get a tuple result here?
                             right => Task.FromResult(right)))
-                .Select(eventPair => eventPair.ShiftRight())
+                .Select(eventPair => eventPair.ShiftRight()) //// TODO are you actually filtering anywhere to get only the series that have a future instance?
                 .Select(eventPair => eventPair.VisitSelect(
-                    left => left.Item1, //// TODO you are not preserving the timestamp of the first instance
+                    left => left.Item1, //// TODO you are not preserving the timestamp of the first instance; this only matters if the caller wants to leverage sorting in some way
                     right => right))
                 .ConfigureAwait(false);
             return mastersWithInstances;
@@ -244,7 +244,7 @@ namespace OddTrotter.Calendar
             DateTime endTime;
             if (this.endTime != null)
             {
-                endTime = this.endTime.Value; //// TODO will it be confusing that this *always* overrides `firstInstanceInSeriesLookahead`? //// TODO you should probably actually use the `recurrence` property (https://learn.microsoft.com/en-us/graph/api/resources/patternedrecurrence?view=graph-rest-1.0) to compute when the last possible instance is, add some configurable lookahead, and then take the minimum //// TODO that's not the confusing part buddy; the confusing part is if the set endtime to 6 months from now, but the lookahead is 2 months from now; the lookahead is not honored; the real question is to override, or take the minimum
+                endTime = this.endTime.Value; //// TODO will it be confusing that this *always* overrides `firstInstanceInSeriesLookahead`? //// TODO you should probably actually use the `recurrence` property (https://learn.microsoft.com/en-us/graph/api/resources/patternedrecurrence?view=graph-rest-1.0) to compute when the last possible instance is, add some configurable lookahead, and then take the minimum //// TODO that's not the confusing part buddy; the confusing part is if the set endtime to 6 months from now, but the lookahead is 2 months from now; the lookahead is not honored; the real question is to override, or take the minimum //// TODO i would say at this moment to take the endtime if it exists because the lookahead is really just a workaround of graph not giving us a way to get the first next instance in a series; you *may* want to do something where you "page" through endtimes, though, so that you don't accidentally generate a super expensive query here
             }
             else
             {
@@ -262,12 +262,13 @@ namespace OddTrotter.Calendar
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
 
             //// TODO you are here
+            //// TODO give the blob comment above, you may want to factor this into two methods, one to get all future instances in the series, and the other to get the first instance from those
             var graphResponse = await this.graphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false);
 
             var parsedEvents = graphResponse
                 .OfType()
                 .Invoke<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>.Left>()
-                .Select(left => left.Value)
+                .Select(left => left.Value) //// TODO the issue you have here is that we may find an event in the series within the time range, but we skip it because it's malformed; this might mean that we don't actually find an instance
                 .First();
 
             Either <GraphCalendarEvent, GraphCalendarEventsContextTranslationException> firstInstance;
