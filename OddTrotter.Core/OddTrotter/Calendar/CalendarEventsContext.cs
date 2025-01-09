@@ -268,7 +268,7 @@ namespace OddTrotter.Calendar
             var parsedEvents = graphResponse
                 .OfType()
                 .Invoke<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>.Left>()
-                .Select(left => left.Value) //// TODO the issue you have here is that we may find an event in the series within the time range, but we skip it because it's malformed; this might mean that we don't actually find an instance //// TODO maybe this should be "getfirsttimestampinseries" and have an `out` parameter that's `Either<DateTime, TranslationError>` //// TODO yeah, i think something like this is a good idea, because what you want to ultimately surface (the interface we are implementing) in that case would be to say "there is a series event in this range, and it's mangled"
+                .Select(left => left.Value) //// TODO the issue you have here is that we may find an event in the series within the time range, but we skip it because it's malformed; this might mean that we don't actually find an instance //// TODO maybe this should be "trygetfirsttimestampinseries" and have an `out` parameter that's `Either<DateTime, TranslationError>` //// TODO yeah, i think something like this is a good idea, because what you want to ultimately surface (the interface we are implementing) in that case would be to say "there is a series event in this range, and it's mangled"
                 .First();
 
             Either <GraphCalendarEvent, GraphCalendarEventsContextTranslationException> firstInstance;
