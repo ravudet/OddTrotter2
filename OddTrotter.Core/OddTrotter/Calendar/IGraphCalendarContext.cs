@@ -979,7 +979,7 @@
             }
             catch (Exception exception) when (exception is HttpRequestException or GraphErrorDeserializationException or GraphSuccessDeserializationException or UnauthorizedAccessException or GraphProcessingException)
             {
-                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Partial(new GraphPagingException("TODO", exception)); //// TODO this makes it pretty difficult for a caller to be able to write error handling code...
+                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Partial(new GraphPagingException("TODO", exception)); //// TODO consolidating into one exception type makes it pretty difficult for a caller to be able to write error handling code...
             }
 
             if (response.Events.Count == 0)
