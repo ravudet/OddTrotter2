@@ -984,6 +984,7 @@
 
             if (response.Events.Count == 0)
             {
+                //// TODO this means that we won't return until we find the first non-empty page; is that really expected?
                 return await odataNextLinkVisitor.VisitAsync(response.NextPage, default).ConfigureAwait(false);
             }
 
