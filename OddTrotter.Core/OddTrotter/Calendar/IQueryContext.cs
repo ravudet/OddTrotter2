@@ -618,6 +618,7 @@ namespace OddTrotter.Calendar
 
             public QueryResult<TValueEnd, TError> Invoke<TValueEnd>()
             {
+                //// TODO is there anything you can do to make this more smooth?
                 return OfTypeVisitor<TValueStart, TError, TValueEnd>.Instance.Visit(this.queryResult, default);
             }
         }

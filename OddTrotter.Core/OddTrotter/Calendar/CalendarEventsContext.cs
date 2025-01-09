@@ -101,6 +101,8 @@ namespace OddTrotter.Calendar
             DateTime? endTime,
             bool? isCancelled)
         {
+            //// TODO you need to document somewhere what this class actualyl represents
+            //// it's the calendar events (as though you called /calendar/{id}/events) that occur after some start datetime; this can't just be done with a `$filter` because the series events often reflect some time in the past
             this.graphCalendarEventsContext = graphCalendarEventsContext;
             this.calendarUriPath = calendarUriPath;
             this.startTime = startTime;
@@ -119,7 +121,7 @@ namespace OddTrotter.Calendar
             var instanceEvents = await this.GetInstanceEvents().ConfigureAwait(false);
             //// TODO you are here
             var seriesEvents = await this.GetSeriesEvents().ConfigureAwait(false);
-            //// TODO merge the sorted sequences instead of concat
+            //// TODO merge the sorted sequences instead of concat //// TODO these are not necessarily sorted because the series events will come back in the order of their master start times, not the first instance start times
             var allEvents = instanceEvents.Concat(seriesEvents);
             return allEvents;
         }
@@ -216,7 +218,7 @@ namespace OddTrotter.Calendar
                             right => Task.FromResult(right)))
                 .Select(eventPair => eventPair.ShiftRight())
                 .Select(eventPair => eventPair.VisitSelect(
-                    left => left.Item1,
+                    left => left.Item1, //// TODO you are not preserving the timestamp of the first instance
                     right => right))
                 .ConfigureAwait(false);
             return mastersWithInstances;
@@ -262,7 +264,7 @@ namespace OddTrotter.Calendar
             //// TODO you are here
             var graphResponse = await this.graphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false);
 
-            var first = graphResponse
+            var parsedEvents = graphResponse
                 .OfType()
                 .Invoke<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>.Left>()
                 .Select(left => left.Value)
