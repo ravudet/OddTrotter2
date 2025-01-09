@@ -239,7 +239,6 @@ namespace OddTrotter.Calendar
             var url =
                 $"{this.calendarUriPath.Path}/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";
 
-            //// TODO you are here
             DateTime endTime;
             if (this.endTime != null)
             {
@@ -263,6 +262,7 @@ namespace OddTrotter.Calendar
             GraphCalendarEventsResponse graphResponse;
             try
             {
+                //// TODO you are here
                 //// TODO this response now has a "serviceroot" component; do you need to leverage it here?
                 graphResponse = await this.graphCalendarEventsContext.Evaluate(graphRequest).ConfigureAwait(false); //// TODO do paging on the instances? it really shouldn't be necessary... //// TODO technically the serivce could return a bunch of empty pages with nextlinks...
             }
