@@ -259,10 +259,28 @@ namespace OddTrotter.Calendar
 
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
 
+            //// TODO you are here
+            var graphResponse = await this.graphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false);
+
+            var first = graphResponse
+                .OfType()
+                .Invoke<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>.Left>()
+                .Select(left => left.Value)
+                .First();
+
+            Either <GraphCalendarEvent, GraphCalendarEventsContextTranslationException> firstInstance;
+            try
+            {
+                firstInstance = graphResponse.First();
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+
             GraphCalendarEventsResponse graphResponse;
             try
             {
-                //// TODO you are here
                 //// TODO this response now has a "serviceroot" component; do you need to leverage it here?
                 graphResponse = await this.graphCalendarEventsContext.Evaluate(graphRequest).ConfigureAwait(false); //// TODO do paging on the instances? it really shouldn't be necessary... //// TODO technically the serivce could return a bunch of empty pages with nextlinks...
             }

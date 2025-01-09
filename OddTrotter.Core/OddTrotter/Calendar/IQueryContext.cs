@@ -6,6 +6,7 @@ namespace OddTrotter.Calendar
     using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
+    using static OddTrotter.Calendar.OdataCollectionResponse;
 
     public interface IQueryContext<TValue, TError>
     {
@@ -599,6 +600,102 @@ namespace OddTrotter.Calendar
             }
 
             return ErrorVisitor<TValue, TErrorStart, TErrorEnd>.Instance.Visit(queryResult, selector);
+        }
+
+        public static _OfType<TValueStart, TError> OfType<TValueStart, TError>(this QueryResult<TValueStart, TError> queryResult)
+        {
+            return new _OfType<TValueStart, TError>(queryResult);
+        }
+
+        public sealed class _OfType<TValueStart, TError>
+        {
+            private readonly QueryResult<TValueStart, TError> queryResult;
+
+            public _OfType(QueryResult<TValueStart, TError> queryResult)
+            {
+                this.queryResult = queryResult;
+            }
+
+            public QueryResult<TValueEnd, TError> Invoke<TValueEnd>()
+            {
+                return OfTypeVisitor<TValueStart, TError, TValueEnd>.Instance.Visit(this.queryResult, default);
+            }
+        }
+
+        private sealed class OfTypeVisitor<TValueStart, TError, TValueEnd> : QueryResult<TValueStart, TError>.Visitor<QueryResult<TValueEnd, TError>, Void>
+        {
+            private OfTypeVisitor()
+            {
+            }
+
+            public static OfTypeVisitor<TValueStart, TError, TValueEnd> Instance { get; } = new OfTypeVisitor<TValueStart, TError, TValueEnd>();
+
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Final node, Void context)
+            {
+                return new QueryResult<TValueEnd, TError>.Final();
+            }
+
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Element node, Void context)
+            {
+                if (node.Value is TValueEnd valueEnd)
+                {
+                    return new OfTypeResult<TValueStart, TError, TValueEnd>(node, valueEnd);
+                }
+                else
+                {
+                    return this.Visit(node.Next(), context);
+                }
+            }
+
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Partial node, Void context)
+            {
+                return new QueryResult<TValueEnd, TError>.Partial(node.Error);
+            }
+        }
+
+        private sealed class OfTypeResult<TValueStart, TError, TValueEnd> : QueryResult<TValueEnd, TError>.Element
+        {
+            private readonly QueryResult<TValueStart, TError>.Element queryResult;
+
+            public OfTypeResult(QueryResult<TValueStart, TError>.Element queryResult, TValueEnd valueEnd)
+                : base(valueEnd)
+            {
+                this.queryResult = queryResult;
+            }
+
+            public override QueryResult<TValueEnd, TError> Next()
+            {
+                return OfTypeVisitor<TValueStart, TError, TValueEnd>.Instance.Visit(this.queryResult.Next(), default);
+            }
+        }
+
+        public static Either<TValue, TError> First<TValue, TError>(this QueryResult<TValue, TError> queryResult)
+        {
+            return FirstVisitor<TValue, TError>.Instance.Visit(queryResult, default);
+        }
+
+        private sealed class FirstVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<Either<TValue, TError>, Void>
+        {
+            private FirstVisitor()
+            {
+            }
+
+            public static FirstVisitor<TValue, TError> Instance { get; } = new FirstVisitor<TValue, TError>();
+
+            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Final node, Void context)
+            {
+                throw new InvalidOperationException("TODO");
+            }
+
+            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, Void context)
+            {
+                return Either.Right<TError>().Left(node.Value);
+            }
+
+            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Void context)
+            {
+                return Either.Left<TValue>().Right(node.Error);
+            }
         }
 
         private sealed class WhereResult<TValue, TError> : QueryResult<TValue, TError>.Element
