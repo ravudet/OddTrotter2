@@ -254,7 +254,7 @@ namespace OddTrotter.Calendar
 
             if (this.isCancelled != null)
             {
-                url += $"&$filter=isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
+                url += $"&$filter=isCancelled eq {(this.isCancelled.Value ? "true" : "false")}";
             }
 
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
