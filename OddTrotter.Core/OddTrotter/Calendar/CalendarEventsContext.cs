@@ -144,14 +144,14 @@ namespace OddTrotter.Calendar
 
             return graphResponse
                 .ErrorSelect(
-                    graphPagingException => 
+                    graphPagingException =>
                         new CalendarEventsContextPagingException("An error occurred while paging through all of the calendar events.", graphPagingException))
                 .Select(
                     graphCalendarEvent =>
                         graphCalendarEvent
                             .VisitSelect(
                                 left => ToCalendarEvent(left),
-                                right => 
+                                right =>
                                     new CalendarEventsContextTranslationException(
                                         $"An error occurred while translating the OData response into a Graph calendar event",
                                         right))
@@ -189,8 +189,8 @@ namespace OddTrotter.Calendar
             var graphResponse = await this
                 .graphCalendarEventsContext
                 .Page(
-                    graphQuery, 
-                    nextLink =>  nextLink.StartsWith(this.graphCalendarEventsContext.ServiceRoot) ? this.graphCalendarEventsContext : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff
+                    graphQuery,
+                    nextLink => nextLink.StartsWith(this.graphCalendarEventsContext.ServiceRoot) ? this.graphCalendarEventsContext : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff
                 .ConfigureAwait(false);
             return Adapt(graphResponse);
         }
@@ -222,6 +222,79 @@ namespace OddTrotter.Calendar
                     right => right))
                 .ConfigureAwait(false);
             return mastersWithInstances;
+        }
+
+        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstancesInSeries(CalendarEvent seriesMaster)
+        {
+            var startTime = this.startTime;
+            var endTime = startTime + this.firstInstanceInSeriesLookahead;
+            if (this.endTime != null)
+            {
+                if (this.endTime.Value < endTime)
+                {
+                    endTime = this.endTime.Value;
+                }
+            }
+
+            var instancesInSeries = await this.GetInstancesInSeries(seriesMaster, startTime, endTime).ConfigureAwait(false);
+
+            return GetInstancesInSeriesVisitor.Instance.Visit(instancesInSeries, default);
+        }
+
+        private sealed class GetInstancesInSeriesVisitor : QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Visitor<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>, Void>
+        {
+            private GetInstancesInSeriesVisitor()
+            {
+            }
+
+            public static GetInstancesInSeriesVisitor Instance { get; } = new GetInstancesInSeriesVisitor();
+
+            public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Dispatch(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Final node, Void context)
+            {
+                //// TODO this should get the next range of result
+            }
+
+            public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Dispatch(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element node, Void context)
+            {
+                return new GetInstancesInSeriesResult(node);
+            }
+
+            public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Dispatch(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial node, Void context)
+            {
+                return new QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial(node.Error);
+            }
+        }
+
+        private sealed class GetInstancesInSeriesResult : QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element
+        {
+            private readonly Element queryResult;
+
+            public GetInstancesInSeriesResult(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element queryResult)
+                : base(queryResult.Value)
+            {
+                this.queryResult = queryResult;
+            }
+
+            public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Next()
+            {
+            }
+        }
+
+        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstancesInSeries(CalendarEvent seriesMaster, DateTime startTime, DateTime endTime)
+        {
+            var url =
+                $"{this.calendarUriPath.Path}/events/{seriesMaster.Id}/instances?startDateTime={startTime}&endTime={endTime}&$select=id,start,subject,body,isCancelled";
+
+            if (this.isCancelled != null)
+            {
+                url += $"&$filter=isCancelled eq {(this.isCancelled.Value ? "true" : "false")}";
+            }
+
+            var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
+
+            var graphResponse = await this.graphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false); //// TODO parameterize
+
+            return Adapt(graphResponse);
         }
 
         /// <summary>
@@ -271,7 +344,7 @@ namespace OddTrotter.Calendar
                 .Select(left => left.Value) //// TODO the issue you have here is that we may find an event in the series within the time range, but we skip it because it's malformed; this might mean that we don't actually find an instance //// TODO maybe this should be "trygetfirsttimestampinseries" and have an `out` parameter that's `Either<DateTime, TranslationError>` //// TODO yeah, i think something like this is a good idea, because what you want to ultimately surface (the interface we are implementing) in that case would be to say "there is a series event in this range, and it's mangled"
                 .First();
 
-            Either <GraphCalendarEvent, GraphCalendarEventsContextTranslationException> firstInstance;
+            Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> firstInstance;
             try
             {
                 firstInstance = graphResponse.First();
@@ -355,7 +428,7 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
         {
-            var url = 
+            var url =
                 $"{this.calendarUriPath.Path}/events?" +
                 $"$select=body,start,subject,isCancelled&" +
                 $"$top={this.pageSize}&" + // the graph API does not implement `$top` correctly; it returns a `@nextLink` even if it gives you all `pageSize` elements that are requested; for this reason, we can use `$top` for page size here
