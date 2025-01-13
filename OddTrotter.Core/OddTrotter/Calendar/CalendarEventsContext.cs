@@ -323,7 +323,7 @@ namespace OddTrotter.Calendar
 
             public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Next()
             {
-                return GetInstancesInSeriesVisitor.Instance.Visit(this.queryResult.Next(), this.context);
+                return GetInstancesInSeriesVisitor.Instance.VisitAsync(this.queryResult.Next(), this.context).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO async query result
             }
         }
 
