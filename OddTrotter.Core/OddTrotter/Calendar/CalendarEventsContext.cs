@@ -356,7 +356,7 @@ namespace OddTrotter.Calendar
         /// <param name="seriesMaster"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="seriesMaster"/> is <see langword="null"/></exception>
-        private async Task<Either<CalendarEvent, CalendarEventsContextTranslationException>> GetFirstSeriesInstance(
+        private async Task<Either<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetFirstSeriesInstance(
             CalendarEvent seriesMaster)
         {
             if (seriesMaster == null)
@@ -364,7 +364,7 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(seriesMaster));
             }
 
-            await this.GetInstancesInSeries(seriesMaster).ConfigureAwait(false);
+            return await this.GetInstancesInSeries(seriesMaster).FirstAsync().ConfigureAwait(false);
 
             var url =
                 $"{this.calendarUriPath.Path}/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";

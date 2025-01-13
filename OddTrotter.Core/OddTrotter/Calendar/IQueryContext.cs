@@ -278,6 +278,7 @@ namespace OddTrotter.Calendar
     {
         public static async Task<Either<TElement, TError>> First<TElement, TError>(this Task<QueryResult<TElement, TError>> queryResult)
         {
+            //// TODO in `select`, for convenience, you have a `select` overload that *does* use a task queryresult, but *doesn't* use a task selector; that's not really relevenat for first; do you still want the "convenience method"?
             return (await queryResult.ConfigureAwait(false)).First();
         }
 
