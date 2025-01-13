@@ -239,7 +239,7 @@ namespace OddTrotter.Calendar
             var context = new GetInstancesInSeriesContext(this.calendarUriPath, this.isCancelled, this.graphCalendarEventsContext, seriesMaster, pageStartTime, pageEndTime, this.endTime, this.firstInstanceInSeriesLookahead);
             var instancesInSeries = await GetInstancesInSeries(context).ConfigureAwait(false);
 
-            return GetInstancesInSeriesVisitor.Instance.Visit(instancesInSeries, context);
+            return await GetInstancesInSeriesVisitor.Instance.VisitAsync(instancesInSeries, context).ConfigureAwait(false);
         }
         
         private sealed class GetInstancesInSeriesContext
@@ -266,7 +266,7 @@ namespace OddTrotter.Calendar
             public TimeSpan FirstInstanceInSeriesLookahead { get; }
         }
 
-        private sealed class GetInstancesInSeriesVisitor : QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Visitor<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>, GetInstancesInSeriesContext>
+        private sealed class GetInstancesInSeriesVisitor : QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.AsyncVisitor<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>, GetInstancesInSeriesContext>
         {
             private GetInstancesInSeriesVisitor()
             {
@@ -274,7 +274,7 @@ namespace OddTrotter.Calendar
 
             public static GetInstancesInSeriesVisitor Instance { get; } = new GetInstancesInSeriesVisitor();
 
-            public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Dispatch(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Final node, GetInstancesInSeriesContext context)
+            public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Final node, GetInstancesInSeriesContext context)
             {
                 var pageStartTime = context.PageEndTime;
                 var pageEndTime = pageStartTime + context.FirstInstanceInSeriesLookahead;
@@ -295,17 +295,17 @@ namespace OddTrotter.Calendar
                     pageEndTime,
                     context.GlobalEndTime,
                     context.FirstInstanceInSeriesLookahead);
-                return GetInstancesInSeries(nextContext).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO make queryresults async
+                return await GetInstancesInSeries(nextContext).ConfigureAwait(false);
             }
 
-            public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Dispatch(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element node, GetInstancesInSeriesContext context)
+            public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element node, GetInstancesInSeriesContext context)
             {
-                return new GetInstancesInSeriesResult(node, context);
+                return await Task.FromResult(new GetInstancesInSeriesResult(node, context)).ConfigureAwait(false);
             }
 
-            public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Dispatch(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial node, GetInstancesInSeriesContext context)
+            public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial node, GetInstancesInSeriesContext context)
             {
-                return new QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial(node.Error);
+                return await Task.FromResult(new QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial(node.Error)).ConfigureAwait(false);
             }
         }
 
@@ -363,6 +363,9 @@ namespace OddTrotter.Calendar
             {
                 throw new ArgumentNullException(nameof(seriesMaster));
             }
+
+
+            await this.GetInstancesInSeries(seriesMaster).ConfigureAwait(false);
 
             var url =
                 $"{this.calendarUriPath.Path}/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";
