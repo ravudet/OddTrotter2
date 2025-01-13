@@ -364,7 +364,7 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(seriesMaster));
             }
 
-            return await this.GetInstancesInSeries(seriesMaster).First().ConfigureAwait(false);
+            var thing = await this.GetInstancesInSeries(seriesMaster).FirstOrDefaultAsync("hello").ConfigureAwait(false);
 
             var url =
                 $"{this.calendarUriPath.Path}/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";

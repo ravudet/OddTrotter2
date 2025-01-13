@@ -7,6 +7,7 @@ namespace OddTrotter.Calendar
     using System.IO;
     using System.Threading.Tasks;
     using static OddTrotter.Calendar.OdataCollectionResponse;
+    using static OddTrotter.Calendar.QueryResultAsyncExtensions.FirstOrDefaultResult<TElement, TError, TDefault>;
 
     public interface IQueryContext<TValue, TError>
     {
@@ -276,41 +277,67 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultAsyncExtensions
     {
-        public static async Task<Either<TElement, TError>> First<TElement, TError>(this Task<QueryResult<TElement, TError>> queryResult)
+        public abstract class FirstOrDefaultResult<TElement, TError, TDefault>
+        {
+            private FirstOrDefaultResult()
+            {
+                //// TODO do you really like this approach over using nested eithers? you will likely follow this pattern in other `queryresult` extensions
+            }
+
+            public sealed class First : FirstOrDefaultResult<TElement, TError, TDefault>
+            {
+            }
+
+            public sealed class Error : FirstOrDefaultResult<TElement, TError, TDefault>
+            {
+            }
+
+            public sealed class Default : FirstOrDefaultResult<TElement, TError, TDefault>
+            {
+                public Default(TDefault defaultValue)
+                {
+                    DefaultValue = defaultValue;
+                }
+
+                public TDefault DefaultValue { get; }
+            }
+        }
+
+        public static async Task<FirstOrDefaultResult<TElement, TError, TDefault>> FirstOrDefault<TElement, TError, TDefault>(this Task<QueryResult<TElement, TError>> queryResult)
         {
             //// TODO in `select`, for convenience, you have a `select` overload that *does* use a task queryresult, but *doesn't* use a task selector; that's not really relevenat for first; do you still want the "convenience method"?
-            return (await queryResult.ConfigureAwait(false)).First();
+            return (await queryResult.ConfigureAwait(false)).FirstOrDefault();
         }
 
-        public static async Task<Either<TElement, TError>> FirstAsync<TElement, TError>(this Task<QueryResult<TElement, TError>> queryResult)
+        public static async Task<FirstOrDefaultResult<TElement, TError, TDefault>> FirstOrDefaultAsync<TElement, TError, TDefault>(this Task<QueryResult<TElement, TError>> queryResult, TDefault defaultValue)
         {
-            return await (await queryResult.ConfigureAwait(false)).FirstAsync().ConfigureAwait(false);
+            return await (await queryResult.ConfigureAwait(false)).FirstOrDefaultAsync(defaultValue).ConfigureAwait(false);
         }
 
-        public static async Task<Either<TElement, TError>> FirstAsync<TElement, TError>(this QueryResult<TElement, TError> queryResult)
+        public static async Task<FirstOrDefaultResult<TElement, TError, TDefault>> FirstOrDefaultAsync<TElement, TError, TDefault>(this QueryResult<TElement, TError> queryResult, TDefault defaultValue)
         {
-            return await FirstVisitor<TElement, TError>.Instance.VisitAsync(queryResult, default).ConfigureAwait(false);
+            return await FirstOrDefaultVisitor<TElement, TError, TDefault>.Instance.VisitAsync(queryResult, defaultValue).ConfigureAwait(false);
         }
 
-        private sealed class FirstVisitor<TElement, TError> : QueryResult<TElement, TError>.AsyncVisitor<Either<TElement, TError>, Void>
+        private sealed class FirstOrDefaultVisitor<TElement, TError, TDefault> : QueryResult<TElement, TError>.AsyncVisitor<FirstOrDefaultResult<TElement, TError, TDefault>, TDefault>
         {
-            private FirstVisitor()
+            private FirstOrDefaultVisitor()
             {
             }
 
-            public static FirstVisitor<TElement, TError> Instance { get; } = new FirstVisitor<TElement, TError>();
+            public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = new FirstOrDefaultVisitor<TElement, TError, TDefault>();
 
-            public override Task<Either<TElement, TError>> DispatchAsync(QueryResult<TElement, TError>.Final node, Void context)
+            public override async Task<FirstOrDefaultResult<TElement, TError, TDefault>> DispatchAsync(QueryResult<TElement, TError>.Final node, TDefault context)
             {
-                throw new InvalidOperationException("TODO no elements");
+                return await Task.FromResult(new FirstOrDefaultResult<TElement, TError, TDefault>.Default(context)).ConfigureAwait(false);
             }
 
-            public override async Task<Either<TElement, TError>> DispatchAsync(QueryResult<TElement, TError>.Element node, Void context)
+            public override async Task<FirstOrDefaultResult<TElement, TError, TDefault>> DispatchAsync(QueryResult<TElement, TError>.Element node, TDefault context)
             {
                 return await Task.FromResult(Either.Right<TError>().Left(node.Value)).ConfigureAwait(false);
             }
 
-            public override async Task<Either<TElement, TError>> DispatchAsync(QueryResult<TElement, TError>.Partial node, Void context)
+            public override async Task<FirstOrDefaultResult<TElement, TError, TDefault>> DispatchAsync(QueryResult<TElement, TError>.Partial node, TDefault context)
             {
                 return await Task.FromResult(Either.Left<TElement>().Right(node.Error)).ConfigureAwait(false);
             }
