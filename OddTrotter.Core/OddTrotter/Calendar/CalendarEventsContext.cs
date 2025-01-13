@@ -339,7 +339,13 @@ namespace OddTrotter.Calendar
 
             var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
 
-            var graphResponse = await context.GraphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false); //// TODO parameterize
+            var graphResponse = await context
+                .GraphCalendarEventsContext
+                .Page(
+                    graphRequest,
+                    nextLink => 
+                        nextLink.StartsWith(context.GraphCalendarEventsContext.ServiceRoot) ? context.GraphCalendarEventsContext : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff
+                .ConfigureAwait(false);
 
             return Adapt(graphResponse);
         }
