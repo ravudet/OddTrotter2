@@ -276,6 +276,45 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultAsyncExtensions
     {
+        public static async Task<Either<TElement, TError>> First<TElement, TError>(this Task<QueryResult<TElement, TError>> queryResult)
+        {
+            return (await queryResult.ConfigureAwait(false)).First();
+        }
+
+        public static async Task<Either<TElement, TError>> FirstAsync<TElement, TError>(this Task<QueryResult<TElement, TError>> queryResult)
+        {
+            return await (await queryResult.ConfigureAwait(false)).FirstAsync().ConfigureAwait(false);
+        }
+
+        public static async Task<Either<TElement, TError>> FirstAsync<TElement, TError>(this QueryResult<TElement, TError> queryResult)
+        {
+            return await FirstVisitor<TElement, TError>.Instance.VisitAsync(queryResult, default).ConfigureAwait(false);
+        }
+
+        private sealed class FirstVisitor<TElement, TError> : QueryResult<TElement, TError>.AsyncVisitor<Either<TElement, TError>, Void>
+        {
+            private FirstVisitor()
+            {
+            }
+
+            public static FirstVisitor<TElement, TError> Instance { get; } = new FirstVisitor<TElement, TError>();
+
+            public override Task<Either<TElement, TError>> DispatchAsync(QueryResult<TElement, TError>.Final node, Void context)
+            {
+                throw new InvalidOperationException("TODO no elements");
+            }
+
+            public override async Task<Either<TElement, TError>> DispatchAsync(QueryResult<TElement, TError>.Element node, Void context)
+            {
+                return await Task.FromResult(Either.Right<TError>().Left(node.Value)).ConfigureAwait(false);
+            }
+
+            public override async Task<Either<TElement, TError>> DispatchAsync(QueryResult<TElement, TError>.Partial node, Void context)
+            {
+                return await Task.FromResult(Either.Left<TElement>().Right(node.Error)).ConfigureAwait(false);
+            }
+        }
+
         public static async Task<QueryResult<TResult, TError>> Select<TSource, TError, TResult>(
             this Task<QueryResult<TSource, TError>> queryResult,
             Func<TSource, TResult> selector)

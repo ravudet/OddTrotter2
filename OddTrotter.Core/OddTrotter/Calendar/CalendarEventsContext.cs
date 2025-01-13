@@ -364,7 +364,6 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(seriesMaster));
             }
 
-
             await this.GetInstancesInSeries(seriesMaster).ConfigureAwait(false);
 
             var url =
