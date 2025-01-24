@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace OddTrotter.Calendar
 {
     using System;
@@ -13,21 +13,20 @@ namespace OddTrotter.Calendar
         /// <param name="body"></param>
         /// <param name="start"></param>
         /// <param name="isCancelled"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="id"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="id"/> or <paramref name="subject"/> or <paramref name="body"/> is <see langword="null"/>
+        /// </xception>
         public CalendarEvent(string id, string subject, string body, DateTimeOffset start, bool isCancelled)
         {
-            if (id == null)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            ArgumentNullException.ThrowIfNull(id);
+            ArgumentNullException.ThrowIfNull(subject);
+            ArgumentNullException.ThrowIfNull(body);
 
-            //// TODO are subject and body nullable? i think maybe empty makes sense, but not null?
-
-            Id = id;
-            Subject = subject;
-            Body = body;
-            Start = start;
-            IsCancelled = isCancelled;
+            this.Id = id;
+            this.Subject = subject;
+            this.Body = body;
+            this.Start = start;
+            this.IsCancelled = isCancelled;
         }
 
         public string Id { get; }
@@ -39,21 +38,5 @@ namespace OddTrotter.Calendar
         public DateTimeOffset Start { get; }
 
         public bool IsCancelled { get; }
-    }
-
-    /// <summary>
-    /// TODO better name
-    /// </summary>
-    public sealed class CalendarEventBuilder
-    {
-        public string? Id { get; set; }
-
-        public string? Subject { get; set; }
-
-        public string? Body { get; set; }
-
-        public string? Start { get; set; }
-
-        public bool? IsCancelled { get; set; }
     }
 }

@@ -350,11 +350,28 @@
 
 
 
-
-
-            //// TODO address todos
+            // TODO write up code quality list and create blog posts
+            // code quality:
+            // separate files
+            // namespaces
+            // `using`s
+            // dead code
+            // line lengths
+            // precondition checks
+            //   `argumentnullexception.throwifnull`
+            //   `argumentnullinline.throwifnull`
+            // exception documentation
+            // todos
+            // unit tests
+            // `sealed`
+            // anything that isn't nailed down 100% should be `internal`
+            // `this.`
+            
+            //// TODO address todos TODO FUTURE, TODO TOPIC, and TODO TODO
             //// TODO separate files and namespaces, remove dead code, normalzie line lengths, stuff like that
-            //// TODO add unit tests
+            //// TODO do as much unit testing as you can
+            //// TODO any remaining TODO TODOs + address TODO TOPICs
+            //// TODO finish unit tests
             //// TODO make sure anything that is not completely accurate is marked as `internal`
             //// TODO do another pass (you will likely need at least one more pass after this)
             //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
@@ -364,7 +381,7 @@
                 OdataServiceRoot.MicrosoftGraph, //// TODO get from this.graphclient
                 odataClient);
             var graphOdataStructuredContext = new GraphOdataStructuredContext(odataCalendarEventsContext, "TODO get from this.graphclient");
-            var graphCalendarEventsContext = new GraphCalendarEventsContext(graphOdataStructuredContext);
+            var graphCalendarEventsContext = new GraphCalendarEventsEvaluator(graphOdataStructuredContext);
             var calendarEventsContextSettings = new CalendarEventsContextSettings.Builder()
             {
                 PageSize = this.calendarEventPageSize,

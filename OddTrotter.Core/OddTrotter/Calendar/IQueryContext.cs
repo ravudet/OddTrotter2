@@ -434,6 +434,7 @@ namespace OddTrotter.Calendar
                 this.@try = @try;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<TResult, TError> Next()
             {
                 //// TODO i don't think you documented a single `queryresult.element.next` method
@@ -1270,6 +1271,7 @@ namespace OddTrotter.Calendar
                 this.selector = selector;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<TValue, TErrorEnd> Next()
             {
                 return ErrorVisitor<TValue, TErrorStart, TErrorEnd>.Instance.Visit(this.queryResult.Next(), this.selector);
@@ -1431,6 +1433,7 @@ namespace OddTrotter.Calendar
                 this.queryResult = queryResult;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<TValueEnd, TError> Next()
             {
                 return OfTypeVisitor<TValueStart, TError, TValueEnd>.Instance.Visit(this.queryResult.Next(), default);
@@ -1478,6 +1481,7 @@ namespace OddTrotter.Calendar
                 this.predicate = predicate;
             }
 
+            /// <inheritdoc/>
             public sealed override QueryResult<TValue, TError> Next()
             {
                 return WhereVisitor<TValue, TError>.Instance.Visit(this.queryResult.Next(), this.predicate);
@@ -1531,6 +1535,7 @@ namespace OddTrotter.Calendar
                 this.enumerator = enumerator;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<TValue, TError> Next()
             {
                 if (!this.enumerator.MoveNext())
@@ -1583,6 +1588,7 @@ namespace OddTrotter.Calendar
                 this.second = second;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<TValue, TError> Next()
             {
                 return ConcatVisitor<TValue, TError>.Instance.Visit(this.element.Next(), second);
@@ -1670,6 +1676,7 @@ namespace OddTrotter.Calendar
                 this.selector = selector;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<TValueEnd, TError> Next()
             {
                 return SelectVisitor<TValueStart, TValueEnd, TError>.Instance.Visit(this.queryResult.Next(), this.selector);
@@ -1779,6 +1786,7 @@ namespace OddTrotter.Calendar
                 this.context = context;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<TValue, TError> Next()
             {
                 return DistinctByVisitor<TValue, TError, TKey>.Instance.Visit(this.queryResult.Next(), this.context);

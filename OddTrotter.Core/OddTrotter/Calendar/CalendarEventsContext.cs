@@ -1,46 +1,43 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace OddTrotter.Calendar
 {
     using System;
     using System.Linq.Expressions;
-    using System.Net.Http;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using OddTrotter.GraphClient;
-    using OddTrotter.TodoList;
-
-    public sealed class CalendarEventsContextPagingException : Exception
-    {
-        public CalendarEventsContextPagingException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
-    }
-
-    public sealed class CalendarEventsContextTranslationException : Exception
-    {
-        public CalendarEventsContextTranslationException(string message)
-            : base(message)
-        {
-        }
-
-        public CalendarEventsContextTranslationException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
-    }
 
     /// <summary>
-    /// 
+    /// This represents all of the calendar event invites that have an occurrence after a given timestamp. This can't be done on
+    /// Graph with a simple `$filter` because series event masters often preserve the timestamp of the first instance which will
+    /// usually be in the past.
     /// </summary>
-    public sealed class CalendarEventsContext : IQueryContext<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>, IWhereQueryContextMixin<CalendarEvent, CalendarEventsContextTranslationException, CalendarEventsContextPagingException, CalendarEventsContext>
+    public sealed class CalendarEventsContext : 
+        IQueryContext
+            <
+                Either
+                    <
+                        CalendarEvent,
+                        CalendarEventsContextTranslationException
+                    >, 
+                CalendarEventsContextPagingException
+            >, 
+        IWhereQueryContextMixin
+            <
+                CalendarEvent,
+                CalendarEventsContextTranslationException, 
+                CalendarEventsContextPagingException, 
+                CalendarEventsContext
+            >
     {
-        private readonly IGraphCalendarEventsContext graphCalendarEventsContext;
+        private readonly IGraphCalendarEventsEvaluator graphCalendarEventsContext;
 
         private readonly UriPath calendarUriPath;
 
         /// <summary>
-        /// This is required because the `/instances` call on series event masters requires both a start time and an end time; we can continually look further in the future for `endTime`, but we have no way (as far as I can tell) to pick a `startTime` that guarantees we don't miss any instance events. So, we need the caller to tell us the start time in order to handle the series event instances.
+        /// This is required because the `/instances` call on series event masters requires both a start time and an end time;
+        /// we can continually look further in the future for `endTime`, but we have no way (as far as I can tell) to pick a 
+        /// `startTime` that guarantees we don't miss any instance events. So, we need the caller to tell us the start time in
+        /// order to handle the series event instances.
         /// </summary>
         private readonly DateTime startTime;
 
@@ -49,35 +46,42 @@ namespace OddTrotter.Calendar
         private readonly TimeSpan firstInstanceInSeriesLookahead;
 
         /// <summary>
-        /// TODO you will want to handle this better in the future when you have full support for different query options. For now, `null` means that they've not filtered on `startTime < {something}`, and not `null` means that this value is `{something}`
+        /// TODO FUTURE you will want to handle this better in the future when you have full support for different query options.
+        /// For now, `null` means that they've not filtered on `startTime < {something}`, and not `null` means that this value is
+        /// `{something}`
         /// </summary>
         private readonly DateTime? endTime;
 
         /// <summary>
-        /// TODO you will want to handle this better in the future when you have full support for different query options. For now, `null` means that they've not filtered on `isCancelled`, and not `null` means that this value is the value they are searching for
+        /// TODO FUTURE you will want to handle this better in the future when you have full support for different query options.
+        /// For now, `null` means that they've not filtered on `isCancelled`, and not `null` means that this value is the value 
+        /// they are searching for
         /// </summary>
         private readonly bool? isCancelled;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CalendarEventsContext"/> class
+        /// 
         /// </summary>
         /// <param name="graphClient"></param>
         /// <param name="calendarUri"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="settings"></param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="calendarUriPath"/> or <paramref name="settings"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="calendarUriPath"/> or 
+        /// <paramref name="settings"/> is <see langword="null"/>
+        /// </exception>
         public CalendarEventsContext(
-            IGraphCalendarEventsContext graphCalendarEventsContext,
+            IGraphCalendarEventsEvaluator graphCalendarEventsContext,
             UriPath calendarUriPath,
             DateTime startTime,
             CalendarEventsContextSettings settings)
             : this(
-                  graphCalendarEventsContext ?? throw new ArgumentNullException(nameof(graphCalendarEventsContext)),
-                  calendarUriPath ?? throw new ArgumentNullException(nameof(calendarUriPath)),
+                  ArgumentNullInline.ThrowIfNull(graphCalendarEventsContext),
+                  ArgumentNullInline.ThrowIfNull(calendarUriPath),
                   startTime,
-                  settings?.PageSize ?? throw new ArgumentNullException(nameof(settings)), //// TODO i *really* don't like setting this precedence
-                  settings?.FirstInstanceInSeriesLookahead ?? throw new ArgumentNullException(nameof(settings)),
+                  ArgumentNullInline.ThrowIfNull(settings).PageSize,
+                  ArgumentNullInline.ThrowIfNull(settings).FirstInstanceInSeriesLookahead,
                   null,
                   null)
         {
@@ -93,7 +97,7 @@ namespace OddTrotter.Calendar
         /// <param name="endTime"></param>
         /// <param name="isCancelled"></param>
         private CalendarEventsContext(
-            IGraphCalendarEventsContext graphCalendarEventsContext,
+            IGraphCalendarEventsEvaluator graphCalendarEventsContext,
             UriPath calendarUriPath,
             DateTime startTime,
             int pageSize,
@@ -101,8 +105,6 @@ namespace OddTrotter.Calendar
             DateTime? endTime,
             bool? isCancelled)
         {
-            //// TODO you need to document somewhere what this class actualyl represents
-            //// it's the calendar events (as though you called /calendar/{id}/events) that occur after some start datetime; this can't just be done with a `$filter` because the series events often reflect some time in the past
             this.graphCalendarEventsContext = graphCalendarEventsContext;
             this.calendarUriPath = calendarUriPath;
             this.startTime = startTime;
@@ -116,13 +118,25 @@ namespace OddTrotter.Calendar
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> Evaluate()
+        public async 
+            Task
+                <
+                    QueryResult
+                        <
+                            Either
+                                <
+                                    CalendarEvent,
+                                    CalendarEventsContextTranslationException
+                                >, 
+                            CalendarEventsContextPagingException
+                        >
+                > 
+            Evaluate()
         {
-            //// TODO i think you have a bucnh of queryresult "next" implementations that aren't documented
-            
             var instanceEvents = await this.GetInstanceEvents().ConfigureAwait(false);
             var seriesEvents = await this.GetSeriesEvents().ConfigureAwait(false);
-            //// TODO merge the sorted sequences instead of concat //// TODO these are not necessarily sorted because the series events will come back in the order of their master start times, not the first instance start times
+            //// TODO FUTURE merge the sorted sequences instead of concat //// TODO these are not necessarily sorted because the
+            /// series events will come back in the order of their master start times, not the first instance start times
             var allEvents = instanceEvents.Concat(seriesEvents);
             return allEvents;
         }
@@ -132,26 +146,44 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <param name="graphResponse"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphResponse"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="graphResponse"/> is <see langword="null"/>
+        /// </exception>
         private static
-            QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>
+            QueryResult
+                <
+                    Either
+                        <
+                            CalendarEvent, 
+                            CalendarEventsContextTranslationException
+                        >, 
+                    CalendarEventsContextPagingException
+                >
             Adapt(
-            QueryResult<Either<OddTrotter.Calendar.GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> graphResponse)
+                QueryResult
+                    <
+                        Either
+                            <
+                                OddTrotter.Calendar.GraphCalendarEvent, 
+                                GraphCalendarEventsContextTranslationException
+                            >, 
+                        GraphPagingException
+                    > graphResponse)
         {
-            if (graphResponse == null)
-            {
-                throw new ArgumentNullException(nameof(graphResponse));
-            }
+            ArgumentNullException.ThrowIfNull(graphResponse);
 
             return graphResponse
                 .ErrorSelect(
                     graphPagingException =>
-                        new CalendarEventsContextPagingException("An error occurred while paging through all of the calendar events.", graphPagingException))
+                        new CalendarEventsContextPagingException(
+                            "An error occurred while paging through all of the calendar events.", 
+                            graphPagingException))
                 .Select(
                     graphCalendarEvent =>
                         graphCalendarEvent
                             .VisitSelect(
-                                left => ToCalendarEvent(left),
+                                left => 
+                                    ToCalendarEvent(left),
                                 right =>
                                     new CalendarEventsContextTranslationException(
                                         $"An error occurred while translating the OData response into a Graph calendar event",
@@ -167,8 +199,24 @@ namespace OddTrotter.Calendar
         /// <param name="endTime"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstanceEvents()
+        private async 
+            Task
+                <
+                    QueryResult
+                        <
+                            Either
+                                <
+                                    CalendarEvent,
+                                    CalendarEventsContextTranslationException
+                                >, 
+                            CalendarEventsContextPagingException
+                        >
+                > 
+            GetInstanceEvents()
         {
+            //// TODO you are here
+            //// TODO shouldn't this be done through extension methods?
+            //// TODO a bunch of what is still in this class should probably be in graphcalendareventscontext; the graphcalendareventscontext right now only does the translation from odata types to graph types, but it doesn't do any of the "wisdom" about urls (like the root calendar uri) and such
             var url =
                 $"{this.calendarUriPath.Path}/events?" +
                 $"$select=body,start,subject,isCancelled&" +
@@ -185,6 +233,12 @@ namespace OddTrotter.Calendar
             {
                 url += $" and isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
             }
+
+            var foo = new GraphCalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath)
+                .Filter(GraphCalendarEventsContext.TypeEqualsSingleInstance)
+                .Filter(GraphCalendarEventsContext.StartTimeGreaterThanNow) //// TODO `start/dateTime gt '{this.startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'` should be used, but for now we know that it's always `DateTime.UtcNow`
+                .OrderBy(GraphCalendarEventsContext.StartTime)
+                ;
 
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = await this
@@ -356,7 +410,7 @@ namespace OddTrotter.Calendar
             /// <param name="firstInstanceInSeriesLookahead"></param>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="calendarUriPath"/> or <paramref name="graphCalendarEventsContext"/> or <paramref name="seriesMaster"/> is <see langword="null"/></exception>
             /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="pageEndTime"/> is before <paramref name="pageStartTime"/> or <paramref name="globalEndTime"/> is before <paramref name="pageEndTime"/> or <paramref name="globalEndTime"/> is before <paramref name="pageStartTime"/> or <paramref name="firstInstanceInSeriesLookahead"/> is not a positive value</exception>
-            public GetInstancesInSeriesContext(UriPath calendarUriPath, bool? isCancelled, IGraphCalendarEventsContext graphCalendarEventsContext, CalendarEvent seriesMaster, DateTime pageStartTime, DateTime pageEndTime, DateTime? globalEndTime, TimeSpan firstInstanceInSeriesLookahead)
+            public GetInstancesInSeriesContext(UriPath calendarUriPath, bool? isCancelled, IGraphCalendarEventsEvaluator graphCalendarEventsContext, CalendarEvent seriesMaster, DateTime pageStartTime, DateTime pageEndTime, DateTime? globalEndTime, TimeSpan firstInstanceInSeriesLookahead)
             {
                 if (calendarUriPath == null)
                 {
@@ -405,7 +459,7 @@ namespace OddTrotter.Calendar
 
             public UriPath CalendarUriPath { get; }
             public bool? IsCancelled { get; }
-            public IGraphCalendarEventsContext GraphCalendarEventsContext { get; }
+            public IGraphCalendarEventsEvaluator GraphCalendarEventsContext { get; }
             public CalendarEvent SeriesMaster { get; }
             public DateTime PageStartTime { get; }
             public DateTime PageEndTime { get; }
@@ -521,6 +575,7 @@ namespace OddTrotter.Calendar
                 this.context = context;
             }
 
+            /// <inheritdoc/>
             public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Next()
             {
                 return GetInstancesInSeriesVisitor.Instance.VisitAsync(this.queryResult.Next(), this.context).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO async query result
