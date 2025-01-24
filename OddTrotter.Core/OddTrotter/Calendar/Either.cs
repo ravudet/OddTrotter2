@@ -35,7 +35,7 @@ namespace OddTrotter.Calendar
         /// <param name="context"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
-        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Dispatch"/> overloads can throw</exception> //// TODO is this good?
+        /// <exception cref="Exception">Throws any of the exceptions that the <see cref="AsyncVisitor{TResult, TContext}.DispatchAsync"/> overloads can throw</exception> //// TODO is this good?
         protected abstract Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context);
 
         public abstract class AsyncVisitor<TResult, TContext>
@@ -47,7 +47,7 @@ namespace OddTrotter.Calendar
             /// <param name="context"></param>
             /// <returns></returns>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
-            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can throw</exception> //// TODO is this good?
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="DispatchAsync"/> overloads can throw</exception> //// TODO is this good?
             public async Task<TResult> VisitAsync(Either<TLeft, TRight> node, TContext context)
             {
                 if (node == null)
@@ -282,14 +282,43 @@ namespace OddTrotter.Calendar
                 new Void());
         }
 
-        public static Either<TLeft, TRight> ShiftRight<TLeft, TRight>(this Either<Either<TLeft, TRight>, TRight> either)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        public static Either<TLeft, TRight> PropogateRight<TLeft, TRight>(this Either<Either<TLeft, TRight>, TRight> either)
         {
+            //// TODO you called this "propogate" because it's akin to the null propogation operator; if you like this naming, you should norm on it in the other method names
+            ArgumentNullException.ThrowIfNull(either);
+
             return either.Visit(
-                (left, context) => left.Value.Visit(
-                    (subLeft, subContext) => Either.Right<TRight>().Left(subLeft.Value),
-                    (subRight, subContext) => Either.Left<TLeft>().Right(subRight.Value),
+                (left, context) => 
+                    left
+                        .Value
+                        .Visit(
+                            (subLeft, subContext) => 
+                                Either
+                                    .Right<TRight>()
+                                    .Left(
+                                        subLeft
+                                            .Value),
+                            (subRight, subContext) => 
+                                Either
+                                    .Left<TLeft>()
+                                    .Right(
+                                        subRight
+                                            .Value),
                     new Void()),
-                (right, context) => Either.Left<TLeft>().Right(right.Value),
+                (right, context) => 
+                    Either
+                        .Left<TLeft>()
+                        .Right(
+                            right
+                                .Value),
                 new Void());
         }
 

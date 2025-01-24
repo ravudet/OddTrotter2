@@ -10,6 +10,7 @@
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
+    using System.Threading.Tasks.Sources;
     using System.Xml.Linq;
 
     using Microsoft.Extensions.Caching.Memory;
@@ -202,6 +203,83 @@
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="queryResult"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> is <see langword="null"/></exception>
+        private static TodoListResultBuilder Convert(QueryResult<Either<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> queryResult, DateTime lastRecordedEventTimeStamp)
+        {
+            ArgumentNullException.ThrowIfNull(queryResult);
+
+            var builder = new TodoListResultBuilder(lastRecordedEventTimeStamp);
+
+            while (queryResult is QueryResult<Either<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element element)
+            {
+                element.Value.Visit(
+                    (left, context) =>
+                    {
+                        if (left.Value.Start < context.EndTimestamp)
+                        {
+                            context.EndTimestamp = left.Value.Start.DateTime; //// TODO why did you choose datetimeoffset some places and datetime others?
+                        }
+
+                        IEnumerable<string> parsedBody;
+                        try
+                        {
+                            parsedBody = ParseEventBody(left.Value.Body);
+                        }
+                        catch (Exception exception)
+                        {
+                            context.BodyParseErrors.Add(exception);
+                            return new OddTrotter.Calendar.Void();
+                        }
+
+                        context.TodoList.AppendJoin(Environment.NewLine, parsedBody).AppendLine();
+                        return new OddTrotter.Calendar.Void();
+                    },
+                    (right, context) =>
+                    {
+                        //// TODO do you want to stop recording the endtimestamp if a translation error occurred, or should the user be expected to handle it at that point? if the user is expected to handle it, it'd probably be good to put the errors in a more permanent storage so that a browser window mishap doesn't cause data loss
+                        //// TODO i think you should let the user handle it because otherwise a calendar error will get them permanently stuck at a certain timestamp and they will need to actually go to the calendar event and fix it, instead of just checking that the error can be skipped and ignoring it, letting the next refresh remove it; you *will* want a way to persist the errors though for the browser mishap reason
+                        context.TranslationErrors.Add(right.Value);
+                        return new OddTrotter.Calendar.Void();
+                    },
+                    builder);
+
+                queryResult = element.Next();
+            }
+
+            if (queryResult is QueryResult<Either<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial partial)
+            {
+                builder.PagingError = partial.Error;
+            }
+
+            return builder;
+        }
+
+        private sealed class TodoListResultBuilder
+        {
+            public TodoListResultBuilder(DateTime lastRecordedEventTimeStamp)
+            {
+                this.TodoList = new StringBuilder();
+                this.TranslationErrors = new List<CalendarEventsContextTranslationException>();
+                this.BodyParseErrors = new List<Exception>();
+                this.EndTimestamp = lastRecordedEventTimeStamp;
+            }
+
+            public StringBuilder TodoList { get; set; }
+
+            public DateTime EndTimestamp { get; set; }
+
+            public List<CalendarEventsContextTranslationException> TranslationErrors { get; set; }
+
+            public List<Exception> BodyParseErrors { get; set; } //// TODO use the right tpye of elements
+
+            public CalendarEventsContextPagingException? PagingError { get; set; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidBlobNameException">
         /// Thrown if the configured blob name to use for the todo list blob results in an invalid URL or points to a blob that cannot be read
@@ -269,7 +347,11 @@
             }
 
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
-            //// TODO finish first pass
+
+
+
+
+
             //// TODO address todos
             //// TODO separate files and namespaces, remove dead code, normalzie line lengths, stuff like that
             //// TODO add unit tests
@@ -296,23 +378,30 @@
             calendarEventsContext = calendarEventsContext
                 .Where(CalendarEventsContext.StartLessThanNow)
                 .Where(CalendarEventsContext.IsNotCancelled);
-            //// TODO you are here
+            //// TODO the paging exception will have the token exceptions in it; maybe the `page` method and `evaluate` should actually throw these for the first page, but not for the subsequent ones?
             var calendarEvents = await calendarEventsContext.Evaluate().ConfigureAwait(false);
 
-            //// TODO check all of the possible errors
             var todoListEvents2 = calendarEvents
                 .Where(calendarEvent => 
                     calendarEvent.Visit(
                         left => left.Subject.Contains("todo list", StringComparison.OrdinalIgnoreCase),
-                        right => true));
-            var successes = new List<OddTrotter.Calendar.CalendarEvent>();
-            var errors = new List<CalendarEventsContextTranslationException>();
-            var pagingError = todoListEvents2.Split(successes.Add, errors.Add);
+                        right => true))
+                .Where(calendarEvent =>
+                    calendarEvent
+                        .Visit(
+                            left => left.Start > originalLastRecordedEventTimeStamp, // there's a bug in the graph api; it treats gt as ge, so we need to do this extra check locally
+                            right => true));
 
-            var successesWithParsedBodies = successes.Select(success => ParseEventBody(success.Body)); //// TODO handle errors
-            var newData2 = string.Join(Environment.NewLine, successesWithParsedBodies);
-            ////var result = new TodoListResult(newData2, default, default, pagingError?.ToString(), default, default, default, default);
-
+            var resultBuilder = Convert(todoListEvents2, originalLastRecordedEventTimeStamp);
+            var result2 = new TodoListResult(
+                resultBuilder.TodoList.ToString(),
+                originalLastRecordedEventTimeStamp,
+                resultBuilder.EndTimestamp,
+                resultBuilder.PagingError?.ToString(),
+                Enumerable.Empty<CalendarEvent>(),
+                resultBuilder.TranslationErrors.Select(exception => (default(CalendarEvent)!, (Exception)exception)),
+                Enumerable.Empty<CalendarEvent>(),
+                resultBuilder.BodyParseErrors.Select(exception => (default(CalendarEvent)!, exception)));
 
 
 
@@ -347,7 +436,7 @@
             var todoListEventsTuplesWithParsedStarts = todoListEventsAggregatedStartParseFailures
                 .Where(tuple => !tuple.Item2.IsError)
                 .Select(tuple => (tuple.Item1, tuple.Item2.Value))
-                .Where(tuple => tuple.Value > oddTrotterTodoList.LastRecordedEventTimeStamp); //// TODO there's a bug in the graph api; it treats gt as ge
+                .Where(tuple => tuple.Value > oddTrotterTodoList.LastRecordedEventTimeStamp); //// TODO 
             var todoListEventsAggregatedLastSeenTimestamp = todoListEventsTuplesWithParsedStarts
                 .ApplyAggregation((DateTime?)null, (lastSeenTimeStamp, tuple) => Comparer<DateTime?>.Default.Max(lastSeenTimeStamp, tuple.Value));
             var todoListEventsWithParsedStarts = todoListEventsAggregatedLastSeenTimestamp
@@ -377,6 +466,24 @@
                 .SelectMany(tuple => tuple.Value);
 
             var newData = string.Join(Environment.NewLine, todoListEventsWithParsedBodies);
+
+
+
+
+
+
+
+
+            var newOddTrotterTodoList2 = new OddTrotterTodoListData.Builder()
+            {
+                LastRecordedEventTimeStamp = result2.EndTimestamp,
+            };
+
+
+
+
+
+
 
             var newOddTrotterTodoList = new OddTrotterTodoListData.Builder()
             {

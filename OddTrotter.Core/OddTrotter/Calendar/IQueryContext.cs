@@ -4,18 +4,128 @@ namespace OddTrotter.Calendar
     using OddTrotter.TodoList;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Linq.Expressions;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
-    using static OddTrotter.Calendar.OdataCollectionResponse;
-    using static OddTrotter.Calendar.QueryResultAsyncExtensions.FirstOrDefaultResult<TElement, TError, TDefault>;
+    using static OddTrotter.Calendar.QueryResultExtensions;
+
+    public delegate bool TryOld<TIn, TOut>(TIn input, out TOut output);
+
+    public delegate Either<TOut, Void> Try<TIn, TOut>(TIn input);
+
+    public static class Driver
+    {
+        public static void DoWork()
+        {
+            var data = new[] { "Asfd" };
+            var ints = data.TrySelect((TryOld<string, int>)int.TryParse);
+            var ints2 = data.TrySelect<string, int>(int.TryParse);
+            var ints3 = data.TrySelect(TryParse);
+        }
+
+        public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> source)
+        {
+            return source.TrySelect(element => element.ToEither());
+        }
+
+        public static Either<T, Void> ToEither<T>(this T? value)
+        {
+            return value == null ? Either.Left<T>().Right(new Void()) : Either.Right<Void>().Left(value);
+        }
+
+        private static Either<int, Void> TryParse(string input)
+        {
+            if (int.TryParse(input, out var output))
+            {
+                return Either.Right<Void>().Left(output);
+            }
+            else
+            {
+                return Either.Left<int>().Right(new Void());
+            }
+        }
+
+        public static Try<TIn, TOut> ToTry<TIn, TOut>(this TryOld<TIn, TOut> @try)
+        {
+            return input => @try(input, out var output) ? Either.Right<Void>().Left(output) : Either.Left<TOut>().Right(new Void());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOut"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        public static bool Try<TOut>(this Either<TOut, Void> either, [MaybeNullWhen(false)] out TOut value)
+        {
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            if (either is Either<TOut, Void>.Left left)
+            {
+                value = left.Value;
+                return true;
+            }
+            else
+            {
+                value = default;
+                return false;
+            }
+        }
+
+        public static IEnumerable<TResult> TrySelect<TElement, TResult>(this IEnumerable<TElement> source, TryOld<TElement, TResult> @try)
+        {
+            return source.TrySelect(@try.ToTry());
+        }
+
+        public static IEnumerable<TResult> TrySelect<TElement, TResult>(this IEnumerable<TElement> source, Try<TElement, TResult> @try)
+        {
+            foreach (var element in source)
+            {
+                var either = @try(element);
+                if (either is Either<TResult, Void>.Left left)
+                {
+                    yield return left.Value;
+                }
+            }
+        }
+
+        public static Either<TLeft, Void> TryLeft<TLeft, TRight>(this Either<TLeft, TRight> either)
+        {
+            //// TODO maybe call this "coalesceleft" to conform with "null coalescing operator"?
+            return either.TryLeft(_ => _);
+        }
+
+        public static Either<TResult, Void> TryLeft<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector)
+        {
+            return either.Visit(
+                left => Either.Right<Void>().Left(leftSelector(left)),
+                right => Either.Left<TResult>().Right(new Void()));
+        }
+
+        public static bool TryRight<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector, Func<TRight, TResult> rightSelector, out TResult result)
+        {
+            var selected = either.Visit(
+                left => (Result: leftSelector(left), IsLeft: false),
+                right => (Result: rightSelector(right), IsLeft: true));
+
+            result = selected.Result;
+            return selected.IsLeft;
+        }
+    }
 
     public interface IQueryContext<TValue, TError>
     {
         /// <summary>
-        /// 
+        /// TODO should this really not throw exceptions? "partial" was intended to indicate that *some* results came back, but an intermediate network error occurred; is it ok for "partial" to just mean any error at all?
         /// </summary>
         /// <returns></returns>
-        //// TODO you are here
         Task<QueryResult<TValue, TError>> Evaluate();
     }
 
@@ -114,7 +224,7 @@ namespace OddTrotter.Calendar
             /// <param name="context"></param>
             /// <returns></returns>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
-            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Dispatch"/> overloads can throw</exception> //// TODO is this good?
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="DispatchAsync"/> overloads can throw</exception> //// TODO is this good?
             public async Task<TResult> VisitAsync(QueryResult<TValue, TError> node, TContext context)
             {
                 if (node == null)
@@ -277,76 +387,169 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultAsyncExtensions
     {
-        public abstract class FirstOrDefaultResult<TElement, TError, TDefault>
+        /// <summary>
+        /// TODO this is a net-new concept, probably you should actually document it; maybe start documenting everything?
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="queryResult"></param>
+        /// <param name="try"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="try"/> is <see langword="null"/></exception>
+        public static async Task<QueryResult<TResult, TError>> TrySelectAsync<TValue, TError, TResult>(this Task<QueryResult<TValue, TError>> queryResult, Try<TValue, TResult> @try)
         {
-            private FirstOrDefaultResult()
+            if (queryResult == null)
             {
-                //// TODO do you really like this approach over using nested eithers? you will likely follow this pattern in other `queryresult` extensions
+                throw new ArgumentNullException(nameof(queryResult));
             }
 
-            public sealed class First : FirstOrDefaultResult<TElement, TError, TDefault>
+            if (@try == null)
+            {
+                throw new ArgumentNullException(nameof(@try));
+            }
+
+            return await TrySelectVisitor<TValue, TError, TResult>.Instance.VisitAsync(await queryResult.ConfigureAwait(false), @try).ConfigureAwait(false);
+        }
+
+        private sealed class TrySelectResult<TValue, TError, TResult> : QueryResult<TResult, TError>.Element
+        {
+            private readonly QueryResult<TValue, TError>.Element queryResult;
+            private readonly Try<TValue, TResult> @try;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="queryResult"></param>
+            /// <param name="try"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="try"/> is <see langword="null"/></exception>
+            public TrySelectResult(TResult value, QueryResult<TValue, TError>.Element queryResult, Try<TValue, TResult> @try)
+                : base(value)
+            {
+                ArgumentNullException.ThrowIfNull(queryResult, nameof(queryResult));
+                ArgumentNullException.ThrowIfNull(@try, nameof(@try));
+
+                this.queryResult = queryResult;
+                this.@try = @try;
+            }
+
+            public override QueryResult<TResult, TError> Next()
+            {
+                //// TODO i don't think you documented a single `queryresult.element.next` method
+                return TrySelectVisitor<TValue, TError, TResult>.Instance.VisitAsync(this.queryResult.Next(), this.@try).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO async query result
+            }
+        }
+
+        private sealed class TrySelectVisitor<TValue, TError, TResult> : QueryResult<TValue, TError>.AsyncVisitor<QueryResult<TResult, TError>, Try<TValue, TResult>>
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            private TrySelectVisitor()
             {
             }
 
-            public sealed class Error : FirstOrDefaultResult<TElement, TError, TDefault>
-            {
-            }
+            /// <summary>
+            /// 
+            /// </summary>
+            public static TrySelectVisitor<TValue, TError, TResult> Instance { get; } = new TrySelectVisitor<TValue, TError, TResult>();
 
-            public sealed class Default : FirstOrDefaultResult<TElement, TError, TDefault>
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
+            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Final node, Try<TValue, TResult> context)
             {
-                public Default(TDefault defaultValue)
+                if (node == null)
                 {
-                    DefaultValue = defaultValue;
+                    throw new ArgumentNullException(nameof(node));
                 }
 
-                public TDefault DefaultValue { get; }
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
+                return await Task.FromResult(new QueryResult<TResult, TError>.Final()).ConfigureAwait(false);
+            }
+
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that <paramref name="context"/> can throw</exception> //// TODO is this good?
+            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Element node, Try<TValue, TResult> context)
+            {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
+                if (context(node.Value).Try(out var value)) //// TODO you have an unstated convention that interfaces and delegates and methods you define won't return null unless explicitly documented or marked up with `?`; do you want to keep doing that, or state explicitly stating that null can't be returned?
+                {
+                    return new TrySelectResult<TValue, TError, TResult>(value, node, context);
+                }
+                else
+                {
+                    return await this.VisitAsync(node.Next(), context).ConfigureAwait(false);
+                }
+            }
+
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
+            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Partial node, Try<TValue, TResult> context)
+            {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
+                return await Task.FromResult(new QueryResult<TResult, TError>.Partial(node.Error)).ConfigureAwait(false);
             }
         }
 
-        public static async Task<FirstOrDefaultResult<TElement, TError, TDefault>> FirstOrDefault<TElement, TError, TDefault>(this Task<QueryResult<TElement, TError>> queryResult)
+        public static async Task<QueryResult<TValue, TError>> WhereAsync<TValue, TError>(this Task<QueryResult<TValue, TError>> queryResult, Func<TValue, bool> predicate)
+        {
+            return (await queryResult.ConfigureAwait(false)).Where(predicate);
+        }
+
+
+        /*public static async Task<FirstOrDefaultResult<TElement, TError, TDefault>> FirstOrDefault<TElement, TError, TDefault>(this Task<QueryResult<TElement, TError>> queryResult)
         {
             //// TODO in `select`, for convenience, you have a `select` overload that *does* use a task queryresult, but *doesn't* use a task selector; that's not really relevenat for first; do you still want the "convenience method"?
+            //// TODO actually, you seem to have two dimensions: is `this` a task + is the `func` a task? and you seem to want (for convenience) all 4 variations
             return (await queryResult.ConfigureAwait(false)).FirstOrDefault();
-        }
+        }*/
 
-        public static async Task<FirstOrDefaultResult<TElement, TError, TDefault>> FirstOrDefaultAsync<TElement, TError, TDefault>(this Task<QueryResult<TElement, TError>> queryResult, TDefault defaultValue)
+        public static async Task<QueryResultExtensions.FirstOrDefaultResult<TElement, TError, TDefault>> FirstOrDefaultAsync<TElement, TError, TDefault>(this Task<QueryResult<TElement, TError>> queryResult, TDefault defaultValue)
         {
-            return await (await queryResult.ConfigureAwait(false)).FirstOrDefaultAsync(defaultValue).ConfigureAwait(false);
+            return (await queryResult.ConfigureAwait(false)).FirstOrDefault(defaultValue);
         }
 
-        public static async Task<FirstOrDefaultResult<TElement, TError, TDefault>> FirstOrDefaultAsync<TElement, TError, TDefault>(this QueryResult<TElement, TError> queryResult, TDefault defaultValue)
-        {
-            return await FirstOrDefaultVisitor<TElement, TError, TDefault>.Instance.VisitAsync(queryResult, defaultValue).ConfigureAwait(false);
-        }
-
-        private sealed class FirstOrDefaultVisitor<TElement, TError, TDefault> : QueryResult<TElement, TError>.AsyncVisitor<FirstOrDefaultResult<TElement, TError, TDefault>, TDefault>
-        {
-            private FirstOrDefaultVisitor()
-            {
-            }
-
-            public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = new FirstOrDefaultVisitor<TElement, TError, TDefault>();
-
-            public override async Task<FirstOrDefaultResult<TElement, TError, TDefault>> DispatchAsync(QueryResult<TElement, TError>.Final node, TDefault context)
-            {
-                return await Task.FromResult(new FirstOrDefaultResult<TElement, TError, TDefault>.Default(context)).ConfigureAwait(false);
-            }
-
-            public override async Task<FirstOrDefaultResult<TElement, TError, TDefault>> DispatchAsync(QueryResult<TElement, TError>.Element node, TDefault context)
-            {
-                return await Task.FromResult(Either.Right<TError>().Left(node.Value)).ConfigureAwait(false);
-            }
-
-            public override async Task<FirstOrDefaultResult<TElement, TError, TDefault>> DispatchAsync(QueryResult<TElement, TError>.Partial node, TDefault context)
-            {
-                return await Task.FromResult(Either.Left<TElement>().Right(node.Error)).ConfigureAwait(false);
-            }
-        }
-
-        public static async Task<QueryResult<TResult, TError>> Select<TSource, TError, TResult>(
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="queryResult"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="selector"/> is <see langword="null"/></exception>
+        public static async Task<QueryResult<TResult, TError>> SelectAsync<TSource, TError, TResult>(
             this Task<QueryResult<TSource, TError>> queryResult,
             Func<TSource, TResult> selector)
         {
+            ArgumentNullException.ThrowIfNull(queryResult);
+            ArgumentNullException.ThrowIfNull(selector);
+
             return (await queryResult.ConfigureAwait(false)).Select(selector);
         }
 
@@ -478,8 +681,486 @@ namespace OddTrotter.Calendar
         }
     }
 
+    /// <summary>
+    /// Either
+    ///     <
+    ///         (
+    ///             CalendarEvent SeriesMaster, 
+    ///             FirstOrDefault
+    ///                 <
+    ///                     Either
+    ///                         <
+    ///                             CalendarEvent, 
+    ///                             CalendarEventsContextTranslationException
+    ///                         >,
+    ///                     CalendarEventsContextPagingException,
+    ///                     Void
+    ///                 >
+    ///         ),
+    ///         CalendarEventsContextTranslationException
+    ///     >
+    ///     
+    /// Either
+    ///     <
+    ///         (
+    ///             CalendarEvent SeriesMaster,
+    ///             Either
+    ///                 <
+    ///                     Either
+    ///                         <
+    ///                             CalendarEvent,
+    ///                             CalendarEventsContextTranslationException
+    ///                         >,
+    ///                     CalendarEVentsContextPagingException
+    ///                 >
+    ///         ),
+    ///         CalendarEventsContextTranslationException
+    ///     >
+    ///     
+    /// 
+    /// 
+    /// 
+    /// Either
+    ///     <
+    ///         (
+    ///             CalendarEvent, 
+    ///             Either
+    ///                 <
+    ///                     Either
+    ///                         <
+    ///                             CalendarEvent, 
+    ///                             CalendarEventsContextTranslationEcxeption
+    ///                         >, 
+    ///                     CAlendarEventsContextPAgingException
+    ///                 >
+    ///         ), 
+    ///         CalendarEventsContextTranslationException
+    ///     >
+    ///     
+    /// 
+    /// Either<CalendarEvent, CalendarEventsContextTranslationException>
+    /// </summary>
+
     public static class QueryResultExtensions
     {
+        public static bool IsElement<TElement, TError, TDefault>(this FirstOrDefaultResult<TElement, TError, TDefault> result)
+        {
+            return result is FirstOrDefaultResult<TElement, TError, TDefault>.First;
+        }
+
+        public static bool IsError<TElement, TError, TDefault>(this FirstOrDefaultResult<TElement, TError, TDefault> result)
+        {
+            return result is FirstOrDefaultResult<TElement, TError, TDefault>.Error;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TDefault"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="firstOrDefaultResult"></param>
+        /// <param name="elementSelector"></param>
+        /// <param name="errorSelector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="firstOrDefaultResult"/> or <paramref name="elementSelector"/> or <paramref name="errorSelector"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="elementSelector"/> or <paramref name="errorSelector"/> can throw</exception> //// TODO is this good?
+        public static Either<TResult, Void> TryNotDefault<TElement, TError, TDefault, TResult>(
+            this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult,
+            Func<TElement, TResult> elementSelector,
+            Func<TError, TResult> errorSelector)
+        {
+            //// TODO compare writing each firstordefaultresult variant with converting firstordefaultresult to either and using either.tryleft/tryright
+            //// TODO do you like how you named things regarding the "try" stuff?
+            ArgumentNullException.ThrowIfNull(firstOrDefaultResult);
+            ArgumentNullException.ThrowIfNull(elementSelector);
+            ArgumentNullException.ThrowIfNull(errorSelector);
+
+            //// TODO normalize your naming of "visit" and "select"
+
+            return firstOrDefaultResult
+                .Visit(
+                    element =>
+                        Either
+                            .Right<Void>()
+                            .Left(
+                                elementSelector(element)),
+                    error =>
+                        Either
+                            .Right<Void>()
+                            .Left(
+                                errorSelector(error)),
+                    @default =>
+                        Either
+                            .Left<TResult>()
+                            .Right(new Void()));
+        }
+
+        public static Either<TResult, Void> TryDefault<TElement, TError, TDefault, TResult>(
+            this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult,
+            Func<TElement, TResult> elementSelector,
+            Func<TError, TResult> errorSelector,
+            Func<TDefault, TResult> defaultSelector)
+        {
+            if (firstOrDefaultResult.TryIsDefault(elementSelector, errorSelector, defaultSelector, out var result))
+            {
+                return Either.Right<Void>().Left(result);
+            }
+            else
+            {
+                return Either.Left<TResult>().Right(new Void());
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TDefault"></typeparam>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="result"/> is <see langword="null"/></exception>
+        public static bool TryIsDefault<TElement, TError, TDefault, TResult>(
+            this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult,
+            Func<TElement, TResult> elementSelector,
+            Func<TError, TResult> errorSelector,
+            Func<TDefault, TResult> defaultSelector,
+            out TResult result)
+        {
+            if (firstOrDefaultResult == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            var selected = firstOrDefaultResult.Visit(
+                element => (Result: elementSelector(element), IsDefault: false),
+                error => (Result: errorSelector(error), IsDefault: false),
+                @default => (Result: defaultSelector(@default), IsDefault: true));
+
+            result = selected.Result;
+            return selected.IsDefault;
+        }
+
+        public static Either<TElement, Either<TError, TDefault>> ToEither<TElement, TError, TDefault>(this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult)
+        {
+            return firstOrDefaultResult.Visit(
+                element => Either.Right<Either<TError, TDefault>>().Left(element),
+                error => Either.Left<TElement>().Right(Either.Right<TDefault>().Left(error)),
+                @default => Either.Left<TElement>().Right(Either.Left<TError>().Right(@default)));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TDefault"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="result"></param>
+        /// <param name="elementSelector"></param>
+        /// <param name="errorSelector"></param>
+        /// <param name="defaultSelector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="result"/> or <paramref name="elementSelector"/> or <paramref name="errorSelector"/> or <paramref name="defaultSelector"/> is <see langword="null"/></exception>
+        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="elementSelector"/> or <paramref name="errorSelector"/> or <paramref name="defaultSelector"/> can throw</exception> //// TODO is this good?
+        public static TResult Visit<TElement, TError, TDefault, TResult>(
+            this FirstOrDefaultResult<TElement, TError, TDefault> result,
+            Func<TElement, TResult> elementSelector,
+            Func<TError, TResult> errorSelector,
+            Func<TDefault, TResult> defaultSelector)
+        {
+            ArgumentNullException.ThrowIfNull(result);
+            ArgumentNullException.ThrowIfNull(elementSelector);
+            ArgumentNullException.ThrowIfNull(errorSelector);
+            ArgumentNullException.ThrowIfNull(defaultSelector);
+
+            return
+                new FirstOrDefaultResultDelegateVisitor<TElement, TError, TDefault, TResult, Void>(
+                    (element, context) => elementSelector(element),
+                    (error, context) => errorSelector(error),
+                    (@default, context) => defaultSelector(@default))
+                .Visit(result, new Void());
+        }
+
+        private sealed class FirstOrDefaultResultDelegateVisitor<TElement, TError, TDefault, TResult, TContext> : FirstOrDefaultResult<TElement, TError, TDefault>.Visitor<TResult, TContext>
+        {
+            private readonly Func<TElement, TContext, TResult> elementSelector;
+            private readonly Func<TError, TContext, TResult> errorSelector;
+            private readonly Func<TDefault, TContext, TResult> defaultSelector;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="elementSelector"></param>
+            /// <param name="errorSelector"></param>
+            /// <param name="defaultSelector"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="elementSelector"/> or <paramref name="errorSelector"/> or <paramref name="defaultSelector"/> is <see langword="null"/></exception>
+            public FirstOrDefaultResultDelegateVisitor(
+                Func<TElement, TContext, TResult> elementSelector,
+                Func<TError, TContext, TResult> errorSelector,
+                Func<TDefault, TContext, TResult> defaultSelector)
+            {
+                ArgumentNullException.ThrowIfNull(elementSelector);
+                ArgumentNullException.ThrowIfNull(errorSelector);
+                ArgumentNullException.ThrowIfNull(defaultSelector);
+
+                this.elementSelector = elementSelector;
+                this.errorSelector = errorSelector;
+                this.defaultSelector = defaultSelector;
+            }
+
+            /// <inheritdoc/>
+            protected internal override TResult Accept(FirstOrDefaultResult<TElement, TError, TDefault>.First node, TContext context)
+            {
+                ArgumentNullException.ThrowIfNull(node);
+
+                return this.elementSelector(node.Value, context);
+            }
+
+            /// <inheritdoc/>
+            protected internal override TResult Accept(FirstOrDefaultResult<TElement, TError, TDefault>.Error node, TContext context)
+            {
+                ArgumentNullException.ThrowIfNull(node);
+
+                return this.errorSelector(node.Value, context);
+            }
+
+            /// <inheritdoc/>
+            protected internal override TResult Accept(FirstOrDefaultResult<TElement, TError, TDefault>.Default node, TContext context)
+            {
+                ArgumentNullException.ThrowIfNull(node);
+
+                return this.defaultSelector(node.Value, context);
+            }
+        }
+
+        public abstract class FirstOrDefaultResult<TElement, TError, TDefault>
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            private FirstOrDefaultResult()
+            {
+                //// TODO do you really like this approach over using nested eithers? you will likely follow this pattern in other `queryresult` extensions
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <typeparam name="TResult"></typeparam>
+            /// <typeparam name="TContext"></typeparam>
+            /// <param name="visitor"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="visitor"/> is <see langword="null"/></exception>
+            /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Visitor{TResult, TContext}.Accept"/> overloads can throw</exception> //// TODO is this good?
+            protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+
+            public abstract class Visitor<TResult, TContext>
+            {
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="node"></param>
+                /// <param name="context"></param>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                /// <exception cref="Exception">Throws any of the exceptions that the <see cref="Accept"/> overloads can throw</exception> //// TODO is this good?
+                public TResult Visit(FirstOrDefaultResult<TElement, TError, TDefault> node, TContext context)
+                {
+                    ArgumentNullException.ThrowIfNull(node);
+
+                    return node.Dispatch(this, context);
+                }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="node"></param>
+                /// <param name="context"></param>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
+                protected internal abstract TResult Accept(FirstOrDefaultResult<TElement, TError, TDefault>.First node, TContext context);
+
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="node"></param>
+                /// <param name="context"></param>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
+                protected internal abstract TResult Accept(FirstOrDefaultResult<TElement, TError, TDefault>.Error node, TContext context);
+
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="node"></param>
+                /// <param name="context"></param>
+                /// <returns></returns>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
+                /// <exception cref="Exception">Can throw any exception as documented by the derived type</exception>
+                protected internal abstract TResult Accept(FirstOrDefaultResult<TElement, TError, TDefault>.Default node, TContext context);
+            }
+
+            public sealed class First : FirstOrDefaultResult<TElement, TError, TDefault>
+            {
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="value"></param>
+                public First(TElement value)
+                {
+                    this.Value = value;
+                }
+
+                public TElement Value { get; }
+
+                /// <inheritdoc/>
+                protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+                {
+                    ArgumentNullException.ThrowIfNull(visitor);
+
+                    return visitor.Accept(this, context);
+                }
+            }
+
+            public sealed class Error : FirstOrDefaultResult<TElement, TError, TDefault>
+            {
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="value"></param>
+                public Error(TError value)
+                {
+                    this.Value = value;
+                }
+
+                public TError Value { get; }
+
+                /// <inheritdoc/>
+                protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+                {
+                    ArgumentNullException.ThrowIfNull(visitor);
+
+                    return visitor.Accept(this, context);
+                }
+            }
+
+            public sealed class Default : FirstOrDefaultResult<TElement, TError, TDefault>
+            {
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="value"></param>
+                public Default(TDefault value)
+                {
+                    this.Value = value;
+                }
+
+                public TDefault Value { get; }
+
+                /// <inheritdoc/>
+                protected sealed override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+                {
+                    ArgumentNullException.ThrowIfNull(visitor);
+
+                    return visitor.Accept(this, context);
+                }
+            }
+        }
+
+        private sealed class FirstOrDefaultVisitor<TElement, TError, TDefault> : QueryResult<TElement, TError>.Visitor<FirstOrDefaultResult<TElement, TError, TDefault>, TDefault>
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            private FirstOrDefaultVisitor()
+            {
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = new FirstOrDefaultVisitor<TElement, TError, TDefault>();
+
+            /// <inheritdoc/>
+            public override FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(QueryResult<TElement, TError>.Final node, TDefault context)
+            {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                return new FirstOrDefaultResult<TElement, TError, TDefault>.Default(context);
+            }
+
+            /// <inheritdoc/>
+            public override FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(QueryResult<TElement, TError>.Element node, TDefault context)
+            {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                return new FirstOrDefaultResult<TElement, TError, TDefault>.First(node.Value);
+            }
+
+            /// <inheritdoc/>
+            public override FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(QueryResult<TElement, TError>.Partial node, TDefault context)
+            {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                return new FirstOrDefaultResult<TElement, TError, TDefault>.Error(node.Error);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <param name="queryResult"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> is <see langword="null"/></exception>
+        public static FirstOrDefaultResult<TElement, TError, Void> FirstOrDefault<TElement, TError>(this QueryResult<TElement, TError> queryResult)
+        {
+            if (queryResult == null)
+            {
+                throw new ArgumentNullException(nameof(queryResult));
+            }
+
+            return queryResult
+                .FirstOrDefault(
+                    new Void());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TDefault"></typeparam>
+        /// <param name="queryResult"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> is <see langword="null"/></exception>
+        public static FirstOrDefaultResult<TElement, TError, TDefault> FirstOrDefault<TElement, TError, TDefault>(this QueryResult<TElement, TError> queryResult, TDefault defaultValue)
+        {
+            if (queryResult == null)
+            {
+                throw new ArgumentNullException(nameof(queryResult));
+            }
+
+            return FirstOrDefaultVisitor<TElement, TError, TDefault>.Instance.Visit(queryResult, defaultValue);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -545,6 +1226,25 @@ namespace OddTrotter.Calendar
             }
 
             //// TODO throw if queryresult is now partial?
+        }
+
+        private sealed class Pointer<T>
+        {
+            public Pointer(T value)
+            {
+                this.Value = value;
+            }
+
+            public T Value { get; set; }
+        }
+
+        private static IEnumerable<TValue> ToEnumerable<TValue, TError>(Pointer<QueryResult<TValue, TError>> pointer)
+        {
+            while (pointer.Value is QueryResult<TValue, TError>.Element element)
+            {
+                yield return element.Value;
+                pointer.Value = element.Next();
+            }
         }
 
         private sealed class ErrorResult<TValue, TErrorStart, TErrorEnd> : QueryResult<TValue, TErrorEnd>.Element
@@ -868,9 +1568,17 @@ namespace OddTrotter.Calendar
             private readonly QueryResult<TValue, TError>.Element element;
             private readonly QueryResult<TValue, TError> second;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="element"></param>
+            /// <param name="second"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="element"/> or <paramref name="second"/> is <see langword="null"/></exception>
             public ConcatResult(QueryResult<TValue, TError>.Element element, QueryResult<TValue, TError> second)
-                : base(element.Value)
+                : base((element ?? throw new ArgumentNullException(nameof(element))).Value)
             {
+                ArgumentNullException.ThrowIfNull(second);
+
                 this.element = element;
                 this.second = second;
             }
@@ -883,31 +1591,64 @@ namespace OddTrotter.Calendar
 
         private sealed class ConcatVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, QueryResult<TValue, TError>>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private ConcatVisitor()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static ConcatVisitor<TValue, TError> Instance { get; } = new ConcatVisitor<TValue, TError>();
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Final node, QueryResult<TValue, TError> context)
             {
+                ArgumentNullException.ThrowIfNull(node);
+                ArgumentNullException.ThrowIfNull(context);
+
                 return context;
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, QueryResult<TValue, TError> context)
             {
+                ArgumentNullException.ThrowIfNull(node);
+                ArgumentNullException.ThrowIfNull(context);
+
                 return new ConcatResult<TValue, TError>(node, context);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, QueryResult<TValue, TError> context)
             {
+                ArgumentNullException.ThrowIfNull(node);
+                ArgumentNullException.ThrowIfNull(context);
+
                 //// TODO what if there was in error in first *and* second?
                 return node;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="first"/> or <paramref name="second"/> is <see langword="null"/></exception>
         public static QueryResult<TValue, TError> Concat<TValue, TError>(this QueryResult<TValue, TError> first, QueryResult<TValue, TError> second)
         {
+            ArgumentNullException.ThrowIfNull(first);
+            ArgumentNullException.ThrowIfNull(second);
+
             return ConcatVisitor<TValue, TError>.Instance.Visit(first, second);
         }
 

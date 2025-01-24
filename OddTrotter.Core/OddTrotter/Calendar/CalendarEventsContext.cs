@@ -118,8 +118,9 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         public async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> Evaluate()
         {
+            //// TODO i think you have a bucnh of queryresult "next" implementations that aren't documented
+            
             var instanceEvents = await this.GetInstanceEvents().ConfigureAwait(false);
-            //// TODO you are here
             var seriesEvents = await this.GetSeriesEvents().ConfigureAwait(false);
             //// TODO merge the sorted sequences instead of concat //// TODO these are not necessarily sorted because the series events will come back in the order of their master start times, not the first instance start times
             var allEvents = instanceEvents.Concat(seriesEvents);
@@ -155,7 +156,7 @@ namespace OddTrotter.Calendar
                                     new CalendarEventsContextTranslationException(
                                         $"An error occurred while translating the OData response into a Graph calendar event",
                                         right))
-                            .ShiftRight());
+                            .PropogateRight());
         }
 
         /// <summary>
@@ -209,29 +210,127 @@ namespace OddTrotter.Calendar
                 await this.GetSeriesEventMasters().ConfigureAwait(false);
             var mastersWithInstances = await seriesEventMasters
                 //// TODO you added these async variants for `either` and `queryresult` but you didn't actually put thought into if these work as expected; for example, does it actually make sense to await the `queryresult.selectasync` call here? or does that imply something about the lazy evaluation that you don't want to actually do; would it make sense to have a `selectasync` method overload that is on `task<queryresult>` as well so that you can chain them? //// TODO you wrote a "convenience" overload for now, but you should reall revisit this and think it all the way through; i know you have doing that, but probably unit tests will help
+                //// TODO and is it also ok to pass the tasks returned without awaiting them until the "very end" so to speak? https://github.com/microsoft/vs-threading/blob/main/doc/analyzers/VSTHRD003.md
                 .SelectAsync(
-                    either => either
-                        //// TODO you are here
+                    seriesMasterOrTranslationError => seriesMasterOrTranslationError
                         .SelectAsync(
-                            //// TODO you are here
-                            left => GetFirstSeriesInstance(left).ContinueWith(task => (left, task.Result)), //// TODO is this the best way to get a tuple result here?
-                            right => Task.FromResult(right)))
-                .Select(eventPair => eventPair.ShiftRight()) //// TODO are you actually filtering anywhere to get only the series that have a future instance?
-                .Select(eventPair => eventPair.VisitSelect(
-                    left => left.Item1, //// TODO you are not preserving the timestamp of the first instance; this only matters if the caller wants to leverage sorting in some way
-                    right => right))
+                            async seriesMaster =>
+                            {
+                                var instances = await GetInstancesInSeries(seriesMaster).ConfigureAwait(false);
+                                return (SeriesMaster: seriesMaster, FirstInstance: instances.FirstOrDefault());
+                            },
+                            translationError => Task.FromResult(translationError))) //// TODO go through all of your lambda code and make sure they have meaningful names
+                .TrySelectAsync(
+                    seriesPlusInstanceOrTranslationError =>
+                        seriesPlusInstanceOrTranslationError
+                            .Visit(
+                                seriesPlusInstance =>
+                                    seriesPlusInstance
+                                        .FirstInstance
+                                        .TryNotDefault(
+                                            instance => 
+                                                Either
+                                                    .Right<CalendarEventsContextTranslationException>()
+                                                    .Left(
+                                                        (
+                                                            SeriesMaster: seriesPlusInstance.SeriesMaster, 
+                                                            Instance: Either
+                                                                .Right<CalendarEventsContextPagingException>()
+                                                                .Left(instance)
+                                                        )),
+                                            instancePagingError =>
+                                                Either
+                                                    .Right<CalendarEventsContextTranslationException>()
+                                                    .Left(
+                                                        (
+                                                            SeriesMaster: seriesPlusInstance.SeriesMaster,
+                                                            Instance: Either
+                                                                .Left
+                                                                    <
+                                                                        Either
+                                                                            <
+                                                                                CalendarEvent,
+                                                                                CalendarEventsContextTranslationException
+                                                                            >
+                                                                    >()
+                                                                .Right(instancePagingError)
+                                                        ))),
+                                translationError => Either
+                                    .Right<Void>()
+                                    .Left(
+                                        Either
+                                            .Left
+                                                <
+                                                    (
+                                                        CalendarEvent SeriesMaster,
+                                                        Either
+                                                            <
+                                                                Either
+                                                                    <
+                                                                        CalendarEvent,
+                                                                        CalendarEventsContextTranslationException
+                                                                    >,
+                                                                CalendarEventsContextPagingException
+                                                            > Instance
+                                                    )
+                                                >()
+                                            .Right(translationError))))
+                .SelectAsync(
+                    seriesPlusInstanceOrTranslationError =>
+                        seriesPlusInstanceOrTranslationError.SelectLeft(
+                            seriesPlusInstance =>
+                                seriesPlusInstance
+                                    .Instance
+                                    .Visit(
+                                        instanceOrTranslationError =>
+                                            instanceOrTranslationError
+                                                .Visit(
+                                                    instance => 
+                                                        Either
+                                                            .Right<CalendarEventsContextTranslationException>()
+                                                            .Left(
+                                                                new CalendarEvent(
+                                                                    seriesPlusInstance.SeriesMaster.Id,
+                                                                    seriesPlusInstance.SeriesMaster.Subject,
+                                                                    seriesPlusInstance.SeriesMaster.Body,
+                                                                    instance.Start,
+                                                                    seriesPlusInstance.SeriesMaster.IsCancelled)),
+                                                    translationError =>
+                                                        Either
+                                                            .Left<CalendarEvent>()
+                                                            .Right(
+                                                                //// TODO should the translation error be a discriminated union? that way callers can differentiate? or does that leak too many details?
+                                                                new CalendarEventsContextTranslationException($"A future instance was found for the series master with ID '{seriesPlusInstance.SeriesMaster.Id}' but the instance could not be translated correctly. The series master was '{JsonSerializer.Serialize(seriesPlusInstance.SeriesMaster)}'. TODO is the underlying error giving us the time range?", translationError))), //// TODO assuming because it got deserialized it can be serialized again...
+                                        pagingError => 
+                                            Either
+                                                .Left<CalendarEvent>()
+                                                .Right(
+                                                    new CalendarEventsContextTranslationException($"A future instance was not found for the series master with ID '{seriesPlusInstance.SeriesMaster.Id}' because an error occurred while retrieving the instances for that master. It is possible that a future instanace exists.", pagingError))))
+                        .PropogateRight())
                 .ConfigureAwait(false);
             return mastersWithInstances;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="seriesMaster"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="seriesMaster"/> is <see langword="null"/></exception>
         private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstancesInSeries(CalendarEvent seriesMaster)
         {
+            if (seriesMaster == null)
+            {
+                throw new ArgumentNullException(nameof(seriesMaster));
+            }
+
             var pageStartTime = this.startTime;
             var pageEndTime = pageStartTime + this.firstInstanceInSeriesLookahead;
             if (this.endTime != null)
             {
                 if (this.endTime.Value < pageEndTime)
                 {
+                    //// TODO this might be confusing that we override the `firstInstanceInSeriesLookahead` if `endTime` is specified; take the case where the endtime is 6 months from now, but the lookahead is 2 months from now; from the perspective of the constructor caller, their lookahead is not honored; from the perspective of the where caller, their endtime is not honored; leveraging the `recurrence` property (https://learn.microsoft.com/en-us/graph/api/resources/patternedrecurrence?view=graph-rest-1.0) to compute when the last possible instance is might be the best solution
                     pageEndTime = this.endTime.Value;
                 }
             }
@@ -244,8 +343,56 @@ namespace OddTrotter.Calendar
         
         private sealed class GetInstancesInSeriesContext
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="calendarUriPath"></param>
+            /// <param name="isCancelled"></param>
+            /// <param name="graphCalendarEventsContext"></param>
+            /// <param name="seriesMaster"></param>
+            /// <param name="pageStartTime"></param>
+            /// <param name="pageEndTime"></param>
+            /// <param name="globalEndTime"></param>
+            /// <param name="firstInstanceInSeriesLookahead"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="calendarUriPath"/> or <paramref name="graphCalendarEventsContext"/> or <paramref name="seriesMaster"/> is <see langword="null"/></exception>
+            /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="pageEndTime"/> is before <paramref name="pageStartTime"/> or <paramref name="globalEndTime"/> is before <paramref name="pageEndTime"/> or <paramref name="globalEndTime"/> is before <paramref name="pageStartTime"/> or <paramref name="firstInstanceInSeriesLookahead"/> is not a positive value</exception>
             public GetInstancesInSeriesContext(UriPath calendarUriPath, bool? isCancelled, IGraphCalendarEventsContext graphCalendarEventsContext, CalendarEvent seriesMaster, DateTime pageStartTime, DateTime pageEndTime, DateTime? globalEndTime, TimeSpan firstInstanceInSeriesLookahead)
             {
+                if (calendarUriPath == null)
+                {
+                    throw new ArgumentNullException(nameof(calendarUriPath));
+                }
+
+                if (graphCalendarEventsContext == null)
+                {
+                    throw new ArgumentNullException(nameof(graphCalendarEventsContext));
+                }
+
+                if (seriesMaster == null)
+                {
+                    throw new ArgumentNullException(nameof(seriesMaster));
+                }
+
+                if (pageEndTime < pageStartTime)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(pageEndTime), $"'{nameof(pageEndTime)}' cannot be before '{nameof(pageStartTime)}'. The provided value for '{nameof(pageEndTime)}' was '{pageEndTime}'. The provided value for '{nameof(pageStartTime)}' was '{pageStartTime}'.");
+                }
+
+                if (globalEndTime < pageStartTime)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(globalEndTime), $"'{nameof(globalEndTime)}' cannot be before '{nameof(pageStartTime)}'. The provided value for '{nameof(globalEndTime)}' was '{globalEndTime}'. The provided value for '{nameof(pageStartTime)}' was '{pageStartTime}'.");
+                }
+
+                if (globalEndTime < pageEndTime)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(globalEndTime), $"'{nameof(globalEndTime)}' cannot be before '{nameof(pageEndTime)}'. The provided value for '{nameof(globalEndTime)}' was '{globalEndTime}'. The provided value for '{nameof(pageEndTime)}' was '{pageEndTime}'.");
+                }
+
+                if (firstInstanceInSeriesLookahead <= TimeSpan.Zero)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(firstInstanceInSeriesLookahead), $"'{nameof(firstInstanceInSeriesLookahead)}' must be a positive value. The provided value was '{firstInstanceInSeriesLookahead}'.");
+                }
+
                 this.CalendarUriPath = calendarUriPath;
                 this.IsCancelled = isCancelled;
                 this.GraphCalendarEventsContext = graphCalendarEventsContext;
@@ -268,14 +415,32 @@ namespace OddTrotter.Calendar
 
         private sealed class GetInstancesInSeriesVisitor : QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.AsyncVisitor<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>, GetInstancesInSeriesContext>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private GetInstancesInSeriesVisitor()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static GetInstancesInSeriesVisitor Instance { get; } = new GetInstancesInSeriesVisitor();
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Final node, GetInstancesInSeriesContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 var pageStartTime = context.PageEndTime;
                 var pageEndTime = pageStartTime + context.FirstInstanceInSeriesLookahead;
                 if (context.GlobalEndTime != null)
@@ -298,13 +463,37 @@ namespace OddTrotter.Calendar
                 return await GetInstancesInSeries(nextContext).ConfigureAwait(false);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element node, GetInstancesInSeriesContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return await Task.FromResult(new GetInstancesInSeriesResult(node, context)).ConfigureAwait(false);
             }
 
+            /// <inheritdoc/>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial node, GetInstancesInSeriesContext context)
             {
+                if (node == null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 return await Task.FromResult(new QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial(node.Error)).ConfigureAwait(false);
             }
         }
@@ -314,9 +503,20 @@ namespace OddTrotter.Calendar
             private readonly Element queryResult;
             private readonly GetInstancesInSeriesContext context;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="queryResult"></param>
+            /// <param name="context"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="context"/> is <see langword="null"/></exception>
             public GetInstancesInSeriesResult(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element queryResult, GetInstancesInSeriesContext context)
-                : base(queryResult.Value)
+                : base((queryResult ?? throw new ArgumentNullException(nameof(queryResult))).Value)
             {
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
                 this.queryResult = queryResult;
                 this.context = context;
             }
@@ -327,8 +527,19 @@ namespace OddTrotter.Calendar
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
         private static async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstancesInSeries(GetInstancesInSeriesContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var url =
                 $"{context.CalendarUriPath.Path}/events/{context.SeriesMaster.Id}/instances?startDateTime={context.PageStartTime}&endTime={context.PageEndTime}&$select=id,start,subject,body,isCancelled";
 
@@ -353,91 +564,6 @@ namespace OddTrotter.Calendar
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="seriesMaster"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="seriesMaster"/> is <see langword="null"/></exception>
-        private async Task<Either<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetFirstSeriesInstance(
-            CalendarEvent seriesMaster)
-        {
-            if (seriesMaster == null)
-            {
-                throw new ArgumentNullException(nameof(seriesMaster));
-            }
-
-            var thing = await this.GetInstancesInSeries(seriesMaster).FirstOrDefaultAsync("hello").ConfigureAwait(false);
-
-            var url =
-                $"{this.calendarUriPath.Path}/events/{seriesMaster.Id}/instances?startDateTime={this.startTime}&";
-
-            DateTime endTime;
-            if (this.endTime != null)
-            {
-                endTime = this.endTime.Value; //// TODO will it be confusing that this *always* overrides `firstInstanceInSeriesLookahead`? //// TODO you should probably actually use the `recurrence` property (https://learn.microsoft.com/en-us/graph/api/resources/patternedrecurrence?view=graph-rest-1.0) to compute when the last possible instance is, add some configurable lookahead, and then take the minimum //// TODO that's not the confusing part buddy; the confusing part is if the set endtime to 6 months from now, but the lookahead is 2 months from now; the lookahead is not honored; the real question is to override, or take the minimum //// TODO i would say at this moment to take the endtime if it exists because the lookahead is really just a workaround of graph not giving us a way to get the first next instance in a series; you *may* want to do something where you "page" through endtimes, though, so that you don't accidentally generate a super expensive query here
-            }
-            else
-            {
-                endTime = this.startTime + this.firstInstanceInSeriesLookahead;
-            }
-
-            url += $"endDateTime={this.endTime}&" +
-                $"$top=1&$select=id,start,subject,body,isCancelled";
-
-            if (this.isCancelled != null)
-            {
-                url += $"&$filter=isCancelled eq {(this.isCancelled.Value ? "true" : "false")}";
-            }
-
-            var graphRequest = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
-
-            //// TODO you are here
-            //// TODO give the blob comment above, you may want to factor this into two methods, one to get all future instances in the series, and the other to get the first instance from those
-            var graphResponse = await this.graphCalendarEventsContext.Page(graphRequest).ConfigureAwait(false);
-
-            var parsedEvents = graphResponse
-                .OfType()
-                .Invoke<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>.Left>()
-                .Select(left => left.Value) //// TODO the issue you have here is that we may find an event in the series within the time range, but we skip it because it's malformed; this might mean that we don't actually find an instance //// TODO maybe this should be "trygetfirsttimestampinseries" and have an `out` parameter that's `Either<DateTime, TranslationError>` //// TODO yeah, i think something like this is a good idea, because what you want to ultimately surface (the interface we are implementing) in that case would be to say "there is a series event in this range, and it's mangled"
-                .First();
-
-            Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> firstInstance;
-            try
-            {
-                firstInstance = graphResponse.First();
-            }
-            catch (InvalidOperationException)
-            {
-            }
-
-
-            GraphCalendarEventsResponse graphResponse;
-            try
-            {
-                //// TODO this response now has a "serviceroot" component; do you need to leverage it here?
-                graphResponse = await this.graphCalendarEventsContext.Evaluate(graphRequest).ConfigureAwait(false); //// TODO do paging on the instances? it really shouldn't be necessary... //// TODO technically the serivce could return a bunch of empty pages with nextlinks...
-            }
-            catch
-            {
-                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException("TODO")); //// TODO
-            }
-
-
-            //// TODO do you want to do this check in the caller? someone up in the call stack probably wants to differentiate between mechanical errors vs the logical error of there being no instance events for a series
-            if (graphResponse.Events.Count == 0)
-            {
-                return Either.Left<CalendarEvent>().Right(new CalendarEventsContextTranslationException("TODO")); //// TODO
-            }
-
-            return graphResponse
-                .Events[0]
-                .VisitSelect(
-                    left => ToCalendarEvent(left),
-                    right => new CalendarEventsContextTranslationException("TODO")) //// TODO
-                .ShiftRight();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="graphCalendarEvent"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEvent"/> is <see langword="null"/></exception>
@@ -451,7 +577,18 @@ namespace OddTrotter.Calendar
             DateTime start;
             try
             {
-                //// TODO handle timezone...
+                //// TODO handle timezone... //// TODO previously you simply considered events without a utc timezone as invalid events; this was the code:
+                /*
+!string.Equals(@event?.Start?.TimeZone, "utc", StringComparison.OrdinalIgnoreCase) ? throw new InvalidOperationException("the event did not have a known time zone in its start time") :  DateTime.SpecifyKind(DateTime.Parse(
+#pragma warning disable CS8604 // Possible null reference argument.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                            @event
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning restore CS8604 // Possible null reference argument.
+                                .Start
+                                .DateTime),
+                            DateTimeKind.Utc)));
+                */
                 start = DateTime.Parse(graphCalendarEvent.Start.DateTime);
             }
             catch (FormatException formatException)
