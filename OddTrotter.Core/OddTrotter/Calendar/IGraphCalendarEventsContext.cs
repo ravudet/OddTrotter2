@@ -25,18 +25,25 @@
 
         private readonly string? filter;
         private readonly string? orderBy;
+        private readonly string? top;
 
         public GraphCalendarEventsContext(IGraphCalendarEventsEvaluator evaluator, UriPath calendarRoot)
-            : this(evaluator, calendarRoot, null, null)
+            : this(evaluator, calendarRoot, null, null, null)
         {
         }
 
-        private GraphCalendarEventsContext(IGraphCalendarEventsEvaluator evaluator, UriPath calendarRoot, string? filter, string? orderBy)
+        private GraphCalendarEventsContext(
+            IGraphCalendarEventsEvaluator evaluator, 
+            UriPath calendarRoot, 
+            string? filter, 
+            string? orderBy,
+            string? top)
         {
             this.evaluator = evaluator;
             this.calendarRoot = calendarRoot;
             this.filter = filter;
             this.orderBy = orderBy;
+            this.top = top;
         }
 
         public async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Evaluate()
@@ -65,11 +72,21 @@
 
             if (this.filter == null)
             {
-                return new GraphCalendarEventsContext(this.evaluator, this.calendarRoot, filterExpression, this.orderBy);
+                return new GraphCalendarEventsContext(
+                    this.evaluator, 
+                    this.calendarRoot, 
+                    filterExpression, 
+                    this.orderBy,
+                    this.top);
             }
             else
             {
-                return new GraphCalendarEventsContext(this.evaluator, this.calendarRoot, this.filter + " and " + filterExpression, this.orderBy);
+                return new GraphCalendarEventsContext(
+                    this.evaluator, 
+                    this.calendarRoot, 
+                    this.filter + " and " + filterExpression, 
+                    this.orderBy,
+                    this.top);
             }
         }
 
@@ -87,22 +104,48 @@
 
             if (this.orderBy == null)
             {
-                return new GraphCalendarEventsContext(this.evaluator, this.calendarRoot, this.filter, orderByExpression);
+                return new GraphCalendarEventsContext(
+                    this.evaluator,
+                    this.calendarRoot, 
+                    this.filter,
+                    orderByExpression,
+                    this.top);
             }
             else
             {
-                return new GraphCalendarEventsContext(this.evaluator, this.calendarRoot, this.filter, this.orderBy + "," + orderByExpression);
+                return new GraphCalendarEventsContext(
+                    this.evaluator,
+                    this.calendarRoot,
+                    this.filter,
+                    this.orderBy + "," + orderByExpression,
+                    this.top);
             }
         }
 
         public IGraphCalendarEventsContext Top(int top)
         {
-            throw new NotImplementedException();
+            if (this.top != null)
+            {
+                throw new Exception("TODO invalidoperationexception");
+            }
+
+            return new GraphCalendarEventsContext(
+                this.evaluator,
+                this.calendarRoot,
+                this.filter,
+                this.orderBy,
+                top.ToString());
         }
 
         internal static Expression<Func<GraphCalendarEvent, bool>> TypeEqualsSingleInstance { get; } = calendarEvent => true; //// TODO how should you handle the fact that `calendarEvent/type` won't get selected? it still needs to be a property on `graphcalendarevent` so that you can write this expression
 
         internal static Expression<Func<GraphCalendarEvent, bool>> StartTimeGreaterThanNow { get; } = calendarEvent => DateTime.Parse(calendarEvent.Start.DateTime) > DateTime.UtcNow;
+
+        internal static Expression<Func<GraphCalendarEvent, bool>> EndTimeLessThanNow { get; } = calendarEvent => DateTime.Parse(calendarEvent.Start.DateTime) < DateTime.UtcNow;
+
+        internal static Expression<Func<GraphCalendarEvent, bool>> IsCancelled { get; } = calendarEvent => calendarEvent.IsCancelled == true;
+
+        internal static Expression<Func<GraphCalendarEvent, bool>> IsNotCancelled { get; } = calendarEvent => calendarEvent.IsCancelled == false;
 
         internal static Expression<Func<GraphCalendarEvent, string>> StartTime { get; } = calendarEvent => calendarEvent.Start.DateTime;
     }

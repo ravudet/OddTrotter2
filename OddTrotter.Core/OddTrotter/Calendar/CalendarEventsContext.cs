@@ -236,9 +236,25 @@ namespace OddTrotter.Calendar
 
             var foo = new GraphCalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath)
                 .Filter(GraphCalendarEventsContext.TypeEqualsSingleInstance)
-                .Filter(GraphCalendarEventsContext.StartTimeGreaterThanNow) //// TODO `start/dateTime gt '{this.startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'` should be used, but for now we know that it's always `DateTime.UtcNow`
-                .OrderBy(GraphCalendarEventsContext.StartTime)
-                ;
+                .Filter(GraphCalendarEventsContext.StartTimeGreaterThanNow) //// TODO figure out a way to pass `this.startTime`
+                .Top(this.pageSize)
+                .OrderBy(GraphCalendarEventsContext.StartTime);
+            if (this.endTime != null)
+            {
+                foo = foo.Filter(GraphCalendarEventsContext.EndTimeLessThanNow);
+            }
+
+            if (this.isCancelled != null)
+            {
+                if (this.isCancelled.Value)
+                {
+                    foo = foo.Filter(GraphCalendarEventsContext.IsCancelled);
+                }
+                else
+                {
+                    foo = foo.Filter(GraphCalendarEventsContext.IsNotCancelled);
+                }
+            }
 
             var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
             var graphResponse = await this
