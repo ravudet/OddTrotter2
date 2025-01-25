@@ -215,55 +215,31 @@ namespace OddTrotter.Calendar
             GetInstanceEvents()
         {
             //// TODO you are here
-            //// TODO shouldn't this be done through extension methods?
             //// TODO a bunch of what is still in this class should probably be in graphcalendareventscontext; the graphcalendareventscontext right now only does the translation from odata types to graph types, but it doesn't do any of the "wisdom" about urls (like the root calendar uri) and such
-            var url =
-                $"{this.calendarUriPath.Path}/events?" +
-                $"$select=body,start,subject,isCancelled&" +
-                $"$top={this.pageSize}&" + // the graph API does not implement `$top` correctly; it returns a `@nextLink` even if it gives you all `pageSize` elements that are requested; for this reason, we can use `$top` for page size here
-                $"$orderBy=start/dateTime&" +
-                $"$filter=type eq 'singleInstance' and start/dateTime gt '{this.startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'";
-
-            if (this.endTime != null)
-            {
-                url += $" and end/dateTime lt '{this.endTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'";
-            }
-
-            if (this.isCancelled != null)
-            {
-                url += $" and isCancelled eq {this.isCancelled.Value.ToString().ToLower()}";
-            }
-
-            var foo = new GraphCalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath)
+            var context = new GraphCalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath)
                 .Filter(GraphCalendarEventsContext.TypeEqualsSingleInstance)
-                .Filter(GraphCalendarEventsContext.StartTimeGreaterThanNow) //// TODO figure out a way to pass `this.startTime`
+                .Filter(GraphCalendarEventsContext.StartTimeGreaterThan(this.startTime))
                 .Top(this.pageSize)
                 .OrderBy(GraphCalendarEventsContext.StartTime);
             if (this.endTime != null)
             {
-                foo = foo.Filter(GraphCalendarEventsContext.EndTimeLessThanNow);
+                context = context.Filter(GraphCalendarEventsContext.EndTimeLessThan(this.endTime.Value));
             }
 
             if (this.isCancelled != null)
             {
                 if (this.isCancelled.Value)
                 {
-                    foo = foo.Filter(GraphCalendarEventsContext.IsCancelled);
+                    context = context.Filter(GraphCalendarEventsContext.IsCancelled);
                 }
                 else
                 {
-                    foo = foo.Filter(GraphCalendarEventsContext.IsNotCancelled);
+                    context = context.Filter(GraphCalendarEventsContext.IsNotCancelled);
                 }
             }
 
-            var graphQuery = new GraphQuery.GetEvents(new Uri(url, UriKind.Relative).ToRelativeUri());
-            var graphResponse = await this
-                .graphCalendarEventsContext
-                .Page(
-                    graphQuery,
-                    nextLink => nextLink.StartsWith(this.graphCalendarEventsContext.ServiceRoot) ? this.graphCalendarEventsContext : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff
-                .ConfigureAwait(false);
-            return Adapt(graphResponse);
+            var response = await context.Evaluate().ConfigureAwait(false);
+            return Adapt(response);
         }
 
         /// <summary>
@@ -626,6 +602,7 @@ namespace OddTrotter.Calendar
                 .Page(
                     graphRequest,
                     nextLink => 
+                    //// TODO maybe everything about your below comment is wrong; according to the standard, this URL is opaque, but can be trusted to give back the next page; that means that we need a way to call the URL directly *without* anything like adding a `.Filter` and whatnot, and just get back the strongly-type collection of `graphcalendarevent`
                         nextLink.StartsWith(context.GraphCalendarEventsContext.ServiceRoot) ? context.GraphCalendarEventsContext : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff
                 .ConfigureAwait(false);
 

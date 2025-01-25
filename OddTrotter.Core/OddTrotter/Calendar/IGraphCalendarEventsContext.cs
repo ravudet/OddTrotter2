@@ -51,21 +51,54 @@
             //// TODO should the context or the evaluator be the one that knows about `/events`?
             var uri = new Uri($"{this.calendarRoot.Path}/events", UriKind.Relative).ToRelativeUri();
             var query = new GraphQuery.GetEvents(uri);
-            return await this.evaluator.Page(query).ConfigureAwait(false);
+            return await this
+                .evaluator
+                .Page(
+                    query,
+                    nextLink => nextLink.StartsWith(this.evaluator.ServiceRoot) ? this.evaluator : throw new Exception("TODO you need a new exception type for this probably?")) //// TODO this contextgenerator stuff was because you didn't have serviceroot on the context interface, so you wanted the caller to pass it in; now that you have it in the interface, instead of a generator, you should probably just take in the "dictionary"; the reason this is coming up is because otherwise the `page` method needs to describe how the generator should return (or throw) in the even that a context cannot be found by the caller; you really don't want the generator to throw because that defeats the purpose of the queryresult stuff)
+                .ConfigureAwait(false);
         }
 
         public IGraphCalendarEventsContext Filter(Expression<Func<GraphCalendarEvent, bool>> filter)
         {
-            string filterExpression;
+            string? filterExpression = null;
             if (filter == TypeEqualsSingleInstance)
             {
                 filterExpression = "type eq 'singleInstance'";
             }
-            else if (filter == StartTimeGreaterThanNow)
+            else if (filter == IsCancelled)
             {
-                filterExpression = $"start/dateTime gt '{DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'"; //// TODO does touniversal time mess up if you're already in utc?
+                filterExpression = "isCancelled eq true";
             }
-            else
+            else if (filter == IsNotCancelled)
+            {
+                filterExpression = "isCancelled eq false";
+            }
+            else if (filter.Parameters.Count == 1)
+            {
+                var parameterName = filter.Parameters[0].Name;
+                if (parameterName != null)
+                {
+                    if (parameterName.StartsWith(nameof(StartTimeGreaterThan)))
+                    {
+                        if (long.TryParse(parameterName.Substring(nameof(StartTimeGreaterThan).Length), out var startTimeTicks))
+                        {
+                            var startTime = new DateTime(startTimeTicks);
+                            filterExpression = $"start/dateTime gt '{startTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'"; //// TODO does touniversal time mess up if you're already in utc?
+                        }
+                    }
+                    else if (parameterName.StartsWith(nameof(EndTimeLessThan)))
+                    {
+                        if (long.TryParse(parameterName.Substring(nameof(EndTimeLessThan).Length), out var endTimeTicks))
+                        {
+                            var endTime = new DateTime(endTimeTicks);
+                            filterExpression = $"end/dateTime lt '{endTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000000")}'";
+                        }
+                    }
+                }
+            }
+
+            if (filterExpression == null)
             {
                 throw new NotImplementedException("TODO");
             }
@@ -139,9 +172,23 @@
 
         internal static Expression<Func<GraphCalendarEvent, bool>> TypeEqualsSingleInstance { get; } = calendarEvent => true; //// TODO how should you handle the fact that `calendarEvent/type` won't get selected? it still needs to be a property on `graphcalendarevent` so that you can write this expression
 
-        internal static Expression<Func<GraphCalendarEvent, bool>> StartTimeGreaterThanNow { get; } = calendarEvent => DateTime.Parse(calendarEvent.Start.DateTime) > DateTime.UtcNow;
+        internal static Expression<Func<GraphCalendarEvent, bool>> StartTimeGreaterThan(DateTime dateTime)
+        {
+            Expression<Func<GraphCalendarEvent, bool>> foo = calendarEvent => true;
+            var ticks = Expression.Parameter(typeof(GraphCalendarEvent), nameof(StartTimeGreaterThan) + dateTime.Ticks.ToString());
+            foo.Update(foo.Body, new[] { ticks });
 
-        internal static Expression<Func<GraphCalendarEvent, bool>> EndTimeLessThanNow { get; } = calendarEvent => DateTime.Parse(calendarEvent.Start.DateTime) < DateTime.UtcNow;
+            return foo;
+        }
+
+        internal static Expression<Func<GraphCalendarEvent, bool>> EndTimeLessThan(DateTime dateTime)
+        {
+            Expression<Func<GraphCalendarEvent, bool>> foo = calendarEvent => true;
+            var ticks = Expression.Parameter(typeof(GraphCalendarEvent), nameof(EndTimeLessThan) + dateTime.Ticks.ToString());
+            foo.Update(foo.Body, new[] { ticks });
+
+            return foo;
+        }
 
         internal static Expression<Func<GraphCalendarEvent, bool>> IsCancelled { get; } = calendarEvent => calendarEvent.IsCancelled == true;
 
