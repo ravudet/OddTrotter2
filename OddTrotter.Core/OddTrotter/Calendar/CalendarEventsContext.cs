@@ -216,6 +216,8 @@ namespace OddTrotter.Calendar
         {
             //// TODO you are here
             //// TODO a bunch of what is still in this class should probably be in graphcalendareventscontext; the graphcalendareventscontext right now only does the translation from odata types to graph types, but it doesn't do any of the "wisdom" about urls (like the root calendar uri) and such
+            //// TODO have a "query builder" nested in this class that takes what the "graphcontext" is currently doing
+            //// TODO rename the "graphevaluator" back to "graphcontext"
             var context = new GraphCalendarEventsContext(this.graphCalendarEventsContext, this.calendarUriPath)
                 .Filter(GraphCalendarEventsContext.TypeEqualsSingleInstance)
                 .Filter(GraphCalendarEventsContext.StartTimeGreaterThan(this.startTime))
