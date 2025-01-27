@@ -21,7 +21,7 @@ namespace OddTrotter.Calendar
                     >, 
                 CalendarEventsContextPagingException
             >, 
-        IWhereQueryContextMixin
+        IWhereQueryContextMixin //// TODO rename to iquerycontextwheremixin?
             <
                 CalendarEvent,
                 CalendarEventsContextTranslationException, 
