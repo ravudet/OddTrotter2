@@ -23,6 +23,8 @@ using static OddTrotter.Calendar.OdataNextLink.Inners.AbsoluteNextLink;
 
 namespace OddTrotter.Calendar
 {
+    //// TODO do we like this name of "structure" and "unstructured" for the two odata contexts //// TODO call it this one "protocol" to mimic the standard document? //// TODO call the other one "convention" to mimic the standard document?
+
     public sealed class OdataGetCollectionRequest //// TODO are you sure that this is not a discriminated union?
     {
         /// <summary>

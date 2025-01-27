@@ -392,6 +392,7 @@
                 new UriPath("/me/calendar"),
                 originalLastRecordedEventTimeStamp,
                 calendarEventsContextSettings);
+
             calendarEventsContext = calendarEventsContext
                 .Where(CalendarEventsContext.StartLessThanNow)
                 .Where(CalendarEventsContext.IsNotCancelled);
@@ -404,7 +405,7 @@
                     calendarEvent.Visit(
                         left => left.Subject.Contains("todo list", StringComparison.OrdinalIgnoreCase),
                         right => true))
-                .Where(calendarEvent =>
+                .Where(calendarEvent => //// TODO this should go in the "on the service" portion
                     calendarEvent
                         .Visit(
                             left => left.Start > originalLastRecordedEventTimeStamp, // there's a bug in the graph api; it treats gt as ge, so we need to do this extra check locally
