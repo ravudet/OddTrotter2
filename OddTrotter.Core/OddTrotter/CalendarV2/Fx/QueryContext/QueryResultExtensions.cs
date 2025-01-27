@@ -106,6 +106,7 @@
             Func<TErrorSecond, TErrorResult> errorSecondSelector,
             Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
         {
+            //// TODO does this do a good job of handling each of the error cases?
             var context = new ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
                 second,
                 errorFirstSelector,
