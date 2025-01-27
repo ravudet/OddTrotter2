@@ -107,12 +107,12 @@
             Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
         {
             //// TODO does this do a good job of handling each of the error cases?
-            var context = new ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
+            var concatContext = new ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
                 second,
                 errorFirstSelector,
                 errorSecondSelector,
                 errorAggregator);
-            return ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult>.Instance.Visit(first, context);
+            return ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult>.Instance.Visit(first, concatContext);
         }
 
         private struct ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult>
@@ -135,20 +135,61 @@
             public Func<TErrorFirst, TErrorSecond, TErrorResult> ErrorAggregator { get; }
         }
 
-        private sealed class ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult> : QueryResult<TValue, TErrorFirst>.Visitor<QueryResult<TValue, TErrorResult>, ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult>>
+        private sealed class ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult> : 
+            QueryResult
+                <
+                    TValue,
+                    TErrorFirst
+                >
+            .Visitor
+                <
+                    QueryResult
+                        <
+                            TValue, 
+                            TErrorResult
+                        >, 
+                    ConcatContext
+                        <
+                            TValue,
+                            TErrorFirst, 
+                            TErrorSecond, 
+                            TErrorResult
+                        >
+                >
         {
             private ConcatVisitor()
             {
             }
 
-            public static ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult> Instance { get; } = new ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult>();
+            public static ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult> Instance { get; } = 
+                new ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult>();
 
-            public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorFirst>.Full node, in ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult> context) //// TODO use `in` parameters for context?
+            public override QueryResult<TValue, TErrorResult> Accept(
+                QueryResult<TValue, TErrorFirst>.Full node, 
+                in ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult> context)
             {
-                return FullSecondVisitor.Instance.Visit(context.Second, (node, context.ErrorSecondSelector));
+                var fullSecondContext = new FullSecondContext(
+                    node,
+                    context.ErrorSecondSelector);
+                return FullSecondVisitor.Instance.Visit(context.Second, fullSecondContext);
             }
 
-            private sealed class FullSecondVisitor : QueryResult<TValue, TErrorSecond>.Visitor<QueryResult<TValue, TErrorResult>, (QueryResult<TValue, TErrorFirst>.Full, Func<TErrorSecond, TErrorResult>)>
+            private struct FullSecondContext
+            {
+                public FullSecondContext(
+                    QueryResult<TValue, TErrorFirst>.Full first, 
+                    Func<TErrorSecond, TErrorResult> errorSecondSelector)
+                {
+                    this.First = first;
+                    this.ErrorSecondSelector = errorSecondSelector;
+                }
+
+                public QueryResult<TValue, TErrorFirst>.Full First { get; }
+                public Func<TErrorSecond, TErrorResult> ErrorSecondSelector { get; }
+            }
+
+            private sealed class FullSecondVisitor : 
+                QueryResult<TValue, TErrorSecond>.Visitor<QueryResult<TValue, TErrorResult>, FullSecondContext>
             {
                 private FullSecondVisitor()
                 {
@@ -156,25 +197,52 @@
 
                 public static FullSecondVisitor Instance { get; } = new FullSecondVisitor();
 
-                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Full node, in (QueryResult<TValue, TErrorFirst>.Full, Func<TErrorSecond, TErrorResult>) context)
+                public override QueryResult<TValue, TErrorResult> Accept(
+                    QueryResult<TValue, TErrorSecond>.Full node, 
+                    in FullSecondContext context)
                 {
-                    return new QueryResult<TValue, TErrorResult>.Full(context.Item1.Values.Concat(node.Values));
+                    return new QueryResult<TValue, TErrorResult>.Full(context.First.Values.Concat(node.Values));
                 }
 
-                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Partial node, in (QueryResult<TValue, TErrorFirst>.Full, Func<TErrorSecond, TErrorResult>) context)
+                public override QueryResult<TValue, TErrorResult> Accept(
+                    QueryResult<TValue, TErrorSecond>.Partial node, 
+                    in FullSecondContext context)
                 {
                     return new QueryResult<TValue, TErrorResult>.Partial(
-                        context.Item1.Values.Concat(node.Values),
-                        context.Item2(node.Error));
+                        context.First.Values.Concat(node.Values),
+                        context.ErrorSecondSelector(node.Error));
                 }
             }
 
-            public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorFirst>.Partial node, in ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult> context)
+            public override QueryResult<TValue, TErrorResult> Accept(
+                QueryResult<TValue, TErrorFirst>.Partial node, 
+                in ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult> context)
             {
-                return PartialSecondVisitor.Instance.Visit(context.Second, (node, context.ErrorFirstSelector, context.ErrorAggregator));
+                var partialSecondContext = new PartialSecondContext(
+                    node,
+                    context.ErrorFirstSelector,
+                    context.ErrorAggregator);
+                return PartialSecondVisitor.Instance.Visit(context.Second, partialSecondContext);
             }
 
-            private sealed class PartialSecondVisitor : QueryResult<TValue, TErrorSecond>.Visitor<QueryResult<TValue, TErrorResult>, (QueryResult<TValue, TErrorFirst>.Partial, Func<TErrorFirst, TErrorResult>, Func<TErrorFirst, TErrorSecond, TErrorResult>)>
+            private struct PartialSecondContext
+            {
+                public PartialSecondContext(
+                    QueryResult<TValue, TErrorFirst>.Partial first, 
+                    Func<TErrorFirst, TErrorResult> errorFirstSelector, 
+                    Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
+                {
+                    this.First = first;
+                    this.ErrorFirstSelector = errorFirstSelector;
+                    this.ErrorAggregator = errorAggregator;
+                }
+
+                public QueryResult<TValue, TErrorFirst>.Partial First { get; }
+                public Func<TErrorFirst, TErrorResult> ErrorFirstSelector { get; }
+                public Func<TErrorFirst, TErrorSecond, TErrorResult> ErrorAggregator { get; }
+            }
+
+            private sealed class PartialSecondVisitor : QueryResult<TValue, TErrorSecond>.Visitor<QueryResult<TValue, TErrorResult>, PartialSecondContext>
             {
                 private PartialSecondVisitor()
                 {
@@ -182,16 +250,22 @@
 
                 public static PartialSecondVisitor Instance { get; } = new PartialSecondVisitor();
 
-                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Full node, in (QueryResult<TValue, TErrorFirst>.Partial, Func<TErrorFirst, TErrorResult>, Func<TErrorFirst, TErrorSecond, TErrorResult>) context)
-                {
-                    return new QueryResult<TValue, TErrorResult>.Partial(context.Item1.Values.Concat(node.Values), context.Item2(context.Item1.Error));
-                }
-
-                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Partial node, in (QueryResult<TValue, TErrorFirst>.Partial, Func<TErrorFirst, TErrorResult>, Func<TErrorFirst, TErrorSecond, TErrorResult>) context)
+                public override QueryResult<TValue, TErrorResult> Accept(
+                    QueryResult<TValue, TErrorSecond>.Full node, 
+                    in PartialSecondContext context)
                 {
                     return new QueryResult<TValue, TErrorResult>.Partial(
-                        context.Item1.Values.Concat(node.Values),
-                        context.Item3(context.Item1.Error, node.Error));
+                        context.First.Values.Concat(node.Values), 
+                        context.ErrorFirstSelector(context.First.Error));
+                }
+
+                public override QueryResult<TValue, TErrorResult> Accept(
+                    QueryResult<TValue, TErrorSecond>.Partial node, 
+                    in PartialSecondContext context)
+                {
+                    return new QueryResult<TValue, TErrorResult>.Partial(
+                        context.First.Values.Concat(node.Values),
+                        context.ErrorAggregator(context.First.Error, node.Error));
                 }
             }
         }

@@ -9,6 +9,7 @@
         private QueryResult()
         {
             //// TODO is this an `either`?
+            //// TODO use `in` parameters for the `context` in all visitors?
         }
 
         protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, in TContext context);
