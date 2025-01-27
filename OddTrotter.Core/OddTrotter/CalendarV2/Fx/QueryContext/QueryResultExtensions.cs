@@ -80,7 +80,8 @@
             return WhereVisitor<TValue, TError>.Instance.Visit(queryResult, predicate);
         }
 
-        private sealed class WhereVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, Func<TValue, bool>>
+        private sealed class WhereVisitor<TValue, TError> : 
+            QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, Func<TValue, bool>>
         {
             private WhereVisitor()
             {
@@ -88,12 +89,16 @@
 
             public static WhereVisitor<TValue, TError> Instance { get; } = new WhereVisitor<TValue, TError>();
 
-            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Full node, in Func<TValue, bool> context)
+            public override QueryResult<TValue, TError> Accept(
+                QueryResult<TValue, TError>.Full node, 
+                in Func<TValue, bool> context)
             {
                 return new QueryResult<TValue, TError>.Full(node.Values.Where(context));
             }
 
-            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Partial node, in Func<TValue, bool> context)
+            public override QueryResult<TValue, TError> Accept(
+                QueryResult<TValue, TError>.Partial node, 
+                in Func<TValue, bool> context)
             {
                 return new QueryResult<TValue, TError>.Partial(node.Values.Where(context), node.Error);
             }
@@ -242,7 +247,8 @@
                 public Func<TErrorFirst, TErrorSecond, TErrorResult> ErrorAggregator { get; }
             }
 
-            private sealed class PartialSecondVisitor : QueryResult<TValue, TErrorSecond>.Visitor<QueryResult<TValue, TErrorResult>, PartialSecondContext>
+            private sealed class PartialSecondVisitor : 
+                QueryResult<TValue, TErrorSecond>.Visitor<QueryResult<TValue, TErrorResult>, PartialSecondContext>
             {
                 private PartialSecondVisitor()
                 {
@@ -277,20 +283,43 @@
             return SelectVisitor<TElementSource, TError, TElementResult>.Instance.Visit(queryResult, selector);
         }
 
-        private sealed class SelectVisitor<TElementSource, TError, TElementResult> : QueryResult<TElementSource, TError>.Visitor<QueryResult<TElementResult, TError>, Func<TElementSource, TElementResult>>
+        private sealed class SelectVisitor<TElementSource, TError, TElementResult> : 
+            QueryResult
+                <
+                    TElementSource, 
+                    TError
+                >
+            .Visitor
+                <
+                    QueryResult
+                        <
+                            TElementResult,
+                            TError
+                        >, 
+                    Func
+                        <
+                            TElementSource, 
+                            TElementResult
+                        >
+                >
         {
             private SelectVisitor()
             {
             }
 
-            public static SelectVisitor<TElementSource, TError, TElementResult> Instance { get; } = new SelectVisitor<TElementSource, TError, TElementResult>();
+            public static SelectVisitor<TElementSource, TError, TElementResult> Instance { get; } = 
+                new SelectVisitor<TElementSource, TError, TElementResult>();
 
-            public override QueryResult<TElementResult, TError> Accept(QueryResult<TElementSource, TError>.Full node, in Func<TElementSource, TElementResult> context)
+            public override QueryResult<TElementResult, TError> Accept(
+                QueryResult<TElementSource, TError>.Full node, 
+                in Func<TElementSource, TElementResult> context)
             {
                 return new QueryResult<TElementResult, TError>.Full(node.Values.Select(context));
             }
 
-            public override QueryResult<TElementResult, TError> Accept(QueryResult<TElementSource, TError>.Partial node, in Func<TElementSource, TElementResult> context)
+            public override QueryResult<TElementResult, TError> Accept(
+                QueryResult<TElementSource, TError>.Partial node, 
+                in Func<TElementSource, TElementResult> context)
             {
                 return new QueryResult<TElementResult, TError>.Partial(node.Values.Select(context), node.Error);
             }
