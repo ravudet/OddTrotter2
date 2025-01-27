@@ -96,7 +96,7 @@
             this QueryResult<TValue, TError> queryResult,
             Func<TValue, bool> predicate)
         {
-
+            return WhereVisitor<TValue, TError>.Instance.Visit(queryResult, predicate);
         }
 
         private sealed class WhereVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, Func<TValue, bool>>
@@ -114,6 +114,7 @@
 
             public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Func<TValue, bool> context)
             {
+                return new QueryResult<TValue, TError>.Partial(node.Values.Where(context), node.Error);
             }
         }
     }
