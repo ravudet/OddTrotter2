@@ -8,27 +8,59 @@
 
     public static class QueryResultExtensions
     {
-        public static Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> FirstOrDefault<TElement, TError, TDefault>(
-            this QueryResult<TElement, TError> queryResult,
-            TDefault @default)
+        public static 
+            Either
+                <
+                    EnumerableExtensions.EitherFirstOrDefaultResult
+                        <
+                            TElement, 
+                            TDefault
+                        >,
+                    TError
+                > 
+            FirstOrDefault<TElement, TError, TDefault>(
+                this QueryResult<TElement, TError> queryResult,
+                TDefault @default)
         {
             return FirstOrDefaultVisitor<TElement, TError, TDefault>.Instance.Visit(queryResult, @default);
         }
 
-        private sealed class FirstOrDefaultVisitor<TElement, TError, TDefault> : QueryResult<TElement, TError>.Visitor<Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError>, TDefault>
+        private sealed class FirstOrDefaultVisitor<TElement, TError, TDefault> : 
+            QueryResult
+                <
+                    TElement, 
+                    TError
+                >
+            .Visitor
+                <
+                    Either
+                        <
+                            EnumerableExtensions.EitherFirstOrDefaultResult
+                                <
+                                    TElement, 
+                                    TDefault
+                                >, 
+                            TError
+                        >, 
+                    TDefault
+                >
         {
             private FirstOrDefaultVisitor()
             {
             }
 
-            public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = new FirstOrDefaultVisitor<TElement, TError, TDefault>();
+            public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = 
+                new FirstOrDefaultVisitor<TElement, TError, TDefault>();
 
-            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(QueryResult<TElement, TError>.Full node, in TDefault context)
+            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(
+                QueryResult<TElement, TError>.Full node, in TDefault context)
             {
-                return new Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError>.Left(node.Values.EitherFirstOrDefault(context));
+                return new Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError>.Left(
+                    node.Values.EitherFirstOrDefault(context));
             }
 
-            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(QueryResult<TElement, TError>.Partial node, in TDefault context)
+            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(
+                QueryResult<TElement, TError>.Partial node, in TDefault context)
             {
                 var firstOrError = node.Values.EitherFirstOrDefault(node.Error);
                 return firstOrError.Visit(
