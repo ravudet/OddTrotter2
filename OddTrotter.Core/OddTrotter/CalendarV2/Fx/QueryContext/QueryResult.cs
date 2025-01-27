@@ -8,13 +8,14 @@
     {
         private QueryResult()
         {
+            //// TODO is this an `either`?
         }
 
-        protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+        protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, in TContext context);
 
         public abstract class Visitor<TResult, TContext>
         {
-            public TResult Visit(QueryResult<TValue, TError> node, TContext context)
+            public TResult Visit(QueryResult<TValue, TError> node, in TContext context)
             {
                 if (node == null)
                 {
@@ -24,8 +25,8 @@
                 return node.Dispatch(this, context);
             }
 
-            public abstract TResult Accept(QueryResult<TValue, TError>.Full node, TContext context);
-            public abstract TResult Accept(QueryResult<TValue, TError>.Partial node, TContext context);
+            public abstract TResult Accept(QueryResult<TValue, TError>.Full node, in TContext context);
+            public abstract TResult Accept(QueryResult<TValue, TError>.Partial node, in TContext context);
         }
 
         protected abstract Task<TResult> DispatchAsync<TResult, TContext>(
@@ -44,8 +45,8 @@
                 return await node.DispatchAsync(this, context).ConfigureAwait(false);
             }
 
-            public abstract Task<TResult> AcceptAsync(QueryResult<TValue, TError>.Full node, TContext context);
-            public abstract Task<TResult> AcceptAsync(QueryResult<TValue, TError>.Partial node, TContext context);
+            public abstract Task<TResult> AcceptAsync(QueryResult<TValue, TError>.Full node, in TContext context);
+            public abstract Task<TResult> AcceptAsync(QueryResult<TValue, TError>.Partial node, in TContext context);
         }
 
         public sealed class Full : QueryResult<TValue, TError>
@@ -57,7 +58,7 @@
 
             public IEnumerable<TValue> Values { get; }
 
-            protected override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, in TContext context)
             {
                 if (visitor == null)
                 {
@@ -89,7 +90,7 @@
             public IEnumerable<TValue> Values { get; } //// TODO do you want this on the base type?
             public TError Error { get; }
 
-            protected override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, in TContext context)
             {
                 if (visitor == null)
                 {

@@ -23,12 +23,12 @@
 
             public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = new FirstOrDefaultVisitor<TElement, TError, TDefault>();
 
-            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(QueryResult<TElement, TError>.Full node, TDefault context)
+            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(QueryResult<TElement, TError>.Full node, in TDefault context)
             {
                 return new Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError>.Left(node.Values.EitherFirstOrDefault(context));
             }
 
-            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(QueryResult<TElement, TError>.Partial node, TDefault context)
+            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(QueryResult<TElement, TError>.Partial node, in TDefault context)
             {
                 var firstOrError = node.Values.EitherFirstOrDefault(node.Error);
                 return firstOrError.Visit(
@@ -88,12 +88,12 @@
 
             public static WhereVisitor<TValue, TError> Instance { get; } = new WhereVisitor<TValue, TError>();
 
-            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Full node, Func<TValue, bool> context)
+            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Full node, in Func<TValue, bool> context)
             {
                 return new QueryResult<TValue, TError>.Full(node.Values.Where(context));
             }
 
-            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Partial node, Func<TValue, bool> context)
+            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Partial node, in Func<TValue, bool> context)
             {
                 return new QueryResult<TValue, TError>.Partial(node.Values.Where(context), node.Error);
             }
@@ -143,7 +143,7 @@
 
             public static ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult> Instance { get; } = new ConcatVisitor<TValue, TErrorFirst, TErrorSecond, TErrorResult>();
 
-            public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorFirst>.Full node, ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult> context) //// TODO use `in` parameters for context?
+            public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorFirst>.Full node, in ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult> context) //// TODO use `in` parameters for context?
             {
                 return FullSecondVisitor.Instance.Visit(context.Second, (node, context.ErrorSecondSelector));
             }
@@ -156,12 +156,12 @@
 
                 public static FullSecondVisitor Instance { get; } = new FullSecondVisitor();
 
-                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Full node, (QueryResult<TValue, TErrorFirst>.Full, Func<TErrorSecond, TErrorResult>) context)
+                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Full node, in (QueryResult<TValue, TErrorFirst>.Full, Func<TErrorSecond, TErrorResult>) context)
                 {
                     return new QueryResult<TValue, TErrorResult>.Full(context.Item1.Values.Concat(node.Values));
                 }
 
-                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Partial node, (QueryResult<TValue, TErrorFirst>.Full, Func<TErrorSecond, TErrorResult>) context)
+                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Partial node, in (QueryResult<TValue, TErrorFirst>.Full, Func<TErrorSecond, TErrorResult>) context)
                 {
                     return new QueryResult<TValue, TErrorResult>.Partial(
                         context.Item1.Values.Concat(node.Values),
@@ -169,7 +169,7 @@
                 }
             }
 
-            public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorFirst>.Partial node, ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult> context)
+            public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorFirst>.Partial node, in ConcatContext<TValue, TErrorFirst, TErrorSecond, TErrorResult> context)
             {
                 return PartialSecondVisitor.Instance.Visit(context.Second, (node, context.ErrorFirstSelector, context.ErrorAggregator));
             }
@@ -182,12 +182,12 @@
 
                 public static PartialSecondVisitor Instance { get; } = new PartialSecondVisitor();
 
-                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Full node, (QueryResult<TValue, TErrorFirst>.Partial, Func<TErrorFirst, TErrorResult>, Func<TErrorFirst, TErrorSecond, TErrorResult>) context)
+                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Full node, in (QueryResult<TValue, TErrorFirst>.Partial, Func<TErrorFirst, TErrorResult>, Func<TErrorFirst, TErrorSecond, TErrorResult>) context)
                 {
                     return new QueryResult<TValue, TErrorResult>.Partial(context.Item1.Values.Concat(node.Values), context.Item2(context.Item1.Error));
                 }
 
-                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Partial node, (QueryResult<TValue, TErrorFirst>.Partial, Func<TErrorFirst, TErrorResult>, Func<TErrorFirst, TErrorSecond, TErrorResult>) context)
+                public override QueryResult<TValue, TErrorResult> Accept(QueryResult<TValue, TErrorSecond>.Partial node, in (QueryResult<TValue, TErrorFirst>.Partial, Func<TErrorFirst, TErrorResult>, Func<TErrorFirst, TErrorSecond, TErrorResult>) context)
                 {
                     return new QueryResult<TValue, TErrorResult>.Partial(
                         context.Item1.Values.Concat(node.Values),
@@ -211,12 +211,12 @@
 
             public static SelectVisitor<TElementSource, TError, TElementResult> Instance { get; } = new SelectVisitor<TElementSource, TError, TElementResult>();
 
-            public override QueryResult<TElementResult, TError> Accept(QueryResult<TElementSource, TError>.Full node, Func<TElementSource, TElementResult> context)
+            public override QueryResult<TElementResult, TError> Accept(QueryResult<TElementSource, TError>.Full node, in Func<TElementSource, TElementResult> context)
             {
                 return new QueryResult<TElementResult, TError>.Full(node.Values.Select(context));
             }
 
-            public override QueryResult<TElementResult, TError> Accept(QueryResult<TElementSource, TError>.Partial node, Func<TElementSource, TElementResult> context)
+            public override QueryResult<TElementResult, TError> Accept(QueryResult<TElementSource, TError>.Partial node, in Func<TElementSource, TElementResult> context)
             {
                 return new QueryResult<TElementResult, TError>.Partial(node.Values.Select(context), node.Error);
             }
