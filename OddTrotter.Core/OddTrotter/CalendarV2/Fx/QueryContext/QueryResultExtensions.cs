@@ -195,5 +195,31 @@
                 }
             }
         }
+
+        public static QueryResult<TElementResult, TError> Select<TElementSource, TError, TElementResult>(
+            this QueryResult<TElementSource, TError> queryResult,
+            Func<TElementSource, TElementResult> selector)
+        {
+            return SelectVisitor<TElementSource, TError, TElementResult>.Instance.Visit(queryResult, selector);
+        }
+
+        private sealed class SelectVisitor<TElementSource, TError, TElementResult> : QueryResult<TElementSource, TError>.Visitor<QueryResult<TElementResult, TError>, Func<TElementSource, TElementResult>>
+        {
+            private SelectVisitor()
+            {
+            }
+
+            public static SelectVisitor<TElementSource, TError, TElementResult> Instance { get; } = new SelectVisitor<TElementSource, TError, TElementResult>();
+
+            public override QueryResult<TElementResult, TError> Accept(QueryResult<TElementSource, TError>.Full node, Func<TElementSource, TElementResult> context)
+            {
+                return new QueryResult<TElementResult, TError>.Full(node.Values.Select(context));
+            }
+
+            public override QueryResult<TElementResult, TError> Accept(QueryResult<TElementSource, TError>.Partial node, Func<TElementSource, TElementResult> context)
+            {
+                return new QueryResult<TElementResult, TError>.Partial(node.Values.Select(context), node.Error);
+            }
+        }
     }
 }
