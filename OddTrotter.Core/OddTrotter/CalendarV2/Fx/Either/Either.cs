@@ -1,6 +1,6 @@
-﻿namespace OddTrotter.CalendarV2.Fx.Either
+﻿namespace CalendarV2.Fx.Either
 {
-    using System;
+    using global::System;
 
     public abstract class Either<TLeft, TRight> : IEither<TLeft, TRight>
     {

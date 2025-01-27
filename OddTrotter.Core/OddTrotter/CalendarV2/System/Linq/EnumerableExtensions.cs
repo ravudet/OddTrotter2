@@ -2,16 +2,17 @@
 {
     using global::System.Collections.Generic;
 
-    using OddTrotter.CalendarV2.Fx.Either;
+    using CalendarV2.Fx.Either;
 
     public static class EnumerableExtensions
     {
-        public sealed class FirstOrDefaultResult<TElement, TDefault> : IEither<TElement, TDefault>
+        public sealed class EitherFirstOrDefaultResult<TElement, TDefault> : IEither<TElement, TDefault>
         {
             private readonly IEither<TElement, TDefault> either;
 
-            public FirstOrDefaultResult(IEither<TElement, TDefault> either)
+            public EitherFirstOrDefaultResult(IEither<TElement, TDefault> either)
             {
+                //// TODO any type that looks like this can actually end up implementing their own either and visitor and whatnot if the performance of the eitherdelegatevisitor ends up being bad...
                 this.either = either;
             }
 
@@ -24,7 +25,7 @@
             }
         }
 
-        public static FirstOrDefaultResult<TElement, TDefault> FirstOrDefault<TElement, TDefault>(
+        public static EitherFirstOrDefaultResult<TElement, TDefault> EitherFirstOrDefault<TElement, TDefault>(
             this IEnumerable<TElement> source,
             TDefault @default)
         {
@@ -32,10 +33,10 @@
             {
                 if (!enumerator.MoveNext())
                 {
-                    return new FirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Right(@default));
+                    return new EitherFirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Right(@default));
                 }
 
-                return new FirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Left(enumerator.Current));
+                return new EitherFirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Left(enumerator.Current));
             }
         }
     }
