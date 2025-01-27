@@ -398,7 +398,7 @@
             //// TODO the paging exception will have the token exceptions in it; maybe the `page` method and `evaluate` should actually throw these for the first page, but not for the subsequent ones?
             var calendarEvents = await calendarEventsContext.Evaluate().ConfigureAwait(false);
 
-            //// TODO this is actually pretty weird; you did a good job separating when the queries are in-memory vs client-based; but, in this todolistservice you actually want them all to be given to the calendareventscontext so that it can do in-memory filtering to prevent network calls when getting the series events; this further exacerbates the issue around queryresult<either, error> because in these in-memory ones, you really do want the either (and you want the caller to be able to tell us the behavior for both sides of the either)
+            //// TODO this is actually pretty weird; you did a good job separating when the queries are in-memory vs client-based; but, in this todolistservice you actually want them all to be given to the calendareventscontext so that it can do in-memory filtering to prevent network calls when getting the series events; this further exacerbates the issue around queryresult<either, error> because in these in-memory ones, you really do want the either (and you want the caller to be able to tell us the behavior for both sides of the either) //// TODO is this last part about the either really the case? isn't it *actually* that the calendareventcontext knows that we should always surface errors, and as written we are putting the consistency burden on the todolistservice?
             var todoListEvents2 = calendarEvents
                 .Where(calendarEvent => 
                     calendarEvent.Visit(
