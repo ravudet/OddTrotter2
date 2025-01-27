@@ -1,5 +1,8 @@
 ﻿namespace Fx.QueryContextV2
 {
+    using System;
+    using System.Linq;
+
     public static class QueryResultExtensions
     {
         public abstract class FirstOrDefaultResult<TElement, TError, TDefault>
@@ -34,6 +37,7 @@
             this QueryResult<TElement, TError> queryResult,
             TDefault @default)
         {
+            //// TODO create a linq extension for this
             return FirstOrDefaultVisitor<TElement, TError, TDefault>.Instance.Visit(queryResult, @default);
         }
 
@@ -85,6 +89,31 @@
 
                     return new FirstOrDefaultResult<TElement, TError, TDefault>.First(enumerator.Current);
                 }
+            }
+        }
+
+        public static QueryResult<TValue, TError> Where<TValue, TError>(
+            this QueryResult<TValue, TError> queryResult,
+            Func<TValue, bool> predicate)
+        {
+
+        }
+
+        private sealed class WhereVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, Func<TValue, bool>>
+        {
+            private WhereVisitor()
+            {
+            }
+
+            public static WhereVisitor<TValue, TError> Instance { get; } = new WhereVisitor<TValue, TError>();
+
+            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Full node, Func<TValue, bool> context)
+            {
+                return new QueryResult<TValue, TError>.Full(node.Values.Where(context));
+            }
+
+            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Func<TValue, bool> context)
+            {
             }
         }
     }
