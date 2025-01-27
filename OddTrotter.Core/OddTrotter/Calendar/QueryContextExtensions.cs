@@ -4,7 +4,7 @@
     using System.Linq.Expressions;
 
     /// <summary>
-    /// TODO better way to handle "either"s?
+    /// TODO better way to handle "either"s? TODO maybe `iquerycontext` should has an additional parameter which specifies what the elements in the evaluated result will be? something like `iquerycontext{tvalue, tresult, terror}` where `tvalue` isn't actually used directly, it's used by mixins and extension methods?
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <typeparam name="TTranslationError"></typeparam>
