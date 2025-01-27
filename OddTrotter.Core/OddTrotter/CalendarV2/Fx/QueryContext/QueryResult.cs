@@ -10,7 +10,7 @@
         {
         }
 
-        protected abstract TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
+        protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public abstract class Visitor<TResult, TContext>
         {
@@ -21,14 +21,14 @@
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                return node.Accept(this, context);
+                return node.Dispatch(this, context);
             }
 
-            public abstract TResult Dispatch(Full node, TContext context);
-            public abstract TResult Dispatch(Partial node, TContext context);
+            public abstract TResult Accept(QueryResult<TValue, TError>.Full node, TContext context);
+            public abstract TResult Accept(QueryResult<TValue, TError>.Partial node, TContext context);
         }
 
-        protected abstract Task<TResult> AcceptAsync<TResult, TContext>(
+        protected abstract Task<TResult> DispatchAsync<TResult, TContext>(
             AsyncVisitor<TResult, TContext> visitor, 
             TContext context);
 
@@ -41,11 +41,11 @@
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                return await node.AcceptAsync(this, context).ConfigureAwait(false);
+                return await node.DispatchAsync(this, context).ConfigureAwait(false);
             }
 
-            public abstract Task<TResult> DispatchAsync(Full node, TContext context);
-            public abstract Task<TResult> DispatchAsync(Partial node, TContext context);
+            public abstract Task<TResult> AcceptAsync(QueryResult<TValue, TError>.Full node, TContext context);
+            public abstract Task<TResult> AcceptAsync(QueryResult<TValue, TError>.Partial node, TContext context);
         }
 
         public sealed class Full : QueryResult<TValue, TError>
@@ -57,24 +57,24 @@
 
             public IEnumerable<TValue> Values { get; }
 
-            protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
                 if (visitor == null)
                 {
                     throw new ArgumentNullException(nameof(visitor));
                 }
 
-                return visitor.Dispatch(this, context);
+                return visitor.Accept(this, context);
             }
 
-            protected override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
+            protected override async Task<TResult> DispatchAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
             {
                 if (visitor == null)
                 {
                     throw new ArgumentNullException(nameof(visitor));
                 }
 
-                return await visitor.DispatchAsync(this, context).ConfigureAwait(false);
+                return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }
 
@@ -89,24 +89,24 @@
             public IEnumerable<TValue> Values { get; } //// TODO do you want this on the base type?
             public TError Error { get; }
 
-            protected override TResult Accept<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
+            protected override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
                 if (visitor == null)
                 {
                     throw new ArgumentNullException(nameof(visitor));
                 }
 
-                return visitor.Dispatch(this, context);
+                return visitor.Accept(this, context);
             }
 
-            protected override async Task<TResult> AcceptAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
+            protected override async Task<TResult> DispatchAsync<TResult, TContext>(AsyncVisitor<TResult, TContext> visitor, TContext context)
             {
                 if (visitor == null)
                 {
                     throw new ArgumentNullException(nameof(visitor));
                 }
 
-                return await visitor.DispatchAsync(this, context).ConfigureAwait(false);
+                return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }
     }

@@ -38,7 +38,7 @@
             public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = 
                 new FirstOrDefaultVisitor<TElement, TError, TDefault>();
 
-            public override EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(
+            public override EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault> Accept(
                 QueryResult<TElement, TError>.Full node,
                 TDefault context)
             {
@@ -53,7 +53,7 @@
                 }
             }
 
-            public override EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(
+            public override EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault> Accept(
                 QueryResult<TElement, TError>.Partial node, 
                 TDefault context)
             {
@@ -86,12 +86,12 @@
 
             public static WhereVisitor<TValue, TError> Instance { get; } = new WhereVisitor<TValue, TError>();
 
-            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Full node, Func<TValue, bool> context)
+            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Full node, Func<TValue, bool> context)
             {
                 return new QueryResult<TValue, TError>.Full(node.Values.Where(context));
             }
 
-            public override QueryResult<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Func<TValue, bool> context)
+            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Partial node, Func<TValue, bool> context)
             {
                 return new QueryResult<TValue, TError>.Partial(node.Values.Where(context), node.Error);
             }
