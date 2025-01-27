@@ -11,7 +11,7 @@
             this QueryResult<TElement, TError> queryResult,
             TDefault @default)
         {
-            //// TODO it really feels like it would be useful to have "named" eithers because what you really want to do in linq is say "firstordefault returns an either<first, default> and we are going to call it a firstordefaultresult" and then in queryresult say "firstordefault returns an either<firstordefaultresult, error> and we are going to call it ______"
+            //// TODO it really feels like it would be useful to have "named" eithers because what you really want to do in linq is say "firstordefault returns an either<first, default> and we are going to call it a firstordefaultresult" and then in queryresult say "firstordefault returns an either<firstordefaultresult, error> and we are going to call it ______"; this would probably require an `ieither` interface, which is something you already seem to want for the purposes of covariance; but then you lose out on extremely strict type safety...
 
             //// TODO create a linq extension for this
             return FirstOrDefaultVisitor<TElement, TError, TDefault>.Instance.Visit(queryResult, @default);
