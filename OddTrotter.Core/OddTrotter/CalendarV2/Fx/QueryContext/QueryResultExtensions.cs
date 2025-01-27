@@ -3,40 +3,16 @@
     using global::System;
     using global::System.Linq;
 
+    using CalendarV2.System.Linq;
+
     public static class QueryResultExtensions
     {
-        public abstract class FirstOrDefaultResult<TElement, TError, TDefault>
-        {
-            private FirstOrDefaultResult()
-            {
-            }
-
-            public sealed class First : FirstOrDefaultResult<TElement, TError, TDefault>
-            {
-                public First(TElement element)
-                {
-                }
-            }
-
-            public sealed class Error : FirstOrDefaultResult<TElement, TError, TDefault>
-            {
-                public Error(TError error)
-                {
-                }
-            }
-
-            public sealed class Default : FirstOrDefaultResult<TElement, TError, TDefault>
-            {
-                public Default(TDefault @default)
-                {
-                }
-            }
-        }
-
-        public static FirstOrDefaultResult<TElement, TError, TDefault> FirstOrDefault<TElement, TError, TDefault>(
+        public static EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault> FirstOrDefault<TElement, TError, TDefault>(
             this QueryResult<TElement, TError> queryResult,
             TDefault @default)
         {
+            //// TODO it really feels like it would be useful to have "named" eithers because what you really want to do in linq is say "firstordefault returns an either<first, default> and we are going to call it a firstordefaultresult" and then in queryresult say "firstordefault returns an either<firstordefaultresult, error> and we are going to call it ______"
+
             //// TODO create a linq extension for this
             return FirstOrDefaultVisitor<TElement, TError, TDefault>.Instance.Visit(queryResult, @default);
         }
@@ -45,12 +21,13 @@
             QueryResult<TElement, TError>
                 .Visitor
                     <
-                        FirstOrDefaultResult
-                            <
-                                TElement,
-                                TError,
-                                TDefault
-                            >,
+                        EnumerableExtensions
+                            .FirstOrDefaultResult
+                                <
+                                    TElement,
+                                    TError,
+                                    TDefault
+                                >,
                         TDefault
                     >
         {
@@ -61,7 +38,7 @@
             public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = 
                 new FirstOrDefaultVisitor<TElement, TError, TDefault>();
 
-            public override FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(
+            public override EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(
                 QueryResult<TElement, TError>.Full node,
                 TDefault context)
             {
@@ -69,14 +46,16 @@
                 {
                     if (!enumerator.MoveNext())
                     {
-                        return new FirstOrDefaultResult<TElement, TError, TDefault>.Default(context);
+                        return new EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault>.Default(context);
                     }
 
-                    return new FirstOrDefaultResult<TElement, TError, TDefault>.First(enumerator.Current);
+                    return new EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault>.First(enumerator.Current);
                 }
             }
 
-            public override FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(QueryResult<TElement, TError>.Partial node, TDefault context)
+            public override EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault> Dispatch(
+                QueryResult<TElement, TError>.Partial node, 
+                TDefault context)
             {
                 using (var enumerator = node.Values.GetEnumerator())
                 {
@@ -84,10 +63,10 @@
                     {
                         //// TODO is this ambiguous? it could be we paged and didn't get any elements before the paging error happened //// TODO i don't think that's ambiguous, it means that we should return an error since we don't have a first or the knowledge that there are no elements, because we have an error
 
-                        return new FirstOrDefaultResult<TElement, TError, TDefault>.Error(node.Error);
+                        return new EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault>.Error(node.Error);
                     }
 
-                    return new FirstOrDefaultResult<TElement, TError, TDefault>.First(enumerator.Current);
+                    return new EnumerableExtensions.FirstOrDefaultResult<TElement, TError, TDefault>.First(enumerator.Current);
                 }
             }
         }
