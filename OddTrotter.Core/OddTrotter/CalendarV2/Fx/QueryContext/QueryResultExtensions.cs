@@ -359,7 +359,10 @@
             }
         }
 
-        public static QueryResult<TValue, TError> DistinctBy<TValue, TError, TKey>(this QueryResult<TValue, TError> queryResult, Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer)
+        public static QueryResult<TValue, TError> DistinctBy<TValue, TError, TKey>(
+            this QueryResult<TValue, TError> queryResult, 
+            Func<TValue, TKey> keySelector,
+            IEqualityComparer<TKey> comparer)
         {
             var distinctByContext = new DistinctByContext<TValue, TError, TKey>(
                 keySelector,
@@ -379,20 +382,26 @@
             public IEqualityComparer<TKey> Comparer { get; }
         }
 
-        private sealed class DistinctByVisitor<TValue, TError, TKey> : QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, DistinctByContext<TValue, TError, TKey>>
+        private sealed class DistinctByVisitor<TValue, TError, TKey> : 
+            QueryResult<TValue, TError>.Visitor<QueryResult<TValue, TError>, DistinctByContext<TValue, TError, TKey>>
         {
             private DistinctByVisitor()
             {
             }
 
-            public static DistinctByVisitor<TValue, TError, TKey> Instance { get; } = new DistinctByVisitor<TValue, TError, TKey>();
+            public static DistinctByVisitor<TValue, TError, TKey> Instance { get; } = 
+                new DistinctByVisitor<TValue, TError, TKey>();
 
-            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Full node, in DistinctByContext<TValue, TError, TKey> context)
+            public override QueryResult<TValue, TError> Accept(
+                QueryResult<TValue, TError>.Full node, 
+                in DistinctByContext<TValue, TError, TKey> context)
             {
                 return new QueryResult<TValue, TError>.Full(node.Values.DistinctBy(context.KeySelector, context.Comparer));
             }
 
-            public override QueryResult<TValue, TError> Accept(QueryResult<TValue, TError>.Partial node, in DistinctByContext<TValue, TError, TKey> context)
+            public override QueryResult<TValue, TError> Accept(
+                QueryResult<TValue, TError>.Partial node, 
+                in DistinctByContext<TValue, TError, TKey> context)
             {
                 //// TODO is it misleading to distinctby without the full result? i think not because distinct doesn't need the full context for it to make sense, unlike somethinglike orderby where the first element may be different if you don't have all of the elements
                 return new QueryResult<TValue, TError>.Partial(node.Values.DistinctBy(context.KeySelector, context.Comparer), node.Error);
