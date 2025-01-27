@@ -6,8 +6,7 @@
 
     using CalendarV2.System.Linq;
     using CalendarV2.Fx.Either;
-    using System.ComponentModel.DataAnnotations;
-
+    
     public static class QueryResultExtensions
     {
         public static 
