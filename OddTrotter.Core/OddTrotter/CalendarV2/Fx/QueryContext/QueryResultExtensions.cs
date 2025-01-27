@@ -1,7 +1,7 @@
-﻿namespace Fx.QueryContextV2
+﻿namespace CalendarV2.Fx.QueryContext
 {
-    using System;
-    using System.Linq;
+    using global::System;
+    using global::System.Linq;
 
     public static class QueryResultExtensions
     {

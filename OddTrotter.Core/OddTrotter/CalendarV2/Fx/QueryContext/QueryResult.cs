@@ -1,8 +1,8 @@
-﻿namespace Fx.QueryContextV2
+﻿namespace CalendarV2.Fx.QueryContext
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Threading.Tasks;
 
     public abstract class QueryResult<TValue, TError>
     {

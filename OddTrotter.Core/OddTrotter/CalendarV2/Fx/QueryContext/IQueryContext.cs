@@ -1,6 +1,6 @@
-﻿namespace Fx.QueryContextV2
+﻿namespace CalendarV2.Fx.QueryContext
 {
-    using System.Threading.Tasks;
+    using global::System.Threading.Tasks;
 
     /// <summary>
     /// TODO covariance and contravariance
