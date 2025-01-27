@@ -11,6 +11,33 @@
             throw new NotImplementedException();
         }
 
+        public TResult Visit<TResult, TContext>(Func<TLeft, TContext, TResult> leftAccept, Func<TRight, TContext, TResult> rightAccept, TContext context)
+        {
+            return new DelegateVisitor<TResult, TContext>(leftAccept, rightAccept).Visit(this, context);
+        }
+
+        private sealed class DelegateVisitor<TResult, TContext> : Visitor<TResult, TContext>
+        {
+            private readonly Func<TLeft, TContext, TResult> leftAccept;
+            private readonly Func<TRight, TContext, TResult> rightAccept;
+
+            public DelegateVisitor(Func<TLeft, TContext, TResult> leftAccept, Func<TRight, TContext, TResult> rightAccept)
+            {
+                this.leftAccept = leftAccept;
+                this.rightAccept = rightAccept;
+            }
+
+            protected internal override TResult Accept(Left node, TContext context)
+            {
+                return this.leftAccept(node.Value, context);
+            }
+
+            protected internal override TResult Accept(Right node, TContext context)
+            {
+                return this.rightAccept(node.Value, context);
+            }
+        }
+
         protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context);
 
         public abstract class Visitor<TResult, TContext>

@@ -2,26 +2,25 @@
 {
     using global::System.Collections.Generic;
 
+    using OddTrotter.CalendarV2.Fx.Either;
+
     public static class EnumerableExtensions
     {
-        public abstract class FirstOrDefaultResult<TElement, TDefault>
+        public sealed class FirstOrDefaultResult<TElement, TDefault> : IEither<TElement, TDefault>
         {
-            private FirstOrDefaultResult()
+            private readonly IEither<TElement, TDefault> either;
+
+            public FirstOrDefaultResult(IEither<TElement, TDefault> either)
             {
+                this.either = either;
             }
 
-            public sealed class First : FirstOrDefaultResult<TElement, TDefault>
+            public TResult Visit<TResult, TContext>(
+                global::System.Func<TElement, TContext, TResult> leftAccept, 
+                global::System.Func<TDefault, TContext, TResult> rightAccept,
+                TContext context)
             {
-                public First(TElement element)
-                {
-                }
-            }
-
-            public sealed class Default : FirstOrDefaultResult<TElement, TDefault>
-            {
-                public Default(TDefault @default)
-                {
-                }
+                return either.Visit(leftAccept, rightAccept, context);
             }
         }
 
@@ -29,7 +28,15 @@
             this IEnumerable<TElement> source,
             TDefault @default)
         {
+            using (var enumerator = source.GetEnumerator())
+            {
+                if (!enumerator.MoveNext())
+                {
+                    return new FirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Right(@default));
+                }
 
+                return new FirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Left(enumerator.Current));
+            }
         }
     }
 }
