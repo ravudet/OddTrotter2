@@ -33,10 +33,12 @@
             {
                 if (!enumerator.MoveNext())
                 {
-                    return new EitherFirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Right(@default));
+                    return new EitherFirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Right(
+                        @default));
                 }
 
-                return new EitherFirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Left(enumerator.Current));
+                return new EitherFirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Left(
+                    enumerator.Current));
             }
         }
     }
