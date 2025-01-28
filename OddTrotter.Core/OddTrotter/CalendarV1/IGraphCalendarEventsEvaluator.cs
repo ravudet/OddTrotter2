@@ -244,6 +244,7 @@
         /// </summary>
         OdataServiceRoot ServiceRoot { get; }
 
+        //// TODO i think what you need to do is have this be `igraphcalendareventssource` and it has a `generate{blank}query` method that returns `igraphcalendareventcontext`s where `{blank}` is like `get` and such; then, the `igraphcalendareventcontext` is going mimic `iquerycontext`, `iqueryable`, etc. and have an `evaluate` method, that way there's no possible inconsistencies across instances of source, evaluator or whatever that you're concerneda bout in the comment below; it would also put all of the "translation" logic from "clr type of graph object to odata representation" in one place (i.e. both the payloads and the urls are in the context implementations)
         //// internal GraphQuery.GetEvents CreateQuery(); //// TODO but what ify ou get a call to `evalaute` with an instance that you didn't create?
     }
 
