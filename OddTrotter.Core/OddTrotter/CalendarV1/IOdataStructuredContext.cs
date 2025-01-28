@@ -1734,7 +1734,7 @@ namespace OddTrotter.Calendar
                     throw new OdataSuccessDeserializationException("Could not deserialize the OData response payload", responseContents);
                 }
 
-                //// TODO you need to make sure you don't overpivot on the `either` stuff; for example, here the builder should just be throwing since you're not doing any looping
+                //// TODO you need to make sure you don't overpivot on the `either` stuff; for example, here the builder should just be throwing since you're not doing any looping //// TODO you're actually trying to establish a convention here; it's also followed in the builders in igraphcalendareventsevaluator and it's very helpful for types with nested structures that need to be validated
                 //// TODO with that in mind, do you want to surface a nextlink that may have issues in it so that the caller can at least get the values in such an event?
                 var odataCollectionResponse = odataCollectionResponseBuilder.Build(responseContents).ThrowRight();
 
