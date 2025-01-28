@@ -403,7 +403,8 @@
                 in DistinctByContext<TValue, TError, TKey> context)
             {
                 //// TODO is it misleading to distinctby without the full result? i think not because distinct doesn't need the full context for it to make sense, unlike somethinglike orderby where the first element may be different if you don't have all of the elements
-                return new QueryResult<TValue, TError>.Partial(node.Values.DistinctBy(context.KeySelector, context.Comparer), node.Error);
+                return new QueryResult<TValue, TError>.Partial(
+                    node.Values.DistinctBy(context.KeySelector, context.Comparer), node.Error);
             }
         }
     }
