@@ -10,7 +10,7 @@
     public static class QueryResultExtensions
     {
         public static 
-            Either
+            IEither
                 <
                     EnumerableExtensions.EitherFirstOrDefaultResult
                         <
@@ -34,7 +34,7 @@
                 >
             .Visitor
                 <
-                    Either
+                    IEither
                         <
                             EnumerableExtensions.EitherFirstOrDefaultResult
                                 <
@@ -60,48 +60,39 @@
                     node.Values.EitherFirstOrDefault(context));
             }
 
-            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(
+            public override IEither<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(
                 QueryResult<TElement, TError>.Partial node, in TDefault context)
             {
                 var firstOrError = node.Values.EitherFirstOrDefault(node.Error);
                 return firstOrError.Visit(
                     (left, context) => 
-                        new Either
-                            <
-                                EnumerableExtensions.EitherFirstOrDefaultResult
-                                    <
-                                        TElement, 
-                                        TDefault
-                                    >, 
-                                TError
-                            >
+                        Either
                             .Left(
                                 new EnumerableExtensions.EitherFirstOrDefaultResult
                                     <
-                                        TElement, 
+                                        TElement,
                                         TDefault
                                     >(
                                         new Either
                                             <
-                                                TElement, 
+                                                TElement,
                                                 TDefault
                                             >
                                             .Left(
                                                 left)))
-                            .AsBase(),
+                            .Right<TError>(),
                     (right, context) => 
-                        new Either
-                            <
-                                EnumerableExtensions.EitherFirstOrDefaultResult
-                                    <
-                                        TElement, 
-                                        TDefault
-                                    >, 
-                                TError
-                            >
+                        Either
+                            .Left
+                                <
+                                    EnumerableExtensions.EitherFirstOrDefaultResult
+                                        <
+                                            TElement,
+                                            TDefault
+                                        >
+                                >()
                             .Right(
-                                right)
-                            .AsBase(),
+                                right),
                     new CalendarV2.System.Void());
             }
         }

@@ -7,6 +7,10 @@
 
     public static class Either
     {
+        /// <summary>
+        /// It's important that the name doesn't start with "left" so that intellisense does cause conflicts for callers
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
         public sealed class EmptyLeft<TLeft>
         {
             public Either<TLeft, TRight> Right<TRight>(TRight value)
@@ -15,6 +19,10 @@
             }
         }
 
+        /// <summary>
+        /// It's important that the name doesn't start with "left" so that intellisense does cause conflicts for callers
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
         public sealed class FullLeft<TLeft>
         {
             private readonly TLeft value;
