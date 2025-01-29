@@ -325,6 +325,8 @@
             Func<TRight, TRight, TRight> rightAggregator) //// TODO TOPIC naming of this //// TODO TOPIC other variants of this? like, does `tright` need to be the same for both eithers? and should you always return a tuple? don't forget your ultimate use-case of first.zip(second).throwright()
         {
         }
+
+        //// TODO add "coalesce" variants
     }
 
     /// <summary>
