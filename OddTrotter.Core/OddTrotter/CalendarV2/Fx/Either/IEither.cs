@@ -23,5 +23,13 @@
             Func<TLeft, TContext, TResult> leftAccept, 
             Func<TRight, TContext, TResult> rightAccept,
             TContext context);
+
+        //// TODO what are all of the visitor variants?
+        //// async
+        //// unsafe
+        //// result allows ref struct
+        //// context allows ref struct
+        //// context by reference
+        //// there are likely others
     }
 }
