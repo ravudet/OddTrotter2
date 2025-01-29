@@ -79,5 +79,56 @@
                 (right, context) => Either.Left<TLeftResult>().Right(rightSelector(right, context)),
                 context);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeftValue"></typeparam>
+        /// <typeparam name="TRightValue"></typeparam>
+        /// <typeparam name="TLeftResult"></typeparam>
+        /// <typeparam name="TRightResult"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="leftSelector"></param>
+        /// <param name="rightSelector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> or <paramref name="rightSelector"/> is
+        /// <see langword="null"/>
+        /// </exception>
+        /// <exception cref="Exception">
+        /// Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw
+        /// </exception> //// TODO TOPIC wrap this exception maybe?
+        public static IEither<TLeftResult, TRightResult> Select
+            <
+                TLeftValue,
+                TRightValue,
+                TLeftResult,
+                TRightResult
+            >
+            (
+                this IEither<TLeftValue, TRightValue> either,
+                Func<TLeftValue, TLeftResult> leftSelector,
+                Func<TRightValue, TRightResult> rightSelector)
+        {
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(leftSelector);
+            ArgumentNullException.ThrowIfNull(rightSelector);
+
+            return either.Visit(
+                (left, context) => Either.Left(leftSelector(left)).Right<TRightResult>(),
+                (right, context) => Either.Left<TLeftResult>().Right(rightSelector(right)),
+                new CalendarV2.System.Void());
+        }
+    }
+
+    /// <summary>
+    /// TODO can you use this anywhere?
+    /// </summary>
+    public static class ExceptionExtensions
+    {
+        public static CalendarV2.System.Void Throw<TException>(this TException exception) where TException : Exception
+        {
+            throw exception;
+        }
     }
 }
