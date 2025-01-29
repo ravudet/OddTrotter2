@@ -271,6 +271,50 @@
                 (right, context) => Either.Left<TLeftValue>().Right(rightSelector(right)),
                 new CalendarV2.System.Void());
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        public static IEither<TLeft, TRight> PropogateRight<TLeft, TRight>(
+            this IEither<IEither<TLeft, TRight>, TRight> either)
+        {
+            ArgumentNullException.ThrowIfNull(either);
+
+            return either.Visit(
+                left => 
+                    left.Visit(
+                        subLeft => Either.Left(subLeft).Right<TRight>(),
+                        subRight => Either.Left<TLeft>().Right(subRight)),
+                right =>
+                    Either.Left<TLeft>().Right(right));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        public static IEither<TLeft, TRight> PropogateLeft<TLeft, TRight>(
+            this IEither<TLeft, IEither<TLeft, TRight>> either)
+        {
+            ArgumentNullException.ThrowIfNull(either);
+
+            return either.Visit(
+                left =>
+                    Either.Left(left).Right<TRight>(),
+                right =>
+                    right.Visit(
+                        subLeft => Either.Left(subLeft).Right<TRight>(),
+                        subRight => Either.Left<TLeft>().Right(subRight)));
+        }
     }
 
     /// <summary>
