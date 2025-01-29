@@ -7,6 +7,9 @@
     using CalendarV2.System.Linq;
     using CalendarV2.Fx.Either;
     
+    /// <summary>
+    /// TODO use `ieither` instead of `either`
+    /// </summary>
     public static class QueryResultExtensions
     {
         public static 
@@ -34,7 +37,7 @@
                 >
             .Visitor
                 <
-                    IEither
+                    Either
                         <
                             EnumerableExtensions.EitherFirstOrDefaultResult
                                 <
@@ -60,7 +63,7 @@
                     node.Values.EitherFirstOrDefault(context));
             }
 
-            public override IEither<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(
+            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(
                 QueryResult<TElement, TError>.Partial node, in TDefault context)
             {
                 var firstOrError = node.Values.EitherFirstOrDefault(node.Error);
