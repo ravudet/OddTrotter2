@@ -4,13 +4,6 @@
 
     public abstract class Either<TLeft, TRight> : IEither<TLeft, TRight>
     {
-        public TResult Visit<TResult, TContext>(
-            Func<TLeft, TContext> leftAccept, 
-            Func<TRight, TContext> rightAccept)
-        {
-            throw new NotImplementedException();
-        }
-
         public TResult Visit<TResult, TContext>(Func<TLeft, TContext, TResult> leftAccept, Func<TRight, TContext, TResult> rightAccept, TContext context)
         {
             return new DelegateVisitor<TResult, TContext>(leftAccept, rightAccept).Visit(this, context);
