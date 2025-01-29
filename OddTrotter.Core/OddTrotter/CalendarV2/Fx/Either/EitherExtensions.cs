@@ -2,6 +2,9 @@
 {
     using global::System;
 
+    /// <summary>
+    /// TODO TOPIC all of the names of the extensions really
+    /// </summary>
     public static class EitherExtensions
     {
         /// <summary>
@@ -314,6 +317,13 @@
                     right.Visit(
                         subLeft => Either.Left(subLeft).Right<TRight>(),
                         subRight => Either.Left<TLeft>().Right(subRight)));
+        }
+
+        public static IEither<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(
+            this IEither<TLeftFirst, TRight> first,
+            IEither<TLeftSecond, TRight> second,
+            Func<TRight, TRight, TRight> rightAggregator) //// TODO TOPIC naming of this //// TODO TOPIC other variants of this? like, does `tright` need to be the same for both eithers? and should you always return a tuple? don't forget your ultimate use-case of first.zip(second).throwright()
+        {
         }
     }
 
