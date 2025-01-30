@@ -424,11 +424,17 @@
         }
     }
 
-    public struct Throw<T> where T : Exception
+    public struct Throw<T>
     {
         public static implicit operator CalendarV2.System.Void(Throw<T> @throw)
         {
             return new CalendarV2.System.Void();
+        }
+
+        public static implicit operator T(Throw<T> @throw)
+        {
+            //// TODO probably not safe, but we are wanting it here for type inference and lambdas
+            return default(T)!;
         }
     }
 }
