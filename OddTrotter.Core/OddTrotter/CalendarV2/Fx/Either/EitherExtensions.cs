@@ -31,7 +31,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propogateby" extension; look at "catamorphism" of either
+        public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propagateby" extension; look at "catamorphism" of either
             this IEither<TLeft, TRight> either,
             Func<TLeft, TResult> leftAccept,
             Func<TRight, TResult> rightAccept)
@@ -66,7 +66,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static IEither<TLeftResult, TRightResult> Select //// TODO TOPIC name this "map" instead?
+        public static IEither<TLeftResult, TRightResult> Select //// TODO TOPIC name this "map" instead? //// TODO this is a map, doesn't matter which of the two names you call it; "map" means "reach inside the box and do something with the stuff inside, then put the box back around it"
             <
                 TLeftValue,
                 TRightValue,
@@ -289,7 +289,7 @@
         /// <param name="either"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static IEither<TLeft, TRight> PropogateRight<TLeft, TRight>(
+        public static IEither<TLeft, TRight> PropagateRight<TLeft, TRight>(
             this IEither<IEither<TLeft, TRight>, TRight> either)
         {
             ArgumentNullException.ThrowIfNull(either);
@@ -303,18 +303,18 @@
                     Either.Left<TLeft>().Right(right));
         }
 
-        /*public static void PropogateByRightUseCase()
+        /*public static void PropagateByRightUseCase()
         {
             var either = Either.Left<(string, IEither<int, Exception>)>().Right(new Exception());
 
-            Either<(string, int), Exception> result = either.PropogateByRight<(string, IEither<int, Exception>), Exception, int, (string, int)> (
+            Either<(string, int), Exception> result = either.PropagateByRight<(string, IEither<int, Exception>), Exception, int, (string, int)> (
                 left => left.Item2,
                 (left, nested) => (left, nested));
         }
 
-        public static IEither<TLeftResult, TRight> PropogateByRight<TLeft, TRight, TLeftNested, TLeftResult>( //// TODO TOPIC does the "orientation" of this name make sense? //// TODO is this a "lift" actually?
+        public static IEither<TLeftResult, TRight> PropagateByRight<TLeft, TRight, TLeftNested, TLeftResult>( //// TODO TOPIC does the "orientation" of this name make sense? //// TODO is this a "lift" actually?
             this IEither<TLeft, TRight> either,
-            Func<TLeft, IEither<TLeftNested, TRight>> propogator,
+            Func<TLeft, IEither<TLeftNested, TRight>> Propagator,
             Func<TLeft, TLeftNested, TLeftResult> aggregator)
         {
             either.Visit(
@@ -329,7 +329,7 @@
         /// <param name="either"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static IEither<TLeft, TRight> PropogateLeft<TLeft, TRight>(
+        public static IEither<TLeft, TRight> PropagateLeft<TLeft, TRight>(
             this IEither<TLeft, IEither<TLeft, TRight>> either)
         {
             ArgumentNullException.ThrowIfNull(either);
@@ -412,7 +412,7 @@
                 right => @default);
         }
 
-        //// TODO add propogateby
+        //// TODO add Propagateby
         //// TODO coalesce is really creating a "try" and "throwright" seems to be the same basic operation, but  the "not left" case is hard-coded as "throw"; that's probably fine as a convenience method, but i think there's something more fundamental that should be exposed //// TODO maybe the "throw" extension method should return a "throw<TException>" or something that is equivalent to a void?
         //// TODO add "coalesce" variants
     }
