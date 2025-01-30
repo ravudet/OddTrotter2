@@ -281,6 +281,31 @@
                 new CalendarV2.System.Void());
         }
 
+        public static Exception AsBase(this Exception exception)
+        {
+            return exception;
+        }
+
+        public static ArgumentException AsBase(this ArgumentException exception)
+        {
+            return exception;
+        }
+
+        public static T2 AsBase<T1, T2>(this T1 val) where T1 : T2
+        {
+            return val;
+        }
+
+        public static void NullPropagateUseCase()
+        {
+
+        }
+
+        public static IEither<TLeft, CalendarV2.System.Void> NullPrapogate<TLeft>(this IEither<IEither<TLeft, CalendarV2.System.Void>, CalendarV2.System.Void> either)
+        {
+            return either.PropagateRight();
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -290,8 +315,10 @@
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static IEither<TLeft, TRight> PropagateRight<TLeft, TRight>(
-            this IEither<IEither<TLeft, TRight>, TRight> either)
+            this IEither<IEither<TLeft, TRight>, TRight> either) //// TODO what if the two "rights" both implement the same super type?
         {
+            //// TODO we like the name "propagate"
+            //// TODO just write out an example of null propagation, figure out if left or right would be the "nullable", and then use that to get the naming correct here
             ArgumentNullException.ThrowIfNull(either);
 
             return either.Visit(
@@ -390,7 +417,10 @@
 
         public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
         {
-            return either.Visit(left => left, right => throw right);
+            //// TODO maybe the "try" conversation will illuminate a new name for this method, otherwise it's prtety solid
+            return either.Coalesce(right => throw right);
+
+            ////return either.Visit(left => left, right => throw right);
         }
 
         public static bool Try<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, [MaybeNullWhen(false)] out TLeft left)
@@ -403,13 +433,32 @@
             return result.Item2;
         }
 
+        public static TLeft Coalesce<TLeft, TRight>(this IEither<TLeft, TRight> either, Func<TRight, TLeft> coalescer)
+        {
+            return either.Visit(left => left, coalescer);
+        }
+
+        //// TODO write somewhere that nullable<TLeft> is equivalent to IEither<TLeft, CalendarV2.System.Void>
+
+        public static void CoalesceUseCase()
+        {
+            object? foo = null;
+
+            var bar = foo ?? new object();
+
+
+        }
+
         public static TLeft Coalesce<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, TLeft @default)
         {
+            //// TODO should there be an overload of Func<TLeft> defaultCoalescer?
             //// this is equivalent to the null coalescing operator; how to generalize?
             //// TODO wait, is *visit* actually the general-form "coalesce"? and that's why you can't seem to find a more general method signature?
-            return either.Visit(
+            /*return either.Visit(
                 left => left,
                 right => @default);
+            */
+            return either.Coalesce(_ => @default);
         }
 
         //// TODO add Propagateby
