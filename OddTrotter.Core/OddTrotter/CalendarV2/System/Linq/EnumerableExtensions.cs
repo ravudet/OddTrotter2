@@ -6,6 +6,7 @@
     using System;
     using global::System;
     using CalendarV2.Fx.Try;
+    using System.Security.Cryptography;
 
     public static class EnumerableExtensions
     {
@@ -50,7 +51,35 @@
             var data = new[] { "Asfd" };
             data.TrySelect((input => ((Try<string, int>)int.TryParse).ToEither(input)));
 
+            //// TODO maybe try to overload && and || to somehow deal with "tries" on eithers?
+            data.TrySelect(TryParse);
+
             data.TrySelect((Try<string, int>)int.TryParse);
+        }
+
+        public static IEither<int, CalendarV2.System.Void> TryParse(string input)
+        {
+            if (int.TryParse(input, out var result))
+            {
+                return Either.Left(result).Right<CalendarV2.System.Void>();
+            }
+            else
+            {
+                return Either.Left<int>().Right(new CalendarV2.System.Void());
+            }
+        }
+
+        public static Either<int, Exception> ToTry(Func<string, int> func, string input)
+        {
+            try
+            {
+                return Either.Left(func(input)).Right<Exception>();
+            }
+            catch (Exception e)
+            {
+                return Either.Left<int>().Right(e);
+            }
+            //// TODO propbably throw this method away until you hvae a real use case
         }
 
         public static IEnumerable<TResult> TrySelect<TElement, TResult>(
