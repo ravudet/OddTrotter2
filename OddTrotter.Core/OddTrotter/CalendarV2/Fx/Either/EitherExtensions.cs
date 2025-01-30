@@ -5,6 +5,7 @@
 
     /// <summary>
     /// TODO TOPIC all of the names of the extensions really
+    /// TODO mixins for all of these
     /// </summary>
     public static class EitherExtensions
     {
