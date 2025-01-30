@@ -53,6 +53,19 @@
 
         public static IEnumerable<TResult> TrySelect<TElement, TResult>(
             this IEnumerable<TElement> source,
+            Try<TElement, TResult> @try)
+        {
+            foreach (var element in source)
+            {
+                if (@try(element, out var result))
+                {
+                    yield return result;
+                }
+            }
+        }
+
+        public static IEnumerable<TResult> TrySelect<TElement, TResult>(
+            this IEnumerable<TElement> source,
             Func<TElement, IEither<TResult, CalendarV2.System.Void>> selector)
         {
             foreach (var element in source)
