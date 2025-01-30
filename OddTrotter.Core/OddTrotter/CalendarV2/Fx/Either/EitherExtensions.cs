@@ -399,6 +399,15 @@
             return result.Item2;
         }
 
+        public static TLeft Coalesce<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, TLeft @default)
+        {
+            //// this is equivalent to the null coalescing operator; how to generalize?
+            //// TODO wait, is *visit* actually the general-form "coalesce"? and that's why you can't seem to find a more general method signature?
+            return either.Visit(
+                left => left,
+                right => @default);
+        }
+
         //// TODO add propogateby
         //// TODO coalesce is really creating a "try" and "throwright" seems to be the same basic operation, but  the "not left" case is hard-coded as "throw"; that's probably fine as a convenience method, but i think there's something more fundamental that should be exposed //// TODO maybe the "throw" extension method should return a "throw<TException>" or something that is equivalent to a void?
         //// TODO add "coalesce" variants
