@@ -9,6 +9,11 @@
     /// </summary>
     public static class EitherExtensions
     {
+        public static void Test(Either<int, Exception> either)
+        {
+            either.SelectLeft(left => (double)left);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -26,7 +31,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead?
+        public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propogateby" extension; look at "catamorphism" of either
             this IEither<TLeft, TRight> either,
             Func<TLeft, TResult> leftAccept,
             Func<TRight, TResult> rightAccept)
@@ -236,9 +241,8 @@
             ArgumentNullException.ThrowIfNull(leftSelector);
 
             return either.Visit(
-                (left, context) => Either.Left(leftSelector(left)).Right<TRightValue>(),
-                (right, context) => Either.Left<TLeftResult>().Right(right),
-                new CalendarV2.System.Void());
+                left => Either.Left(leftSelector(left)).Right<TRightValue>(), //// TODO maybe the factory methods should be able to go in either order?
+                right => Either.Left<TLeftResult>().Right(right));
         }
 
         /// <summary>
