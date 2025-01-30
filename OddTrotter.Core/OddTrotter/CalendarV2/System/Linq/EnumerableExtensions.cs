@@ -49,6 +49,8 @@
         {
             var data = new[] { "Asfd" };
             data.TrySelect((input => ((Try<string, int>)int.TryParse).ToEither(input)));
+
+            data.TrySelect((Try<string, int>)int.TryParse);
         }
 
         public static IEnumerable<TResult> TrySelect<TElement, TResult>(
