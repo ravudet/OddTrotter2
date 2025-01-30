@@ -359,7 +359,7 @@ namespace OddTrotter.Calendar
                             .Right<TRight>()
                             .Left(
                                 (leftFirst, leftSecond)),
-                                rightSecond => Either
+                        rightSecond => Either
                                     .Left<(TLeftFirst, TLeftSecond)>()
                                     .Right(
                                         rightSecond)),

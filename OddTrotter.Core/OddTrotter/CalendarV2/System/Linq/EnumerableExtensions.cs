@@ -3,6 +3,9 @@
     using global::System.Collections.Generic;
 
     using CalendarV2.Fx.Either;
+    using System;
+    using global::System;
+    using CalendarV2.Fx.Try;
 
     public static class EnumerableExtensions
     {
@@ -39,6 +42,25 @@
 
                 return new EitherFirstOrDefaultResult<TElement, TDefault>(new Either<TElement, TDefault>.Left(
                     enumerator.Current));
+            }
+        }
+
+        public static void TrySelectUseCase()
+        {
+            var data = new[] { "Asfd" };
+            data.TrySelect((input => ((Try<string, int>)int.TryParse).ToEither(input)));
+        }
+
+        public static IEnumerable<TResult> TrySelect<TElement, TResult>(
+            this IEnumerable<TElement> source,
+            Func<TElement, IEither<TResult, CalendarV2.System.Void>> selector)
+        {
+            foreach (var element in source)
+            {
+                if (selector(element).Try(out var left))
+                {
+                    yield return left;
+                }
             }
         }
     }

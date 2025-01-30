@@ -34,6 +34,7 @@
 
             public Either<TLeft, TRight> Right<TRight>()
             {
+                //// TODO TOPIC should these return the interface or the concrete type?
                 return new Either<TLeft, TRight>.Left(this.value);
             }
         }

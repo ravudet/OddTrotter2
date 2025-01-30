@@ -1,6 +1,7 @@
 ﻿namespace CalendarV2.Fx.Either
 {
     using global::System;
+    using global::System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// TODO TOPIC all of the names of the extensions really
@@ -297,6 +298,24 @@
                     Either.Left<TLeft>().Right(right));
         }
 
+        /*public static void PropogateByRightUseCase()
+        {
+            var either = Either.Left<(string, IEither<int, Exception>)>().Right(new Exception());
+
+            Either<(string, int), Exception> result = either.PropogateByRight<(string, IEither<int, Exception>), Exception, int, (string, int)> (
+                left => left.Item2,
+                (left, nested) => (left, nested));
+        }
+
+        public static IEither<TLeftResult, TRight> PropogateByRight<TLeft, TRight, TLeftNested, TLeftResult>( //// TODO TOPIC does the "orientation" of this name make sense? //// TODO is this a "lift" actually?
+            this IEither<TLeft, TRight> either,
+            Func<TLeft, IEither<TLeftNested, TRight>> propogator,
+            Func<TLeft, TLeftNested, TLeftResult> aggregator)
+        {
+            either.Visit(
+                left => left.)
+        }*/
+
         /// <summary>
         /// 
         /// </summary>
@@ -324,8 +343,63 @@
             IEither<TLeftSecond, TRight> second,
             Func<TRight, TRight, TRight> rightAggregator) //// TODO TOPIC naming of this //// TODO TOPIC other variants of this? like, does `tright` need to be the same for both eithers? and should you always return a tuple? don't forget your ultimate use-case of first.zip(second).throwright()
         {
+            return
+                first
+                    .Visit(
+                        firstLeft =>
+                            second
+                                .Visit(
+                                    secondLeft =>
+                                        Either.Left((firstLeft, secondLeft)).Right<TRight>(),
+                                    secondRight =>
+                                        Either.Left<(TLeftFirst, TLeftSecond)>().Right(secondRight)), //// TODO is it ok that you are losing `firstleft`? is this method actually a convenience overload of a more general method that asks the caller for a delegate for each left case?
+                        firstRight =>
+                            second
+                                .Visit(
+                                    secondLeft =>
+                                        Either.Left<(TLeftFirst, TLeftSecond)>().Right(firstRight),
+                                    secondRight =>
+                                        Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightAggregator(firstRight, secondRight))));
+
         }
 
+        public static bool TryLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TLeft left)
+        {
+            var result = either.Visit(
+                left => (left, true),
+                right => (default(TLeft), false));
+
+            left = result.Item1;
+            return result.Item2;
+        }
+
+        public static bool TryRight<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TRight right)
+        {
+            var result = either.Visit(
+                left => (default(TRight), false),
+                right => (right, true));
+
+            right = result.Item1;
+            return result.Item2;
+        }
+
+        public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
+        {
+            return either.Visit(left => left, right => throw right);
+        }
+
+        public static bool Try<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, [MaybeNullWhen(false)] out TLeft left)
+        {
+            var result = either.Visit(
+                left => (left, true),
+                right => (default(TLeft), false));
+
+            left = result.Item1;
+            return result.Item2;
+        }
+
+        //// TODO add propogateby
+        //// TODO coalesce is really creating a "try" and "throwright" seems to be the same basic operation, but  the "not left" case is hard-coded as "throw"; that's probably fine as a convenience method, but i think there's something more fundamental that should be exposed //// TODO maybe the "throw" extension method should return a "throw<TException>" or something that is equivalent to a void?
         //// TODO add "coalesce" variants
     }
 
@@ -337,6 +411,14 @@
         public static CalendarV2.System.Void Throw<TException>(this TException exception) where TException : Exception
         {
             throw exception;
+        }
+    }
+
+    public struct Throw<T> where T : Exception
+    {
+        public static implicit operator CalendarV2.System.Void(Throw<T> @throw)
+        {
+            return new CalendarV2.System.Void();
         }
     }
 }
