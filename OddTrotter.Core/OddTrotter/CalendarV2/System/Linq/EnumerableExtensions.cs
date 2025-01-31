@@ -3,9 +3,10 @@
     using global::System.Collections.Generic;
 
     using CalendarV2.Fx.Either;
-    using System;
     using global::System;
     using CalendarV2.Fx.Try;
+    using global::System.Diagnostics.CodeAnalysis;
+    using global::System.Linq;
 
     public static class EnumerableExtensions
     {
@@ -45,8 +46,135 @@
             }
         }
 
-        public static void TrySelectUseCase()
+        public static IEnumerable<TResult> TrySelect1<TElement, TResult>(
+            this IEnumerable<TElement> source,
+            Try1<TElement, TResult> @try)
         {
+            foreach (var element in source)
+            {
+                if (@try.Try(element, out var selected))
+                {
+                    yield return selected;
+                }
+            }
+        }
+
+        public static IEnumerable<TResult> TrySelect2<TElement, TResult>(
+            this IEnumerable<TElement> source,
+            Try2<TElement, TResult> @try)
+        {
+            foreach (var element in source)
+            {
+                if (@try(element, out var selected))
+                {
+                    yield return selected;
+                }
+            }
+        }
+
+        public static Try2<TInput, TOutput> ToTry<TInput, TOutput>(this Func<TInput, TOutput> func)
+        {
+            return (TInput input, [MaybeNullWhen(false)] out TOutput output) =>
+            {
+                try
+                {
+                    output = func(input);
+                    return true;
+                }
+                catch
+                {
+                    output = default;
+                    return false;
+                }
+            };
+        }
+
+        public static bool TryParse(string input, out int result)
+        {
+            return int.TryParse(input, out result);
+        }
+        
+        public class Shape
+        {
+        }
+
+        public class Rectangle : Shape
+        {
+        }
+
+        public class Square : Rectangle
+        {
+        }
+
+        public class Circle : Shape
+        { 
+        }
+
+        public class Animal
+        {
+        }
+
+        public class Dog : Animal
+        {
+        }
+
+        public class Husky : Dog
+        {
+        }
+
+        public class Cat : Animal
+        {
+        }
+
+        public static bool Adapt21(Shape input, [MaybeNullWhen(false)] out Animal output)
+        {
+            throw new Exception("TODO");
+        }
+
+        public static bool Adapt22(Shape input, [MaybeNullWhen(false)] out Dog output)
+        {
+            throw new Exception("TODO");
+        }
+
+        public static Animal Adapt11(Shape input, out bool success)
+        {
+            throw new Exception("TODO");
+        }
+
+        public static Dog Adapt12(Shape input, out bool success)
+        {
+            throw new Exception("TODO");
+        }
+
+        public static void CovarianceUseCase1(Try1<Shape, Animal> @try)
+        {
+        }
+
+        public static void CovarianceUseCase2(Try2<Shape, Animal> @try)
+        {
+        }
+
+        public static void TrySelectUseCase(IEnumerable<Shape> input)
+        {
+            IEnumerable<Animal> animals;
+            animals = input.TrySelect2<Shape, Animal>(Adapt21);
+            animals = input.TrySelect1(Adapt11);
+            animals = input.TrySelect2<Shape, Dog>(Adapt22);
+            animals = input.TrySelect1(Adapt12);
+
+            CovarianceUseCase1(Adapt11);
+            CovarianceUseCase1(Adapt12);
+            CovarianceUseCase2(Adapt21);
+            CovarianceUseCase2(Adapt22);
+
+
+            var data = new[] { "Asfd" };
+
+            data.TrySelect2((Try2<string, int>)int.TryParse);
+
+            data.TrySelect2(EnumerableExtensions.TryParse);
+
+
             ((Func<string, int>)int.Parse).ToTry()
 
             var data = new[] { "Asfd" };
