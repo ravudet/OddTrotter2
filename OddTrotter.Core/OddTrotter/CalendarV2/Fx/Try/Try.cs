@@ -19,11 +19,7 @@
 
         public static Try2<TInput, TOutput> ToTry2<TInput, TOutput>(this Try1<TInput, TOutput> @try)
         {
-            return (TInput input, [MaybeNullWhen(false)] out TOutput output) =>
-            {
-                output = @try(input, out var success);
-                return success;
-            };
+            return @try.Try;
         }
     }
 
@@ -53,10 +49,7 @@
 
         public static Try2<TInput, TOutput> ToTry2<TInput, TOutput>(this Try3<TInput, TOutput> @try)
         {
-            return (TInput input, [MaybeNullWhen(false)] out TOutput output) =>
-            {
-                return @try(input).TryLeft(out output);
-            };
+            return @try.Try;
         }
 
         /*public static bool Try<TInput, TOutput>(this EitherTry<TInput, TOutput> eitherTry, TInput input, out TOutput output)
