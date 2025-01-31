@@ -47,6 +47,8 @@
 
         public static void TrySelectUseCase()
         {
+            ((Func<string, int>)int.Parse).ToTry()
+
             var data = new[] { "Asfd" };
             data.TrySelect((input => ((Try<string, int>)int.TryParse).ToEither(input)));
 
@@ -87,7 +89,7 @@
         {
             foreach (var element in source)
             {
-                if (@try(element, out var result))
+                if (@try.Try(element, out var result))
                 {
                     yield return result;
                 }
