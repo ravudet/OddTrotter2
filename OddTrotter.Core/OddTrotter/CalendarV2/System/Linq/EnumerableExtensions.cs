@@ -6,7 +6,6 @@
     using System;
     using global::System;
     using CalendarV2.Fx.Try;
-    using System.Security.Cryptography;
 
     public static class EnumerableExtensions
     {
