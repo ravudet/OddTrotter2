@@ -7,6 +7,7 @@
     using CalendarV2.Fx.Try;
     using global::System.Diagnostics.CodeAnalysis;
     using global::System.Linq;
+    using OddTrotter.Calendar;
 
     public static class EnumerableExtensions
     {
@@ -167,6 +168,15 @@
             CovarianceUseCase2(Adapt21);
             CovarianceUseCase2(Adapt22);
 
+            var tries1 = Enumerable
+                .Empty<Try1<Shape, Animal>>()
+                .Append(Adapt11)
+                .Append(Adapt12);
+
+            var tires2 = Enumerable
+                .Empty<Try2<Shape, Animal>>()
+                .Append(Adapt21)
+                .Append(Adapt22);
 
             var data = new[] { "Asfd" };
 
