@@ -304,6 +304,7 @@
 
         public static IEither<TLeft, CalendarV2.System.Void> NullPrapogate<TLeft>(this IEither<IEither<TLeft, CalendarV2.System.Void>, CalendarV2.System.Void> either)
         {
+            //// TODO i think null propogation is actually just shift left (try it out in the use case above); maybe call these methods "consolidate" or go back to the "shift" naming if it's not actually null propagation
             return either.PropagateRight();
         }
 

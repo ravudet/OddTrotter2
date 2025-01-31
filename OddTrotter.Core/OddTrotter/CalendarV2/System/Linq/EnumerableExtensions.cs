@@ -157,6 +157,14 @@
 
         public static void TrySelectUseCase(IEnumerable<Shape> input)
         {
+            //// TODO clean up existing either stuff
+            //// TODO figure out how to integrate either and try
+            //// you really need to just define the try delegate as the idiomatic try, but you're playing around with the covariance thing
+            //// Either<int, Exception> int.Parse(string) <- maybe call this extension "try"?
+            //// Either<int, Void> ______<TLeft, TRight>(Either<TLeft, TRight>)
+            //// bool TryLeft<TLeft, TRight>(Either<TLeft, TRight>, out TLeft)
+            //// Parse.TryLeft
+
             IEnumerable<Animal> animals;
             animals = input.TrySelect2<Shape, Animal>(Adapt21);
             animals = input.TrySelect1(Adapt11);
