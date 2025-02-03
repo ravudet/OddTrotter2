@@ -4,6 +4,7 @@
     using global::System.Diagnostics.CodeAnalysis;
 
     /// <summary>
+    /// TODO pick up at line 493
     /// TODO wrap exceptions for accepts
     /// TODO FUTURE mixins for all of these
     /// 
@@ -461,7 +462,7 @@
 
         public static bool TryLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TLeft left)
         {
-            //// TODO naming
+            //// TODO TOPIC naming
             var result = either.Visit(
                 left => (left, true),
                 right => (default(TLeft), false));
@@ -472,7 +473,7 @@
 
         public static bool TryRight<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TRight right)
         {
-            //// TODO naming
+            //// TODO TOPIC naming
             var result = either.Visit(
                 left => (default(TRight), false),
                 right => (right, true));
@@ -483,7 +484,7 @@
 
         public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
         {
-            //// TODO naming
+            //// TODO TOPIC naming
             //// TODO maybe the "try" conversation will illuminate a new name for this method, otherwise it's prtety solid
             return either.Coalesce(right => throw right);
 
@@ -492,7 +493,7 @@
 
         public static bool Try<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, [MaybeNullWhen(false)] out TLeft left)
         {
-            //// TODO naming
+            //// TODO TOPIC naming
             var result = either.Visit(
                 left => (left, true),
                 right => (default(TLeft), false));
