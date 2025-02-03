@@ -30,7 +30,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
         /// </exception>
-        public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propagateby" extension; look at "catamorphism" of either
+        public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propagateby" extension; look at "catamorphism" of either; TODO i believe `Visit` itself is actually a "functor", but method names in c# should mostly be verbs; is it really a functor, and, if so, what should we call it so it's a verb? https://en.wikipedia.org/wiki/Catamorphism https://en.wikipedia.org/wiki/Functor#endofunctor
             this IEither<TLeft, TRight> either,
             Func<TLeft, TResult> leftAccept,
             Func<TRight, TResult> rightAccept)
