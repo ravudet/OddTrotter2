@@ -4,7 +4,6 @@
     using global::System.Diagnostics.CodeAnalysis;
 
     /// <summary>
-    /// TODO TOPIC all of the names of the extensions really
     /// TODO wrap exceptions for accepts
     /// TODO FUTURE mixins for all of these
     /// 
@@ -352,6 +351,7 @@
                 (left, nested) => (left, nested));
         }
 
+        //// TODO get all the names right for this use case
         public static IEither<TLeftResult, TRight> PropagateByRight<TLeft, TRight, TLeftNested, TLeftResult>( //// TODO TOPIC does the "orientation" of this name make sense? //// TODO is this a "lift" actually?
             this IEither<TLeft, TRight> either,
             Func<TLeft, IEither<TLeftNested, TRight>> Propagator,
@@ -410,6 +410,7 @@
 
         public static bool TryLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TLeft left)
         {
+            //// TODO naming
             var result = either.Visit(
                 left => (left, true),
                 right => (default(TLeft), false));
@@ -420,6 +421,7 @@
 
         public static bool TryRight<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TRight right)
         {
+            //// TODO naming
             var result = either.Visit(
                 left => (default(TRight), false),
                 right => (right, true));
@@ -430,6 +432,7 @@
 
         public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
         {
+            //// TODO naming
             //// TODO maybe the "try" conversation will illuminate a new name for this method, otherwise it's prtety solid
             return either.Coalesce(right => throw right);
 
@@ -438,6 +441,7 @@
 
         public static bool Try<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, [MaybeNullWhen(false)] out TLeft left)
         {
+            //// TODO naming
             var result = either.Visit(
                 left => (left, true),
                 right => (default(TLeft), false));
