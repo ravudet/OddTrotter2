@@ -307,7 +307,7 @@
         }
 
         public static IEither<TLeftResult, CalendarV2.System.Void> NullPropagate<TLeftValue, TLeftResult>(
-            this IEither<TLeftValue, CalendarV2.System.Void> either, 
+            this IEither<TLeftValue, CalendarV2.System.Void> either,
             Func<TLeftValue, TLeftResult> selector)
         {
             //// TODO TOPIC is this extension even worth having?
@@ -318,6 +318,54 @@
         {
             //// TODO TOPIC this extension is *not* null propagate; find a better name; previously, we liked the name "propagate", but it's definitely not (see above)
             return either.PropagateRight();
+        }
+
+        class Animal
+        {
+        }
+
+        class Dog : Animal
+        {
+        }
+
+        class Cat : Animal
+        {
+        }
+
+        private static void PropagateRightBaseUseCase(IEither<IEither<string, Dog>, Cat> either)
+        {
+            var propagated = either.PropagateRight<string, Dog, Cat, Animal>();
+            //// TODO TOPIC you can't really get the type inference to work even with a "factory"; i ran into this with asbase before //// TODO `cast` actually also has this problem, by the way
+
+            either.CreateFactory().DoWork<Animal>();
+            either.CreateFactory().DoWork<string>();
+        }
+
+        private sealed class FactoryThing<TLeft, TRightDerived1, TRightDerived2>
+        {
+            public IEither<TLeft, TRightBase> DoWork<TRightBase>()
+            {
+                return default!;
+            }
+        }
+
+        private static FactoryThing<TLeft, TRightDerived1, TRightDerived2> CreateFactory<TLeft, TRightDerived1, TRightDerived2>(
+            this IEither<IEither<TLeft, TRightDerived1>, TRightDerived2> either)
+        {
+            return new FactoryThing<TLeft, TRightDerived1, TRightDerived2>();
+        }
+
+        public static IEither<TLeft, TRightBase> PropagateRight<TLeft, TRightDerived1, TRightDerived2, TRightBase>(
+            this IEither<IEither<TLeft, TRightDerived1>, TRightDerived2> either)
+            where TRightDerived1 : TRightBase
+            where TRightDerived2 : TRightBase
+        {
+            return either
+                .SelectLeft(
+                    left => left.SelectRight(right => (TRightBase)right))
+                .SelectRight(
+                    right => (TRightBase)right)
+                .PropagateRight();
         }
 
         /// <summary>
@@ -342,25 +390,6 @@
                     Either.Left<TLeft>().Right(right));
         }
 
-        /*public static void PropagateByRightUseCase()
-        {
-            var either = Either.Left<(string, IEither<int, Exception>)>().Right(new Exception());
-
-            Either<(string, int), Exception> result = either.PropagateByRight<(string, IEither<int, Exception>), Exception, int, (string, int)> (
-                left => left.Item2,
-                (left, nested) => (left, nested));
-        }
-
-        //// TODO get all the names right for this use case
-        public static IEither<TLeftResult, TRight> PropagateByRight<TLeft, TRight, TLeftNested, TLeftResult>( //// TODO TOPIC does the "orientation" of this name make sense? //// TODO is this a "lift" actually?
-            this IEither<TLeft, TRight> either,
-            Func<TLeft, IEither<TLeftNested, TRight>> Propagator,
-            Func<TLeft, TLeftNested, TLeftResult> aggregator)
-        {
-            either.Visit(
-                left => left.)
-        }*/
-
         /// <summary>
         /// 
         /// </summary>
@@ -382,6 +411,25 @@
                         subLeft => Either.Left(subLeft).Right<TRight>(),
                         subRight => Either.Left<TLeft>().Right(subRight)));
         }
+
+        /*public static void PropagateByRightUseCase()
+        {
+            var either = Either.Left<(string, IEither<int, Exception>)>().Right(new Exception());
+
+            Either<(string, int), Exception> result = either.PropagateByRight<(string, IEither<int, Exception>), Exception, int, (string, int)> (
+                left => left.Item2,
+                (left, nested) => (left, nested));
+        }
+
+        //// TODO get all the names right for this use case
+        public static IEither<TLeftResult, TRight> PropagateByRight<TLeft, TRight, TLeftNested, TLeftResult>( //// TODO TOPIC does the "orientation" of this name make sense? //// TODO is this a "lift" actually?
+            this IEither<TLeft, TRight> either,
+            Func<TLeft, IEither<TLeftNested, TRight>> Propagator,
+            Func<TLeft, TLeftNested, TLeftResult> aggregator)
+        {
+            either.Visit(
+                left => left.)
+        }*/
 
         public static IEither<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(
             this IEither<TLeftFirst, TRight> first,
