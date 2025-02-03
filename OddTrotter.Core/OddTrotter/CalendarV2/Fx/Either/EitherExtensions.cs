@@ -76,7 +76,7 @@
                 this IEither<TLeftValue, TRightValue> either,
                 Func<TLeftValue, TContext, TLeftResult> leftSelector,
                 Func<TRightValue, TContext, TRightResult> rightSelector,
-                TContext context)
+                TContext context) //// TODO TOPIC should this go on the next line?
         {
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(leftSelector);
@@ -239,7 +239,7 @@
             ArgumentNullException.ThrowIfNull(leftSelector);
 
             return either.Visit(
-                left => Either.Left(leftSelector(left)).Right<TRightValue>(), //// TODO maybe the factory methods should be able to go in either order?
+                left => Either.Left(leftSelector(left)).Right<TRightValue>(),
                 right => Either.Left<TLeftResult>().Right(right));
         }
 

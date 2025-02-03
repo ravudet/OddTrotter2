@@ -39,6 +39,8 @@
             }
         }
 
+        //// TODO maybe the factory methods should be able to go in either order?
+
         public static EmptyLeft<TLeft> Left<TLeft>()
         {
             return new EmptyLeft<TLeft>();
