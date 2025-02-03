@@ -5,7 +5,8 @@
 
     /// <summary>
     /// TODO TOPIC all of the names of the extensions really
-    /// TODO mixins for all of these
+    /// TODO wrap exceptions for accepts
+    /// TODO FUTURE mixins for all of these
     /// 
     /// TODO TOPIC is spacing ok? not sure there's a better way...
     /// TODO TOPIC should all of this be lazy?
@@ -28,7 +29,7 @@
         /// </exception>
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
-        /// </exception> //// TODO TOPIC wrap this exception maybe?
+        /// </exception>
         public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propagateby" extension; look at "catamorphism" of either
             this IEither<TLeft, TRight> either,
             Func<TLeft, TResult> leftAccept,
@@ -63,7 +64,7 @@
         /// </exception>
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw
-        /// </exception> //// TODO TOPIC wrap this exception maybe?
+        /// </exception>
         public static IEither<TLeftResult, TRightResult> Select
             <
                 TLeftValue,
@@ -106,7 +107,7 @@
         /// </exception>
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> can throw
-        /// </exception> //// TODO TOPIC wrap this exception maybe?
+        /// </exception>
         public static IEither<TLeftResult, TRightValue> SelectLeft
             <
                 TLeftValue,
@@ -146,7 +147,7 @@
         /// </exception>
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="rightSelector"/> can throw
-        /// </exception> //// TODO TOPIC wrap this exception maybe?
+        /// </exception>
         public static IEither<TLeftValue, TRightResult> SelectRight
             <
                 TLeftValue,
@@ -185,7 +186,7 @@
         /// </exception>
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw
-        /// </exception> //// TODO TOPIC wrap this exception maybe?
+        /// </exception>
         public static IEither<TLeftResult, TRightResult> Select
             <
                 TLeftValue,
@@ -224,7 +225,7 @@
         /// </exception>
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> can throw
-        /// </exception> //// TODO TOPIC wrap this exception maybe?
+        /// </exception>
         public static IEither<TLeftResult, TRightValue> SelectLeft
             <
                 TLeftValue,
@@ -259,7 +260,7 @@
         /// </exception>
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="rightSelector"/> can throw
-        /// </exception> //// TODO TOPIC wrap this exception maybe?
+        /// </exception>
         public static IEither<TLeftValue, TRightResult> SelectRight
             <
                 TLeftValue,
@@ -279,29 +280,44 @@
                 new CalendarV2.System.Void());
         }
 
-        public static Exception AsBase(this Exception exception)
-        {
-            return exception;
-        }
-
-        public static ArgumentException AsBase(this ArgumentException exception)
-        {
-            return exception;
-        }
-
-        public static T2 AsBase<T1, T2>(this T1 val) where T1 : T2
-        {
-            return val;
-        }
-
         public static void NullPropagateUseCase()
         {
+            var foo1 = Foo1()?.Bar1()?.Frob1();
 
+            var foo2 = Foo2().NullPropagate(Bar1).NullPropagate(Frob1);
         }
 
-        public static IEither<TLeft, CalendarV2.System.Void> NullPrapogate<TLeft>(this IEither<IEither<TLeft, CalendarV2.System.Void>, CalendarV2.System.Void> either)
+        public static object? Foo1()
         {
-            //// TODO i think null propogation is actually just shift left (try it out in the use case above); maybe call these methods "consolidate" or go back to the "shift" naming if it's not actually null propagation
+            return new object();
+        }
+
+        public static string Bar1(this object value)
+        {
+            return value.ToString() ?? string.Empty;
+        }
+
+        public static int Frob1(this string value)
+        {
+            return value.Length;
+        }
+
+        public static Either<string, CalendarV2.System.Void> Foo2() //// TOPIC TODO you need a "null" type instead of overriding void probably
+        {
+            return Either.Left("asdf").Right<CalendarV2.System.Void>();
+        }
+
+        public static IEither<TLeftResult, CalendarV2.System.Void> NullPropagate<TLeftValue, TLeftResult>(
+            this IEither<TLeftValue, CalendarV2.System.Void> either, 
+            Func<TLeftValue, TLeftResult> selector)
+        {
+            //// TODO TOPIC is this extension even worth having?
+            return either.SelectLeft(selector);
+        }
+
+        public static IEither<TLeft, CalendarV2.System.Void> NullPropagate<TLeft>(this IEither<IEither<TLeft, CalendarV2.System.Void>, CalendarV2.System.Void> either)
+        {
+            //// TODO TOPIC this extension is *not* null propagate; find a better name; previously, we liked the name "propagate", but it's definitely not (see above)
             return either.PropagateRight();
         }
 
@@ -316,8 +332,6 @@
         public static IEither<TLeft, TRight> PropagateRight<TLeft, TRight>(
             this IEither<IEither<TLeft, TRight>, TRight> either) //// TODO what if the two "rights" both implement the same super type?
         {
-            //// TODO we like the name "propagate"
-            //// TODO just write out an example of null propagation, figure out if left or right would be the "nullable", and then use that to get the naming correct here
             ArgumentNullException.ThrowIfNull(either);
 
             return either.Visit(
