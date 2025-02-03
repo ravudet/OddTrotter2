@@ -6,15 +6,12 @@
     /// <summary>
     /// TODO TOPIC all of the names of the extensions really
     /// TODO mixins for all of these
-    /// TODO should all of this be lazy?
+    /// 
+    /// TODO TOPIC is spacing ok? not sure there's a better way...
+    /// TODO TOPIC should all of this be lazy?
     /// </summary>
     public static class EitherExtensions
     {
-        public static void Test(Either<int, Exception> either)
-        {
-            either.SelectLeft(left => (double)left);
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -67,7 +64,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static IEither<TLeftResult, TRightResult> Select //// TODO TOPIC name this "map" instead? //// TODO this is a map, doesn't matter which of the two names you call it; "map" means "reach inside the box and do something with the stuff inside, then put the box back around it"
+        public static IEither<TLeftResult, TRightResult> Select
             <
                 TLeftValue,
                 TRightValue,
@@ -110,7 +107,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static IEither<TLeftResult, TRightValue> SelectLeft //// TODO TOPIC name this "map" instead? //// TODO TOPIC what about the overall name?
+        public static IEither<TLeftResult, TRightValue> SelectLeft
             <
                 TLeftValue,
                 TRightValue,
@@ -150,7 +147,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="rightSelector"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static IEither<TLeftValue, TRightResult> SelectRight //// TODO TOPIC name this "map" instead? //// TODO TOPIC what about the overall name?
+        public static IEither<TLeftValue, TRightResult> SelectRight
             <
                 TLeftValue,
                 TRightValue,
@@ -189,7 +186,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static IEither<TLeftResult, TRightResult> Select //// TODO TOPIC name this "map" instead?
+        public static IEither<TLeftResult, TRightResult> Select
             <
                 TLeftValue,
                 TRightValue,
@@ -228,7 +225,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftSelector"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static IEither<TLeftResult, TRightValue> SelectLeft //// TODO TOPIC name this "map" instead? //// TODO TOPIC what about the overall name?
+        public static IEither<TLeftResult, TRightValue> SelectLeft
             <
                 TLeftValue,
                 TRightValue,
@@ -263,7 +260,7 @@
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="rightSelector"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe?
-        public static IEither<TLeftValue, TRightResult> SelectRight //// TODO TOPIC name this "map" instead? //// TODO TOPIC what about the overall name?
+        public static IEither<TLeftValue, TRightResult> SelectRight
             <
                 TLeftValue,
                 TRightValue,
