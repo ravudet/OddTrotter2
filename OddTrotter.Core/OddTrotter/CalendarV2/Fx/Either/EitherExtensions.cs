@@ -316,7 +316,7 @@
 
         public static IEither<TLeft, CalendarV2.System.Void> NullPropagate<TLeft>(this IEither<IEither<TLeft, CalendarV2.System.Void>, CalendarV2.System.Void> either)
         {
-            //// TODO TOPIC this extension is *not* null propagate; find a better name; previously, we liked the name "propagate", but it's definitely not (see above)
+            //// TODO TOPIC this extension is *not* null propagate; find a better name; previously, we liked the name "propagate", but it's definitely not (see above);
             return either.PropagateRight();
         }
 
@@ -360,6 +360,7 @@
             where TRightDerived1 : TRightBase
             where TRightDerived2 : TRightBase
         {
+            //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"?
             return either
                 .SelectLeft(
                     left => left.SelectRight(right => (TRightBase)right))
@@ -377,8 +378,9 @@
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static IEither<TLeft, TRight> PropagateRight<TLeft, TRight>(
-            this IEither<IEither<TLeft, TRight>, TRight> either) //// TODO what if the two "rights" both implement the same super type?
+            this IEither<IEither<TLeft, TRight>, TRight> either)
         {
+            //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"?
             ArgumentNullException.ThrowIfNull(either);
 
             return either.Visit(
@@ -401,6 +403,7 @@
         public static IEither<TLeft, TRight> PropagateLeft<TLeft, TRight>(
             this IEither<TLeft, IEither<TLeft, TRight>> either)
         {
+            //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"?
             ArgumentNullException.ThrowIfNull(either);
 
             return either.Visit(
