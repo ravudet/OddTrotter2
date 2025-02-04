@@ -332,7 +332,7 @@ namespace OddTrotter.Calendar
                                     .Visit(
                                         instanceOrTranslationError =>
                                             instanceOrTranslationError
-                                                .Visit(
+                                                .Visit( //// TODO isn't this just a select?
                                                     instance => 
                                                         Either
                                                             .Right<CalendarEventsContextTranslationException>()
