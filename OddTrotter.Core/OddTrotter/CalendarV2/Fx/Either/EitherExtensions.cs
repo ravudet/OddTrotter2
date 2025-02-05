@@ -2,6 +2,7 @@
 {
     using global::System;
     using global::System.Diagnostics.CodeAnalysis;
+    using OddTrotter.TodoList;
 
     public sealed class Null
     {
@@ -59,6 +60,8 @@
 
             var stuff5 = new global::System.Collections.Generic.List<IEither<string, Exception>>();
             ////stuff5.Add(new Exception());
+
+            //// TODO i think an implication of all of this is that your extensions should really return concrete `either` implementations, but the stuff5 example shows that this will probably permeate itself through caller code too; is that ok?
 
             var stuff6 = new global::System.Collections.Generic.List<NewEither<string, NewEither<InvalidOperationException, ArgumentException>>>();
             ////stuff6.Add(new ArgumentException());
@@ -177,12 +180,13 @@
     }
 
     /// <summary>
-    /// TODO pick up at line 493
+    /// TODO pick up at line 637
     /// TODO wrap exceptions for accepts
     /// TODO FUTURE mixins for all of these
     /// 
     /// TODO TOPIC is spacing ok? not sure there's a better way...
     /// TODO TOPIC should all of this be lazy?
+    /// TODO TOPIC any notable operations that are missing?
     /// </summary>
     public static class EitherExtensions
     {
@@ -598,6 +602,7 @@
                 (left, nested) => (left, nested));
         }
 
+        //// TODO TOPIC what should this method signature actually look like?
         //// TODO get all the names right for this use case
         public static IEither<TLeftResult, TRight> PropagateByRight<TLeft, TRight, TLeftNested, TLeftResult>( //// TODO TOPIC does the "orientation" of this name make sense? //// TODO is this a "lift" actually?
             this IEither<TLeft, TRight> either,
