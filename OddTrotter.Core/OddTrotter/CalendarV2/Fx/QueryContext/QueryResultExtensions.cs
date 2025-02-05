@@ -15,7 +15,7 @@
         public static 
             IEither
                 <
-                    EnumerableExtensions.EitherFirstOrDefaultResult
+                    EnumerableExtensions.FirstOrDefault
                         <
                             TElement, 
                             TDefault
@@ -39,7 +39,7 @@
                 <
                     Either
                         <
-                            EnumerableExtensions.EitherFirstOrDefaultResult
+                            EnumerableExtensions.FirstOrDefault
                                 <
                                     TElement, 
                                     TDefault
@@ -56,14 +56,14 @@
             public static FirstOrDefaultVisitor<TElement, TError, TDefault> Instance { get; } = 
                 new FirstOrDefaultVisitor<TElement, TError, TDefault>();
 
-            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(
+            public override Either<EnumerableExtensions.FirstOrDefault<TElement, TDefault>, TError> Accept(
                 QueryResult<TElement, TError>.Full node, in TDefault context)
             {
-                return new Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError>.Left(
+                return new Either<EnumerableExtensions.FirstOrDefault<TElement, TDefault>, TError>.Left(
                     node.Values.EitherFirstOrDefault(context));
             }
 
-            public override Either<EnumerableExtensions.EitherFirstOrDefaultResult<TElement, TDefault>, TError> Accept(
+            public override Either<EnumerableExtensions.FirstOrDefault<TElement, TDefault>, TError> Accept(
                 QueryResult<TElement, TError>.Partial node, in TDefault context)
             {
                 var firstOrError = node.Values.EitherFirstOrDefault(node.Error);
@@ -71,7 +71,7 @@
                     (left, context) => 
                         Either
                             .Left(
-                                new EnumerableExtensions.EitherFirstOrDefaultResult
+                                new EnumerableExtensions.FirstOrDefault
                                     <
                                         TElement,
                                         TDefault
@@ -88,7 +88,7 @@
                         Either
                             .Left
                                 <
-                                    EnumerableExtensions.EitherFirstOrDefaultResult
+                                    EnumerableExtensions.FirstOrDefault
                                         <
                                             TElement,
                                             TDefault

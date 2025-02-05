@@ -539,6 +539,7 @@
             where TRightDerived2 : TRightBase
         {
             //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"?
+            //// TODO TOPIC look at the parameterless coalesce as a degenerate case
             return either
                 .SelectLeft(
                     left => left.SelectRight(right => (TRightBase)right))
@@ -737,6 +738,12 @@
             ArgumentNullException.ThrowIfNull(coalescer);
 
             return either.Visit(left => left, coalescer);
+        }
+
+        public static TValue Coalesce<TValue>(this IEither<TValue, TValue> either)
+        {
+            //// TODO TOPIC this is like a degenerate case of the "shift right" thing...
+            return either.Visit(left => left, right => right);
         }
 
         //// TODO write somewhere that nullable<TLeft> is equivalent to IEither<TLeft, CalendarV2.System.Void>
