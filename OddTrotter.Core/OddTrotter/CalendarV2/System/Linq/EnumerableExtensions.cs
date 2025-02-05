@@ -26,10 +26,20 @@
             }
         }
 
+        public static EitherFirstOrDefaultResult<TElement, TElement> EitherFirstOrDefault<TElement>(
+            this IEnumerable<TElement> source)
+        {
+            return source.EitherFirstOrDefault(default(TElement)!);
+        }
+
         public static EitherFirstOrDefaultResult<TElement, TDefault> EitherFirstOrDefault<TElement, TDefault>(
             this IEnumerable<TElement> source,
             TDefault @default)
         {
+            //// TODO you questioned this before, but here's a conclusion: i actually like that the default is it's own type parameter because it allows for more verbose cases; having the same type would just be another convenience method, but it's still beneficial over the linq implementation because you can differentiate between first or default; further, you can implement the linq overload as a convenience method on top of this one
+
+            //// TODO actually write the convenience method mentioned in the comment above
+
             using (var enumerator = source.GetEnumerator())
             {
                 if (!enumerator.MoveNext())
