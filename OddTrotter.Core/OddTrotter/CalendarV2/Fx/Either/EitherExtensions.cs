@@ -638,9 +638,20 @@
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="left"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static bool TryLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TLeft left)
         {
             //// TODO TOPIC naming
+            ArgumentNullException.ThrowIfNull(either);
+
             var result = either.Visit(
                 left => (left, true),
                 right => (default(TLeft), false));
@@ -649,9 +660,20 @@
             return result.Item2;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static bool TryRight<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TRight right)
         {
             //// TODO TOPIC naming
+            ArgumentNullException.ThrowIfNull(either);
+
             var result = either.Visit(
                 left => (default(TRight), false),
                 right => (right, true));
@@ -660,18 +682,19 @@
             return result.Item2;
         }
 
-        public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
-        {
-            //// TODO TOPIC naming
-            //// TODO maybe the "try" conversation will illuminate a new name for this method, otherwise it's prtety solid
-            return either.Coalesce(right => throw right);
-
-            ////return either.Visit(left => left, right => throw right);
-        }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="left"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static bool Try<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, [MaybeNullWhen(false)] out TLeft left)
         {
-            //// TODO TOPIC naming
+            ArgumentNullException.ThrowIfNull(either);
+
+            //// TODO TOPIC naming? i doubt this is actually a `try` because it doesn't take an input
             var result = either.Visit(
                 left => (left, true),
                 right => (default(TLeft), false));
@@ -680,8 +703,39 @@
             return result.Item2;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
+        {
+            ArgumentNullException.ThrowIfNull(either);
+
+            //// TODO TOPIC naming
+            //// TODO maybe the "try" conversation will illuminate a new name for this method, otherwise it's prtety solid
+            return either.Coalesce(right => throw right);
+
+            ////return either.Visit(left => left, right => throw right);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="coalescer"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="coalescer"/> is <see langword="null"/></exception>
         public static TLeft Coalesce<TLeft, TRight>(this IEither<TLeft, TRight> either, Func<TRight, TLeft> coalescer)
         {
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(coalescer);
+
             return either.Visit(left => left, coalescer);
         }
 
@@ -698,7 +752,7 @@
 
         public static TLeft Coalesce<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, TLeft @default)
         {
-            //// TODO should there be an overload of Func<TLeft> defaultCoalescer?
+            //// TODO should there be an overload of Func<TLeft> defaultCoalescer? //// TODO TOPIC no, because that's just coalesce(either<left, right>)
             //// this is equivalent to the null coalescing operator; how to generalize?
             //// TODO wait, is *visit* actually the general-form "coalesce"? and that's why you can't seem to find a more general method signature?
             /*return either.Visit(
@@ -707,10 +761,6 @@
             */
             return either.Coalesce(_ => @default);
         }
-
-        //// TODO add Propagateby
-        //// TODO coalesce is really creating a "try" and "throwright" seems to be the same basic operation, but  the "not left" case is hard-coded as "throw"; that's probably fine as a convenience method, but i think there's something more fundamental that should be exposed //// TODO maybe the "throw" extension method should return a "throw<TException>" or something that is equivalent to a void?
-        //// TODO add "coalesce" variants
     }
 
     /// <summary>

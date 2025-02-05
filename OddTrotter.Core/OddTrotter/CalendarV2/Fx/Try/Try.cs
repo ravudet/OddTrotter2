@@ -8,7 +8,7 @@
 
     public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 
-    //// TODO TOPIC every below here
+    //// TODO TOPIC everything below here
 
     public delegate TOutput? Try1<in TInput, out TOutput>(TInput input, out bool success);
     public delegate bool Try2<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput success);
