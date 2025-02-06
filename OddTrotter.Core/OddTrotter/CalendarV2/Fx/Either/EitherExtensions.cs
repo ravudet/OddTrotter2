@@ -212,6 +212,7 @@ namespace CalendarV2.Fx.Either
         /// </exception>
         /// <remarks>
         /// //// TODO use pararefs where possible
+        /// //// TODO put this in the interface
         /// This is named `apply`. Other names proposed:
         /// 1. `visit` - This leaks the design detail that the visitor pattern is used to implement the method; it's a fine name,
         /// but if we can do better, we should.
