@@ -211,7 +211,7 @@ namespace CalendarV2.Fx.Either
         /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
         /// </exception>
         /// <remarks>
-        /// //// TODO use pararefs wher possible
+        /// //// TODO use pararefs where possible
         /// This is named `apply`. Other names proposed:
         /// 1. `visit` - This leaks the design detail that the visitor pattern is used to implement the method; it's a fine name,
         /// but if we can do better, we should.
