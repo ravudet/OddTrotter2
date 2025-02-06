@@ -12,7 +12,7 @@
 
     public delegate TOutput? Try1<in TInput, out TOutput>(TInput input, out bool success);
     public delegate bool Try2<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput success);
-    public delegate IEither<TOutput, CalendarV2.System.Void> Try3<in TInput, out TOutput>(TInput input);
+    public delegate IEither<TOutput, CalendarV2.System.Nothing> Try3<in TInput, out TOutput>(TInput input);
     
     public static class Try1Extensions
     {
@@ -96,15 +96,15 @@
             }
         }*/
 
-        public static IEither<T, CalendarV2.System.Void> ToEither<T>(this T? nullable)
+        public static IEither<T, CalendarV2.System.Nothing> ToEither<T>(this T? nullable)
         {
             if (nullable == null)
             {
-                return Either.Left<T>().Right(new CalendarV2.System.Void());
+                return Either.Left<T>().Right(new CalendarV2.System.Nothing());
             }
             else
             {
-                return Either.Left(nullable).Right<CalendarV2.System.Void>();
+                return Either.Left(nullable).Right<CalendarV2.System.Nothing>();
             }
         }
     }
@@ -271,15 +271,15 @@
             data2.TrySelect((Try<string, int>)int.TryParse);*/
         }
 
-        public static IEither<int, CalendarV2.System.Void> TryParse(string input)
+        public static IEither<int, CalendarV2.System.Nothing> TryParse(string input)
         {
             if (int.TryParse(input, out var result))
             {
-                return Either.Left(result).Right<CalendarV2.System.Void>();
+                return Either.Left(result).Right<CalendarV2.System.Nothing>();
             }
             else
             {
-                return Either.Left<int>().Right(new CalendarV2.System.Void());
+                return Either.Left<int>().Right(new CalendarV2.System.Nothing());
             }
         }
 
@@ -298,7 +298,7 @@
 
         public static IEnumerable<TResult> TrySelect<TElement, TResult>(
             this IEnumerable<TElement> source,
-            Func<TElement, IEither<TResult, CalendarV2.System.Void>> selector)
+            Func<TElement, IEither<TResult, CalendarV2.System.Nothing>> selector)
         {
             foreach (var element in source)
             {

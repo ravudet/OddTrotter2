@@ -6,6 +6,7 @@
 
     public sealed class Null
     {
+        //// TODO do this nullable stuff when you actually have a use-case; just stash this somewhere until then
     }
 
     public sealed class Null<T>
@@ -61,6 +62,7 @@
             var stuff5 = new global::System.Collections.Generic.List<IEither<string, Exception>>();
             ////stuff5.Add(new Exception());
 
+            //// TODO do the below; you like the conversions, but you don't know the best consumption
             //// TODO i think an implication of all of this is that your extensions should really return concrete `either` implementations, but the stuff5 example shows that this will probably permeate itself through caller code too; is that ok?
 
             var stuff6 = new global::System.Collections.Generic.List<NewEither<string, NewEither<InvalidOperationException, ArgumentException>>>();
@@ -208,6 +210,7 @@
         /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
         /// </exception>
         public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propagateby" extension; look at "catamorphism" of either; TODO i believe `Visit` itself is actually a "functor", but method names in c# should mostly be verbs; is it really a functor, and, if so, what should we call it so it's a verb? https://en.wikipedia.org/wiki/Catamorphism https://en.wikipedia.org/wiki/Functor#endofunctor
+            //// TODO maybe switch? there is a c# switch expression
             this IEither<TLeft, TRight> either,
             Func<TLeft, TResult> leftAccept,
             Func<TRight, TResult> rightAccept)
@@ -219,7 +222,7 @@
             return either.Visit(
                 (left, context) => leftAccept(left),
                 (right, context) => rightAccept(right),
-                new CalendarV2.System.Void());
+                new CalendarV2.System.Nothing());
         }
 
         /// <summary>
@@ -383,7 +386,7 @@
             return either.Visit(
                 (left, context) => Either.Left(leftSelector(left)).Right<TRightResult>(),
                 (right, context) => Either.Left<TLeftResult>().Right(rightSelector(right)),
-                new CalendarV2.System.Void());
+                new CalendarV2.System.Nothing());
         }
 
         /// <summary>
@@ -454,7 +457,7 @@
             return either.Visit(
                 (left, context) => Either.Left(left).Right<TRightResult>(),
                 (right, context) => Either.Left<TLeftValue>().Right(rightSelector(right)),
-                new CalendarV2.System.Void());
+                new CalendarV2.System.Nothing());
         }
 
         public static void NullPropagateUseCase()
@@ -479,20 +482,20 @@
             return value.Length;
         }
 
-        public static Either<string, CalendarV2.System.Void> Foo2() //// TOPIC TODO you need a "null" type instead of overriding void probably
+        public static Either<string, CalendarV2.System.Nothing> Foo2() //// TOPIC TODO you need a "null" type instead of overriding void probably
         {
-            return Either.Left("asdf").Right<CalendarV2.System.Void>();
+            return Either.Left("asdf").Right<CalendarV2.System.Nothing>();
         }
 
-        public static IEither<TLeftResult, CalendarV2.System.Void> NullPropagate<TLeftValue, TLeftResult>(
-            this IEither<TLeftValue, CalendarV2.System.Void> either,
+        public static IEither<TLeftResult, CalendarV2.System.Nothing> NullPropagate<TLeftValue, TLeftResult>(
+            this IEither<TLeftValue, CalendarV2.System.Nothing> either,
             Func<TLeftValue, TLeftResult> selector)
         {
             //// TODO TOPIC is this extension even worth having?
             return either.SelectLeft(selector);
         }
 
-        public static IEither<TLeft, CalendarV2.System.Void> NullPropagate<TLeft>(this IEither<IEither<TLeft, CalendarV2.System.Void>, CalendarV2.System.Void> either)
+        public static IEither<TLeft, CalendarV2.System.Nothing> NullPropagate<TLeft>(this IEither<IEither<TLeft, CalendarV2.System.Nothing>, CalendarV2.System.Nothing> either)
         {
             //// TODO TOPIC this extension is *not* null propagate; find a better name; previously, we liked the name "propagate", but it's definitely not (see above);
             return either.PropagateRight();
@@ -691,7 +694,7 @@
         /// <param name="left"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static bool Try<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, [MaybeNullWhen(false)] out TLeft left)
+        public static bool Try<TLeft>(this IEither<TLeft, CalendarV2.System.Nothing> either, [MaybeNullWhen(false)] out TLeft left)
         {
             ArgumentNullException.ThrowIfNull(either);
 
@@ -757,7 +760,7 @@
 
         }
 
-        public static TLeft Coalesce<TLeft>(this IEither<TLeft, CalendarV2.System.Void> either, TLeft @default)
+        public static TLeft Coalesce<TLeft>(this IEither<TLeft, CalendarV2.System.Nothing> either, TLeft @default)
         {
             //// TODO should there be an overload of Func<TLeft> defaultCoalescer? //// TODO TOPIC no, because that's just coalesce(either<left, right>)
             //// this is equivalent to the null coalescing operator; how to generalize?
@@ -775,7 +778,7 @@
     /// </summary>
     public static class ExceptionExtensions
     {
-        public static CalendarV2.System.Void Throw<TException>(this TException exception) where TException : Exception
+        public static CalendarV2.System.Nothing Throw<TException>(this TException exception) where TException : Exception
         {
             throw exception;
         }
@@ -783,9 +786,9 @@
 
     public struct Throw<T>
     {
-        public static implicit operator CalendarV2.System.Void(Throw<T> @throw)
+        public static implicit operator CalendarV2.System.Nothing(Throw<T> @throw)
         {
-            return new CalendarV2.System.Void();
+            return new CalendarV2.System.Nothing();
         }
 
         public static implicit operator T(Throw<T> @throw)
