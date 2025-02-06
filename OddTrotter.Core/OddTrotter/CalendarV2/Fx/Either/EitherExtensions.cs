@@ -8,6 +8,7 @@ namespace CalendarV2.Fx.Either
     /// TODO write tests for `nothing`
     /// TODO move everything over to `nothing`
     /// TODO nail down `ieither` (pull below comment about naming of `visit`, and wrap exceptiosn for accpets, and rename "accept" to "map")
+    /// TODO write down that you're catching accept exceptions because you want to make it clear that exceptions *can* be thrown, unlike linq where you're functions *shouldn't* throw; this is aligned with your convention that interfaces document exceptions and if no exception is documented, the method is expected to not throw exceptions
     /// TODO nail down `either{tleft, tright}` (with tests and everything)
     /// TODO nail down `either` (with tests and everything; maybe this is the time to introduce the implicit conversions since it's a factory it *should* return the concrete type; whether you expose the concrete type in these extensions is a different question; see how these implicit conversions can be leveraged in this extensions class)
     /// TODO nail down these extensions (with tests and everything)
