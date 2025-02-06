@@ -211,11 +211,11 @@ namespace CalendarV2.Fx.Either
         /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
         /// </exception>
         /// <remarks>
-        /// This is named `map`. Other names proposed:
+        /// This is named `apply`. Other names proposed:
         /// 1. `visit` - This leaks the design detail that the visitor pattern is used to implement the method; it's a fine name,
         /// but if we can do better, we should.
-        /// 2. `aggregate`/`fold` - This is just definitely not a `fold`. The return type being a completely new, non-either
-        /// value distracted me when considering this option, but ultimately there is only a single value in the `either`
+        /// 2. `aggregate`/`fold` - This is just definitely not a `fold`. The return type being a completely new, non-`ieither`
+        /// value distracted me when considering this option, but ultimately there is only a single value in the `ieither`
         /// structure, so there is really no traversal happening that is essential to a `fold`, as noted 
         /// [here](https://en.wikipedia.org/wiki/Fold_(higher-order_function):
         /// > functions that analyze a recursive data structure and through use of a given combining operation, recombine the
@@ -224,9 +224,10 @@ namespace CalendarV2.Fx.Either
         /// ([reference](https://en.wikipedia.org/wiki/Functor#Computer_implementations)) that takes a functor. A functor maps
         /// [morphisms](https://en.wikipedia.org/wiki/Morphism) and morphisms are structure-preserving. In this method, `leftAccept` and `rightAccept` are the components of the piecewise function and (together or individually) they do *not* preserve structure (though they may be written in a way which *does* preserve structure). As a result, that piecewise function is *not* a functor, and therefore this is *not* `fmap`.
         /// 4. `morph` - This was an option because it seemed to be the "verb" form (and therefore more idiomatic to c#) of "morphism". However, as described above in `fmap`, `leftAccept` and `rightAccept` form a piecewise function that is *not* structure preserving and therefore is not a morphism.
-        /// 5. `switch`
+        /// 5. `switch` - Similar to `visit`, this leaks the design detail that a discriminated union is being used to implement the method. Although this works well as an analog to the c# [switch expression](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression), the name obfuscates the monadic nature of `ieither`.
         /// 
-        /// 
+        /// [`apply`](https://en.wikipedia.org/wiki/Apply) was chosen because this method is applying the piecewise map composed
+        /// of `leftAccept` and `rightAccept` to that map's argument `either`.
         /// </remarks>
         public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propagateby" extension; look at "catamorphism" of either; TODO i believe `Visit` itself is actually a "functor", but method names in c# should mostly be verbs; is it really a functor, and, if so, what should we call it so it's a verb? https://en.wikipedia.org/wiki/Catamorphism https://en.wikipedia.org/wiki/Functor#endofunctor
             //// TODO maybe switch? there is a c# switch expression
@@ -242,6 +243,17 @@ namespace CalendarV2.Fx.Either
                 (left, context) => leftAccept(left),
                 (right, context) => rightAccept(right),
                 new CalendarV2.System.Nothing());
+        }
+
+        public static TResult Switch<TLeft, TRight, TResult>(
+            Either<TLeft, TRight> either)
+        {
+            return either switch
+            {
+                Either<TLeft, TRight>.Left left => default(TResult)!,
+                Either<TLeft, TRight>.Right => default(TResult)!,
+                _ => default(TResult)!,
+            };
         }
 
         /// <summary>
