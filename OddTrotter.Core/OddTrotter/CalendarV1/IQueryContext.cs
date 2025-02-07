@@ -13,7 +13,7 @@ namespace OddTrotter.Calendar
 
     public delegate bool TryOld<TIn, TOut>(TIn input, out TOut output);
 
-    public delegate Either<TOut, Void> Try<TIn, TOut>(TIn input);
+    public delegate Either<TOut, Nothing> Try<TIn, TOut>(TIn input);
 
     public static class Driver
     {
@@ -30,26 +30,26 @@ namespace OddTrotter.Calendar
             return source.TrySelect(element => element.ToEither());
         }
 
-        public static Either<T, Void> ToEither<T>(this T? value)
+        public static Either<T, Nothing> ToEither<T>(this T? value)
         {
-            return value == null ? Either.Left<T>().Right(new Void()) : Either.Right<Void>().Left(value);
+            return value == null ? Either.Left<T>().Right(new Nothing()) : Either.Right<Nothing>().Left(value);
         }
 
-        private static Either<int, Void> TryParse(string input)
+        private static Either<int, Nothing> TryParse(string input)
         {
             if (int.TryParse(input, out var output))
             {
-                return Either.Right<Void>().Left(output);
+                return Either.Right<Nothing>().Left(output);
             }
             else
             {
-                return Either.Left<int>().Right(new Void());
+                return Either.Left<int>().Right(new Nothing());
             }
         }
 
         public static Try<TIn, TOut> ToTry<TIn, TOut>(this TryOld<TIn, TOut> @try)
         {
-            return input => @try(input, out var output) ? Either.Right<Void>().Left(output) : Either.Left<TOut>().Right(new Void());
+            return input => @try(input, out var output) ? Either.Right<Nothing>().Left(output) : Either.Left<TOut>().Right(new Nothing());
         }
 
         /// <summary>
@@ -60,14 +60,14 @@ namespace OddTrotter.Calendar
         /// <param name="value"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static bool Try<TOut>(this Either<TOut, Void> either, [MaybeNullWhen(false)] out TOut value)
+        public static bool Try<TOut>(this Either<TOut, Nothing> either, [MaybeNullWhen(false)] out TOut value)
         {
             if (either == null)
             {
                 throw new ArgumentNullException(nameof(either));
             }
 
-            if (either is Either<TOut, Void>.Left left)
+            if (either is Either<TOut, Nothing>.Left left)
             {
                 value = left.Value;
                 return true;
@@ -89,24 +89,24 @@ namespace OddTrotter.Calendar
             foreach (var element in source)
             {
                 var either = @try(element);
-                if (either is Either<TResult, Void>.Left left)
+                if (either is Either<TResult, Nothing>.Left left)
                 {
                     yield return left.Value;
                 }
             }
         }
 
-        public static Either<TLeft, Void> TryLeft<TLeft, TRight>(this Either<TLeft, TRight> either)
+        public static Either<TLeft, Nothing> TryLeft<TLeft, TRight>(this Either<TLeft, TRight> either)
         {
             //// TODO maybe call this "coalesceleft" to conform with "null coalescing operator"?
             return either.TryLeft(_ => _);
         }
 
-        public static Either<TResult, Void> TryLeft<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector)
+        public static Either<TResult, Nothing> TryLeft<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector)
         {
             return either.Visit(
-                left => Either.Right<Void>().Left(leftSelector(left)),
-                right => Either.Left<TResult>().Right(new Void()));
+                left => Either.Right<Nothing>().Left(leftSelector(left)),
+                right => Either.Left<TResult>().Right(new Nothing()));
         }
 
         public static bool TryRight<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector, Func<TRight, TResult> rightSelector, out TResult result)
@@ -767,7 +767,7 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="firstOrDefaultResult"/> or <paramref name="elementSelector"/> or <paramref name="errorSelector"/> is <see langword="null"/></exception>
         /// <exception cref="Exception">Throws any of the exceptions that <paramref name="elementSelector"/> or <paramref name="errorSelector"/> can throw</exception> //// TODO is this good?
-        public static Either<TResult, Void> TryNotDefault<TElement, TError, TDefault, TResult>(
+        public static Either<TResult, Nothing> TryNotDefault<TElement, TError, TDefault, TResult>(
             this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult,
             Func<TElement, TResult> elementSelector,
             Func<TError, TResult> errorSelector)
@@ -784,21 +784,21 @@ namespace OddTrotter.Calendar
                 .Visit(
                     element =>
                         Either
-                            .Right<Void>()
+                            .Right<Nothing>()
                             .Left(
                                 elementSelector(element)),
                     error =>
                         Either
-                            .Right<Void>()
+                            .Right<Nothing>()
                             .Left(
                                 errorSelector(error)),
                     @default =>
                         Either
                             .Left<TResult>()
-                            .Right(new Void()));
+                            .Right(new Nothing()));
         }
 
-        public static Either<TResult, Void> TryDefault<TElement, TError, TDefault, TResult>(
+        public static Either<TResult, Nothing> TryDefault<TElement, TError, TDefault, TResult>(
             this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult,
             Func<TElement, TResult> elementSelector,
             Func<TError, TResult> errorSelector,
@@ -806,11 +806,11 @@ namespace OddTrotter.Calendar
         {
             if (firstOrDefaultResult.TryIsDefault(elementSelector, errorSelector, defaultSelector, out var result))
             {
-                return Either.Right<Void>().Left(result);
+                return Either.Right<Nothing>().Left(result);
             }
             else
             {
-                return Either.Left<TResult>().Right(new Void());
+                return Either.Left<TResult>().Right(new Nothing());
             }
         }
 
@@ -878,11 +878,11 @@ namespace OddTrotter.Calendar
             ArgumentNullException.ThrowIfNull(defaultSelector);
 
             return
-                new FirstOrDefaultResultDelegateVisitor<TElement, TError, TDefault, TResult, Void>(
+                new FirstOrDefaultResultDelegateVisitor<TElement, TError, TDefault, TResult, Nothing>(
                     (element, context) => elementSelector(element),
                     (error, context) => errorSelector(error),
                     (@default, context) => defaultSelector(@default))
-                .Visit(result, new Void());
+                .Visit(result, new Nothing());
         }
 
         private sealed class FirstOrDefaultResultDelegateVisitor<TElement, TError, TDefault, TResult, TContext> : FirstOrDefaultResult<TElement, TError, TDefault>.Visitor<TResult, TContext>
@@ -1130,7 +1130,7 @@ namespace OddTrotter.Calendar
         /// <param name="queryResult"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> is <see langword="null"/></exception>
-        public static FirstOrDefaultResult<TElement, TError, Void> FirstOrDefault<TElement, TError>(this QueryResult<TElement, TError> queryResult)
+        public static FirstOrDefaultResult<TElement, TError, Nothing> FirstOrDefault<TElement, TError>(this QueryResult<TElement, TError> queryResult)
         {
             if (queryResult == null)
             {
@@ -1139,7 +1139,7 @@ namespace OddTrotter.Calendar
 
             return queryResult
                 .FirstOrDefault(
-                    new Void());
+                    new Nothing());
         }
 
         /// <summary>
@@ -1193,14 +1193,14 @@ namespace OddTrotter.Calendar
                     (left, @void) =>
                     {
                         context.Item1(left.Value);
-                        return new Void();
+                        return new Nothing();
                     },
                     (right, @void) =>
                     {
                         context.Item2(right.Value);
-                        return new Void();
+                        return new Nothing();
                     },
-                    new Void()); //// TODO shouldn't you pass in `context` instead of creating closures?
+                    new Nothing()); //// TODO shouldn't you pass in `context` instead of creating closures?
                 return default;
             }
 
@@ -1392,7 +1392,7 @@ namespace OddTrotter.Calendar
             }
         }
 
-        private sealed class OfTypeVisitor<TValueStart, TError, TValueEnd> : QueryResult<TValueStart, TError>.Visitor<QueryResult<TValueEnd, TError>, Void>
+        private sealed class OfTypeVisitor<TValueStart, TError, TValueEnd> : QueryResult<TValueStart, TError>.Visitor<QueryResult<TValueEnd, TError>, Nothing>
         {
             private OfTypeVisitor()
             {
@@ -1400,12 +1400,12 @@ namespace OddTrotter.Calendar
 
             public static OfTypeVisitor<TValueStart, TError, TValueEnd> Instance { get; } = new OfTypeVisitor<TValueStart, TError, TValueEnd>();
 
-            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Final node, Void context)
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Final node, Nothing context)
             {
                 return new QueryResult<TValueEnd, TError>.Final();
             }
 
-            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Element node, Void context)
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Element node, Nothing context)
             {
                 if (node.Value is TValueEnd valueEnd)
                 {
@@ -1417,7 +1417,7 @@ namespace OddTrotter.Calendar
                 }
             }
 
-            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Partial node, Void context)
+            public override QueryResult<TValueEnd, TError> Dispatch(QueryResult<TValueStart, TError>.Partial node, Nothing context)
             {
                 return new QueryResult<TValueEnd, TError>.Partial(node.Error);
             }
@@ -1445,7 +1445,7 @@ namespace OddTrotter.Calendar
             return FirstVisitor<TValue, TError>.Instance.Visit(queryResult, default);
         }
 
-        private sealed class FirstVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<Either<TValue, TError>, Void>
+        private sealed class FirstVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<Either<TValue, TError>, Nothing>
         {
             private FirstVisitor()
             {
@@ -1453,17 +1453,17 @@ namespace OddTrotter.Calendar
 
             public static FirstVisitor<TValue, TError> Instance { get; } = new FirstVisitor<TValue, TError>();
 
-            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Final node, Void context)
+            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Final node, Nothing context)
             {
                 throw new InvalidOperationException("TODO");
             }
 
-            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, Void context)
+            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, Nothing context)
             {
                 return Either.Right<TError>().Left(node.Value);
             }
 
-            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Void context)
+            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Nothing context)
             {
                 return Either.Left<TValue>().Right(node.Error);
             }

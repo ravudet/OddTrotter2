@@ -394,7 +394,7 @@
             }
         }
 
-        private sealed class EvaluateVisitor : GraphQuery.AsyncVisitor<GraphCalendarEventsResponse, Void>
+        private sealed class EvaluateVisitor : GraphQuery.AsyncVisitor<GraphCalendarEventsResponse, Nothing>
         {
             private readonly IGraphOdataStructuredContext graphOdataContext;
 
@@ -422,7 +422,7 @@
             /// <exception cref="OdataSuccessDeserializationException">Thrown if an error occurred while deserializing the OData success response</exception>
             /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
             /// <exception cref="GraphProcessingException">Thrown if graph encountered an error processing the request</exception>
-            public sealed override async Task<GraphCalendarEventsResponse> DispatchAsync(GraphQuery.Page node, Void context)
+            public sealed override async Task<GraphCalendarEventsResponse> DispatchAsync(GraphQuery.Page node, Nothing context)
             {
                 if (node == null)
                 {
@@ -438,7 +438,7 @@
             /// <exception cref="OdataSuccessDeserializationException">Thrown if an error occurred while deserializing the OData success response</exception>
             /// <exception cref="UnauthorizedAccessTokenException">Thrown if the access token used is invalid or provides insufficient privileges for the request</exception>
             /// <exception cref="GraphProcessingException">Thrown if graph encountered an error processing the request</exception>
-            internal sealed override async Task<GraphCalendarEventsResponse> DispatchAsync(GraphQuery.GetEvents node, Void context)
+            internal sealed override async Task<GraphCalendarEventsResponse> DispatchAsync(GraphQuery.GetEvents node, Nothing context)
             {
                 if (node == null)
                 {
@@ -481,7 +481,7 @@
                     .ThrowRight();
             }
 
-            private sealed class GetPageVisitor : OdataCollectionResponse.Visitor<GraphCalendarEventsResponse, Void>
+            private sealed class GetPageVisitor : OdataCollectionResponse.Visitor<GraphCalendarEventsResponse, Nothing>
             {
                 private readonly OdataCollectionValueVisitor odataCollectionValueVisitor;
 
@@ -499,7 +499,7 @@
                 public static GetPageVisitor Instance { get; } = new GetPageVisitor();
 
                 /// <inheritdoc/>
-                public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Void context)
+                public override GraphCalendarEventsResponse Dispatch(OdataCollectionResponse.Values node, Nothing context)
                 {
                     if (node == null)
                     {
@@ -518,7 +518,7 @@
                     return new GraphCalendarEventsResponse(graphCalendarEvents, node.NextLink);
                 }
 
-                private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, Void>
+                private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, Nothing>
                 {
                     /// <summary>
                     /// 
@@ -533,7 +533,7 @@
                     public static OdataCollectionValueVisitor Instance { get; } = new OdataCollectionValueVisitor();
 
                     /// <inheritdoc/>
-                    internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Dispatch(OdataCollectionValue.Json node, Void context)
+                    internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Dispatch(OdataCollectionValue.Json node, Nothing context)
                     {
                         if (node == null)
                         {
@@ -995,7 +995,7 @@
             return new PageQueryResult(response, 0, odataNextLinkVisitor);
         }
 
-        private sealed class OdataNextLinkVisitor : OdataNextLink.Visitor<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>, Void>
+        private sealed class OdataNextLinkVisitor : OdataNextLink.Visitor<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>, Nothing>
         {
             private readonly IGraphCalendarEventsEvaluator graphCalendarEventsContext;
             private readonly Func<OdataNextLink.Absolute, IGraphCalendarEventsEvaluator> contextGenerator;
@@ -1025,7 +1025,7 @@
             }
 
             /// <inheritdoc/>
-            protected internal override Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Null node, Void context)
+            protected internal override Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Null node, Nothing context)
             {
                 if (node == null)
                 {
@@ -1036,7 +1036,7 @@
             }
 
             /// <inheritdoc/>
-            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Relative node, Void context)
+            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Relative node, Nothing context)
             {
                 if (node == null)
                 {
@@ -1053,7 +1053,7 @@
             }
 
             /// <inheritdoc/>
-            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Absolute node, Void context)
+            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Absolute node, Nothing context)
             {
                 if (node == null)
                 {

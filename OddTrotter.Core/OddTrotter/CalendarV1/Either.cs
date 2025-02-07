@@ -277,9 +277,9 @@ namespace OddTrotter.Calendar
                 (left, context) => left.Value.Item2.Visit(
                     (subLeft, subContext) => Either.Right<TRight>().Left((left.Value.Item1, subLeft.Value)),
                     (subRight, subContext) => Either.Left<(T1, T2)>().Right(subRight.Value), 
-                    new Void()),
+                    new Nothing()),
                 (right, context) => Either.Left<(T1, T2)>().Right(right.Value),
-                new Void());
+                new Nothing());
         }
 
         /// <summary>
@@ -312,14 +312,14 @@ namespace OddTrotter.Calendar
                                     .Right(
                                         subRight
                                             .Value),
-                    new Void()),
+                    new Nothing()),
                 (right, context) => 
                     Either
                         .Left<TLeft>()
                         .Right(
                             right
                                 .Value),
-                new Void());
+                new Nothing());
         }
 
         /// <summary>
@@ -415,7 +415,7 @@ namespace OddTrotter.Calendar
                 .VisitAsync(
                     async (left, context) => Either.Right<TRightNew>().Left(await leftSelector(left.Value).ConfigureAwait(false)),
                     async (right, context) => Either.Left<TLeftNew>().Right(await rightSelector(right.Value).ConfigureAwait(false)),
-                    new Void())
+                    new Nothing())
                 .ConfigureAwait(false);
         }
 
@@ -658,7 +658,7 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(rightDispatch));
             }
 
-            return either.Visit<TLeft, TRight, TResult, Void>(
+            return either.Visit<TLeft, TRight, TResult, Nothing>(
                 (left, context) => leftDispatch(left.Value), //// TODO is there a way to wrap these without creating a closure?
                 (right, context) => rightDispatch(right.Value),
                 default);

@@ -348,7 +348,7 @@ namespace OddTrotter.Calendar
             return new Uri(uri, UriKind.Absolute).ToAbsoluteUri();
         }
 
-        private sealed class OdataServiceRootTranscriber : OdataServiceRoot.Visitor<string, Void>
+        private sealed class OdataServiceRootTranscriber : OdataServiceRoot.Visitor<string, Nothing>
         {
             /// <summary>
             /// 
@@ -363,7 +363,7 @@ namespace OddTrotter.Calendar
             public static OdataServiceRootTranscriber Instance { get; } = new OdataServiceRootTranscriber();
 
             /// <inheritdoc/>
-            protected internal override string Accept(OdataServiceRoot.WithPort node, Void context)
+            protected internal override string Accept(OdataServiceRoot.WithPort node, Nothing context)
             {
                 if (node == null)
                 {
@@ -376,7 +376,7 @@ namespace OddTrotter.Calendar
             }
 
             /// <inheritdoc/>
-            protected internal override string Accept(OdataServiceRoot.WithoutPort node, Void context)
+            protected internal override string Accept(OdataServiceRoot.WithoutPort node, Nothing context)
             {
                 if (node == null)
                 {
@@ -388,7 +388,7 @@ namespace OddTrotter.Calendar
                 return $"{scheme}://{node.Host.Value}/{segments}";
             }
 
-            private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<string, Void>
+            private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<string, Nothing>
             {
                 /// <summary>
                 /// 
@@ -403,7 +403,7 @@ namespace OddTrotter.Calendar
                 public static SchemeTranscriber Instance { get; } = new SchemeTranscriber();
 
                 /// <inheritdoc/>
-                protected internal override string Accept(Scheme.Https node, Void context)
+                protected internal override string Accept(Scheme.Https node, Nothing context)
                 {
                     if (node == null)
                     {
@@ -414,7 +414,7 @@ namespace OddTrotter.Calendar
                 }
 
                 /// <inheritdoc/>
-                protected internal override string Accept(Scheme.Http node, Void context)
+                protected internal override string Accept(Scheme.Http node, Nothing context)
                 {
                     if (node == null)
                     {
@@ -801,7 +801,7 @@ namespace OddTrotter.Calendar
             return new Uri(uri, UriKind.Absolute).ToAbsoluteUri();
         }
 
-        private sealed class InnerTranscriber : OdataNextLink.Inners.AbsoluteNextLink.Visitor<Void, StringBuilder>
+        private sealed class InnerTranscriber : OdataNextLink.Inners.AbsoluteNextLink.Visitor<Nothing, StringBuilder>
         {
             /// <summary>
             /// 
@@ -817,7 +817,7 @@ namespace OddTrotter.Calendar
 
             /// <inheritdoc/>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-            protected internal override Void Accept(OdataNextLink.Inners.AbsoluteNextLink.WithPort node, StringBuilder context)
+            protected internal override Nothing Accept(OdataNextLink.Inners.AbsoluteNextLink.WithPort node, StringBuilder context)
             {
                 if (node == null)
                 {
@@ -842,7 +842,7 @@ namespace OddTrotter.Calendar
 
             /// <inheritdoc/>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-            protected internal override Void Accept(OdataNextLink.Inners.AbsoluteNextLink.WithoutPort node, StringBuilder context)
+            protected internal override Nothing Accept(OdataNextLink.Inners.AbsoluteNextLink.WithoutPort node, StringBuilder context)
             {
                 if (node == null)
                 {
@@ -863,7 +863,7 @@ namespace OddTrotter.Calendar
                 return default;
             }
 
-            private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<Void, StringBuilder>
+            private sealed class SchemeTranscriber : OdataNextLink.Inners.Scheme.Visitor<Nothing, StringBuilder>
             {
                 /// <summary>
                 /// 
@@ -879,7 +879,7 @@ namespace OddTrotter.Calendar
 
                 /// <inheritdoc/>
                 /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-                protected internal override Void Accept(Scheme.Https node, StringBuilder context)
+                protected internal override Nothing Accept(Scheme.Https node, StringBuilder context)
                 {
                     if (node == null)
                     {
@@ -898,7 +898,7 @@ namespace OddTrotter.Calendar
 
                 /// <inheritdoc/>
                 /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-                protected internal override Void Accept(Scheme.Http node, StringBuilder context)
+                protected internal override Nothing Accept(Scheme.Http node, StringBuilder context)
                 {
                     if (node == null)
                     {

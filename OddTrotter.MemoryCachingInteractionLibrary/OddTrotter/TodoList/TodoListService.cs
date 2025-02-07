@@ -230,18 +230,18 @@
                         catch (Exception exception)
                         {
                             context.BodyParseErrors.Add(exception);
-                            return new OddTrotter.Calendar.Void();
+                            return new Nothing();
                         }
 
                         context.TodoList.AppendJoin(Environment.NewLine, parsedBody).AppendLine();
-                        return new OddTrotter.Calendar.Void();
+                        return new Nothing();
                     },
                     (right, context) =>
                     {
                         //// TODO do you want to stop recording the endtimestamp if a translation error occurred, or should the user be expected to handle it at that point? if the user is expected to handle it, it'd probably be good to put the errors in a more permanent storage so that a browser window mishap doesn't cause data loss
                         //// TODO i think you should let the user handle it because otherwise a calendar error will get them permanently stuck at a certain timestamp and they will need to actually go to the calendar event and fix it, instead of just checking that the error can be skipped and ignoring it, letting the next refresh remove it; you *will* want a way to persist the errors though for the browser mishap reason
                         context.TranslationErrors.Add(right.Value);
-                        return new OddTrotter.Calendar.Void();
+                        return new Nothing();
                     },
                     builder);
 

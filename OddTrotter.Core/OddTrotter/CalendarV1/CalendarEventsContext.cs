@@ -304,7 +304,7 @@ namespace OddTrotter.Calendar
                                                                 .Right(instancePagingError)
                                                         ))),
                                 translationError => Either
-                                    .Right<Void>()
+                                    .Right<Nothing>()
                                     .Left(
                                         Either
                                             .Left
