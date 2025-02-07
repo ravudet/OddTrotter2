@@ -5,7 +5,6 @@
     using global::System.Collections.Generic;
     using global::System.Diagnostics.CodeAnalysis;
     using global::System.Linq;
-    using OddTrotter.CalendarV2.Fx;
 
     public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 

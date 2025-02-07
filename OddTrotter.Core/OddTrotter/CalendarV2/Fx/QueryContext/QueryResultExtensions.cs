@@ -96,7 +96,7 @@
                                 >()
                             .Right(
                                 right),
-                    new CalendarV2.System.Nothing());
+                    new Nothing());
             }
         }
 
