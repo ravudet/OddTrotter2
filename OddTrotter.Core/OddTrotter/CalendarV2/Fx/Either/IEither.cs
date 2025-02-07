@@ -32,13 +32,7 @@ namespace Fx.Either
         /// 
         /// 
         /// 
-        /// 
-        /// <exception cref="Exception">
-        /// Throws any of the exceptions that <paramref name="leftMap"/> or <paramref name="rightMap"/> can throw
-        /// </exception> //// TODO TOPIC wrap this exception maybe? //// TODO look into performance implications and come back //// TODO also feedback that the documenation is not easier to consume with acustom exception type //// TODO do a mockup of a caller catching the exception; *maybe* there's value in differentiating between left or right throwing
-        /// <remarks>
         /// //// TODO use pararefs where possible
-        /// //// TODO put this in the interface
         /// This is named `apply`. Other names proposed:
         /// 1. `visit` - This leaks the design detail that the visitor pattern is used to implement the method; it's a fine name,
         /// but if we can do better, we should.
