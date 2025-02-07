@@ -25,14 +25,7 @@ namespace Fx.Either
         /// Thrown if <paramref name="rightMap"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
         /// whatever exception <paramref name="rightMap"/> threw.
         /// </exception>
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// //// TODO use pararefs where possible
+        /// <remarks>
         /// This is named `apply`. Other names proposed:
         /// 1. `visit` - This leaks the design detail that the visitor pattern is used to implement the method; it's a fine name,
         /// but if we can do better, we should.
@@ -44,12 +37,20 @@ namespace Fx.Either
         /// > results of recursively processing its constituent parts
         /// 3. `fmap` - Haskell has an `fmap` function
         /// ([reference](https://en.wikipedia.org/wiki/Functor#Computer_implementations)) that takes a functor. A functor maps
-        /// [morphisms](https://en.wikipedia.org/wiki/Morphism) and morphisms are structure-preserving. In this method, `leftAccept` and `rightAccept` are the components of the piecewise function and (together or individually) they do *not* preserve structure (though they may be written in a way which *does* preserve structure). As a result, that piecewise function is *not* a functor, and therefore this is *not* `fmap`.
-        /// 4. `morph` - This was an option because it seemed to be the "verb" form (and therefore more idiomatic to c#) of "morphism". However, as described above in `fmap`, `leftAccept` and `rightAccept` form a piecewise function that is *not* structure preserving and therefore is not a morphism.
-        /// 5. `switch` - Similar to `visit`, this leaks the design detail that a discriminated union is being used to implement the method. Although this works well as an analog to the c# [switch expression](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression), the name obfuscates the monadic nature of `ieither`.
+        /// [morphisms](https://en.wikipedia.org/wiki/Morphism) and morphisms are structure-preserving. In this method,
+        /// <paramref name="leftMap"/> and <paramref name="rightMap"/> are the components of the piecewise function and (together
+        /// or individually) they do *not* preserve structure (though they may be written in a way which *does* preserve
+        /// structure). As a result, that piecewise function is *not* a functor, and therefore this is *not* `fmap`.
+        /// 4. `morph` - This was an option because it seemed to be the "verb" form (and therefore more idiomatic to c#) of
+        /// "morphism". However, as described above in `fmap`, <paramref name="leftMap"/> and <paramref name="rightMap"/> form a
+        /// piecewise function that is *not* structure preserving and therefore is not a morphism.
+        /// 5. `switch` - Similar to `visit`, this leaks the design detail that a discriminated union is being used to implement
+        /// the method. Although this works well as an analog to the c#
+        /// [switch expression](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression),
+        /// the name obfuscates the monadic nature of `ieither`.
         /// 
         /// [`apply`](https://en.wikipedia.org/wiki/Apply) was chosen because this method is applying the piecewise map composed
-        /// of `leftAccept` and `rightAccept` to that map's argument `either`.
+        /// of <paramref name="leftMap"/> and <paramref name="rightMap"/> to that map's `ieither` argument.
         /// </remarks>
         TResult Apply<TResult, TContext>(
             Func<TLeft, TContext, TResult> leftMap, 
