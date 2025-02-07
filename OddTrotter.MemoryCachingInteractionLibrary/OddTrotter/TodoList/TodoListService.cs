@@ -353,8 +353,9 @@
             // TODO write up code quality list and create blog posts
             // code quality:
             // separate files
+            // comment line at the top of the file
             // namespaces
-            // `using`s
+            // `using` statements
             // dead code
             // line lengths
             // precondition checks
@@ -362,11 +363,12 @@
             //   `argumentnullinline.throwifnull`
             // exception documentation
             // todos
-            // unit tests
             // `sealed`
             // anything that isn't nailed down 100% should be `internal`
             // `this.`
-            
+            // `using` blocks
+            // unit tests
+
             //// TODO you are doing the "either" stuff right now because it is foundational to the query context stuff, and the query context stuff will need some diligence and effort around adding the third type parameter that allows mixins to work correctly; do query contexts next probably and just know that you're going to need to put the effort in
             //// TODO address todos TODO FUTURE, TODO TOPIC, and TODO TODO
             //// TODO separate files and namespaces, remove dead code, normalzie line lengths, stuff like that
