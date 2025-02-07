@@ -100,7 +100,7 @@
         {
             if (nullable == null)
             {
-                return Either.Left<T>().Right(new CalendarV2.System.Nothing());
+                return Either.Left<T>().Right(new Nothing());
             }
             else
             {
@@ -279,7 +279,7 @@
             }
             else
             {
-                return Either.Left<int>().Right(new CalendarV2.System.Nothing());
+                return Either.Left<int>().Right(new Nothing());
             }
         }
 
