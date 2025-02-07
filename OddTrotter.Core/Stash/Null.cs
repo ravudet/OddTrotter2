@@ -80,7 +80,7 @@ namespace Stash
             {
             }
 
-            public TResult Visit<TResult, TContext>(Func<T, TContext, TResult> leftAccept, Func<Null<T>, TContext, TResult> rightAccept, TContext context)
+            public TResult Apply<TResult, TContext>(Func<T, TContext, TResult> leftAccept, Func<Null<T>, TContext, TResult> rightAccept, TContext context)
             {
                 throw new NotImplementedException();
             }
@@ -117,9 +117,9 @@ namespace Stash
                 this.nested = nested;
             }
 
-            public TResult Visit<TResult, TContext>(Func<TLeft, TContext, TResult> leftAccept, Func<TRight, TContext, TResult> rightAccept, TContext context)
+            public TResult Apply<TResult, TContext>(Func<TLeft, TContext, TResult> leftAccept, Func<TRight, TContext, TResult> rightAccept, TContext context)
             {
-                return this.nested.Visit(leftAccept, rightAccept, context);
+                return this.nested.Apply(leftAccept, rightAccept, context);
             }
 
             public static implicit operator NewEither<TLeft, TRight>(EitherHelper<TLeft> left)
@@ -151,7 +151,7 @@ namespace Stash
                 {
                 }
 
-                public TResult Visit<TResult, TContext>(Func<TLeft, TContext, TResult> leftAccept, Func<TRight, TContext, TResult> rightAccept, TContext context)
+                public TResult Apply<TResult, TContext>(Func<TLeft, TContext, TResult> leftAccept, Func<TRight, TContext, TResult> rightAccept, TContext context)
                 {
                     throw new NotImplementedException();
                 }

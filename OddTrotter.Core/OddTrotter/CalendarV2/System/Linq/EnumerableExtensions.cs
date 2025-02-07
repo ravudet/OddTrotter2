@@ -31,7 +31,7 @@
             }
 
             /// <inheritdoc/>
-            public TResult Visit<TResult, TContext>(
+            public TResult Apply<TResult, TContext>(
                 global::System.Func<TFirst, TContext, TResult> leftAccept, 
                 global::System.Func<TDefault, TContext, TResult> rightAccept,
                 TContext context)
@@ -39,7 +39,7 @@
                 ArgumentNullException.ThrowIfNull(leftAccept);
                 ArgumentNullException.ThrowIfNull(rightAccept);
 
-                return either.Visit(leftAccept, rightAccept, context);
+                return either.Apply(leftAccept, rightAccept, context);
             }
         }
 

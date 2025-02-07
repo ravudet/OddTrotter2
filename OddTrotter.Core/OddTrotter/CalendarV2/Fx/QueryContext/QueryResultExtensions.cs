@@ -67,7 +67,7 @@
                 QueryResult<TElement, TError>.Partial node, in TDefault context)
             {
                 var firstOrError = node.Values.EitherFirstOrDefault(node.Error);
-                return firstOrError.Visit(
+                return firstOrError.Apply(
                     (left, context) => 
                         Either
                             .Left(

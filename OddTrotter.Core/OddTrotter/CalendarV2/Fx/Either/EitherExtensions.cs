@@ -5,8 +5,6 @@ namespace CalendarV2.Fx.Either
     using global::System.Diagnostics.CodeAnalysis;
 
     /// <summary>
-    /// TODO write tests for `nothing`
-    /// TODO move everything over to `nothing`
     /// TODO nail down `ieither` (pull below comment about naming of `visit`, and wrap exceptiosn for accpets, and rename "accept" to "map")
     /// TODO write down that you're catching accept exceptions because you want to make it clear that exceptions *can* be thrown, unlike linq where you're functions *shouldn't* throw; this is aligned with your convention that interfaces document exceptions and if no exception is documented, the method is expected to not throw exceptions
     /// TODO nail down `either{tleft, tright}` (with tests and everything)
@@ -19,14 +17,14 @@ namespace CalendarV2.Fx.Either
     /// </ItemGroup>
     /// TODO clean up everything else
     /// TODO move things out of the `calendarv2` folder
-    /// 
-    /// TODO FUTURE mixins for all of these
-    /// TODO FUTURE if you put implicit conversions in `either`, you are able to do things like add a string to a list{either{string, int}}, but to do this, all of your extensions would really need to return the concrete `either` type; but if you do that, you lose out on the ability to have mixins that preserve themselves through a monad
-    /// 
-    /// TODO TOPIC should all of this be lazy?
     /// </summary>
     public static class EitherExtensions
     {
+        /// TODO make sure all of these names are aligned with the `accept`, `leftmap`, `rightmap`, and `context` names for `ieither`
+        /// TODO FUTURE mixins for all of these
+        /// TODO FUTURE if you put implicit conversions in `either`, you are able to do things like add a string to a list{either{string, int}}, but to do this, all of your extensions would really need to return the concrete `either` type; but if you do that, you lose out on the ability to have mixins that preserve themselves through a monad
+        /// TODO TOPIC should all of this be lazy?
+
         /// <summary>
         /// 
         /// </summary>
@@ -44,27 +42,6 @@ namespace CalendarV2.Fx.Either
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
         /// </exception>
-        /// <remarks>
-        /// //// TODO use pararefs where possible
-        /// //// TODO put this in the interface
-        /// This is named `apply`. Other names proposed:
-        /// 1. `visit` - This leaks the design detail that the visitor pattern is used to implement the method; it's a fine name,
-        /// but if we can do better, we should.
-        /// 2. `aggregate`/`fold` - This is just definitely not a `fold`. The return type being a completely new, non-`ieither`
-        /// value distracted me when considering this option, but ultimately there is only a single value in the `ieither`
-        /// structure, so there is really no traversal happening that is essential to a `fold`, as noted 
-        /// [here](https://en.wikipedia.org/wiki/Fold_(higher-order_function):
-        /// > functions that analyze a recursive data structure and through use of a given combining operation, recombine the
-        /// > results of recursively processing its constituent parts
-        /// 3. `fmap` - Haskell has an `fmap` function
-        /// ([reference](https://en.wikipedia.org/wiki/Functor#Computer_implementations)) that takes a functor. A functor maps
-        /// [morphisms](https://en.wikipedia.org/wiki/Morphism) and morphisms are structure-preserving. In this method, `leftAccept` and `rightAccept` are the components of the piecewise function and (together or individually) they do *not* preserve structure (though they may be written in a way which *does* preserve structure). As a result, that piecewise function is *not* a functor, and therefore this is *not* `fmap`.
-        /// 4. `morph` - This was an option because it seemed to be the "verb" form (and therefore more idiomatic to c#) of "morphism". However, as described above in `fmap`, `leftAccept` and `rightAccept` form a piecewise function that is *not* structure preserving and therefore is not a morphism.
-        /// 5. `switch` - Similar to `visit`, this leaks the design detail that a discriminated union is being used to implement the method. Although this works well as an analog to the c# [switch expression](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression), the name obfuscates the monadic nature of `ieither`.
-        /// 
-        /// [`apply`](https://en.wikipedia.org/wiki/Apply) was chosen because this method is applying the piecewise map composed
-        /// of `leftAccept` and `rightAccept` to that map's argument `either`.
-        /// </remarks>
         public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propagateby" extension; look at "catamorphism" of either; TODO i believe `Visit` itself is actually a "functor", but method names in c# should mostly be verbs; is it really a functor, and, if so, what should we call it so it's a verb? https://en.wikipedia.org/wiki/Catamorphism https://en.wikipedia.org/wiki/Functor#endofunctor
             //// TODO maybe switch? there is a c# switch expression
             this IEither<TLeft, TRight> either,
@@ -75,7 +52,7 @@ namespace CalendarV2.Fx.Either
             ArgumentNullException.ThrowIfNull(leftAccept);
             ArgumentNullException.ThrowIfNull(rightAccept);
 
-            return either.Visit(
+            return either.Apply(
                 (left, context) => leftAccept(left),
                 (right, context) => rightAccept(right),
                 new Nothing());
@@ -130,7 +107,7 @@ namespace CalendarV2.Fx.Either
             ArgumentNullException.ThrowIfNull(leftSelector);
             ArgumentNullException.ThrowIfNull(rightSelector);
 
-            return either.Visit(
+            return either.Apply(
                 (left, context) => Either.Left(leftSelector(left, context)).Right<TRightResult>(),
                 (right, context) => Either.Left<TLeftResult>().Right(rightSelector(right, context)),
                 context);
@@ -170,7 +147,7 @@ namespace CalendarV2.Fx.Either
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(leftSelector);
 
-            return either.Visit(
+            return either.Apply(
                 (left, context) => Either.Left(leftSelector(left, context)).Right<TRightValue>(),
                 (right, context) => Either.Left<TLeftResult>().Right(right),
                 context);
@@ -210,7 +187,7 @@ namespace CalendarV2.Fx.Either
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(rightSelector);
 
-            return either.Visit(
+            return either.Apply(
                 (left, context) => Either.Left(left).Right<TRightResult>(),
                 (right, context) => Either.Left<TLeftValue>().Right(rightSelector(right, context)),
                 context);
@@ -250,7 +227,7 @@ namespace CalendarV2.Fx.Either
             ArgumentNullException.ThrowIfNull(leftSelector);
             ArgumentNullException.ThrowIfNull(rightSelector);
 
-            return either.Visit(
+            return either.Apply(
                 (left, context) => Either.Left(leftSelector(left)).Right<TRightResult>(),
                 (right, context) => Either.Left<TLeftResult>().Right(rightSelector(right)),
                 new Nothing());
@@ -321,7 +298,7 @@ namespace CalendarV2.Fx.Either
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(rightSelector);
 
-            return either.Visit(
+            return either.Apply(
                 (left, context) => Either.Left(left).Right<TRightResult>(),
                 (right, context) => Either.Left<TLeftValue>().Right(rightSelector(right)),
                 new Nothing());

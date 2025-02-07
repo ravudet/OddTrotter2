@@ -4,9 +4,9 @@
 
     public abstract class Either<TLeft, TRight> : IEither<TLeft, TRight>
     {
-        public TResult Visit<TResult, TContext>(Func<TLeft, TContext, TResult> leftAccept, Func<TRight, TContext, TResult> rightAccept, TContext context)
+        public TResult Apply<TResult, TContext>(Func<TLeft, TContext, TResult> leftMap, Func<TRight, TContext, TResult> rightMap, TContext context)
         {
-            return new DelegateVisitor<TResult, TContext>(leftAccept, rightAccept).Visit(this, context);
+            return new DelegateVisitor<TResult, TContext>(leftMap, rightMap).Visit(this, context);
         }
 
         private sealed class DelegateVisitor<TResult, TContext> : Visitor<TResult, TContext>
