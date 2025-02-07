@@ -6,7 +6,8 @@
 
     using CalendarV2.System.Linq;
     using CalendarV2.Fx.Either;
-    
+    using global::Fx.Either;
+
     /// <summary>
     /// TODO use `ieither` instead of `either`
     /// </summary>

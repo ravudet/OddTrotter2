@@ -4,6 +4,8 @@ namespace CalendarV2.Fx.Either
     using global::System;
     using global::System.Diagnostics.CodeAnalysis;
 
+    using global::Fx.Either;
+
     /// <summary>
     /// TODO nail down `ieither` (pull below comment about naming of `visit`, and wrap exceptiosn for accpets, and rename "accept" to "map")
     /// TODO write down that you're catching accept exceptions because you want to make it clear that exceptions *can* be thrown, unlike linq where you're functions *shouldn't* throw; this is aligned with your convention that interfaces document exceptions and if no exception is documented, the method is expected to not throw exceptions

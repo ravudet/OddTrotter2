@@ -1,6 +1,7 @@
-﻿namespace CalendarV2.Fx.Either
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.Either
 {
-    using global::System;
+    using System;
 
     public interface IEither<out TLeft, out TRight>
     {
@@ -16,6 +17,22 @@
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="leftMap"/> or <paramref name="rightMap"/> is <see langword="null"/>
         /// </exception>
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="leftMap"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
+        /// whatever exception <paramref name="leftMap"/> threw.
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="rightMap"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
+        /// whatever exception <paramref name="rightMap"/> threw.
+        /// </exception>
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
         /// <exception cref="Exception">
         /// Throws any of the exceptions that <paramref name="leftMap"/> or <paramref name="rightMap"/> can throw
         /// </exception> //// TODO TOPIC wrap this exception maybe? //// TODO look into performance implications and come back //// TODO also feedback that the documenation is not easier to consume with acustom exception type //// TODO do a mockup of a caller catching the exception; *maybe* there's value in differentiating between left or right throwing

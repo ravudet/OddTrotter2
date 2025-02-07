@@ -5,6 +5,7 @@
 
     using CalendarV2.Fx.Either;
     using CalendarV2.Fx.Try;
+    using global::Fx.Either;
 
     public static class EnumerableExtensions
     {

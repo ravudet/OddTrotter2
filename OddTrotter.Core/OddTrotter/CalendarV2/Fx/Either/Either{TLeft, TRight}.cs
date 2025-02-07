@@ -2,6 +2,8 @@
 {
     using global::System;
 
+    using global::Fx.Either;
+
     public abstract class Either<TLeft, TRight> : IEither<TLeft, TRight>
     {
         public TResult Apply<TResult, TContext>(Func<TLeft, TContext, TResult> leftMap, Func<TRight, TContext, TResult> rightMap, TContext context)
