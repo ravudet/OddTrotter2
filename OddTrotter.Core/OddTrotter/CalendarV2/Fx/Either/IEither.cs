@@ -5,6 +5,19 @@ namespace Fx.Either
 
     public interface IEither<out TLeft, out TRight>
     {
+        //// TODO FUTURE there are the other `apply` variants as used by the visitor pattern in the concrete implementation:
+        //// async
+        //// unsafe
+        //// result allows ref struct
+        //// context allows ref struct
+        //// context by reference
+        //// there are likely others
+        ////
+        //// are these mixins? are they standalone types? what is the best way to handle this? is there a kernel? for example,
+        //// most of the others appear that they can be built on top of an async unsafe implementation that allows ref structs
+        //// and takes the context by reference; would mixins then let you do everything else?
+
+
         /// <summary>
         /// 
         /// </summary>
@@ -56,13 +69,5 @@ namespace Fx.Either
             Func<TLeft, TContext, TResult> leftMap, 
             Func<TRight, TContext, TResult> rightMap,
             TContext context);
-
-        //// TODO what are all of the visitor variants?
-        //// async
-        //// unsafe
-        //// result allows ref struct
-        //// context allows ref struct
-        //// context by reference
-        //// there are likely others
     }
 }
