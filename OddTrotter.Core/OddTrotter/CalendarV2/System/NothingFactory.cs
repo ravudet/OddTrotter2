@@ -1,6 +1,8 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace CalendarV2.System
 {
+    using global::System;
+
     public static class NothingFactory
     {
         public static Nothing Nothing { get; } = new Nothing();

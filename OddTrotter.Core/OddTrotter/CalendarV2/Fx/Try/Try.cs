@@ -5,6 +5,7 @@
     using global::System.Collections.Generic;
     using global::System.Diagnostics.CodeAnalysis;
     using global::System.Linq;
+    using OddTrotter.CalendarV2.Fx;
 
     public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 
@@ -12,7 +13,7 @@
 
     public delegate TOutput? Try1<in TInput, out TOutput>(TInput input, out bool success);
     public delegate bool Try2<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput success);
-    public delegate IEither<TOutput, CalendarV2.System.Nothing> Try3<in TInput, out TOutput>(TInput input);
+    public delegate IEither<TOutput, Nothing> Try3<in TInput, out TOutput>(TInput input);
     
     public static class Try1Extensions
     {
@@ -96,7 +97,7 @@
             }
         }*/
 
-        public static IEither<T, CalendarV2.System.Nothing> ToEither<T>(this T? nullable)
+        public static IEither<T, Nothing> ToEither<T>(this T? nullable)
         {
             if (nullable == null)
             {
@@ -104,7 +105,7 @@
             }
             else
             {
-                return Either.Left(nullable).Right<CalendarV2.System.Nothing>();
+                return Either.Left(nullable).Right<Nothing>();
             }
         }
     }
@@ -271,11 +272,11 @@
             data2.TrySelect((Try<string, int>)int.TryParse);*/
         }
 
-        public static IEither<int, CalendarV2.System.Nothing> TryParse(string input)
+        public static IEither<int, Nothing> TryParse(string input)
         {
             if (int.TryParse(input, out var result))
             {
-                return Either.Left(result).Right<CalendarV2.System.Nothing>();
+                return Either.Left(result).Right<Nothing>();
             }
             else
             {
@@ -298,7 +299,7 @@
 
         public static IEnumerable<TResult> TrySelect<TElement, TResult>(
             this IEnumerable<TElement> source,
-            Func<TElement, IEither<TResult, CalendarV2.System.Nothing>> selector)
+            Func<TElement, IEither<TResult, Nothing>> selector)
         {
             foreach (var element in source)
             {

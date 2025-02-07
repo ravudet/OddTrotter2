@@ -11,8 +11,4 @@
     <ProjectReference Include="..\Fx.Core\Fx.Core\Fx.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Using Static="true" Include="CalendarV2.System.NothingFactory" />
-  </ItemGroup>
-
 </Project>

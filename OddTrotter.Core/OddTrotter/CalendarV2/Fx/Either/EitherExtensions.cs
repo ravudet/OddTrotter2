@@ -13,7 +13,12 @@ namespace CalendarV2.Fx.Either
     /// TODO nail down `either` (with tests and everything; maybe this is the time to introduce the implicit conversions since it's a factory it *should* return the concrete type; whether you expose the concrete type in these extensions is a different question; see how these implicit conversions can be leveraged in this extensions class)
     /// TODO nail down these extensions (with tests and everything)
     /// TODO move everything over to the v2 either stuff
-    /// TODO figure out what you want to do with `nothingfactory` and the global using in `oddtrotter.core.csproj`
+    /// TODO figure out what you want to do with `nothingfactory` and the global using in `oddtrotter.core.csproj` 
+    /// <ItemGroup>
+    /// <Using Static = "true" Include="CalendarV2.Fx.NothingFactory" />
+    /// </ItemGroup>
+    /// TODO clean up everything else
+    /// TODO move things out of the `calendarv2` folder
     /// 
     /// TODO FUTURE mixins for all of these
     /// TODO FUTURE if you put implicit conversions in `either`, you are able to do things like add a string to a list{either{string, int}}, but to do this, all of your extensions would really need to return the concrete `either` type; but if you do that, you lose out on the ability to have mixins that preserve themselves through a monad
@@ -73,7 +78,7 @@ namespace CalendarV2.Fx.Either
             return either.Visit(
                 (left, context) => leftAccept(left),
                 (right, context) => rightAccept(right),
-                Nothing);
+                new Nothing());
         }
 
         public static TResult Switch<TLeft, TRight, TResult>(
@@ -248,7 +253,7 @@ namespace CalendarV2.Fx.Either
             return either.Visit(
                 (left, context) => Either.Left(leftSelector(left)).Right<TRightResult>(),
                 (right, context) => Either.Left<TLeftResult>().Right(rightSelector(right)),
-                new CalendarV2.System.Nothing());
+                new Nothing());
         }
 
         /// <summary>
@@ -319,7 +324,7 @@ namespace CalendarV2.Fx.Either
             return either.Visit(
                 (left, context) => Either.Left(left).Right<TRightResult>(),
                 (right, context) => Either.Left<TLeftValue>().Right(rightSelector(right)),
-                new CalendarV2.System.Nothing());
+                new Nothing());
         }
 
         public static void NullPropagateUseCase()
@@ -344,20 +349,20 @@ namespace CalendarV2.Fx.Either
             return value.Length;
         }
 
-        public static Either<string, CalendarV2.System.Nothing> Foo2() //// TOPIC TODO you need a "null" type instead of overriding void probably
+        public static Either<string, Nothing> Foo2() //// TOPIC TODO you need a "null" type instead of overriding void probably
         {
-            return Either.Left("asdf").Right<CalendarV2.System.Nothing>();
+            return Either.Left("asdf").Right<Nothing>();
         }
 
-        public static IEither<TLeftResult, CalendarV2.System.Nothing> NullPropagate<TLeftValue, TLeftResult>(
-            this IEither<TLeftValue, CalendarV2.System.Nothing> either,
+        public static IEither<TLeftResult, Nothing> NullPropagate<TLeftValue, TLeftResult>(
+            this IEither<TLeftValue, Nothing> either,
             Func<TLeftValue, TLeftResult> selector)
         {
             //// TODO TOPIC is this extension even worth having?
             return either.SelectLeft(selector);
         }
 
-        public static IEither<TLeft, CalendarV2.System.Nothing> NullPropagate<TLeft>(this IEither<IEither<TLeft, CalendarV2.System.Nothing>, CalendarV2.System.Nothing> either)
+        public static IEither<TLeft, Nothing> NullPropagate<TLeft>(this IEither<IEither<TLeft, Nothing>, Nothing> either)
         {
             //// TODO TOPIC this extension is *not* null propagate; find a better name; previously, we liked the name "propagate", but it's definitely not (see above);
             return either.PropagateRight();
@@ -556,7 +561,7 @@ namespace CalendarV2.Fx.Either
         /// <param name="left"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static bool Try<TLeft>(this IEither<TLeft, CalendarV2.System.Nothing> either, [MaybeNullWhen(false)] out TLeft left)
+        public static bool Try<TLeft>(this IEither<TLeft, Nothing> either, [MaybeNullWhen(false)] out TLeft left)
         {
             ArgumentNullException.ThrowIfNull(either);
 
@@ -622,7 +627,7 @@ namespace CalendarV2.Fx.Either
 
         }
 
-        public static TLeft Coalesce<TLeft>(this IEither<TLeft, CalendarV2.System.Nothing> either, TLeft @default)
+        public static TLeft Coalesce<TLeft>(this IEither<TLeft, Nothing> either, TLeft @default)
         {
             //// TODO should there be an overload of Func<TLeft> defaultCoalescer? //// TODO TOPIC no, because that's just coalesce(either<left, right>)
             //// this is equivalent to the null coalescing operator; how to generalize?
@@ -640,7 +645,7 @@ namespace CalendarV2.Fx.Either
     /// </summary>
     public static class ExceptionExtensions
     {
-        public static CalendarV2.System.Nothing Throw<TException>(this TException exception) where TException : Exception
+        public static Nothing Throw<TException>(this TException exception) where TException : Exception
         {
             throw exception;
         }
@@ -648,9 +653,9 @@ namespace CalendarV2.Fx.Either
 
     public struct Throw<T>
     {
-        public static implicit operator CalendarV2.System.Nothing(Throw<T> @throw)
+        public static implicit operator Nothing(Throw<T> @throw)
         {
-            return new CalendarV2.System.Nothing();
+            return new Nothing();
         }
 
         public static implicit operator T(Throw<T> @throw)
