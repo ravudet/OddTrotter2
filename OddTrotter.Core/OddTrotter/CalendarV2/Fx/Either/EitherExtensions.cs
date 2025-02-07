@@ -12,7 +12,8 @@ namespace CalendarV2.Fx.Either
     /// TODO nail down `either{tleft, tright}` (with tests and everything)
     /// TODO nail down `either` (with tests and everything; maybe this is the time to introduce the implicit conversions since it's a factory it *should* return the concrete type; whether you expose the concrete type in these extensions is a different question; see how these implicit conversions can be leveraged in this extensions class)
     /// TODO nail down these extensions (with tests and everything)
-    /// TODO move everything over the the v2 either stuff
+    /// TODO move everything over to the v2 either stuff
+    /// TODO figure out what you want to do with `nothingfactory` and the global using in `oddtrotter.core.csproj`
     /// 
     /// TODO FUTURE mixins for all of these
     /// TODO FUTURE if you put implicit conversions in `either`, you are able to do things like add a string to a list{either{string, int}}, but to do this, all of your extensions would really need to return the concrete `either` type; but if you do that, you lose out on the ability to have mixins that preserve themselves through a monad
@@ -72,7 +73,7 @@ namespace CalendarV2.Fx.Either
             return either.Visit(
                 (left, context) => leftAccept(left),
                 (right, context) => rightAccept(right),
-                new CalendarV2.System.Nothing());
+                Nothing);
         }
 
         public static TResult Switch<TLeft, TRight, TResult>(
