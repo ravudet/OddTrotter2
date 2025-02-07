@@ -188,7 +188,7 @@ namespace OddTrotter.Calendar
 
             public IReadOnlyList<OdataCollectionValue> Value { get; }
 
-            public OdataNextLink NextLink { get; }
+            public OdataNextLink NextLink { get; } //// TODO this can be any url and not necessarily one that conforms to odata; regardless of how this URL comes back, we *do* know by the conventions of the standard that it will point to an endpoint that responds with another collection response
 
             //// TODO any other properties?
 
