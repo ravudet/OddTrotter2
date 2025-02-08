@@ -366,6 +366,7 @@
             // `sealed`
             // anything that isn't nailed down 100% should be `internal`
             // `this.`
+            // give caught exceptions good variable names
             // `using` blocks
             // unit tests
             // do everything above for unit tests
