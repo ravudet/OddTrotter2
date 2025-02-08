@@ -12,7 +12,7 @@
         public ref struct Empty<TLeft>
         {
             /// <summary>
-            /// 
+            /// placeholder
             /// </summary>
             /// <typeparam name="TRight"></typeparam>
             /// <param name="value"></param>
@@ -35,7 +35,7 @@
             private readonly TLeft value;
 
             /// <summary>
-            /// 
+            /// placeholder
             /// </summary>
             /// <param name="value"></param>
             public Full(TLeft value)
@@ -44,7 +44,7 @@
             }
 
             /// <summary>
-            /// 
+            /// placeholder
             /// </summary>
             /// <typeparam name="TRight"></typeparam>
             /// <returns></returns>
@@ -57,7 +57,7 @@
         //// TODO maybe the factory methods should be able to go in either order?
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <returns></returns>
@@ -67,7 +67,7 @@
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <param name="value"></param>
