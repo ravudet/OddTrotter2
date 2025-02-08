@@ -1,10 +1,10 @@
-﻿namespace Fx.Either
+﻿namespace OddTrotter.CalendarV2
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System;
 
     [TestClass]
-    public sealed class EitherUnitTests
+    public sealed class EitherCatchUnitTests
     {
         [TestMethod]
         public void DoesCatchCausePerfImpact()

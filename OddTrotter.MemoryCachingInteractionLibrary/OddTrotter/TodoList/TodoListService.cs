@@ -368,6 +368,7 @@
             // `this.`
             // give caught exceptions good variable names
             // `using` blocks
+            // scope suppressions as narrowly as possible
             // unit tests
             // do everything above for unit tests
 

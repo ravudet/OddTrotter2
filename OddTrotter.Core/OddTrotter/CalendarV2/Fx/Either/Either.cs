@@ -13,9 +13,9 @@
         /// <typeparam name="TLeft"></typeparam>
         public sealed class EmptyLeft<TLeft>
         {
-            public Either<TLeft, TRight> Right<TRight>(TRight value)
+            public global::Fx.Either.Either<TLeft, TRight> Right<TRight>(TRight value)
             {
-                return new Either<TLeft, TRight>.Right(value);
+                return new global::Fx.Either.Either<TLeft, TRight>.Right(value);
             }
         }
 
@@ -32,10 +32,10 @@
                 this.value = value;
             }
 
-            public Either<TLeft, TRight> Right<TRight>()
+            public global::Fx.Either.Either<TLeft, TRight> Right<TRight>()
             {
                 //// TODO TOPIC should these return the interface or the concrete type?
-                return new Either<TLeft, TRight>.Left(this.value);
+                return new global::Fx.Either.Either<TLeft, TRight>.Left(this.value);
             }
         }
 
