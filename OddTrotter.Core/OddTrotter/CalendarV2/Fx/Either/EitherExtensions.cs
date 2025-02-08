@@ -10,8 +10,8 @@ namespace CalendarV2.Fx.Either
     /// TODO int.maxmagnitude (and others) intellisense doc doesn't match the learn doc
     /// 
     /// TODO nail down `either{tleft, tright}` (with tests and everything)
-    /// TODO nail down `either` (with tests and everything; maybe this is the time to introduce the implicit conversions since it's a factory it *should* return the concrete type; whether you expose the concrete type in these extensions is a different question; see how these implicit conversions can be leveraged in this extensions class)
-    /// TODO nail down these extensions (with tests and everything)
+    /// TODO nail down `either` (with tests and everything; maybe this is the time to introduce the implicit conversions since it's a factory it *should* return the concrete type; whether you expose the concrete type in the below extensions is a different question; see how these implicit conversions can be leveraged in this extensions class)
+    /// TODO nail down the below extensions (with tests and everything)
     /// TODO move everything over to the v2 either stuff
     /// TODO figure out what you want to do with `nothingfactory` and the global using in `oddtrotter.core.csproj` 
     /// <ItemGroup>
