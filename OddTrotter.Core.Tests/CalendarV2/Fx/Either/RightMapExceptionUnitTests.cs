@@ -13,7 +13,9 @@ namespace Fx.Either
         {
             var exception = new RightMapException();
 
-            Assert.AreEqual($"Exception of type '{typeof(RightMapException).Namespace}.{typeof(RightMapException).Name}' was thrown.", exception.Message);
+            Assert.AreEqual(
+                $"Exception of type '{typeof(RightMapException).Namespace}.{typeof(RightMapException).Name}' was thrown.",
+                exception.Message);
             Assert.IsNull(exception.InnerException);
         }
 
