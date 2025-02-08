@@ -86,6 +86,35 @@
         }
 
         [TestMethod]
+        public void VisitNullContext()
+        {
+            MockVisitNullContextVisitor.Instance.Visit(new Either<string, int>.Left("sadf"),
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                );
+        }
+
+        private sealed class MockVisitNullContextVisitor : Either<string, int>.Visitor<char, object>
+        {
+            private MockVisitNullContextVisitor()
+            {
+            }
+
+            public static MockVisitNullContextVisitor Instance { get; } = new MockVisitNullContextVisitor();
+
+            protected override char Accept(Either<string, int>.Left node, object context)
+            {
+                return node.Value[0];
+            }
+
+            protected override char Accept(Either<string, int>.Right node, object context)
+            {
+                return node.Value.ToString()[0];
+            }
+        }
+
+        [TestMethod]
         public void ApplyLeft()
         {
             Either<string, int> either = new Either<string, int>.Left("asdf");
@@ -129,6 +158,30 @@
             var leftMapException = Assert.ThrowsException<RightMapException>(() => either.Apply<char, Nothing>((left, context) => throw invalidOperationException, (right, context) => throw invalidCastException, default));
 
             Assert.AreEqual(invalidCastException, leftMapException.InnerException);
+        }
+
+        [TestMethod]
+        public void ApplyNullLeftMap()
+        {
+            Either<string, int> either = new Either<string, int>.Left("asdf");
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Apply<Nothing, Nothing>(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null,
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                (right, context) => default, default));
+        }
+
+        [TestMethod]
+        public void ApplyNullRightMap()
+        {
+            Either<string, int> either = new Either<string, int>.Left("asdf");
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Apply<Nothing, Nothing>((left, context) => default,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null,
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                default));
         }
     }
 }
