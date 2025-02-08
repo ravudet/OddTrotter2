@@ -19,7 +19,7 @@ namespace Fx.Either
 
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <typeparam name="TContext"></typeparam>

@@ -10,7 +10,7 @@ namespace Fx.Either
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <typeparam name="TContext"></typeparam>
@@ -29,7 +29,7 @@ namespace Fx.Either
         public abstract class Visitor<TResult, TContext>
         {
             /// <summary>
-            /// 
+            /// placeholder
             /// </summary>
             /// <param name="node"></param>
             /// <param name="context"></param>
@@ -49,7 +49,7 @@ namespace Fx.Either
             }
 
             /// <summary>
-            /// 
+            /// placeholder
             /// </summary>
             /// <param name="node"></param>
             /// <param name="context"></param>
@@ -75,11 +75,18 @@ namespace Fx.Either
 
         public sealed class Left : Either<TLeft, TRight>
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="value"></param>
             public Left(TLeft value)
             {
                 this.Value = value;
             }
 
+            /// <summary>
+            /// placeholder
+            /// </summary>
             public TLeft Value { get; }
 
             /// <inheritdoc/>
@@ -93,11 +100,18 @@ namespace Fx.Either
 
         public sealed class Right : Either<TLeft, TRight>
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="value"></param>
             public Right(TRight value)
             {
                 this.Value = value;
             }
 
+            /// <summary>
+            /// placeholder
+            /// </summary>
             public TRight Value { get; }
 
             /// <inheritdoc/>
@@ -127,7 +141,7 @@ namespace Fx.Either
             private readonly Func<TRight, TContext, TResult> rightAccept;
 
             /// <summary>
-            /// 
+            /// placeholder
             /// </summary>
             /// <param name="leftAccept"></param>
             /// <param name="rightAccept"></param>

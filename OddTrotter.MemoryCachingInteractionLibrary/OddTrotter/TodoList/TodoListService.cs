@@ -372,6 +372,9 @@
             // unit tests
             // do everything above for unit tests
 
+            // temporary code quality (you should really do better than the below, but this is for convenience at this point):
+            // at least put the word "placeholder" in the xmldoc summary of methods that you've done exception docs for
+
             //// TODO eitherunittests.applyleftexception is an exception where a `throw` type might be useful; are there use-cases that aren't testing though?
 
             //// TODO you are doing the "either" stuff right now because it is foundational to the query context stuff, and the query context stuff will need some diligence and effort around adding the third type parameter that allows mixins to work correctly; do query contexts next probably and just know that you're going to need to put the effort in
