@@ -363,7 +363,7 @@
             //   `argumentnullinline.throwifnull`
             // exception documentation
             // todos
-            // `sealed`
+            // `sealed` (classes and overriden methods)
             // anything that isn't nailed down 100% should be `internal`
             // `this.`
             // give caught exceptions good variable names

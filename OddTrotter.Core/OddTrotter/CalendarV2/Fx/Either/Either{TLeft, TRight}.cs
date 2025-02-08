@@ -146,7 +146,7 @@ namespace Fx.Either
             }
 
             /// <inheritdoc/>
-            protected internal override TResult Accept(Left node, TContext context)
+            protected internal sealed override TResult Accept(Left node, TContext context)
             {
                 ArgumentNullException.ThrowIfNull(node);
 
@@ -163,7 +163,7 @@ namespace Fx.Either
             }
 
             /// <inheritdoc/>
-            protected internal override TResult Accept(Right node, TContext context)
+            protected internal sealed override TResult Accept(Right node, TContext context)
             {
                 ArgumentNullException.ThrowIfNull(node);
 
