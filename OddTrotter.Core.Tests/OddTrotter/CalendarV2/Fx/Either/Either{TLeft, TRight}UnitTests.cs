@@ -70,18 +70,26 @@ namespace Fx.Either
 
         private sealed class MockVisitor : Either<string, int>.Visitor<char, Nothing>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private MockVisitor()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static MockVisitor Instance { get; } = new MockVisitor();
 
-            protected override char Accept(Either<string, int>.Left node, Nothing context)
+            /// <inheritdoc/>
+            protected sealed override char Accept(Either<string, int>.Left node, Nothing context)
             {
                 return node.Value[0];
             }
-
-            protected override char Accept(Either<string, int>.Right node, Nothing context)
+            
+            /// <inheritdoc/>
+            protected sealed override char Accept(Either<string, int>.Right node, Nothing context)
             {
                 return node.Value.ToString()[0];
             }
@@ -99,19 +107,31 @@ namespace Fx.Either
 
         private sealed class MockVisitNullContextVisitor : Either<string, int>.Visitor<char, object>
         {
+            /// <summary>
+            /// 
+            /// </summary>
             private MockVisitNullContextVisitor()
             {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
             public static MockVisitNullContextVisitor Instance { get; } = new MockVisitNullContextVisitor();
 
-            protected override char Accept(Either<string, int>.Left node, object context)
+            /// <inheritdoc/>
+            protected sealed override char Accept(Either<string, int>.Left node, object context)
             {
+                ArgumentNullException.ThrowIfNull(node);
+
                 return node.Value[0];
             }
 
-            protected override char Accept(Either<string, int>.Right node, object context)
+            /// <inheritdoc/>
+            protected sealed override char Accept(Either<string, int>.Right node, object context)
             {
+                ArgumentNullException.ThrowIfNull(node);
+
                 return node.Value.ToString()[0];
             }
         }
