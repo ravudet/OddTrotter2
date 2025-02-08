@@ -65,11 +65,29 @@ namespace Fx.Either
         /// [`apply`](https://en.wikipedia.org/wiki/Apply) was chosen because this method is applying the piecewise map composed
         /// of <paramref name="leftMap"/> and <paramref name="rightMap"/> to that map's `ieither` argument.
         /// 
-        /// This method throws <see cref="LeftMapException"/> or <see cref="RightMapException"/>. This is a divergence from how the LINQ APIs document delegates. With LINQ, the expectation is that the delegates don't throw. However, this is by convention. If it's documented, it is documented in a general LINQ document rather than on the individual APIs, making it more difficult to discover. My intention with wrapping the thrown exceptions into two new exception types is 4-fold:
-        /// 1. I treat interfaces as contracts, and as a result, I document *at the interface level* what exceptions can be thrown. If an exception is not documented, the expectation should be that that exception will not be thrown. Following this logic, if <see cref="Apply"/> did not document *anything* for the cases where <paramref name="leftMap"/> or <paramref name="rightMap"/> throw, then callers should expect that no exceptions will be throw in those cases.
-        /// 2. There are use-cases where it is very useful for <paramref name="leftMap"/> or <paramref name="rightMap"/> to throw (consider the <see cref="Fx.Either.EitherExtensions.ThrowRight"/> method), so narrowing the scope of this method to only maps that don't throw does not match the intended function.
-        /// 3. The caller of <see cref="Apply"/> is not necessarily the author of the functions provided for the maps. As a result, they will not know which exceptions they need to catch unless they restrict their own callers to only provide functions that conform to a certain contract. This option was *also* considered for <see cref="Apply"/>, though it was rejected as well (see next point).
-        /// 4. I could introduce a new interface that specifies the allowed exceptions for <paramref name="leftMap"/> and <paramref name="rightMap"/> and then take instances of those interfaces as parameters of <see cref="Apply"/>. However, doing this would now require all map authors to essentially wrap their functions in a try catch and adapt their natural exceptions to conform to the contract. This is effectively what implementers of <see cref="IEither{TLeft, TRight}"/> will need to do, but having just the implementers of the interface do it, instead of every caller, is less error-prone and reduces the barrier to entry.
+        /// This method throws <see cref="LeftMapException"/> or <see cref="RightMapException"/>. This is a divergence from how
+        /// the LINQ APIs document delegates. With LINQ, the expectation is that the delegates don't throw. However, this is by
+        /// convention. If it's documented, it is documented in a general LINQ document rather than on the individual APIs,
+        /// making it more difficult to discover. My intention with wrapping the thrown exceptions into two new exception types
+        /// is 4-fold:
+        /// 1. I treat interfaces as contracts, and as a result, I document *at the interface level* what exceptions can be
+        /// thrown. If an exception is not documented, the expectation should be that that exception will not be thrown.
+        /// Following this logic, if <see cref="Apply"/> did not document *anything* for the cases where
+        /// <paramref name="leftMap"/> or <paramref name="rightMap"/> throw, then callers should expect that no exceptions will
+        /// be thrown in those cases.
+        /// 2. There are use-cases where it is very useful for <paramref name="leftMap"/> or <paramref name="rightMap"/> to throw
+        /// (consider the <see cref="Fx.Either.EitherExtensions.ThrowRight"/> method), so narrowing the scope of this method to
+        /// only maps that don't throw does not match the intended function.
+        /// 3. The caller of <see cref="Apply"/> is not necessarily the author of the functions provided for the maps. As a
+        /// result, they will not know which exceptions they need to catch unless they restrict their own callers to only provide
+        /// functions that conform to a certain contract. This option was *also* considered for <see cref="Apply"/>, though it
+        /// was rejected as well (see next point).
+        /// 4. I could introduce a new interface that specifies the allowed exceptions for <paramref name="leftMap"/> and
+        /// <paramref name="rightMap"/> and then take instances of those interfaces as parameters of <see cref="Apply"/>.
+        /// However, doing this would now require all map authors to essentially wrap their functions in a try catch and adapt
+        /// their natural exceptions to conform to the contract. This is effectively what implementers of
+        /// <see cref="IEither{TLeft, TRight}"/> will need to do, but having just the implementers of the interface do it, 
+        /// instead of every caller, is less error-prone and reduces the barrier to entry.
         /// </remarks>
         TResult Apply<TResult, TContext>(
             Func<TLeft, TContext, TResult> leftMap, 
