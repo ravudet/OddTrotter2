@@ -1,7 +1,9 @@
-﻿namespace Fx.Either
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.Either
 {
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System;
+
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public sealed class EitherUnitTests
@@ -142,7 +144,11 @@
             var invalidOperationException = new InvalidOperationException();
             var invalidCastException = new InvalidCastException();
 
-            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.Apply<char, Nothing>((left, context) => throw invalidOperationException, (right, context) => throw invalidCastException, default));
+            var leftMapException = Assert.ThrowsException<LeftMapException>(
+                () => either.Apply<char, Nothing>(
+                    (left, context) => throw invalidOperationException, 
+                    (right, context) => throw invalidCastException, 
+                    default));
 
             Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
         }
@@ -155,7 +161,11 @@
             var invalidOperationException = new InvalidOperationException();
             var invalidCastException = new InvalidCastException();
 
-            var leftMapException = Assert.ThrowsException<RightMapException>(() => either.Apply<char, Nothing>((left, context) => throw invalidOperationException, (right, context) => throw invalidCastException, default));
+            var leftMapException = Assert.ThrowsException<RightMapException>(
+                () => either.Apply<char, Nothing>(
+                    (left, context) => throw invalidOperationException, 
+                    (right, context) => throw invalidCastException, 
+                    default));
 
             Assert.AreEqual(invalidCastException, leftMapException.InnerException);
         }
