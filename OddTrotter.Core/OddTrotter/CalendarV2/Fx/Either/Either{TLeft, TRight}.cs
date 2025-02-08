@@ -9,16 +9,6 @@ namespace Fx.Either
         {
         }
 
-        public static implicit operator Either<TLeft, TRight>(TLeft left)
-        {
-            return new Either<TLeft, TRight>.Left(left);
-        }
-
-        public static implicit operator Either<TLeft, TRight>(TRight right)
-        {
-            return new Either<TLeft, TRight>.Right(right);
-        }
-
         /// <summary>
         /// placeholder
         /// </summary>
