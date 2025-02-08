@@ -7,8 +7,6 @@ namespace CalendarV2.Fx.Either
     using global::Fx.Either;
 
     /// <summary>
-    /// TODO write down that you're catching accept exceptions because you want to make it clear that exceptions *can* be thrown, unlike linq where you're functions *shouldn't* throw; this is aligned with your convention that interfaces document exceptions and if no exception is documented, the method is expected to not throw exceptions
-    /// 
     /// TODO int.maxmagnitude (and others) intellisense doc doesn't match the learn doc
     /// 
     /// TODO nail down `either{tleft, tright}` (with tests and everything)
