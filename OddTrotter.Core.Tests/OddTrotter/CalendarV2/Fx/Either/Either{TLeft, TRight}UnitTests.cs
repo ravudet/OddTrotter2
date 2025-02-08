@@ -85,12 +85,16 @@ namespace Fx.Either
             /// <inheritdoc/>
             protected sealed override char Accept(Either<string, int>.Left node, Nothing context)
             {
+                ArgumentNullException.ThrowIfNull(node);
+
                 return node.Value[0];
             }
             
             /// <inheritdoc/>
             protected sealed override char Accept(Either<string, int>.Right node, Nothing context)
             {
+                ArgumentNullException.ThrowIfNull(node);
+
                 return node.Value.ToString()[0];
             }
         }
@@ -181,13 +185,13 @@ namespace Fx.Either
             var invalidOperationException = new InvalidOperationException();
             var invalidCastException = new InvalidCastException();
 
-            var leftMapException = Assert.ThrowsException<RightMapException>(
+            var rightMapException = Assert.ThrowsException<RightMapException>(
                 () => either.Apply<char, Nothing>(
                     (left, context) => throw invalidOperationException, 
                     (right, context) => throw invalidCastException, 
                     default));
 
-            Assert.AreEqual(invalidCastException, leftMapException.InnerException);
+            Assert.AreEqual(invalidCastException, rightMapException.InnerException);
         }
 
         [TestMethod]
