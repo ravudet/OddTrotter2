@@ -77,7 +77,7 @@ namespace Fx.Either
         {
             public Left(TLeft value)
             {
-                Value = value;
+                this.Value = value;
             }
 
             public TLeft Value { get; }
@@ -95,7 +95,7 @@ namespace Fx.Either
         {
             public Right(TRight value)
             {
-                Value = value;
+                this.Value = value;
             }
 
             public TRight Value { get; }
