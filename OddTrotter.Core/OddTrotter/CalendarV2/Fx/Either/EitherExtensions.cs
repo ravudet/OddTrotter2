@@ -303,11 +303,20 @@ namespace Fx.Either
                 rightSelector);
         }
 
-        public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TEither, TRight>(
+        private static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TEither, TRight>(
             this IEither<TLeftSource, TRight> either,
             Func<TLeftSource, IEither<TEither, TRight>> selector,
             Func<TLeftSource, TEither, TLeftResult> resultSelector)
         {
+            return default!;
+        }
+
+        private static IEither<TLeft, TRightResult> SelectMany<TRightSource, TRightResult, TEither, TLeft>(
+            this IEither<TLeft, TRightSource> either,
+            Func<TRightSource, IEither<TLeft, TEither>> selector,
+            Func<TRightSource, TEither, TRightResult> resultSelector)
+        {
+            return default!;
         }
 
         public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TRight>(
@@ -322,7 +331,14 @@ namespace Fx.Either
             Either<Either<Either<string, int>, object>, System.Exception> either1 = default!;
             var result =
                 from first in either1
-                from second in either1
+                from second in first
+                select new object();
+
+
+            Either<int, Either<string, Either<object, System.Exception>>> either2 = default!;
+            var result2 =
+                from first2 in either2
+                from second2 in first2
                 select new object();
 
             return either
