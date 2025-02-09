@@ -1,11 +1,9 @@
-﻿using CalendarV2.Fx.Either;
+﻿using Fx.Either;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using Fx.Either;
 
 namespace Stash
 {
