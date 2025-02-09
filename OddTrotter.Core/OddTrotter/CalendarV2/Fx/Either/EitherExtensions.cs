@@ -343,7 +343,7 @@ namespace Fx.Either
             where TRightDerived1 : TRightBase
             where TRightDerived2 : TRightBase
         {
-            //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"?
+            //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"? //// TODO this is called `join` in haskell (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html))
             //// TODO TOPIC look at the parameterless coalesce as a degenerate case
             return either
                 .SelectLeft(
