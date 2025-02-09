@@ -2,7 +2,7 @@
 namespace Fx.Either
 {
     using System;
-    using CalendarV2.Fx.Try;
+
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
