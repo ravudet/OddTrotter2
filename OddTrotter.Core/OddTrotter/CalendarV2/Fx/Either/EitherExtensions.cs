@@ -303,13 +303,14 @@ namespace Fx.Either
                 rightSelector);
         }
 
-        //// TODO you are here
-
-
         public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TRight>(
             this IEither<TLeftSource, TRight> either, 
             Func<TLeftSource, IEither<TLeftResult, TRight>> selector)
         {
+            //// TODO you are here
+            //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
+            //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
+            //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
         }
 
         class Animal
