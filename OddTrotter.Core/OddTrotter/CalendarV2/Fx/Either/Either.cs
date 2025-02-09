@@ -15,6 +15,114 @@ public static implicit operator Either<TLeft, TRight>(TLeft left)
         }
         */
 
+        public static class Play
+        {
+            public static void DoPlay()
+            {
+                Either<Either<int, string>, System.Exception> either1 =
+                    Either
+                        .Left()
+                            .Left(42)
+                            .Right<string>()
+                        .Right<System.Exception>();
+
+                Either<Either<int, string>, System.Exception> either2 =
+                    Either
+                        .Left()
+                            .Left<int>()
+                            .Right(string.Empty)
+                        .Right<System.Exception>();
+
+                Either<Either<int, string>, System.Exception> either3 =
+                    Either
+                        .Left()
+                            .Left<int>()
+                            .Right<string>()
+                        .Right(new System.Exception());
+
+                Either<int, Either<string, System.Exception>> either4 =
+                    Either
+                        .Left(42)
+                        .Right()
+                            .Left<string>()
+                            .Right<System.Exception>();
+
+                Either<int, Either<string, System.Exception>> either5 =
+                    Either
+                        .Left<int>()
+                        .Right()
+                            .Left(string.Empty)
+                            .Right<System.Exception>();
+
+                //// TODO try further nestings
+            }
+        }
+
+        public static NoType Left()
+        {
+            return new NoType();
+        }
+
+        public readonly ref struct NoType
+        {
+            public Full<TLeft> Left<TLeft>(TLeft value)
+            {
+                return new Full<TLeft>(value);
+            }
+
+            public Empty<TLeft> Left<TLeft>()
+            {
+                return new Empty<TLeft>();
+            }
+
+            public NoType Left()
+            {
+                return new NoType();
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <typeparam name="TLeft"></typeparam>
+            /// <remarks>
+            /// This class was named so that it does not conflict with intellisense's ability to find the <see cref="Left"/> method overloads
+            /// </remarks>
+            public readonly ref struct Empty<TLeft>
+            {
+                public Either.Full<Either<TLeft, TRight>> Right<TRight>(TRight value)
+                {
+                    return new Either.Full<Either<TLeft, TRight>>(new Either<TLeft, TRight>.Right(value));
+                }
+
+                public Either.Empty<Either<TLeft, TRight>> Right<TRight>()
+                {
+                    return new Either.Empty<Either<TLeft, TRight>>();
+                }
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <typeparam name="TLeft"></typeparam>
+            /// <remarks>
+            /// This class was named so that it does not conflict with intellisense's ability to find the <see cref="Left"/> method overloads
+            /// </remarks>
+            public readonly ref struct Full<TLeft>
+            {
+                private readonly TLeft value;
+
+                public Full(TLeft value)
+                {
+                    this.value = value;
+                }
+
+                public Either.Full<Either<TLeft, TRight>> Right<TRight>()
+                {
+                    return new Either.Full<Either<TLeft, TRight>>(new Either<TLeft, TRight>.Left(this.value));
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -22,7 +130,7 @@ public static implicit operator Either<TLeft, TRight>(TLeft left)
         /// <remarks>
         /// This class was named so that it does not conflict with intellisense's ability to find the <see cref="Left"/> method overloads
         /// </remarks>
-        public ref struct Empty<TLeft>
+        public readonly ref struct Empty<TLeft>
         {
             /// <summary>
             /// placeholder
@@ -34,6 +142,47 @@ public static implicit operator Either<TLeft, TRight>(TLeft left)
             {
                 return new Either<TLeft, TRight>.Right(value);
             }
+
+            public NoType Right()
+            {
+                return new NoType();
+            }
+
+            public readonly ref struct NoType
+            {
+                public Full<TLeft2> Left<TLeft2>(TLeft2 value)
+                {
+                    return new Full<TLeft2>(value);
+                }
+
+                public readonly ref struct Full<TLeft2>
+                {
+                    private readonly TLeft2 value;
+
+                    public Full(TLeft2 value)
+                    {
+                        this.value = value;
+                    }
+
+                    public Either<TLeft, Either<TLeft2, TRight>> Right<TRight>()
+                    {
+                        return new Either<TLeft, Either<TLeft2, TRight>>.Right(new Either<TLeft2, TRight>.Left(this.value));
+                    }
+                }
+
+                public Empty<TLeft2> Left<TLeft2>()
+                {
+                    return new Empty<TLeft2>();
+                }
+
+                public readonly ref struct Empty<TLeft2>
+                {
+                    public Either<TLeft, Either<TLeft2, TRight>> Right<TRight>(TRight value)
+                    {
+                        return new Either<TLeft, Either<TLeft2, TRight>>.Right(new Either<TLeft2, TRight>.Right(value));
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -43,7 +192,7 @@ public static implicit operator Either<TLeft, TRight>(TLeft left)
         /// <remarks>
         /// This class was named so that it does not conflict with intellisense's ability to find the <see cref="Left"/> method overloads
         /// </remarks>
-        public ref struct Full<TLeft>
+        public readonly ref struct Full<TLeft>
         {
             private readonly TLeft value;
 
@@ -64,6 +213,41 @@ public static implicit operator Either<TLeft, TRight>(TLeft left)
             public Either<TLeft, TRight> Right<TRight>()
             {
                 return new Either<TLeft, TRight>.Left(this.value);
+            }
+
+            public NoType Right()
+            {
+                return new NoType();
+            }
+
+            public readonly ref struct NoType
+            {
+                private readonly Either.Full<TLeft> full;
+
+                public NoType(Either.Full<TLeft> full)
+                {
+                    this.full = full;
+                }
+
+                public Full<TLeft2> Left<TLeft2>()
+                {
+                    return new Full<TLeft2>(this.full.value);
+                }
+
+                public readonly ref struct Full<TLeft2>
+                {
+                    private readonly TLeft value;
+
+                    public Full(TLeft value)
+                    {
+                        this.value = value;
+                    }
+
+                    public Either<TLeft, Either<TLeft2, TRight>> Right<TRight>()
+                    {
+                        return new Either<TLeft, Either<TLeft2, TRight>>.Left(this.value);
+                    }
+                }
             }
         }
 

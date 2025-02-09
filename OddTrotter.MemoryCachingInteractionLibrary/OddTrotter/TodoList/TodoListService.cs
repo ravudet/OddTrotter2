@@ -356,6 +356,8 @@
             // comment line at the top of the file
             // namespaces
             // `using` statements
+            // readonly fields
+            // readonly structs
             // dead code
             // line lengths
             // precondition checks
