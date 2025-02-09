@@ -2,19 +2,6 @@
 {
     public static class Either
     {
-        /*
-        TODO add these to either<left, right> now?
-public static implicit operator Either<TLeft, TRight>(TLeft left)
-        {
-            return new Either<TLeft, TRight>.Left(left);
-        }
-
-        public static implicit operator Either<TLeft, TRight>(TRight right)
-        {
-            return new Either<TLeft, TRight>.Right(right);
-        }
-        */
-
         /// <summary>
         /// 
         /// </summary>
@@ -32,7 +19,7 @@ public static implicit operator Either<TLeft, TRight>(TLeft left)
             /// <returns></returns>
             public Either<TLeft, TRight> Right<TRight>(TRight value)
             {
-                return new Either<TLeft, TRight>.Right(value);
+                return value;
             }
         }
 
@@ -63,7 +50,7 @@ public static implicit operator Either<TLeft, TRight>(TLeft left)
             /// <returns></returns>
             public Either<TLeft, TRight> Right<TRight>()
             {
-                return new Either<TLeft, TRight>.Left(this.value);
+                return this.value;
             }
         }
 

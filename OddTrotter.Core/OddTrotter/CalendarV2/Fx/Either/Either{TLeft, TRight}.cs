@@ -5,15 +5,26 @@ namespace Fx.Either
 
     public abstract class Either<TLeft, TRight> : IEither<TLeft, TRight>
     {
+        /// <summary>
+        /// placeholder
+        /// </summary>
         private Either()
         {
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <param name="left"></param>
         public static implicit operator Either<TLeft, TRight>(TLeft left)
         {
             return new Either<TLeft, TRight>.Left(left);
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <param name="right"></param>
         public static implicit operator Either<TLeft, TRight>(TRight right)
         {
             return new Either<TLeft, TRight>.Right(right);
