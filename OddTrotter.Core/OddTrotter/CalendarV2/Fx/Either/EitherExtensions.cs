@@ -1,6 +1,7 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Fx.Either
 {
+    using CalendarV2.Fx.Try;
     using System;
     using System.Diagnostics.CodeAnalysis;
 
@@ -118,10 +119,6 @@ namespace Fx.Either
         /// Thrown if <paramref name="leftSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set
         /// to whatever exception <paramref name="leftSelector"/> threw.
         /// </exception>
-        /// <exception cref="RightMapException">
-        /// Thrown if <paramref name="rightSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be
-        /// set to whatever exception <paramref name="rightSelector"/> threw.
-        /// </exception>
         public static IEither<TLeftResult, TRightValue> SelectLeft
             <
                 TLeftValue,
@@ -159,10 +156,6 @@ namespace Fx.Either
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="either"/> or <paramref name="rightSelector"/> is <see langword="null"/>
-        /// </exception>
-        /// <exception cref="LeftMapException">
-        /// Thrown if <paramref name="leftSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set
-        /// to whatever exception <paramref name="leftSelector"/> threw.
         /// </exception>
         /// <exception cref="RightMapException">
         /// Thrown if <paramref name="rightSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be
@@ -205,8 +198,13 @@ namespace Fx.Either
         /// Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> or <paramref name="rightSelector"/> is
         /// <see langword="null"/>
         /// </exception>
-        /// <exception cref="Exception">
-        /// Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="leftSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set
+        /// to whatever exception <paramref name="leftSelector"/> threw.
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="rightSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be
+        /// set to whatever exception <paramref name="rightSelector"/> threw.
         /// </exception>
         public static IEither<TLeftResult, TRightResult> Select
             <
@@ -245,8 +243,9 @@ namespace Fx.Either
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> is <see langword="null"/>
         /// </exception>
-        /// <exception cref="Exception">
-        /// Throws any of the exceptions that <paramref name="leftSelector"/> can throw
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="leftSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set
+        /// to whatever exception <paramref name="leftSelector"/> threw.
         /// </exception>
         public static IEither<TLeftResult, TRightValue> SelectLeft
             <
@@ -262,9 +261,9 @@ namespace Fx.Either
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(leftSelector);
 
-            return either.Apply(
-                left => Either.Left(leftSelector(left)).Right<TRightValue>(),
-                right => Either.Left<TLeftResult>().Right(right));
+            return either.Select(
+                leftSelector,
+                _ => _);
         }
 
         /// <summary>
@@ -281,8 +280,9 @@ namespace Fx.Either
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="either"/> or <paramref name="rightSelector"/> is <see langword="null"/>
         /// </exception>
-        /// <exception cref="Exception">
-        /// Throws any of the exceptions that <paramref name="rightSelector"/> can throw
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="rightSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be
+        /// set to whatever exception <paramref name="rightSelector"/> threw.
         /// </exception>
         public static IEither<TLeftValue, TRightResult> SelectRight
             <
@@ -298,10 +298,9 @@ namespace Fx.Either
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(rightSelector);
 
-            return either.Apply(
-                (left, context) => Either.Left(left).Right<TRightResult>(),
-                (right, context) => Either.Left<TLeftValue>().Right(rightSelector(right)),
-                new Nothing());
+            return either.Select(
+                _ => _,
+                rightSelector);
         }
 
         public static void NullPropagateUseCase()
