@@ -311,12 +311,58 @@ namespace Fx.Either
             return default!;
         }
 
-        private static IEither<TLeft, TRightResult> SelectMany<TRightSource, TRightResult, TEither, TLeft>(
+        private static IEither<TLeft, TRightResult> SelectMany<TRightSource, TRightResult, TEither, TLeft, TLeftInner>(
             this IEither<TLeft, TRightSource> either,
-            Func<TRightSource, IEither<TLeft, TEither>> selector,
+            Func<TRightSource, IEither<TLeftInner, TEither>> selector,
             Func<TRightSource, TEither, TRightResult> resultSelector)
         {
             return default!;
+        }
+
+        public static string First(Either<Either<short, int>, object> either)
+        {
+            return either.ToString() ?? string.Empty;
+        }
+
+        public static string Second(Either<short, int> either)
+        {
+            return either.ToString() ?? string.Empty;
+        }
+
+        public static string Second(Either<object, System.Exception> either)
+        {
+            return either.ToString() ?? string.Empty;
+        }
+
+        public static void Play()
+        {
+            Either<Either<Either<short, int>, object>, System.Exception> either1 = default!;
+            var result =
+                from first in either1
+                from second in first
+                select First(first) + Second(second);
+
+            either1.SelectMany<Either<Either<short, int>, object>, string, Either<short, int>, object>(left => left, (first, second) => First(first) + Second(second));
+
+
+            Either<short, Either<int, Either<object, System.Exception>>> either2 = default!;
+            var result2 =
+                from first2 in either2
+                from second2 in first2
+                select new object();
+
+            either2
+                .SelectMany
+                    <
+                        Either<int, Either<object, System.Exception>>,
+                        string,
+                        Either<object, System.Exception>,
+                        short,
+                        int
+                    >
+                    (
+                        right => right,
+                        (first, second) => First(first) + Second(second));
         }
 
         public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TRight>(
@@ -327,19 +373,6 @@ namespace Fx.Either
             //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
             //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
             //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
-
-            Either<Either<Either<string, int>, object>, System.Exception> either1 = default!;
-            var result =
-                from first in either1
-                from second in first
-                select new object();
-
-
-            Either<int, Either<string, Either<object, System.Exception>>> either2 = default!;
-            var result2 =
-                from first2 in either2
-                from second2 in first2
-                select new object();
 
             return either
                 .Apply(
@@ -416,15 +449,15 @@ namespace Fx.Either
 
             //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"? //// TODO this is called `join` in haskell (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html)); i believe that the linq `join` is some variant of list comprehension in haskell (see the example where `gcd i j == 1` [here](https://wiki.haskell.org/List_comprehension)); i think you might be wrong about the join thing; i think join is used with reverse bind to achieve this effect through some form of lifting; but what you've already gone past where the lifting is aspplicable, so what you are doing is a bind, with is isomorphic to the c# selectmany; if this is true, then this is a degenerate case of the attempt propagateby method below, and the propagateby below is actually the bind/selectmany (source: https://stackoverflow.com/questions/19321868/linq-selectmany-is-bind)
             //// TODO TOPIC look at the parameterless coalesce as a degenerate case
-            ArgumentNullException.ThrowIfNull(either);
-
+            /*ArgumentNullException.ThrowIfNull(either);
+            
             return either.Apply(
                 left => 
                     left.Apply(
                         subLeft => Either.Left(subLeft).Right<TRight>(),
                         subRight => Either.Left<TLeft>().Right(subRight)),
                 right =>
-                    Either.Left<TLeft>().Right(right));
+                    Either.Left<TLeft>().Right(right));*/
         }
 
         /// <summary>
