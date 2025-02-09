@@ -6,11 +6,10 @@ namespace Fx.Either
 
     public static class EitherExtensions
     {
-        //// TODO see how the implicit conversions can be leveraged in this extensions class
-        /// TODO make sure all of these names are aligned with the `accept`, `leftmap`, `rightmap`, and `context` names for `ieither`
-        
-        
         //// TODO TOPIC should all of this be lazy?
+
+        //// TODO see how the implicit conversions can be leveraged in this extensions class
+        //// TODO make sure all of these names are aligned with the `accept`, `leftmap`, `rightmap`, and `context` names for `ieither`
 
         /// <summary>
         /// 
@@ -19,41 +18,34 @@ namespace Fx.Either
         /// <typeparam name="TRight"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="either"></param>
-        /// <param name="leftAccept"></param>
-        /// <param name="rightAccept"></param>
+        /// <param name="leftMap"></param>
+        /// <param name="rightMap"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="either"/> or <paramref name="leftAccept"/> or <paramref name="rightAccept"/> is
+        /// Thrown if <paramref name="either"/> or <paramref name="leftMap"/> or <paramref name="rightMap"/> is
         /// <see langword="null"/>
         /// </exception>
-        /// <exception cref="Exception">
-        /// Throws any of the exceptions that <paramref name="leftAccept"/> or <paramref name="rightAccept"/> can throw
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="leftMap"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
+        /// whatever exception <paramref name="leftMap"/> threw.
         /// </exception>
-        public static TResult Visit<TLeft, TRight, TResult>( //// TODO TOPIC call this "aggregate" instead? //// TODO aggregate sounds wrong, maybe we think a bit more; what linq calls aggregate is called "foldleft"; "fold" my be useful as a name below regarding your "propagateby" extension; look at "catamorphism" of either; TODO i believe `Visit` itself is actually a "functor", but method names in c# should mostly be verbs; is it really a functor, and, if so, what should we call it so it's a verb? https://en.wikipedia.org/wiki/Catamorphism https://en.wikipedia.org/wiki/Functor#endofunctor
-            //// TODO maybe switch? there is a c# switch expression
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="rightMap"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
+        /// whatever exception <paramref name="rightMap"/> threw.
+        /// </exception>
+        public static TResult Apply<TLeft, TRight, TResult>(
             this IEither<TLeft, TRight> either,
-            Func<TLeft, TResult> leftAccept,
-            Func<TRight, TResult> rightAccept)
+            Func<TLeft, TResult> leftMap,
+            Func<TRight, TResult> rightMap)
         {
             ArgumentNullException.ThrowIfNull(either);
-            ArgumentNullException.ThrowIfNull(leftAccept);
-            ArgumentNullException.ThrowIfNull(rightAccept);
+            ArgumentNullException.ThrowIfNull(leftMap);
+            ArgumentNullException.ThrowIfNull(rightMap);
 
             return either.Apply(
-                (left, context) => leftAccept(left),
-                (right, context) => rightAccept(right),
+                (left, _) => leftMap(left),
+                (right, _) => rightMap(right),
                 new Nothing());
-        }
-
-        public static TResult Switch<TLeft, TRight, TResult>(
-            Either<TLeft, TRight> either)
-        {
-            return either switch
-            {
-                Either<TLeft, TRight>.Left left => default(TResult)!,
-                Either<TLeft, TRight>.Right => default(TResult)!,
-                _ => default(TResult)!,
-            };
         }
 
         /// <summary>
@@ -73,8 +65,13 @@ namespace Fx.Either
         /// Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> or <paramref name="rightSelector"/> is
         /// <see langword="null"/>
         /// </exception>
-        /// <exception cref="Exception">
-        /// Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="leftSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set
+        /// to whatever exception <paramref name="leftSelector"/> threw.
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="rightSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be
+        /// set to whatever exception <paramref name="rightSelector"/> threw.
         /// </exception>
         public static IEither<TLeftResult, TRightResult> Select
             <
@@ -88,7 +85,8 @@ namespace Fx.Either
                 this IEither<TLeftValue, TRightValue> either,
                 Func<TLeftValue, TContext, TLeftResult> leftSelector,
                 Func<TRightValue, TContext, TRightResult> rightSelector,
-                TContext context) //// TODO TOPIC should this go on the next line?
+                TContext context
+            )
         {
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(leftSelector);
@@ -116,8 +114,13 @@ namespace Fx.Either
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> is <see langword="null"/>
         /// </exception>
-        /// <exception cref="Exception">
-        /// Throws any of the exceptions that <paramref name="leftSelector"/> can throw
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="leftSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set
+        /// to whatever exception <paramref name="leftSelector"/> threw.
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="rightSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be
+        /// set to whatever exception <paramref name="rightSelector"/> threw.
         /// </exception>
         public static IEither<TLeftResult, TRightValue> SelectLeft
             <
@@ -129,14 +132,15 @@ namespace Fx.Either
             (
                 this IEither<TLeftValue, TRightValue> either,
                 Func<TLeftValue, TContext, TLeftResult> leftSelector,
-                TContext context)
+                TContext context
+            )
         {
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(leftSelector);
 
-            return either.Apply(
-                (left, context) => Either.Left(leftSelector(left, context)).Right<TRightValue>(),
-                (right, context) => Either.Left<TLeftResult>().Right(right),
+            return either.Select(
+                leftSelector, 
+                (right, _) => right, 
                 context);
         }
 
@@ -156,8 +160,13 @@ namespace Fx.Either
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="either"/> or <paramref name="rightSelector"/> is <see langword="null"/>
         /// </exception>
-        /// <exception cref="Exception">
-        /// Throws any of the exceptions that <paramref name="rightSelector"/> can throw
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="leftSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set
+        /// to whatever exception <paramref name="leftSelector"/> threw.
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="rightSelector"/> throws an exception. The <see cref="Exception.InnerException"/> will be
+        /// set to whatever exception <paramref name="rightSelector"/> threw.
         /// </exception>
         public static IEither<TLeftValue, TRightResult> SelectRight
             <
@@ -169,14 +178,15 @@ namespace Fx.Either
             (
                 this IEither<TLeftValue, TRightValue> either,
                 Func<TRightValue, TContext, TRightResult> rightSelector,
-                TContext context)
+                TContext context
+            )
         {
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(rightSelector);
 
-            return either.Apply(
-                (left, context) => Either.Left(left).Right<TRightResult>(),
-                (right, context) => Either.Left<TLeftValue>().Right(rightSelector(right, context)),
+            return either.Select(
+                (left, _) => left,
+                rightSelector,
                 context);
         }
 
@@ -208,15 +218,16 @@ namespace Fx.Either
             (
                 this IEither<TLeftValue, TRightValue> either,
                 Func<TLeftValue, TLeftResult> leftSelector,
-                Func<TRightValue, TRightResult> rightSelector)
+                Func<TRightValue, TRightResult> rightSelector
+            )
         {
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(leftSelector);
             ArgumentNullException.ThrowIfNull(rightSelector);
 
-            return either.Apply(
-                (left, context) => Either.Left(leftSelector(left)).Right<TRightResult>(),
-                (right, context) => Either.Left<TLeftResult>().Right(rightSelector(right)),
+            return either.Select(
+                (left, _) => leftSelector(left),
+                (right, _) => rightSelector(right), 
                 new Nothing());
         }
 
@@ -245,12 +256,13 @@ namespace Fx.Either
             >
             (
                 this IEither<TLeftValue, TRightValue> either,
-                Func<TLeftValue, TLeftResult> leftSelector)
+                Func<TLeftValue, TLeftResult> leftSelector
+            )
         {
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(leftSelector);
 
-            return either.Visit(
+            return either.Apply(
                 left => Either.Left(leftSelector(left)).Right<TRightValue>(),
                 right => Either.Left<TLeftResult>().Right(right));
         }
@@ -280,7 +292,8 @@ namespace Fx.Either
             >
             (
                 this IEither<TLeftValue, TRightValue> either,
-                Func<TRightValue, TRightResult> rightSelector)
+                Func<TRightValue, TRightResult> rightSelector
+            )
         {
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(rightSelector);
@@ -396,9 +409,9 @@ namespace Fx.Either
             //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"?
             ArgumentNullException.ThrowIfNull(either);
 
-            return either.Visit(
+            return either.Apply(
                 left => 
-                    left.Visit(
+                    left.Apply(
                         subLeft => Either.Left(subLeft).Right<TRight>(),
                         subRight => Either.Left<TLeft>().Right(subRight)),
                 right =>
@@ -419,11 +432,11 @@ namespace Fx.Either
             //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"?
             ArgumentNullException.ThrowIfNull(either);
 
-            return either.Visit(
+            return either.Apply(
                 left =>
                     Either.Left(left).Right<TRight>(),
                 right =>
-                    right.Visit(
+                    right.Apply(
                         subLeft => Either.Left(subLeft).Right<TRight>(),
                         subRight => Either.Left<TLeft>().Right(subRight)));
         }
@@ -455,17 +468,17 @@ namespace Fx.Either
         {
             return
                 first
-                    .Visit(
+                    .Apply(
                         firstLeft =>
                             second
-                                .Visit(
+                                .Apply(
                                     secondLeft =>
                                         Either.Left((firstLeft, secondLeft)).Right<TRight>(),
                                     secondRight =>
                                         Either.Left<(TLeftFirst, TLeftSecond)>().Right(secondRight)), //// TODO is it ok that you are losing `firstleft`? is this method actually a convenience overload of a more general method that asks the caller for a delegate for each left case?
                         firstRight =>
                             second
-                                .Visit(
+                                .Apply(
                                     secondLeft =>
                                         Either.Left<(TLeftFirst, TLeftSecond)>().Right(firstRight),
                                     secondRight =>
@@ -487,7 +500,7 @@ namespace Fx.Either
             //// TODO TOPIC naming
             ArgumentNullException.ThrowIfNull(either);
 
-            var result = either.Visit(
+            var result = either.Apply(
                 left => (left, true),
                 right => (default(TLeft), false));
 
@@ -509,7 +522,7 @@ namespace Fx.Either
             //// TODO TOPIC naming
             ArgumentNullException.ThrowIfNull(either);
 
-            var result = either.Visit(
+            var result = either.Apply(
                 left => (default(TRight), false),
                 right => (right, true));
 
@@ -530,7 +543,7 @@ namespace Fx.Either
             ArgumentNullException.ThrowIfNull(either);
 
             //// TODO TOPIC naming? i doubt this is actually a `try` because it doesn't take an input
-            var result = either.Visit(
+            var result = either.Apply(
                 left => (left, true),
                 right => (default(TLeft), false));
 
@@ -571,13 +584,13 @@ namespace Fx.Either
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(coalescer);
 
-            return either.Visit(left => left, coalescer);
+            return either.Apply(left => left, coalescer);
         }
 
         public static TValue Coalesce<TValue>(this IEither<TValue, TValue> either)
         {
             //// TODO TOPIC this is like a degenerate case of the "shift right" thing...
-            return either.Visit(left => left, right => right);
+            return either.Apply(left => left, right => right);
         }
 
         //// TODO write somewhere that nullable<TLeft> is equivalent to IEither<TLeft, CalendarV2.System.Void>
