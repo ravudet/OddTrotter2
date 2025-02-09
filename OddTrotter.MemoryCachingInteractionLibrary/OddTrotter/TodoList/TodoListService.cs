@@ -393,6 +393,7 @@
             //// TODO FUTURE eitherunittests.applyleftexception is an exception where a `throw` type might be useful; are there use-cases that aren't testing though?
             //// TODO FUTURE do you want to have an adapter from action to func now that you have `nothing`?
             //// TODO FUTURE you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
+            //// TODO FUTURE mixins for all of the either extensions
 
             var odataClient = new GraphClientToOdataClient(this.graphClient);
             var odataCalendarEventsContext = new OdataCalendarEventsContext(

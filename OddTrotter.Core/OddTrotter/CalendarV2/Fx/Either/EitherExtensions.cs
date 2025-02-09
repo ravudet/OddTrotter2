@@ -8,9 +8,9 @@ namespace Fx.Either
     {
         //// TODO see how the implicit conversions can be leveraged in this extensions class
         /// TODO make sure all of these names are aligned with the `accept`, `leftmap`, `rightmap`, and `context` names for `ieither`
-        /// TODO FUTURE mixins for all of these
-        /// TODO FUTURE if you put implicit conversions in `either`, you are able to do things like add a string to a list{either{string, int}}, but to do this, all of your extensions would really need to return the concrete `either` type; but if you do that, you lose out on the ability to have mixins that preserve themselves through a monad
-        /// TODO TOPIC should all of this be lazy?
+        
+        
+        //// TODO TOPIC should all of this be lazy?
 
         /// <summary>
         /// 
