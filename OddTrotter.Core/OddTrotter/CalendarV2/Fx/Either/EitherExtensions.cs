@@ -303,6 +303,15 @@ namespace Fx.Either
                 rightSelector);
         }
 
+        //// TODO you are here
+
+
+        public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TRight>(
+            this IEither<TLeftSource, TRight> either, 
+            Func<TLeftSource, IEither<TLeftResult, TRight>> selector)
+        {
+        }
+
         class Animal
         {
         }
