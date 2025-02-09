@@ -6,6 +6,27 @@ namespace Fx.Either
     public static class Either
     {
         /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <returns></returns>
+        public static Empty<TLeft> Left<TLeft>()
+        {
+            return new Empty<TLeft>();
+        }
+
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Full<TLeft> Left<TLeft>(TLeft value)
+        {
+            return new Full<TLeft>(value);
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
@@ -81,27 +102,6 @@ namespace Fx.Either
 
                 return this.value;
             }
-        }
-
-        /// <summary>
-        /// placeholder
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <returns></returns>
-        public static Empty<TLeft> Left<TLeft>()
-        {
-            return new Empty<TLeft>();
-        }
-
-        /// <summary>
-        /// placeholder
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static Full<TLeft> Left<TLeft>(TLeft value)
-        {
-            return new Full<TLeft>(value);
         }
     }
 }
