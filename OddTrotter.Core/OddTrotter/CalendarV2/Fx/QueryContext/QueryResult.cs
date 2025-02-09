@@ -8,7 +8,9 @@
     {
         private QueryResult()
         {
-            //// TODO is this an `either`?
+            //// TODO is this an `either`? //// TODO this may be an either, but you don't know left or right until you've started enumerating; maybe you should have a `queryresult` which has a `ienumerable<queryresultnode>`?
+            //// TODO can `queryresultnode` be a ref struct? and then you can have it allow ref struct too; you don't need to have dynamically allocated memory once you've received the network response; or rather, you can allocate the memory on the stack as you're streaming the network response
+            //// TODO can you have a select into a ref struct? how about from a ref struct?
             //// TODO use `in` parameters for the `context` in all visitors?
         }
 
