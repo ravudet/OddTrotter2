@@ -311,6 +311,15 @@ namespace Fx.Either
             //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
             //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
             //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
+
+            return either
+                .Apply(
+                    left =>
+                        selector(left)
+                            .Apply(
+                                nestedLeft => Either.Left(nestedLeft).Right<TRight>(),
+                                nestedRight => Either.Left<TLeftResult>().Right(nestedRight)),
+                    right => Either.Left<TLeftResult>().Right(right));
         }
 
         class Animal
@@ -374,6 +383,8 @@ namespace Fx.Either
         public static IEither<TLeft, TRight> PropagateRight<TLeft, TRight>(
             this IEither<IEither<TLeft, TRight>, TRight> either)
         {
+            return either.SelectMany(left => left);
+
             //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"? //// TODO this is called `join` in haskell (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html)); i believe that the linq `join` is some variant of list comprehension in haskell (see the example where `gcd i j == 1` [here](https://wiki.haskell.org/List_comprehension)); i think you might be wrong about the join thing; i think join is used with reverse bind to achieve this effect through some form of lifting; but what you've already gone past where the lifting is aspplicable, so what you are doing is a bind, with is isomorphic to the c# selectmany; if this is true, then this is a degenerate case of the attempt propagateby method below, and the propagateby below is actually the bind/selectmany (source: https://stackoverflow.com/questions/19321868/linq-selectmany-is-bind)
             //// TODO TOPIC look at the parameterless coalesce as a degenerate case
             ArgumentNullException.ThrowIfNull(either);
