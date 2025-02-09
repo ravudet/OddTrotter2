@@ -303,6 +303,13 @@ namespace Fx.Either
                 rightSelector);
         }
 
+        public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TEither, TRight>(
+            this IEither<TLeftSource, TRight> either,
+            Func<TLeftSource, IEither<TEither, TRight>> selector,
+            Func<TLeftSource, TEither, TLeftResult> resultSelector)
+        {
+        }
+
         public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TRight>(
             this IEither<TLeftSource, TRight> either, 
             Func<TLeftSource, IEither<TLeftResult, TRight>> selector)
@@ -311,6 +318,12 @@ namespace Fx.Either
             //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
             //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
             //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
+
+            Either<Either<Either<string, int>, object>, System.Exception> either1 = default!;
+            var result =
+                from first in either1
+                from second in either1
+                select new object();
 
             return either
                 .Apply(
