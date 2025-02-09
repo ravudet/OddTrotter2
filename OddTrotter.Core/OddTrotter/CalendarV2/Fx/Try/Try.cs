@@ -1,6 +1,5 @@
 ﻿namespace CalendarV2.Fx.Try
 {
-    using global::CalendarV2.Fx.Either;
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Diagnostics.CodeAnalysis;

@@ -3,7 +3,6 @@
     using global::System;
     using global::System.Collections.Generic;
 
-    using CalendarV2.Fx.Either;
     using CalendarV2.Fx.Try;
     using global::Fx.Either;
 
