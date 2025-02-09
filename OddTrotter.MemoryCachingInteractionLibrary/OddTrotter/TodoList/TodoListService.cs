@@ -356,16 +356,18 @@
             // comment line at the top of the file
             // namespaces
             // `using` statements
-            // readonly fields
             // readonly structs
+            // `sealed` (classes and overriden methods)
+            // readonly fields
+            // struct default constructors
             // dead code
+            //
             // line lengths
             // precondition checks
             //   `argumentnullexception.throwifnull`
             //   `argumentnullinline.throwifnull`
-            // exception documentation
+            // exception documentation (temporarily, at least put the word "placeholder" in the xmldoc summary)
             // todos
-            // `sealed` (classes and overriden methods)
             // anything that isn't nailed down 100% should be `internal`
             // `this.`
             // give caught exceptions good variable names
@@ -373,9 +375,6 @@
             // scope suppressions as narrowly as possible
             // unit tests
             // do everything above for unit tests
-
-            // temporary code quality (you should really do better than the below, but this is for convenience at this point):
-            // at least put the word "placeholder" in the xmldoc summary of methods that you've done exception docs for
 
             //// TODO eitherunittests.applyleftexception is an exception where a `throw` type might be useful; are there use-cases that aren't testing though?
             //// TODO go through stash namespace and see what you want to pull out
