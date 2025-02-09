@@ -54,6 +54,13 @@ public static implicit operator Either<TLeft, TRight>(TLeft left)
                             .Left(string.Empty)
                             .Right<System.Exception>();
 
+                Either<int, Either<string, System.Exception>> either6 =
+                    Either
+                        .Left<int>()
+                        .Right()
+                            .Left<string>()
+                            .Right(new System.Exception());
+
                 //// TODO try further nestings
             }
         }
