@@ -376,19 +376,24 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO eitherunittests.applyleftexception is an exception where a `throw` type might be useful; are there use-cases that aren't testing though?
-            //// TODO go through stash namespace and see what you want to pull out
+            //// TODO you are doing the eitherextensions right now
+            //// TODO move everything to use the new either extensions
+            //// TODO then do try, and move everything to use it
+            //// TODO then do enumerableextensions, nd move everything to use it
+            //// TODO then do querycontext (and move everything to use it); the query context stuff will need some diligence and effort around adding the third type parameter that allows mixins to work correctly; do query contexts next probably and just know that you're going to need to put the effort in
+            //// TODO do a pass cleaning up the existing code using the code quality above and either addressing todos or marking them TODO FUTURE and TODO TOPIC
 
-            //// TODO you are doing the "either" stuff right now because it is foundational to the query context stuff, and the query context stuff will need some diligence and effort around adding the third type parameter that allows mixins to work correctly; do query contexts next probably and just know that you're going to need to put the effort in
-            //// TODO address todos TODO FUTURE, TODO TOPIC, and TODO TODO
-            //// TODO separate files and namespaces, remove dead code, normalzie line lengths, stuff like that
-            //// TODO do as much unit testing as you can
-            //// TODO any remaining TODO TODOs + address TODO TOPICs
-            //// TODO finish unit tests
+            //// TODO mvoe things out of the calendarv2 folder
+            //// TODO int.maxmagnitude(and others) intellisense doc doesn't match the learn doc
             //// TODO make sure anything that is not completely accurate is marked as `internal`
-            //// TODO do another pass (you will likely need at least one more pass after this)
-            //// TODO you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
+            //// TODO do another exception documentation pass pass (you will likely need at least one more pass after this)
+            //// TODO go through stash namespace and see what you want to pull out (maybe to another repo and/or as branches with future work items)
             //// TODO write tests for todolistservice that confirm the URLs
+
+            //// TODO FUTURE eitherunittests.applyleftexception is an exception where a `throw` type might be useful; are there use-cases that aren't testing though?
+            //// TODO FUTURE do you want to have an adapter from action to func now that you have `nothing`?
+            //// TODO FUTURE you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>
+
             var odataClient = new GraphClientToOdataClient(this.graphClient);
             var odataCalendarEventsContext = new OdataCalendarEventsContext(
                 OdataServiceRoot.MicrosoftGraph, //// TODO get from this.graphclient

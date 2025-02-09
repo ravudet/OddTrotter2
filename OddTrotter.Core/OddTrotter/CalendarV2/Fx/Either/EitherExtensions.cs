@@ -1,28 +1,12 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-namespace CalendarV2.Fx.Either
+namespace Fx.Either
 {
-    using global::System;
-    using global::System.Diagnostics.CodeAnalysis;
+    using System;
+    using System.Diagnostics.CodeAnalysis;
 
-    using global::Fx.Either;
-
-    /// <summary>
-    /// TODO int.maxmagnitude (and others) intellisense doc doesn't match the learn doc
-    /// 
-    /// TODO nail down `either` (with tests and everything)
-    /// 
-    /// see how the implicit conversions can be leveraged in this extensions class
-    /// TODO nail down the below extensions (with tests and everything)
-    /// TODO move everything over to the v2 either stuff
-    /// TODO figure out what you want to do with `nothingfactory` and the global using in `oddtrotter.core.csproj` 
-    /// <ItemGroup>
-    /// <Using Static = "true" Include="CalendarV2.Fx.NothingFactory" />
-    /// </ItemGroup>
-    /// TODO clean up everything else
-    /// TODO move things out of the `calendarv2` folder
-    /// </summary>
     public static class EitherExtensions
     {
+        //// TODO see how the implicit conversions can be leveraged in this extensions class
         /// TODO make sure all of these names are aligned with the `accept`, `leftmap`, `rightmap`, and `context` names for `ieither`
         /// TODO FUTURE mixins for all of these
         /// TODO FUTURE if you put implicit conversions in `either`, you are able to do things like add a string to a list{either{string, int}}, but to do this, all of your extensions would really need to return the concrete `either` type; but if you do that, you lose out on the ability to have mixins that preserve themselves through a monad
