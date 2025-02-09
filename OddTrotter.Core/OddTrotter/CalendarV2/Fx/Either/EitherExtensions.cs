@@ -303,12 +303,6 @@ namespace Fx.Either
                 rightSelector);
         }
 
-        public static IEither<TLeft, Nothing> NullPropagate<TLeft>(this IEither<IEither<TLeft, Nothing>, Nothing> either)
-        {
-            //// TODO TOPIC this extension is *not* null propagate; find a better name; previously, we liked the name "propagate", but it's definitely not (see above);
-            return either.PropagateRight();
-        }
-
         class Animal
         {
         }
