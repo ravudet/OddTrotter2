@@ -303,43 +303,133 @@ namespace Fx.Either
                 rightSelector);
         }
 
-        //// TODO you are here
-        
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeftSource"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TEither"></typeparam>
+        /// <typeparam name="TLeftResult"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="selector"></param>
+        /// <param name="resultSelector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="selector"/> or <paramref name="resultSelector"/> is
+        /// <see langword="null"/>
+        /// </exception>
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws
+        /// </exception>
+        /// <remarks>
+        /// This method and its variants are analogous to the haskell bind. This is corroborated on [stackoverflow](https://stackoverflow.com/questions/19321868/linq-selectmany-is-bind):, and we can confirm this directly in the [haskell documentation](https://wiki.haskell.org/Monad):
+        /// > class Monad m where
+        /// > (>>=)  :: m a -> (  a -> m b) -> m b
+        /// > (>>)   :: m a ->  m b         -> m b
+        /// > return ::   a                 -> m a
+        /// > ...
+        /// > ...(i.e. the two varieties of bind: (>>=) and (>>))...
+        /// </remarks>
         public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TRight, TEither, TLeftResult>(
             this IEither<TLeftSource, TRight> either,
             Func<TLeftSource, IEither<TEither, TRight>> selector,
             Func<TLeftSource, TEither, TLeftResult> resultSelector)
         {
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(selector);
+            ArgumentNullException.ThrowIfNull(resultSelector);
+
             return
                 either
                     .Apply(
                         left =>
-                            selector(left)
-                                .Apply(
-                                    nestedLeft => Either.Left(resultSelector(left, nestedLeft)).Right<TRight>(),
-                                    right => Either.Left<TLeftResult>().Right(right)),
+                        {
+                            try
+                            {
+                                return 
+                                    selector(left)
+                                        .Apply(
+                                            nestedLeft => Either.Left(resultSelector(left, nestedLeft)).Right<TRight>(),
+                                            right => Either.Left<TLeftResult>().Right(right));
+                            }
+                            catch (LeftMapException leftMapException)
+                            {
+                                //// TODO do you want leftmapexception to only be instantiated with an exception?
+                                throw leftMapException.InnerException!;
+                            }
+                        },
                         right => 
                             Either.Left<TLeftResult>().Right(right));
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeftSource"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TEither"></typeparam>
+        /// <typeparam name="TLeftResult"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="selector"></param>
+        /// <param name="resultSelector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="selector"/> or <paramref name="resultSelector"/> is
+        /// <see langword="null"/>
+        /// </exception>
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws
+        /// </exception>
         public static IEither<TLeftResult, TRight> SelectManyLeft<TLeftSource, TRight, TEither, TLeftResult>(
             this IEither<TLeftSource, TRight> either,
             Func<TLeftSource, IEither<TEither, TRight>> selector,
             Func<TLeftSource, TEither, TLeftResult> resultSelector)
         {
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(selector);
+            ArgumentNullException.ThrowIfNull(resultSelector);
+
             return either.SelectMany(selector, resultSelector);
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeftSource"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TLeftResult"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="selector"/> is <see langword="null"/>
+        /// </exception>
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="selector"/> throws
+        /// </exception>
         public static IEither<TLeftResult, TRight> SelectManyLeft<TLeftSource, TRight, TLeftResult>(
             this IEither<TLeftSource, TRight> either,
             Func<TLeftSource, IEither<TLeftResult, TRight>> selector)
         {
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(selector);
+
             return either.SelectManyLeft(selector, (left, nestedLeft) => nestedLeft);
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static IEither<TLeft, TRight> SelectManyLeft<TLeft, TRight>(
             this IEither<IEither<TLeft, TRight>, TRight> either)
         {
+            ArgumentNullException.ThrowIfNull(either);
+
             return either.SelectManyLeft(left => left);
         }
 
@@ -378,15 +468,38 @@ namespace Fx.Either
                                     nestedRight => Either.Left<TLeft>().Right(resultSelector(right, nestedRight))));
         }*/
 
+        /// <summary>
+        /// TODO i don't know how to implement this; see above block comment 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRightSource"></typeparam>
+        /// <typeparam name="TLeftInner"></typeparam>
+        /// <typeparam name="TEither"></typeparam>
+        /// <typeparam name="TRightResult"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="selector"></param>
+        /// <param name="resultSelector"></param>
+        /// <returns></returns>
         public static IEither<TLeft, TRightResult> SelectMany<TLeft, TRightSource, TLeftInner, TEither, TRightResult>(
             this IEither<TLeft, TRightSource> either,
             Func<TRightSource, IEither<TLeftInner, TEither>> selector,
             Func<TRightSource, TEither, TRightResult> resultSelector)
         {
-            //// TODO i don't know how to implement this; see above block comment
             return default!;
         }
 
+        /// <summary>
+        /// TODO finish this when you have the callee implemented 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRightSource"></typeparam>
+        /// <typeparam name="TLeftInner"></typeparam>
+        /// <typeparam name="TEither"></typeparam>
+        /// <typeparam name="TRightResult"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="selector"></param>
+        /// <param name="resultSelector"></param>
+        /// <returns></returns>
         public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TLeftInner, TEither, TRightResult>(
             this IEither<TLeft, TRightSource> either,
             Func<TRightSource, IEither<TLeftInner, TEither>> selector,
@@ -395,6 +508,15 @@ namespace Fx.Either
             return either.SelectMany(selector, resultSelector);
         }
 
+        /// <summary>
+        /// TODO finish this when you have the callee implemented 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRightSource"></typeparam>
+        /// <typeparam name="TRightResult"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
         public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TRightResult>(
             this IEither<TLeft, TRightSource> either,
             Func<TRightSource, IEither<TLeft, TRightResult>> selector)
@@ -402,158 +524,22 @@ namespace Fx.Either
             return either.SelectManyRight(selector, (right, nestedRight) => nestedRight);
         }
 
+        /// <summary>
+        /// TODO finish this when you have the callee implemented 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
         public static IEither<TLeft, TRight> SelectManyRight<TLeft, TRight>(
             this IEither<TLeft, IEither<TLeft, TRight>> either)
         {
             return either.SelectManyRight(right => right);
         }
 
-        /*public static string First(Either<Either<short, int>, object> either)
-        {
-            return either.ToString() ?? string.Empty;
-        }
-
-        public static string Second(Either<short, int> either)
-        {
-            return either.ToString() ?? string.Empty;
-        }
-
-        public static string Second(Either<object, System.Exception> either)
-        {
-            return either.ToString() ?? string.Empty;
-        }
-
-        public static void Play()
-        {
-            Either<Either<Either<short, int>, object>, System.Exception> either1 = default!;
-            var result =
-                from first in either1
-                from second in first
-                select First(first) + Second(second);
-
-            either1.SelectMany<Either<Either<short, int>, object>, string, Either<short, int>, object>(left => left, (first, second) => First(first) + Second(second));
+        //// TODO you are here
 
 
-            Either<short, Either<int, Either<object, System.Exception>>> either2 = default!;
-            var result2 =
-                from first2 in either2
-                from second2 in first2
-                select new object();
-
-            //// TODO use linq syntax in a test to assert conformance to the linq requirements
-            either2
-                .SelectMany
-                    <
-                        short,
-                        Either<int, Either<object, System.Exception>>,
-                        int,
-                        Either<object, System.Exception>,
-                        string
-                    >
-                    (
-                        right => right,
-                        (first, second) => First(first) + Second(second));
-
-            Either<Either<short, uint>, Either<int, Either<object, System.Exception>>> either3 = default!;
-            var result =
-                from first in either3
-                from second in either3
-                select First(first) + Second(second);
-        }
-
-        /*public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TRight>(
-            this IEither<TLeftSource, TRight> either, 
-            Func<TLeftSource, IEither<TLeftResult, TRight>> selector)
-        {
-            //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
-            //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
-            //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
-
-            return either
-                .Apply(
-                    left =>
-                        selector(left)
-                            .Apply(
-                                nestedLeft => Either.Left(nestedLeft).Right<TRight>(),
-                                nestedRight => Either.Left<TLeftResult>().Right(nestedRight)),
-                    right => Either.Left<TLeftResult>().Right(right));
-        }
-
-        class Animal
-        {
-        }
-
-        class Dog : Animal
-        {
-        }
-
-        class Cat : Animal
-        {
-        }
-
-        private static void PropagateRightBaseUseCase(IEither<IEither<string, Dog>, Cat> either)
-        {
-            var propagated = either.PropagateRight<string, Dog, Cat, Animal>();
-            //// TODO TOPIC you can't really get the type inference to work even with a "factory"; i ran into this with asbase before //// TODO `cast` actually also has this problem, by the way
-
-            either.CreateFactory().DoWork<Animal>();
-            either.CreateFactory().DoWork<string>();
-        }
-
-        private sealed class FactoryThing<TLeft, TRightDerived1, TRightDerived2>
-        {
-            public IEither<TLeft, TRightBase> DoWork<TRightBase>()
-            {
-                return default!;
-            }
-        }
-
-        private static FactoryThing<TLeft, TRightDerived1, TRightDerived2> CreateFactory<TLeft, TRightDerived1, TRightDerived2>(
-            this IEither<IEither<TLeft, TRightDerived1>, TRightDerived2> either)
-        {
-            return new FactoryThing<TLeft, TRightDerived1, TRightDerived2>();
-        }
-
-        public static IEither<TLeft, TRightBase> PropagateRight<TLeft, TRightDerived1, TRightDerived2, TRightBase>(
-            this IEither<IEither<TLeft, TRightDerived1>, TRightDerived2> either)
-            where TRightDerived1 : TRightBase
-            where TRightDerived2 : TRightBase
-        {
-            //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"? //// TODO this is called `join` in haskell (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html))
-            //// TODO TOPIC look at the parameterless coalesce as a degenerate case
-            return either
-                .SelectLeft(
-                    left => left.SelectRight(right => (TRightBase)right))
-                .SelectRight(
-                    right => (TRightBase)right)
-                .PropagateRight();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
-        /// <param name="either"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static IEither<TLeft, TRight> PropagateRight<TLeft, TRight>(
-            this IEither<IEither<TLeft, TRight>, TRight> either)
-        {
-            return either.SelectMany(left => left);
-
-            //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"? //// TODO this is called `join` in haskell (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html)); i believe that the linq `join` is some variant of list comprehension in haskell (see the example where `gcd i j == 1` [here](https://wiki.haskell.org/List_comprehension)); i think you might be wrong about the join thing; i think join is used with reverse bind to achieve this effect through some form of lifting; but what you've already gone past where the lifting is aspplicable, so what you are doing is a bind, with is isomorphic to the c# selectmany; if this is true, then this is a degenerate case of the attempt propagateby method below, and the propagateby below is actually the bind/selectmany (source: https://stackoverflow.com/questions/19321868/linq-selectmany-is-bind)
-            //// TODO TOPIC look at the parameterless coalesce as a degenerate case
-            /*ArgumentNullException.ThrowIfNull(either);
-            
-            return either.Apply(
-                left => 
-                    left.Apply(
-                        subLeft => Either.Left(subLeft).Right<TRight>(),
-                        subRight => Either.Left<TLeft>().Right(subRight)),
-                right =>
-                    Either.Left<TLeft>().Right(right));*/
-        /*}
 
         /// <summary>
         /// 
@@ -598,6 +584,12 @@ namespace Fx.Either
             either.Visit(
                 left => left.)
         }*/
+
+        //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
+        //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
+        //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
+        //// (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html)
+        //// i believe that the linq `join` is some variant of list comprehension in haskell (see the example where `gcd i j == 1` [here](https://wiki.haskell.org/List_comprehension))
 
         public static IEither<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(
             this IEither<TLeftFirst, TRight> first,
