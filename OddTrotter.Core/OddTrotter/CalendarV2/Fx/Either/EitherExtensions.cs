@@ -539,50 +539,6 @@ namespace Fx.Either
 
         //// TODO you are here
 
-        /*/// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
-        /// <param name="either"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static IEither<TLeft, TRight> PropagateLeft<TLeft, TRight>(
-            this IEither<TLeft, IEither<TLeft, TRight>> either)
-        {
-            //// TODO TOPIC what name are you using instead of "propagate"? i've previously call this "shiftright"; maybe "consolidate"? //// TODO this is called `join` in haskell (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html)); i believe that the linq `join` is some variant of list comprehension in haskell (see the example where `gcd i j == 1` [here](https://wiki.haskell.org/List_comprehension))
-            //// TODO TOPIC look at the parameterless coalesce as a degenerate case
-            ArgumentNullException.ThrowIfNull(either);
-
-            return either.Apply(
-                left =>
-                    Either.Left(left).Right<TRight>(),
-                right =>
-                    right.Apply(
-                        subLeft => Either.Left(subLeft).Right<TRight>(),
-                        subRight => Either.Left<TLeft>().Right(subRight)));
-        }
-
-        /*public static void PropagateByRightUseCase()
-        {
-            var either = Either.Left<(string, IEither<int, Exception>)>().Right(new Exception());
-
-            Either<(string, int), Exception> result = either.PropagateByRight<(string, IEither<int, Exception>), Exception, int, (string, int)> (
-                left => left.Item2,
-                (left, nested) => (left, nested));
-        }
-
-        //// TODO TOPIC what should this method signature actually look like?
-        //// TODO get all the names right for this use case
-        public static IEither<TLeftResult, TRight> PropagateByRight<TLeft, TRight, TLeftNested, TLeftResult>( //// TODO TOPIC does the "orientation" of this name make sense? //// TODO is this a "lift" actually?
-            this IEither<TLeft, TRight> either,
-            Func<TLeft, IEither<TLeftNested, TRight>> Propagator,
-            Func<TLeft, TLeftNested, TLeftResult> aggregator)
-        {
-            either.Visit(
-                left => left.)
-        }*/
-
         //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
         //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
         //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
