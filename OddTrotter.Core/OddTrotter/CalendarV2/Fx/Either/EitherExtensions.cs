@@ -303,23 +303,112 @@ namespace Fx.Either
                 rightSelector);
         }
 
-        private static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TEither, TRight>(
+        //// TODO you are here
+        
+        public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TRight, TEither, TLeftResult>(
             this IEither<TLeftSource, TRight> either,
             Func<TLeftSource, IEither<TEither, TRight>> selector,
             Func<TLeftSource, TEither, TLeftResult> resultSelector)
         {
-            return default!;
+            return
+                either
+                    .Apply(
+                        left =>
+                            selector(left)
+                                .Apply(
+                                    nestedLeft => Either.Left(resultSelector(left, nestedLeft)).Right<TRight>(),
+                                    right => Either.Left<TLeftResult>().Right(right)),
+                        right => 
+                            Either.Left<TLeftResult>().Right(right));
         }
 
-        private static IEither<TLeft, TRightResult> SelectMany<TRightSource, TRightResult, TEither, TLeft, TLeftInner>(
+        public static IEither<TLeftResult, TRight> SelectManyLeft<TLeftSource, TRight, TEither, TLeftResult>(
+            this IEither<TLeftSource, TRight> either,
+            Func<TLeftSource, IEither<TEither, TRight>> selector,
+            Func<TLeftSource, TEither, TLeftResult> resultSelector)
+        {
+            return either.SelectMany(selector, resultSelector);
+        }
+
+        public static IEither<TLeftResult, TRight> SelectManyLeft<TLeftSource, TRight, TLeftResult>(
+            this IEither<TLeftSource, TRight> either,
+            Func<TLeftSource, IEither<TLeftResult, TRight>> selector)
+        {
+            return either.SelectManyLeft(selector, (left, nestedLeft) => nestedLeft);
+        }
+
+        public static IEither<TLeft, TRight> SelectManyLeft<TLeft, TRight>(
+            this IEither<IEither<TLeft, TRight>, TRight> either)
+        {
+            return either.SelectManyLeft(left => left);
+        }
+
+        /*public static IEither<TLeft, TRightResult> SelectMany<TRightSource, TRightResult, TEither, TLeft, TLeftInner>(
+            this IEither<TLeft, TRightSource> either,
+            Func<TRightSource, IEither<TLeftInner, TEither>> selector,
+            Func<TRightSource, TLeftInner, TLeft> leftResultSelector,
+            Func<TRightSource, TEither, TRightResult> resultSelector)
+        {
+            Either<Either<string, int>, int> otherVal = default!;
+            IEither<string, int> otherSelected  = otherVal.SelectManyLeft(
+                left => left,
+                (left, nestedLeft) => nestedLeft);
+
+            Either<string, Either<string, int>> val = default!;
+            IEither<string, int> selected = val.SelectMany(
+                right => right,
+                (right, nestedLeft) => nestedLeft,
+                (right, nestedRight) => nestedRight);
+
+            Either<string, Either<short, int>> val2 = default!;
+            IEither<string, int> selected2 = val2.SelectMany(
+                right => right,
+                (right, nestedLeft) => nestedLeft.ToString(),
+                (right, nestedRight) => nestedRight);
+
+            return
+                either
+                    .Apply(
+                        left =>
+                            Either.Left(left).Right<TRightResult>(),
+                        right =>
+                            selector(right)
+                                .Apply(
+                                    nestedLeft => leftResultSelector(right, nestedLeft),
+                                    nestedRight => Either.Left<TLeft>().Right(resultSelector(right, nestedRight))));
+        }*/
+
+        public static IEither<TLeft, TRightResult> SelectMany<TLeft, TRightSource, TLeftInner, TEither, TRightResult>(
             this IEither<TLeft, TRightSource> either,
             Func<TRightSource, IEither<TLeftInner, TEither>> selector,
             Func<TRightSource, TEither, TRightResult> resultSelector)
         {
+            //// TODO i don't know how to implement this; see above block comment
             return default!;
         }
 
-        public static string First(Either<Either<short, int>, object> either)
+        public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TLeftInner, TEither, TRightResult>(
+            this IEither<TLeft, TRightSource> either,
+            Func<TRightSource, IEither<TLeftInner, TEither>> selector,
+            Func<TRightSource, TEither, TRightResult> resultSelector)
+        {
+            return either.SelectMany(selector, resultSelector);
+        }
+
+        public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TRightResult>(
+            this IEither<TLeft, TRightSource> either,
+            Func<TRightSource, IEither<TLeft, TRightResult>> selector)
+        {
+            return either.SelectManyRight(selector, (right, nestedRight) => nestedRight);
+        }
+
+        public static IEither<TLeft, TRight> SelectManyRight<TLeft, TRight>(
+            this IEither<TLeft, IEither<TLeft, TRight>> either)
+        {
+            return either.SelectManyRight(right => right);
+        }
+
+        /*public static string First(Either<Either<short, int>, object> either)
         {
             return either.ToString() ?? string.Empty;
         }
@@ -351,25 +440,31 @@ namespace Fx.Either
                 from second2 in first2
                 select new object();
 
+            //// TODO use linq syntax in a test to assert conformance to the linq requirements
             either2
                 .SelectMany
                     <
-                        Either<int, Either<object, System.Exception>>,
-                        string,
-                        Either<object, System.Exception>,
                         short,
-                        int
+                        Either<int, Either<object, System.Exception>>,
+                        int,
+                        Either<object, System.Exception>,
+                        string
                     >
                     (
                         right => right,
                         (first, second) => First(first) + Second(second));
+
+            Either<Either<short, uint>, Either<int, Either<object, System.Exception>>> either3 = default!;
+            var result =
+                from first in either3
+                from second in either3
+                select First(first) + Second(second);
         }
 
-        public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TRight>(
+        /*public static IEither<TLeftResult, TRight> SelectMany<TLeftSource, TLeftResult, TRight>(
             this IEither<TLeftSource, TRight> either, 
             Func<TLeftSource, IEither<TLeftResult, TRight>> selector)
         {
-            //// TODO you are here
             //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
             //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
             //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
@@ -458,7 +553,7 @@ namespace Fx.Either
                         subRight => Either.Left<TLeft>().Right(subRight)),
                 right =>
                     Either.Left<TLeft>().Right(right));*/
-        }
+        /*}
 
         /// <summary>
         /// 
