@@ -625,34 +625,25 @@ namespace Fx.Either
             return either.TryGetRight(out right);
         }
 
-        //// TODO you are here
-
-        public static void CoalesceUseCase()
-        {
-            IEither<string, string> either = default!;
-
-            either.CoalesceLeft(left => left + "asfd");
-            either.SelectLeft(left => left + "asdf").Coalesce();
-
-            IEither<string, Nothing> either2 = default!;
-            either2.Coalesce(string.Empty);
-            either2.CoalesceRight(_ => "a big string");
-
-            IEither<Nothing, Nothing> either3 = default!;
-            either3.Coalesce();
-            ////either3.Coalesce(new Nothing());
-        }
-
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRight"></typeparam>
         /// <param name="either"></param>
         /// <param name="coalescer"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="coalescer"/> is <see langword="null"/>
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="coalescer"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
+        /// whatever exception <paramref name="coalescer"/> threw.
+        /// </exception>
         /// <remarks>
-        /// This is named "coalesce" to re-use the c# idiom of "null-coalescing operator". This is named "right" because, like the null-coalescing operator, if <typeparamref name="TRight"/> here were "null", then we would be "removing" the right type the same was we would be "removing" the null in a null-coalescing operator.
+        /// This is named "coalesce" to re-use the c# idiom of "null-coalescing operator". This is named "right" because, like the
+        /// null-coalescing operator, if <typeparamref name="TRight"/> here were "null", then we would be "removing" the right
+        /// type the same was we would be "removing" the null in a null-coalescing operator.
         /// </remarks>
         public static TLeft CoalesceRight<TLeft, TRight>(this IEither<TLeft, TRight> either, Func<TRight, TLeft> coalescer)
         {
@@ -670,16 +661,25 @@ namespace Fx.Either
         /// <param name="either"></param>
         /// <param name="coalescer"></param>
         /// <returns></returns>
-        /// <remarks>
-        /// This is named "coalesce" to re-use the c# idiom of "null-coalescing operator". This is named "right" because, like the null-coalescing operator, if <typeparamref name="TRight"/> here were "null", then we would be "removing" the right type the same was we would be "removing" the null in a null-coalescing operator.
-        /// </remarks>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="coalescer"/> is <see langword="null"/>
+        /// </exception>
+        /// <exception cref="LeftMapException">
+        /// Thrown if <paramref name="coalescer"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
+        /// whatever exception <paramref name="coalescer"/> threw.
+        /// </exception>
         public static TRight CoalesceLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, Func<TLeft, TRight> coalescer)
         {
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(coalescer);
+
             return either.Apply(coalescer, right => right);
         }
 
         public static TValue Coalesce<TValue>(this IEither<TValue, TValue> either)
         {
+            //// TODO you are here
+
             return either.CoalesceRight(right => right);
         }
 
