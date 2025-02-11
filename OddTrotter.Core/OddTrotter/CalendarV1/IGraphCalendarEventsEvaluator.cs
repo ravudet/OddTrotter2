@@ -13,7 +13,7 @@
 
     public static class LeftOverEitherExtensions
     {
-        public static Fx.Either.IEither<TLeftResult, TRightResult> Zip<TLeftFirst, TRightFirst, TLeftSecond, TRightSecond, TLeftResult, TRightResult(
+        public static Fx.Either.IEither<TLeftResult, TRightResult> Zip<TLeftFirst, TRightFirst, TLeftSecond, TRightSecond, TLeftResult, TRightResult>(
             this Fx.Either.IEither<TLeftFirst, TRightFirst> first,
             Fx.Either.IEither<TLeftSecond, TRightSecond> second,
             Func<TLeftFirst, TLeftSecond, TLeftResult> leftSelector,

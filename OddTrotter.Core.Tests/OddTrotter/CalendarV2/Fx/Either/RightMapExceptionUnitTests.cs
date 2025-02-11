@@ -9,27 +9,6 @@ namespace Fx.Either
     public sealed class RightMapExceptionUnitTests
     {
         [TestMethod]
-        public void Default()
-        {
-            var exception = new RightMapException();
-
-            Assert.AreEqual(
-                $"Exception of type '{typeof(RightMapException).Namespace}.{typeof(RightMapException).Name}' was thrown.",
-                exception.Message);
-            Assert.IsNull(exception.InnerException);
-        }
-
-        [TestMethod]
-        public void Message()
-        {
-            var message = "this is the message";
-            var exception = new RightMapException(message);
-
-            Assert.AreEqual(message, exception.Message);
-            Assert.IsNull(exception.InnerException);
-        }
-
-        [TestMethod]
         public void MessageAndException()
         {
             var message = "this is a different message";

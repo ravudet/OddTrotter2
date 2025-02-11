@@ -371,7 +371,7 @@
             // todos
             // anything that isn't nailed down 100% should be `internal`
             // `this.`
-            // give caught exceptions good variable names
+            // give caught exceptions meaningful variable names
             // `using` blocks
             // scope suppressions as narrowly as possible
             // unit tests
