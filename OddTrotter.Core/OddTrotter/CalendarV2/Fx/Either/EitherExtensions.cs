@@ -654,7 +654,7 @@ namespace Fx.Either
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRight"></typeparam>
@@ -676,37 +676,96 @@ namespace Fx.Either
             return either.Apply(coalescer, right => right);
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static TValue Coalesce<TValue>(this IEither<TValue, TValue> either)
         {
-            //// TODO you are here
+            ArgumentNullException.ThrowIfNull(either);
 
             return either.CoalesceRight(right => right);
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="default"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static TLeft Coalesce<TLeft>(this IEither<TLeft, Nothing> either, TLeft @default)
         {
+            ArgumentNullException.ThrowIfNull(either);
+
             return either.CoalesceRight(_ => @default);
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="default"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static TRight Coalesce<TRight>(this IEither<Nothing, TRight> either, TRight @default)
         {
+            ArgumentNullException.ThrowIfNull(either);
+
             return either.CoalesceLeft(_ => @default);
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        /// <exception cref="TRight">Thrown if <paramref name="either"/> has the "right" value</exception>
         public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
         {
             ArgumentNullException.ThrowIfNull(either);
 
-            //// TODO TOPIC naming
-            //// TODO maybe the "try" conversation will illuminate a new name for this method, otherwise it's prtety solid
-            return either.CoalesceRight(right => throw right);
-
-            ////return either.Visit(left => left, right => throw right);
+            try
+            {
+                return either.CoalesceRight(right => throw right);
+            }
+            catch (RightMapException rightMapException)
+            {
+                //// TODO do you want rightmapexception to only be instantiated with an exception?
+                throw rightMapException.InnerException!;
+            }
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        /// <exception cref="TLeft">Thrown if <paramref name="either"/> has the "left" value</exception>
         public static TRight ThrowLeft<TLeft, TRight>(this IEither<TLeft, TRight> either) where TLeft : Exception
         {
-            return either.CoalesceLeft(left => throw left);
+            ArgumentNullException.ThrowIfNull(either);
+
+            try
+            {
+                return either.CoalesceLeft(left => throw left);
+            }
+            catch (LeftMapException leftMapException)
+            {
+                //// TODO do you want rightmapexception to only be instantiated with an exception?
+                throw leftMapException.InnerException!;
+            }
         }
     }
 }
