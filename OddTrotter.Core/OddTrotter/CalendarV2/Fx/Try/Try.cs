@@ -50,7 +50,7 @@
     {
         public static bool Try<TInput, TOutput>(this Try3<TInput, TOutput> @try, TInput input, [MaybeNullWhen(false)] out TOutput output)
         {
-            return @try(input).TryLeft(out output);
+            return @try(input).TryGetLeft(out output);
         }
 
         public static Try2<TInput, TOutput> ToTry2<TInput, TOutput>(this Try3<TInput, TOutput> @try)
@@ -303,7 +303,7 @@
         {
             foreach (var element in source)
             {
-                if (selector(element).Try(out var left))
+                if (selector(element).TryGet(out var left))
                 {
                     yield return left;
                 }

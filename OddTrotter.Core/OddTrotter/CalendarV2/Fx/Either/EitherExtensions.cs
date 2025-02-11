@@ -549,7 +549,7 @@ namespace Fx.Either
         /// <param name="left"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static bool TryLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TLeft left)
+        public static bool TryGetLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TLeft left)
         {
             //// TODO TOPIC naming
             ArgumentNullException.ThrowIfNull(either);
@@ -571,7 +571,7 @@ namespace Fx.Either
         /// <param name="right"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static bool TryRight<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TRight right)
+        public static bool TryGetRight<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TRight right)
         {
             //// TODO TOPIC naming
             ArgumentNullException.ThrowIfNull(either);
@@ -592,7 +592,7 @@ namespace Fx.Either
         /// <param name="left"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static bool Try<TLeft>(this IEither<TLeft, Nothing> either, [MaybeNullWhen(false)] out TLeft left)
+        public static bool TryGet<TLeft>(this IEither<TLeft, Nothing> either, [MaybeNullWhen(false)] out TLeft left)
         {
             ArgumentNullException.ThrowIfNull(either);
 

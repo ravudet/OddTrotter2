@@ -101,7 +101,7 @@ namespace Stash
                 var @char = anotherThing[0];
             }
 
-            return nullable.TryLeft(out value);
+            return nullable.TryGetLeft(out value);
         }
 
         public sealed class Nullable2<T> : IEither<T, Null<T>>
