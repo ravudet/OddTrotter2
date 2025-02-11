@@ -540,8 +540,6 @@ namespace Fx.Either
 
         //// TODO you are here
 
-        
-
         /// <summary>
         /// 
         /// </summary>

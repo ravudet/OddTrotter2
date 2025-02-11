@@ -1,6 +1,7 @@
 ﻿using Fx.Either;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -72,6 +73,35 @@ namespace Stash
             NewEither<InvalidOperationException, ArgumentException> right = new ArgumentException();
             stuff6.Add(right);
             stuff6.Add(new InvalidOperationException().Left().Right<ArgumentException>());
+        }
+
+        public static bool TryGetValue<T>(this T? nullable, [MaybeNullWhen(false)] out T value)
+        {
+            // this overload doesn't make the distinction that T might already be nullable, while nullable2 handles that situation; the c# compiler does the either.selectmany automatically for the new nullable syntax
+            if (nullable == null)
+            {
+                value = nullable;
+                return false;
+            }
+            else
+            {
+                value = nullable;
+                return true;
+            }
+        }
+
+        public static bool TryGetValue<T>(this Nullable2<T> nullable, [MaybeNullWhen(false)] out T value)
+        {
+            string? something = null;
+
+            TryGetValue<string>(something, out something);
+
+            if (something.TryGetValue(out var anotherThing))
+            {
+                var @char = anotherThing[0];
+            }
+
+            return nullable.TryLeft(out value);
         }
 
         public sealed class Nullable2<T> : IEither<T, Null<T>>
