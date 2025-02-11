@@ -9,7 +9,7 @@
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
-        /*public static string First(Either<Either<short, int>, object> either)
+        public static string First(Either<Either<short, int>, object> either)
         {
             return either.ToString() ?? string.Empty;
         }
@@ -24,9 +24,9 @@
             return either.ToString() ?? string.Empty;
         }
 
-        public static void Play()
+        /*public static void Play()
         {
-            Either<Either<Either<short, int>, object>, System.Exception> either1 = default!;
+            Either<Either<Either<object, string>, int>, System.Exception> either1 = default!;
             var result =
                 from first in either1
                 from second in first
@@ -60,6 +60,7 @@
                 from first in either3
                 from second in either3
                 select First(first) + Second(second);
-        }*/
+        }
+        */
     }
 }

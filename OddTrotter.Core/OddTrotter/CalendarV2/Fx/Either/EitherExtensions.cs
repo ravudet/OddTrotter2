@@ -1,18 +1,11 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Fx.Either
 {
-    using CalendarV2.Fx.Try;
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Net.Http.Headers;
 
     public static class EitherExtensions
     {
-        //// TODO TOPIC should all of this be lazy?
-
-        //// TODO see how the implicit conversions can be leveraged in this extensions class
-        //// TODO make sure all of these names are aligned with the `accept`, `leftmap`, `rightmap`, and `context` names for `ieither`
-        
         /// <summary>
         /// 
         /// </summary>
@@ -320,7 +313,8 @@ namespace Fx.Either
         /// <see langword="null"/>
         /// </exception>
         /// <exception cref="LeftMapException">
-        /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws
+        /// Thrown if <paramref name="selector"/> or <paramref name="rightSelector"/> throws an exception. The 
+        /// <see cref="Exception.InnerException"/> will be set to whatever exception <paramref name="rightSelector"/> threw.
         /// </exception>
         /// <remarks>
         /// This method and its variants are analogous to the haskell bind. This is corroborated on [stackoverflow](https://stackoverflow.com/questions/19321868/linq-selectmany-is-bind):, and we can confirm this directly in the [haskell documentation](https://wiki.haskell.org/Monad):
@@ -345,10 +339,11 @@ namespace Fx.Either
                     .Apply(
                         left =>
                         {
+                            var selected = selector(left);
                             try
                             {
                                 return 
-                                    selector(left)
+                                    selected
                                         .Apply(
                                             nestedLeft => Either.Left(resultSelector(left, nestedLeft)).Right<TRight>(),
                                             right => Either.Left<TLeftResult>().Right(right));
@@ -434,41 +429,6 @@ namespace Fx.Either
             return either.SelectManyLeft(left => left);
         }
 
-        /*public static IEither<TLeft, TRightResult> SelectMany<TRightSource, TRightResult, TEither, TLeft, TLeftInner>(
-            this IEither<TLeft, TRightSource> either,
-            Func<TRightSource, IEither<TLeftInner, TEither>> selector,
-            Func<TRightSource, TLeftInner, TLeft> leftResultSelector,
-            Func<TRightSource, TEither, TRightResult> resultSelector)
-        {
-            Either<Either<string, int>, int> otherVal = default!;
-            IEither<string, int> otherSelected  = otherVal.SelectManyLeft(
-                left => left,
-                (left, nestedLeft) => nestedLeft);
-
-            Either<string, Either<string, int>> val = default!;
-            IEither<string, int> selected = val.SelectMany(
-                right => right,
-                (right, nestedLeft) => nestedLeft,
-                (right, nestedRight) => nestedRight);
-
-            Either<string, Either<short, int>> val2 = default!;
-            IEither<string, int> selected2 = val2.SelectMany(
-                right => right,
-                (right, nestedLeft) => nestedLeft.ToString(),
-                (right, nestedRight) => nestedRight);
-
-            return
-                either
-                    .Apply(
-                        left =>
-                            Either.Left(left).Right<TRightResult>(),
-                        right =>
-                            selector(right)
-                                .Apply(
-                                    nestedLeft => leftResultSelector(right, nestedLeft),
-                                    nestedRight => Either.Left<TLeft>().Right(resultSelector(right, nestedRight))));
-        }*/
-
         /// <summary>
         /// TODO i don't know how to implement this; see above block comment 
         /// </summary>
@@ -481,12 +441,38 @@ namespace Fx.Either
         /// <param name="selector"></param>
         /// <param name="resultSelector"></param>
         /// <returns></returns>
-        public static IEither<TLeft, TRightResult> SelectMany<TLeft, TRightSource, TLeftInner, TEither, TRightResult>(
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="selector"/> or <paramref name="resultSelector"/> is
+        /// <see langword="null"/>
+        /// </exception>
+        public static IEither<TLeft, TRightResult> SelectMany<TLeft, TRightSource, TEither, TRightResult>(
             this IEither<TLeft, TRightSource> either,
-            Func<TRightSource, IEither<TLeftInner, TEither>> selector,
+            Func<TRightSource, IEither<TLeft, TEither>> selector,
             Func<TRightSource, TEither, TRightResult> resultSelector)
         {
-            return default!;
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(selector);
+            ArgumentNullException.ThrowIfNull(resultSelector);
+
+            return either
+                .Apply(
+                    left => Either.Left(left).Right<TRightResult>(),
+                    right =>
+                    {
+                        var selected = selector(right);
+                        try
+                        {
+                            return selected
+                                .Apply(
+                                    nestedLeft => Either.Left(nestedLeft).Right<TRightResult>(),
+                                    nestedRight => Either.Left<TLeft>().Right(resultSelector(right, nestedRight)));
+                        }
+                        catch (RightMapException rightMapException)
+                        {
+                            //// TODO do you want rightmapexception to only be instantiated with an exception?
+                            throw rightMapException.InnerException!;
+                        }
+                    });
         }
 
         /// <summary>
@@ -501,9 +487,9 @@ namespace Fx.Either
         /// <param name="selector"></param>
         /// <param name="resultSelector"></param>
         /// <returns></returns>
-        public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TLeftInner, TEither, TRightResult>(
+        public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TEither, TRightResult>(
             this IEither<TLeft, TRightSource> either,
-            Func<TRightSource, IEither<TLeftInner, TEither>> selector,
+            Func<TRightSource, IEither<TLeft, TEither>> selector,
             Func<TRightSource, TEither, TRightResult> resultSelector)
         {
             return either.SelectMany(selector, resultSelector);

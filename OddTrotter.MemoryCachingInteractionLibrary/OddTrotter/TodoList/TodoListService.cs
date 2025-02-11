@@ -349,6 +349,7 @@
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
 
 
+            //// TODO TOPIC should the either extensions be lazy?
 
             // TODO write up code quality list and create blog posts
             // code quality:
