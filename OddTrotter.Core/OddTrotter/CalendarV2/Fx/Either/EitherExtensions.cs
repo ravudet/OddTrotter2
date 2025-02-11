@@ -481,7 +481,7 @@ namespace Fx.Either
                     });
         }
 
-        //// TODO finish the selectmany stuff, then you are ready for "code review"
+        //// TODO finish the selectmany stuff, then get the map exceptions to only allow exceptions, then you are ready for "code review"
 
         /// <summary>
         /// TODO finish this when you have the callee implemented 
