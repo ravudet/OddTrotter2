@@ -522,7 +522,10 @@ namespace Fx.Either
             this IEither<TLeft, TRightSource> either,
             Func<TRightSource, IEither<TLeft, TRightResult>> selector)
         {
-            return either.SelectManyRight(selector, (right, nestedRight) => nestedRight);
+            //// TODO this is the "proper" implementation:
+            //// return either.SelectManyRight(selector, (right, nestedRight) => nestedRight);
+
+            return either.SelectRight(selector).SelectManyRight();
         }
 
         /// <summary>
@@ -535,10 +538,19 @@ namespace Fx.Either
         public static IEither<TLeft, TRight> SelectManyRight<TLeft, TRight>(
             this IEither<TLeft, IEither<TLeft, TRight>> either)
         {
-            return either.SelectManyRight(right => right);
-        }
+            //// TODO this is the "propoer" implementation:
+            //// return either.SelectManyRight(right => right);
 
-        //// TODO you are here
+            return
+                either
+                    .Apply(
+                        left => Either.Left(left).Right<TRight>(),
+                        right =>
+                            right
+                                .Apply(
+                                    nestedLeft => Either.Left(nestedLeft).Right<TRight>(),
+                                    nestedRight => Either.Left<TLeft>().Right(nestedRight)));
+        }
 
         /// <summary>
         /// 
@@ -551,9 +563,9 @@ namespace Fx.Either
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static bool TryGetLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TLeft left)
         {
-            //// TODO TOPIC naming
             ArgumentNullException.ThrowIfNull(either);
 
+            //// TODO FUTURE can you do a ref struct for these tuples?
             var result = either.Apply(
                 left => (left, true),
                 right => (default(TLeft), false));
@@ -573,7 +585,6 @@ namespace Fx.Either
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static bool TryGetRight<TLeft, TRight>(this IEither<TLeft, TRight> either, [MaybeNullWhen(false)] out TRight right)
         {
-            //// TODO TOPIC naming
             ArgumentNullException.ThrowIfNull(either);
 
             var result = either.Apply(
@@ -583,6 +594,10 @@ namespace Fx.Either
             right = result.Item1;
             return result.Item2;
         }
+
+
+        //// TODO you are here
+
 
         /// <summary>
         /// 
@@ -596,14 +611,25 @@ namespace Fx.Either
         {
             ArgumentNullException.ThrowIfNull(either);
 
-            //// TODO TOPIC naming? i doubt this is actually a `try` because it doesn't take an input
-            var result = either.Apply(
-                left => (left, true),
-                right => (default(TLeft), false));
-
-            left = result.Item1;
-            return result.Item2;
+            return either.TryGetLeft(out left);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword=""/></exception>
+        public static bool TryGet<TRight>(this IEither<Nothing, TRight> either, [MaybeNullWhen(false)] out TRight right)
+        {
+            ArgumentNullException.ThrowIfNull(either);
+
+            return either.TryGetRight(out right);
+        }
+
+        //// TODO you are here
 
         /// <summary>
         /// 
