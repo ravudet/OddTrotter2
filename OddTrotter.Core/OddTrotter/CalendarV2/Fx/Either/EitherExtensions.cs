@@ -479,8 +479,6 @@ namespace Fx.Either
                     });
         }
 
-        //// TODO you are ready for "code review"
-
         /// <summary>
         /// placeholder
         /// </summary>
