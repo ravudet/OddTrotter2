@@ -544,7 +544,7 @@ namespace Fx.Either
         //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
         //// (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html)
         //// i believe that the linq `join` is some variant of list comprehension in haskell (see the example where `gcd i j == 1` [here](https://wiki.haskell.org/List_comprehension))
-
+        
         public static IEither<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(
             this IEither<TLeftFirst, TRight> first,
             IEither<TLeftSecond, TRight> second,

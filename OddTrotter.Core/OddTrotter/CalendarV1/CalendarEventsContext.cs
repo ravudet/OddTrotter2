@@ -275,7 +275,7 @@ namespace OddTrotter.Calendar
                                 seriesPlusInstance =>
                                     seriesPlusInstance
                                         .FirstInstance
-                                        .TryNotDefault(
+                                        .TryNotDefault( //// TODO i *think* both delegates here are just doing identity operations; do you want to have a `trynotdefault` convenience overload that returns bool with and out parameter of the either of the other two?
                                             instance => 
                                                 Either
                                                     .Right<CalendarEventsContextTranslationException>()
