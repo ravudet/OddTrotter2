@@ -595,10 +595,6 @@ namespace Fx.Either
             return result.Item2;
         }
 
-
-        //// TODO you are here
-
-
         /// <summary>
         /// 
         /// </summary>
