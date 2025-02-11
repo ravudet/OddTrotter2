@@ -313,8 +313,8 @@ namespace Fx.Either
         /// <see langword="null"/>
         /// </exception>
         /// <exception cref="LeftMapException">
-        /// Thrown if <paramref name="selector"/> or <paramref name="rightSelector"/> throws an exception. The 
-        /// <see cref="Exception.InnerException"/> will be set to whatever exception <paramref name="rightSelector"/> threw.
+        /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws an exception. The 
+        /// <see cref="Exception.InnerException"/> will be set to whatever exception was thrown.
         /// </exception>
         /// <remarks>
         /// This method and its variants are analogous to the haskell bind. This is corroborated on [stackoverflow](https://stackoverflow.com/questions/19321868/linq-selectmany-is-bind):, and we can confirm this directly in the [haskell documentation](https://wiki.haskell.org/Monad):
@@ -374,7 +374,8 @@ namespace Fx.Either
         /// <see langword="null"/>
         /// </exception>
         /// <exception cref="LeftMapException">
-        /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws
+        /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws an exception. The 
+        /// <see cref="Exception.InnerException"/> will be set to whatever exception was thrown.
         /// </exception>
         public static IEither<TLeftResult, TRight> SelectManyLeft<TLeftSource, TRight, TEither, TLeftResult>(
             this IEither<TLeftSource, TRight> either,
@@ -401,7 +402,8 @@ namespace Fx.Either
         /// Thrown if <paramref name="either"/> or <paramref name="selector"/> is <see langword="null"/>
         /// </exception>
         /// <exception cref="LeftMapException">
-        /// Thrown if <paramref name="selector"/> throws
+        /// Thrown if <paramref name="selector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
+        /// whatever exception was thrown.
         /// </exception>
         public static IEither<TLeftResult, TRight> SelectManyLeft<TLeftSource, TRight, TLeftResult>(
             this IEither<TLeftSource, TRight> either,
@@ -430,7 +432,7 @@ namespace Fx.Either
         }
 
         /// <summary>
-        /// TODO i don't know how to implement this; see above block comment 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRightSource"></typeparam>
@@ -444,6 +446,10 @@ namespace Fx.Either
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="either"/> or <paramref name="selector"/> or <paramref name="resultSelector"/> is
         /// <see langword="null"/>
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws an exception. The 
+        /// <see cref="Exception.InnerException"/> will be set to whatever exception was thrown.
         /// </exception>
         public static IEither<TLeft, TRightResult> SelectMany<TLeft, TRightSource, TEither, TRightResult>(
             this IEither<TLeft, TRightSource> either,
