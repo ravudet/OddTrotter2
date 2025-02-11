@@ -481,10 +481,10 @@ namespace Fx.Either
                     });
         }
 
-        //// TODO finish the selectmany stuff, then get the map exceptions to only allow exceptions, then you are ready for "code review"
+        //// TODO get the map exceptions to only allow exceptions, then you are ready for "code review"
 
         /// <summary>
-        /// TODO finish this when you have the callee implemented 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRightSource"></typeparam>
@@ -495,16 +495,28 @@ namespace Fx.Either
         /// <param name="selector"></param>
         /// <param name="resultSelector"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="selector"/> or <paramref name="resultSelector"/> is
+        /// <see langword="null"/>
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws an exception. The 
+        /// <see cref="Exception.InnerException"/> will be set to whatever exception was thrown.
+        /// </exception>
         public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TEither, TRightResult>(
             this IEither<TLeft, TRightSource> either,
             Func<TRightSource, IEither<TLeft, TEither>> selector,
             Func<TRightSource, TEither, TRightResult> resultSelector)
         {
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(selector);
+            ArgumentNullException.ThrowIfNull(resultSelector);
+
             return either.SelectMany(selector, resultSelector);
         }
 
         /// <summary>
-        /// TODO finish this when you have the callee implemented 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRightSource"></typeparam>
@@ -512,38 +524,37 @@ namespace Fx.Either
         /// <param name="either"></param>
         /// <param name="selector"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="either"/> or <paramref name="selector"/> is <see langword="null"/>
+        /// </exception>
+        /// <exception cref="RightMapException">
+        /// Thrown if <paramref name="selector"/> throws an exception. The <see cref="Exception.InnerException"/> will be set to
+        /// whatever exception was thrown.
+        /// </exception>
         public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TRightResult>(
             this IEither<TLeft, TRightSource> either,
             Func<TRightSource, IEither<TLeft, TRightResult>> selector)
         {
-            //// TODO this is the "proper" implementation:
-            //// return either.SelectManyRight(selector, (right, nestedRight) => nestedRight);
+            ArgumentNullException.ThrowIfNull(either);
+            ArgumentNullException.ThrowIfNull(selector);
 
-            return either.SelectRight(selector).SelectManyRight();
+            return either.SelectManyRight(selector, (right, nestedRight) => nestedRight);
         }
 
         /// <summary>
-        /// TODO finish this when you have the callee implemented 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRight"></typeparam>
         /// <param name="either"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
         public static IEither<TLeft, TRight> SelectManyRight<TLeft, TRight>(
             this IEither<TLeft, IEither<TLeft, TRight>> either)
         {
-            //// TODO this is the "propoer" implementation:
-            //// return either.SelectManyRight(right => right);
+            ArgumentNullException.ThrowIfNull(either);
 
-            return
-                either
-                    .Apply(
-                        left => Either.Left(left).Right<TRight>(),
-                        right =>
-                            right
-                                .Apply(
-                                    nestedLeft => Either.Left(nestedLeft).Right<TRight>(),
-                                    nestedRight => Either.Left<TLeft>().Right(nestedRight)));
+            return either.SelectManyRight(right => right);
         }
 
         /// <summary>
