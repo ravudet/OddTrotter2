@@ -553,7 +553,7 @@ namespace Fx.Either
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRight"></typeparam>
@@ -575,7 +575,7 @@ namespace Fx.Either
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRight"></typeparam>
@@ -596,7 +596,7 @@ namespace Fx.Either
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <param name="either"></param>
@@ -611,7 +611,7 @@ namespace Fx.Either
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TRight"></typeparam>
         /// <param name="either"></param>
@@ -627,23 +627,20 @@ namespace Fx.Either
 
         //// TODO you are here
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
-        /// <param name="either"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
+        public static void CoalesceUseCase()
         {
-            ArgumentNullException.ThrowIfNull(either);
+            IEither<string, string> either = default!;
 
-            //// TODO TOPIC naming
-            //// TODO maybe the "try" conversation will illuminate a new name for this method, otherwise it's prtety solid
-            return either.Coalesce(right => throw right);
+            either.CoalesceLeft(left => left + "asfd");
+            either.SelectLeft(left => left + "asdf").Coalesce();
 
-            ////return either.Visit(left => left, right => throw right);
+            IEither<string, Nothing> either2 = default!;
+            either2.Coalesce(string.Empty);
+            either2.CoalesceRight(_ => "a big string");
+
+            IEither<Nothing, Nothing> either3 = default!;
+            either3.Coalesce();
+            ////either3.Coalesce(new Nothing());
         }
 
         /// <summary>
@@ -654,8 +651,10 @@ namespace Fx.Either
         /// <param name="either"></param>
         /// <param name="coalescer"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="coalescer"/> is <see langword="null"/></exception>
-        public static TLeft Coalesce<TLeft, TRight>(this IEither<TLeft, TRight> either, Func<TRight, TLeft> coalescer)
+        /// <remarks>
+        /// This is named "coalesce" to re-use the c# idiom of "null-coalescing operator". This is named "right" because, like the null-coalescing operator, if <typeparamref name="TRight"/> here were "null", then we would be "removing" the right type the same was we would be "removing" the null in a null-coalescing operator.
+        /// </remarks>
+        public static TLeft CoalesceRight<TLeft, TRight>(this IEither<TLeft, TRight> either, Func<TRight, TLeft> coalescer)
         {
             ArgumentNullException.ThrowIfNull(either);
             ArgumentNullException.ThrowIfNull(coalescer);
@@ -663,58 +662,51 @@ namespace Fx.Either
             return either.Apply(left => left, coalescer);
         }
 
-        public static TValue Coalesce<TValue>(this IEither<TValue, TValue> either)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="coalescer"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This is named "coalesce" to re-use the c# idiom of "null-coalescing operator". This is named "right" because, like the null-coalescing operator, if <typeparamref name="TRight"/> here were "null", then we would be "removing" the right type the same was we would be "removing" the null in a null-coalescing operator.
+        /// </remarks>
+        public static TRight CoalesceLeft<TLeft, TRight>(this IEither<TLeft, TRight> either, Func<TLeft, TRight> coalescer)
         {
-            //// TODO TOPIC this is like a degenerate case of the "shift right" thing...
-            return either.Apply(left => left, right => right);
+            return either.Apply(coalescer, right => right);
         }
 
-        //// TODO write somewhere that nullable<TLeft> is equivalent to IEither<TLeft, CalendarV2.System.Void>
-
-        public static void CoalesceUseCase()
+        public static TValue Coalesce<TValue>(this IEither<TValue, TValue> either)
         {
-            object? foo = null;
-
-            var bar = foo ?? new object();
-
-
+            return either.CoalesceRight(right => right);
         }
 
         public static TLeft Coalesce<TLeft>(this IEither<TLeft, Nothing> either, TLeft @default)
         {
-            //// TODO should there be an overload of Func<TLeft> defaultCoalescer? //// TODO TOPIC no, because that's just coalesce(either<left, right>)
-            //// this is equivalent to the null coalescing operator; how to generalize?
-            //// TODO wait, is *visit* actually the general-form "coalesce"? and that's why you can't seem to find a more general method signature?
-            /*return either.Visit(
-                left => left,
-                right => @default);
-            */
-            return either.Coalesce(_ => @default);
-        }
-    }
-
-    /// <summary>
-    /// TODO can you use this anywhere?
-    /// </summary>
-    public static class ExceptionExtensions
-    {
-        public static Nothing Throw<TException>(this TException exception) where TException : Exception
-        {
-            throw exception;
-        }
-    }
-
-    public struct Throw<T>
-    {
-        public static implicit operator Nothing(Throw<T> @throw)
-        {
-            return new Nothing();
+            return either.CoalesceRight(_ => @default);
         }
 
-        public static implicit operator T(Throw<T> @throw)
+        public static TRight Coalesce<TRight>(this IEither<Nothing, TRight> either, TRight @default)
         {
-            //// TODO probably not safe, but we are wanting it here for type inference and lambdas
-            return default(T)!;
+            return either.CoalesceLeft(_ => @default);
+        }
+
+        public static TLeft ThrowRight<TLeft, TRight>(this IEither<TLeft, TRight> either) where TRight : Exception
+        {
+            ArgumentNullException.ThrowIfNull(either);
+
+            //// TODO TOPIC naming
+            //// TODO maybe the "try" conversation will illuminate a new name for this method, otherwise it's prtety solid
+            return either.CoalesceRight(right => throw right);
+
+            ////return either.Visit(left => left, right => throw right);
+        }
+
+        public static TRight ThrowLeft<TLeft, TRight>(this IEither<TLeft, TRight> either) where TLeft : Exception
+        {
+            return either.CoalesceLeft(left => throw left);
         }
     }
 }
