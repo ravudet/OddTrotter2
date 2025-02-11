@@ -350,8 +350,7 @@ namespace Fx.Either
                             }
                             catch (LeftMapException leftMapException)
                             {
-                                //// TODO do you want leftmapexception to only be instantiated with an exception?
-                                throw leftMapException.InnerException!;
+                                throw leftMapException.InnerException;
                             }
                         },
                         right => 
@@ -475,13 +474,12 @@ namespace Fx.Either
                         }
                         catch (RightMapException rightMapException)
                         {
-                            //// TODO do you want rightmapexception to only be instantiated with an exception?
-                            throw rightMapException.InnerException!;
+                            throw rightMapException.InnerException;
                         }
                     });
         }
 
-        //// TODO get the map exceptions to only allow exceptions, then you are ready for "code review"
+        //// TODO you are ready for "code review"
 
         /// <summary>
         /// placeholder
@@ -744,8 +742,7 @@ namespace Fx.Either
             }
             catch (RightMapException rightMapException)
             {
-                //// TODO do you want rightmapexception to only be instantiated with an exception?
-                throw rightMapException.InnerException!;
+                throw rightMapException.InnerException;
             }
         }
 
@@ -768,8 +765,7 @@ namespace Fx.Either
             }
             catch (LeftMapException leftMapException)
             {
-                //// TODO do you want rightmapexception to only be instantiated with an exception?
-                throw leftMapException.InnerException!;
+                throw leftMapException.InnerException;
             }
         }
     }
