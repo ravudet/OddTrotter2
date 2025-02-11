@@ -1,5 +1,6 @@
 ﻿namespace OddTrotter.Calendar
 {
+    using Fx.Either;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -9,6 +10,41 @@
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
+
+    public static class LeftOverEitherExtensions
+    {
+        public static Fx.Either.IEither<TLeftResult, TRightResult> Zip<TLeftFirst, TRightFirst, TLeftSecond, TRightSecond, TLeftResult, TRightResult(
+            this Fx.Either.IEither<TLeftFirst, TRightFirst> first,
+            Fx.Either.IEither<TLeftSecond, TRightSecond> second,
+            Func<TLeftFirst, TLeftSecond, TLeftResult> leftSelector,
+            Func<TLeftFirst, TRightSecond, TRightResult> leftFirstRightSecondSelector,
+            Func<TRightFirst, TLeftSecond, TRightResult> rightFirstLeftSecondSelector,
+            Func<TRightFirst, TRightSecond, TRightResult> rightSelector)
+        {
+            //// TODO TOPIC what is the best name for this?
+            //// TODO TOPIC your ultimate use case is along the lines of first.zip(second).throwright()
+            //// TODO do you want a convenience overload that makes the left side tuples?
+
+            //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
+            //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
+            //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
+            //// (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html)
+            //// i believe that the linq `join` is some variant of list comprehension in haskell (see the example where `gcd i j == 1` [here](https://wiki.haskell.org/List_comprehension))
+
+            return first
+                .Apply(
+                    leftFirst =>
+                        second
+                            .Apply(
+                                leftSecond => Fx.Either.Either.Left(leftSelector(leftFirst, leftSecond)).Right<TRightResult>(),
+                                rightSecond => Fx.Either.Either.Left<TLeftResult>().Right(leftFirstRightSecondSelector(leftFirst, rightSecond))),
+                    rightFirst =>
+                        second
+                            .Apply(
+                                leftSecond => Fx.Either.Either.Left<TLeftResult>().Right(rightFirstLeftSecondSelector(rightFirst, leftSecond)),
+                                rightSecond => Fx.Either.Either.Left<TLeftResult>().Right(rightSelector(rightFirst, rightSecond))));
+        }
+    }
 
     public abstract class GraphQuery //// TODO graphrequest?
     {

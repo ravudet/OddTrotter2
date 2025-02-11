@@ -4,6 +4,7 @@ namespace Fx.Either
     using CalendarV2.Fx.Try;
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Net.Http.Headers;
 
     public static class EitherExtensions
     {
@@ -539,36 +540,7 @@ namespace Fx.Either
 
         //// TODO you are here
 
-        //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Control-Monad.html
-        //// https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Either.html
-        //// https://almarefa.net/blog/how-to-combine-two-different-types-of-lists-in
-        //// (look at the `flatten` example [here](https://learn-haskell.blog/06-errors_and_files/01-either.html)
-        //// i believe that the linq `join` is some variant of list comprehension in haskell (see the example where `gcd i j == 1` [here](https://wiki.haskell.org/List_comprehension))
         
-        public static IEither<(TLeftFirst, TLeftSecond), TRight> Zip<TLeftFirst, TLeftSecond, TRight>(
-            this IEither<TLeftFirst, TRight> first,
-            IEither<TLeftSecond, TRight> second,
-            Func<TRight, TRight, TRight> rightAggregator) //// TODO TOPIC naming of this //// TODO TOPIC other variants of this? like, does `tright` need to be the same for both eithers? and should you always return a tuple? don't forget your ultimate use-case of first.zip(second).throwright()
-        {
-            return
-                first
-                    .Apply(
-                        firstLeft =>
-                            second
-                                .Apply(
-                                    secondLeft =>
-                                        Either.Left((firstLeft, secondLeft)).Right<TRight>(),
-                                    secondRight =>
-                                        Either.Left<(TLeftFirst, TLeftSecond)>().Right(secondRight)), //// TODO is it ok that you are losing `firstleft`? is this method actually a convenience overload of a more general method that asks the caller for a delegate for each left case?
-                        firstRight =>
-                            second
-                                .Apply(
-                                    secondLeft =>
-                                        Either.Left<(TLeftFirst, TLeftSecond)>().Right(firstRight),
-                                    secondRight =>
-                                        Either.Left<(TLeftFirst, TLeftSecond)>().Right(rightAggregator(firstRight, secondRight))));
-
-        }
 
         /// <summary>
         /// 
