@@ -376,6 +376,31 @@
             Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
         }
 
+        [TestMethod]
+        public void SelectNoContextNullEither()
+        {
+        }
+
+        [TestMethod]
+        public void SelectNoContext()
+        {
+            var either = Either.Left("safd").Right<int>();
+            var tuple = new TupleBuilder<StringBuilder, int[]>();
+
+            IEither<StringBuilder, int[]> result = either.Select(left => tuple.Item1 = new StringBuilder(left), right => tuple.Item2 = new[] { right });
+
+            Assert.IsNotNull(tuple.Item1);
+            Assert.IsNull(tuple.Item2);
+
+            either = Either.Left<string>().Right(42);
+            tuple = new TupleBuilder<StringBuilder, int[]>();
+
+            result = either.Select(left => tuple.Item1 = new StringBuilder(left), right => tuple.Item2 = new[] { right });
+
+            Assert.IsNull(tuple.Item1);
+            Assert.IsNotNull(tuple.Item2);
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
