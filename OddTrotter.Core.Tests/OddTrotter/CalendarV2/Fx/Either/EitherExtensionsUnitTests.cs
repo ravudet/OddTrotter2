@@ -568,6 +568,22 @@
             either.SelectLeft((Func<string, string>)(left => throw invalidOperationException));
         }
 
+        [TestMethod]
+        public void SelectRightNoContextNullEither()
+        {
+            Either<string, int> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .SelectRight(right => right));
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
