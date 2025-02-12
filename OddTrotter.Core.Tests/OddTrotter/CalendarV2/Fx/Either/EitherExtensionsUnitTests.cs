@@ -608,6 +608,26 @@
                 ));
         }
 
+        [TestMethod]
+        public void SelectRightNoContext()
+        {
+            var either = Either.Left("safd").Right<int>();
+            var tuple = new TupleBuilder<StringBuilder, int[]>();
+
+            IEither<string, int[]> result = either.SelectRight(right => tuple.Item2 = new[] { right });
+
+            Assert.IsNull(tuple.Item1);
+            Assert.IsNull(tuple.Item2);
+
+            either = Either.Left<string>().Right(42);
+            tuple = new TupleBuilder<StringBuilder, int[]>();
+
+            result = either.SelectRight(right => tuple.Item2 = new[] { right });
+
+            Assert.IsNull(tuple.Item1);
+            Assert.IsNotNull(tuple.Item2);
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
