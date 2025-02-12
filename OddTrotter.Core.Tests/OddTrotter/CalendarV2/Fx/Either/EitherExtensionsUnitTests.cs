@@ -3,12 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Mime;
     using System.Text;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using NuGet.Frameworks;
-    using Stash;
 
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    
     [TestClass]
     public sealed class EitherExtensionsUnitTests
     {
@@ -757,6 +755,27 @@
 
             Assert.IsTrue(result.TryGetRight(out var rightValue));
             Assert.AreEqual(invalidCastException, rightValue);
+        }
+
+        [TestMethod]
+        public void SelectManyPinnedRightSelectorLeftMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left(("sadf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int));
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
