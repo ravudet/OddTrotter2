@@ -254,6 +254,20 @@
         [TestMethod]
         public void SelectLeftNullLeftSelector()
         {
+            var either = Either.Left("asdf").Right<IEnumerable<int>>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectLeft(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<string, Nothing, StringBuilder>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , new Nothing()));
+        }
+
+        [TestMethod]
+        public void SelectLeft()
+        {
             var either = Either.Left("safd").Right<IEnumerable<int>>();
             var tuple = new TupleBuilder<StringBuilder, IEnumerable<int>>();
 
@@ -269,6 +283,21 @@
 
             Assert.IsNull(tuple.Item1);
             Assert.IsNull(tuple.Item2);
+        }
+
+        [TestMethod]
+        public void SelectLeftLeftMapException()
+        {
+            var either = Either.Left("sfd").Right<IEnumerable<int>>();
+            var invalidOperationException = new InvalidOperationException();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectLeft((Func<string, Nothing, string>)((left, _) => throw invalidOperationException), new Nothing()));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left<string>().Right(new[] { 42 }.AsEnumerable());
+
+            either.SelectLeft((Func<string, Nothing, string>)((left, _) => throw invalidOperationException), new Nothing());
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
