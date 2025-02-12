@@ -7,6 +7,7 @@
     using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using NuGet.Frameworks;
+    using Stash;
 
     [TestClass]
     public sealed class EitherExtensionsUnitTests
@@ -626,6 +627,21 @@
 
             Assert.IsNull(tuple.Item1);
             Assert.IsNotNull(tuple.Item2);
+        }
+
+        [TestMethod]
+        public void SelectRightNoContextRightMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left("sadf").Right<int>();
+
+            either.SelectRight((Func<int, int>)(right => throw invalidOperationException));
+
+            either = Either.Left<string>().Right(42);
+
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => either.SelectRight((Func<int, int>)(right => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
