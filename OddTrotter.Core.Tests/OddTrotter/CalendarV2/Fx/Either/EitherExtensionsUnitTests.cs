@@ -361,6 +361,21 @@
             Assert.IsNotNull(tuple.Item2);
         }
 
+        [TestMethod]
+        public void SelectRightRightMapException()
+        {
+            var either = Either.Left("asdf").Right<int>();
+            var invalidOperationException = new InvalidOperationException();
+
+            either.SelectRight((Func<int, Nothing, int>)((right, _) => throw invalidOperationException), new Nothing());
+
+            either = Either.Left<string>().Right(42);
+
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => either.SelectRight((Func<int, Nothing, int>)((right, _) => throw invalidOperationException), new Nothing()));
+
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
