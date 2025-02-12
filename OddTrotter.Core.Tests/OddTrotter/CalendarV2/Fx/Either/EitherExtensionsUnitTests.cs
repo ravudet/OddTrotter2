@@ -63,6 +63,21 @@
                 ));
         }
 
+        [TestMethod]
+        public void ApplyNoContextLeftMapException()
+        {
+        }
+
+        [TestMethod]
+        public void ApplyNoContextRightMapException()
+        {
+        }
+
+        [TestMethod]
+        public void ApplyNoContext()
+        {
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
