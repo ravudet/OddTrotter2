@@ -6,6 +6,7 @@
     using System.Net.Mime;
     using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using NuGet.Frameworks;
 
     [TestClass]
     public sealed class EitherExtensionsUnitTests
@@ -530,7 +531,26 @@
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                 ));
+        }
 
+        [TestMethod]
+        public void SelectLeftNoContext()
+        {
+            var either = Either.Left("safd").Right<int>();
+            var tuple = new TupleBuilder<StringBuilder, int[]>();
+
+            either.SelectLeft(left => tuple.Item1 = new StringBuilder(left));
+
+            Assert.IsNotNull(tuple.Item1);
+            Assert.IsNull(tuple.Item2);
+
+            either = Either.Left<string>().Right(42);
+            tuple = new TupleBuilder<StringBuilder, int[]>();
+
+            either.SelectLeft(left => tuple.Item1 = new StringBuilder(left));
+
+            Assert.IsNull(tuple.Item1);
+            Assert.IsNull(tuple.Item2);
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
