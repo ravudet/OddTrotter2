@@ -477,6 +477,21 @@
             either.Select((Func<string, string>)(left => throw invalidOperationException), right => right);
         }
 
+        [TestMethod]
+        public void SelectNoContextRightMapException()
+        {
+            var either = Either.Left("ASdf").Right<int>();
+            var invalidOperationException = new InvalidOperationException();
+
+            either.Select(left => left, (Func<int, int>)(right => throw invalidOperationException));
+
+            either = Either.Left<string>().Right(42);
+
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => either.Select(left => left, (Func<int, int>)(right => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
