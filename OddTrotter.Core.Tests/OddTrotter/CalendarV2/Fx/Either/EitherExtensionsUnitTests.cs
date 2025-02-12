@@ -731,6 +731,34 @@
                 ));
         }
 
+        [TestMethod]
+        public void SelectManyPinnedRight()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            IEither<(string, int), Exception> result = either.SelectMany(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual("safd", leftValue.Item1);
+            Assert.AreEqual(42, leftValue.Item2);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left(("asdf", Either.Left<int>().Right((Exception)invalidOperationException))).Right<Exception>();
+
+            result = either.SelectMany(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetRight(out var rightTupleValue));
+            Assert.AreEqual(invalidOperationException, rightTupleValue);
+
+            var invalidCastException = new InvalidCastException();
+            either = Either.Left<(string, Either<int, Exception>)>().Right((Exception)invalidCastException);
+
+            result = either.SelectMany(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetRight(out var rightValue));
+            Assert.AreEqual(invalidCastException, rightValue);
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
