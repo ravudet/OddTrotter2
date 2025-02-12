@@ -46,6 +46,21 @@
         [TestMethod]
         public void ApplyNoContextNullRightMap()
         {
+            var either = Either.Left("saf").Right<int>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Apply(left => left,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
+
+            either = Either.Left<string>().Right(42);
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Apply(left => left,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
