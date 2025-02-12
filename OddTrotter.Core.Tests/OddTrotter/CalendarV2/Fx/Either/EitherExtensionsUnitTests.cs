@@ -584,6 +584,30 @@
                 .SelectRight(right => right));
         }
 
+        [TestMethod]
+        public void SelectRightNoContextNullSelector()
+        {
+            var either = Either.Left("sadf").Right<int>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectRight(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<int, int>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+
+            either = Either.Left<string>().Right(42);
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectRight(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<int, int>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
