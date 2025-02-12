@@ -784,7 +784,19 @@
             var invalidOperationException = new InvalidOperationException();
             var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
 
-            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left(("sadf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            ////leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException)));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
