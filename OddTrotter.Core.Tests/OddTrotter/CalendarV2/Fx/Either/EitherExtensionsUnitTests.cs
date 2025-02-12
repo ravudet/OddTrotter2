@@ -189,8 +189,32 @@
             Assert.IsNotNull(tuple.Item2);
         }
 
+        [TestMethod]
+        public void SelectLeftMapException()
+        {
+            var either = Either.Left("asdf").Right<IEnumerable<int>>();
+            var tuple = new TupleBuilder<StringBuilder, IEnumerable<int>>();
+            var invalidOperationException = new InvalidOperationException();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.Select((Func<string, TupleBuilder<StringBuilder, IEnumerable<int>>, string>)((left, context) => throw invalidOperationException), (right, context) => context.Item2 = right, tuple));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left<string>().Right(new[] { 42 }.AsEnumerable());
+
+            either.Select((Func<string, TupleBuilder<StringBuilder, IEnumerable<int>>, string>)((left, context) => throw invalidOperationException), (right, context) => context.Item2 = right, tuple);
+        }
+
+        [TestMethod]
+        public void SelectRightMapException()
+        {
+        }
+
         private sealed class TupleBuilder<T1, T2>
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
             public TupleBuilder()
             {
             }
