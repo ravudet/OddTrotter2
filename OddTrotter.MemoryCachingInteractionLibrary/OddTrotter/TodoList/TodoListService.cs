@@ -388,7 +388,7 @@
             //// TODO mvoe things out of the calendarv2 folder
             //// TODO int.maxmagnitude(and others) intellisense doc doesn't match the learn doc
             //// TODO make sure anything that is not completely accurate is marked as `internal`
-            //// TODO do another exception documentation pass pass (you will likely need at least one more pass after this)
+            //// TODO do another exception documentation pass (you will likely need at least one more pass after this)
             //// TODO go through stash namespace and see what you want to pull out (maybe to another repo and/or as branches with future work items)
             //// TODO write tests for todolistservice that confirm the URLs
 

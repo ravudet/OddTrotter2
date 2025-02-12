@@ -1,9 +1,9 @@
 ﻿namespace Fx.Either
 {
     using System;
-    using System.Diagnostics.Tracing;
+    using System.Collections.Generic;
     using System.Linq;
-
+    using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -102,6 +102,57 @@
             either = Either.Left<string>().Right(42);
 
             Assert.AreEqual(42, either.Apply(left => left.Count(), right => right));
+        }
+
+        [TestMethod]
+        public void SelectNullEither()
+        {
+            Either<string, int> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .Select((left, context) => left, (right, context) => right, new Nothing()));
+        }
+
+        [TestMethod]
+        public void SelectNullLeftSelector()
+        {
+        }
+
+        [TestMethod]
+        public void Select()
+        {
+            var either = Either.Left("asdf").Right<IEnumerable<int>>();
+            var tuple = new TupleBuilder<StringBuilder, IEnumerable<int>>();
+ 
+            IEither<StringBuilder, IEnumerable<int>> result = either.Select((left, context) => context.Item1 = new StringBuilder(left), (right, context) => context.Item2 = right.Select(val => val * 2), tuple);
+
+            Assert.IsNotNull(tuple.Item1);
+            Assert.IsNull(tuple.Item2);
+
+            either = Either.Left<string>().Right(new[] { 42 }.AsEnumerable());
+            tuple = new TupleBuilder<StringBuilder, IEnumerable<int>>();
+
+            result = either.Select((left, context) => context.Item1 = new StringBuilder(left), (right, context) => context.Item2 = right.Select(val => val * 2), tuple);
+
+            Assert.IsNull(tuple.Item1);
+            Assert.IsNotNull(tuple.Item2);
+        }
+
+        private sealed class TupleBuilder<T1, T2>
+        {
+            public TupleBuilder()
+            {
+            }
+
+            public T1? Item1 { get; set; }
+
+            public T2? Item2 { get; set; }
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
