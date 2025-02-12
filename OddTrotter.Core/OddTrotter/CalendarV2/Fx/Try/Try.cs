@@ -6,7 +6,6 @@
     using global::System.Linq;
 
     using global::Fx.Either;
-    using Stash;
 
     public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 

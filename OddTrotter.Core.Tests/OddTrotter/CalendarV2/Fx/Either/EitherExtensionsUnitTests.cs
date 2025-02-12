@@ -1,11 +1,53 @@
 ﻿namespace Fx.Either
 {
+    using System;
+    using System.Linq;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public sealed class EitherExtensionsUnitTests
     {
+        [TestMethod]
+        public void ApplyNoContextNullEither()
+        {
+            Either<string, int> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                    .Apply(left => left.ToString().Count(), right => right));
+        }
+
+        [TestMethod]
+        public void ApplyNoContextNullLeftMap()
+        {
+            var either = Either.Left("sadf").Right<int>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Apply(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null,
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                right => right));
+
+            either = Either.Left<string>().Right(42);
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Apply(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null,
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                right => right));
+        }
+
+        [TestMethod]
+        public void ApplyNoContextNullRightMap()
+        {
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
