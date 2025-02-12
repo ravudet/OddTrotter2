@@ -235,6 +235,42 @@
             public T2? Item2 { get; set; }
         }
 
+        [TestMethod]
+        public void SelectLeftNullEither()
+        {
+            Either<string, IEnumerable<int>> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+            var tuple = new TupleBuilder<string, IEnumerable<int>>();
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .SelectLeft((left, context) => context.Item1 = left, tuple));
+        }
+
+        [TestMethod]
+        public void SelectLeftNullLeftSelector()
+        {
+            var either = Either.Left("safd").Right<IEnumerable<int>>();
+            var tuple = new TupleBuilder<StringBuilder, IEnumerable<int>>();
+
+            IEither<StringBuilder, IEnumerable<int>> result = either.SelectLeft((left, context) => context.Item1 = new StringBuilder(left), tuple);
+
+            Assert.IsNotNull(tuple.Item1);
+            Assert.IsNull(tuple.Item2);
+
+            either = Either.Left<string>().Right(new[] { 42 }.AsEnumerable());
+            tuple = new TupleBuilder<StringBuilder, IEnumerable<int>>();
+
+            result = either.SelectLeft((left, context) => context.Item1 = new StringBuilder(left), tuple);
+
+            Assert.IsNull(tuple.Item1);
+            Assert.IsNull(tuple.Item2);
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
