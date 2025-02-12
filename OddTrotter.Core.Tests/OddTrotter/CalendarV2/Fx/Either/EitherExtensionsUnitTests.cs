@@ -122,6 +122,51 @@
         [TestMethod]
         public void SelectNullLeftSelector()
         {
+            var either = Either.Left("asdF").Right<int>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Select(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                (Func<string, Nothing, string>)null,
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                (right, context) => right, new Nothing()));
+
+            either = Either.Left<string>().Right(42);
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Select(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                (Func<string, Nothing, string>)null,
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                (right, context) => right, new Nothing()));
+        }
+
+        [TestMethod]
+        public void SelectNullRightSelector()
+        {
+            var either = Either.Left("asdF").Right<int>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Select(
+                (left, context) => left,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                (Func<int, Nothing, int>)null,
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                new Nothing()));
+
+            either = Either.Left<string>().Right(42);
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.Select(
+                (left, context) => left,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                (Func<int, Nothing, int>)null,
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                new Nothing()));
         }
 
         [TestMethod]
