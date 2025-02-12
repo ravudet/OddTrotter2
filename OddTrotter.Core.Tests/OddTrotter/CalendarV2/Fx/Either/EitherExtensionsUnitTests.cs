@@ -694,6 +694,43 @@
                 , (left, @int) => (left.Item1, @int)));
         }
 
+        [TestMethod]
+        public void SelectManyPinnedRightNullResultSelector()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+
+            either = Either.Left(("asfd", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
