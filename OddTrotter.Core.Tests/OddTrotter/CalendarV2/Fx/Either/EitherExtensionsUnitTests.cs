@@ -1,6 +1,7 @@
 ﻿namespace Fx.Either
 {
     using System;
+    using System.Diagnostics.Tracing;
     using System.Linq;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -66,16 +67,41 @@
         [TestMethod]
         public void ApplyNoContextLeftMapException()
         {
+            var exception = new InvalidOperationException();
+            var either = Either.Left("asdF").Right<int>();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.Apply(left => throw exception, right => right));
+            Assert.AreEqual(exception, leftMapException.InnerException);
+
+            either = Either.Left<string>().Right(42);
+
+            either.Apply(left => throw exception, right => right);
         }
 
         [TestMethod]
         public void ApplyNoContextRightMapException()
         {
+            var exception = new InvalidOperationException();
+            var either = Either.Left("asdf").Right<int>();
+
+            either.Apply(left => left, right => throw exception);
+
+            either = Either.Left<string>().Right(42);
+
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => either.Apply(left => left, right => throw exception));
+            Assert.AreEqual(exception, rightMapException.InnerException);
         }
 
         [TestMethod]
         public void ApplyNoContext()
         {
+            var either = Either.Left("sadf").Right<int>();
+
+            Assert.AreEqual(4, either.Apply(left => left.Count(), right => right));
+
+            either = Either.Left<string>().Right(42);
+
+            Assert.AreEqual(42, either.Apply(left => left.Count(), right => right));
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
