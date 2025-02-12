@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Mime;
     using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -314,6 +315,50 @@
                 either
 #pragma warning restore CS8604 // Possible null reference argument.
                 .SelectRight((right, context) => right, new Nothing()));
+        }
+
+        [TestMethod]
+        public void SelectRightNullRightSelector()
+        {
+            var either = Either.Left("asdf").Right<int>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectRight(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<int, Nothing, int>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , new Nothing()));
+
+            either = Either.Left<string>().Right(42);
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectRight(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<int, Nothing, int>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , new Nothing()));
+        }
+
+        [TestMethod]
+        public void SelectRight()
+        {
+            var either = Either.Left("asdf").Right<IEnumerable<int>>();
+            var tuple = new TupleBuilder<string, object>();
+
+            IEither<string, object> result = either.SelectRight((right, context) => context.Item2 = right.First(), tuple);
+
+            Assert.IsNull(tuple.Item1);
+            Assert.IsNull(tuple.Item2);
+
+            either = Either.Left<string>().Right(new[] { 42 }.AsEnumerable());
+            tuple = new TupleBuilder<string, object>();
+
+            result = either.SelectRight((right, context) => context.Item2 = right.First(), tuple);
+
+            Assert.IsNull(tuple.Item1);
+            Assert.IsNotNull(tuple.Item2);
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
