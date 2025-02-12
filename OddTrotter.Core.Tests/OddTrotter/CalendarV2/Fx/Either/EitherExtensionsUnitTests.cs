@@ -208,6 +208,17 @@
         [TestMethod]
         public void SelectRightMapException()
         {
+            var either = Either.Left("asdf").Right<IEnumerable<int>>();
+            var tuple = new TupleBuilder<StringBuilder, IEnumerable<int>>();
+            var invalidOperationException = new InvalidOperationException();
+
+            either.Select((left, context) => context.Item1 = new StringBuilder(left), (Func<IEnumerable<int>, TupleBuilder<StringBuilder, IEnumerable<int>>, int>)((right, context) => throw invalidOperationException), tuple);
+
+            either = Either.Left<string>().Right(new[] { 42 }.AsEnumerable());
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => either.Select((left, context) => context.Item1 = new StringBuilder(left), (Func<IEnumerable<int>, TupleBuilder<StringBuilder, IEnumerable<int>>, int>)((right, context) => throw invalidOperationException), tuple));
+
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
+
         }
 
         private sealed class TupleBuilder<T1, T2>
