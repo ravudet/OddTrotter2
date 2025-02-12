@@ -6,8 +6,31 @@
     using global::System.Linq;
 
     using global::Fx.Either;
+    using Stash;
 
     public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
+
+    //// TODO maybe this is called something that's not try? or maybe the above is called something that's not try; one of them is definitely try, and the other is probably more verbose
+    /*public delegate bool Try4<TOutput>([MaybeNullWhen(false)] out TOutput output);
+
+    public static class TryPlayground
+    {
+        public static void DoWork(Either<string, Nothing> either)
+        {
+            UseTry<string>(either.TryGet);
+        }
+
+        private static bool TryGetValue(Either<string, Nothing> either, out string value)
+        {
+            value = string.Empty;
+            return true;
+        }
+
+        private static void UseTry<TOutput>(Try4<TOutput> @try)
+        {
+
+        }
+    }*/
 
     //// TODO TOPIC everything below here
 

@@ -377,7 +377,8 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO you are doing the eitherextensions right now
+            //// TODO unit tests for either extensions
+            //// TODO code review unit tests for either extensions
             //// TODO move everything to use the new either extensions
             //// TODO then do try, and move everything to use it
             //// TODO then do enumerableextensions, nd move everything to use it
