@@ -376,6 +376,11 @@ namespace Fx.Either
         /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws an exception. The 
         /// <see cref="Exception.InnerException"/> will be set to whatever exception was thrown.
         /// </exception>
+        /// <remarks>
+        /// This is just an alias for
+        /// <see cref="SelectMany{TLeftSource, TRight, TEither, TLeftResult}(IEither{TLeftSource, TRight}, Func{TLeftSource, IEither{TEither, TRight}}, Func{TLeftSource, TEither, TLeftResult})"/>
+        /// that is useful for disambiguating type parameters and is generally preferred when not use the LINQ query syntax.
+        /// </remarks>
         public static IEither<TLeftResult, TRight> SelectManyLeft<TLeftSource, TRight, TEither, TLeftResult>(
             this IEither<TLeftSource, TRight> either,
             Func<TLeftSource, IEither<TEither, TRight>> selector,
@@ -499,6 +504,11 @@ namespace Fx.Either
         /// Thrown if <paramref name="selector"/> or <paramref name="resultSelector"/> throws an exception. The 
         /// <see cref="Exception.InnerException"/> will be set to whatever exception was thrown.
         /// </exception>
+        /// <remarks>
+        /// This is just an alias for
+        /// <see cref="SelectMany{TLeft, TRightSource, TEither, TRightResult}(IEither{TLeft, TRightSource}, Func{TRightSource, IEither{TLeft, TEither}}, Func{TRightSource, TEither, TRightResult})"/>
+        /// that is useful for disambiguating type parameters and is generally preferred when not use the LINQ query syntax.
+        /// </remarks>
         public static IEither<TLeft, TRightResult> SelectManyRight<TLeft, TRightSource, TEither, TRightResult>(
             this IEither<TLeft, TRightSource> either,
             Func<TRightSource, IEither<TLeft, TEither>> selector,

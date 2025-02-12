@@ -778,6 +778,15 @@
             either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int));
         }
 
+        [TestMethod]
+        public void SelectManyPinnedRightResultSelectorLeftMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
+        }
+
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
