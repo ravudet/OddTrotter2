@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security.Cryptography;
     using System.Text;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -795,6 +796,22 @@
             either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
 
             either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
+        }
+
+        [TestMethod]
+        public void SelectManyPinnerRightLinqQuerySyntax()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            IEither<(string, int), Exception> result = 
+                from left in either
+                from @int in left.Item2
+                select (left.Item1, @int);
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual("safd", leftValue.Item1);
+            Assert.AreEqual(42, leftValue.Item2);
+
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
