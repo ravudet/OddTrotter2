@@ -1557,7 +1557,6 @@
             Assert.AreEqual(invalidCastException, leftValue);
         }
 
-        //// TODO use linq syntax in a test to assert conformance to the linq requirements
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
         public static string First(Either<Either<short, int>, object> either)
