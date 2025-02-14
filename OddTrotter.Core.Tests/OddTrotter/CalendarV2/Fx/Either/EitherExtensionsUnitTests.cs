@@ -1761,6 +1761,75 @@
             Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
         }
 
+        [TestMethod]
+        public void CoalesceLeftNullEither()
+        {
+            Either<string, int> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .CoalesceLeft(int.Parse));
+        }
+
+        [TestMethod]
+        public void CoalesceLeftNullCoalescer()
+        {
+            var either = Either.Left<string>().Right(42);
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.CoalesceLeft(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
+
+            either = Either.Left("asdf").Right<int>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.CoalesceLeft(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
+        }
+
+        [TestMethod]
+        public void CoalesceLeft()
+        {
+            var either = Either.Left<string>().Right(42);
+
+            var result = either.CoalesceLeft(int.Parse);
+
+            Assert.AreEqual(42, result);
+
+            either = Either.Left("13").Right<int>();
+
+            result = either.CoalesceLeft(int.Parse);
+
+            Assert.AreEqual(13, result);
+        }
+
+        [TestMethod]
+        public void CoalesceLeftLeftMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left<string>().Right(42);
+
+            var result = either.CoalesceLeft(left => throw invalidOperationException);
+
+            Assert.AreEqual(42, result);
+
+            either = Either.Left("asdf").Right<int>();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.CoalesceLeft(right => throw invalidOperationException));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+        }
+
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
         public static string First(Either<Either<short, int>, object> either)
