@@ -1361,29 +1361,29 @@
         [TestMethod]
         public void SelectManyRight()
         {
-            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+            var either = Either.Left<Exception>().Right(("safd", Either.Left<Exception>().Right(42)));
 
-            IEither<(string, int), Exception> result = either.SelectManyLeft(left => left.Item2, (left, @int) => (left.Item1, @int));
-
-            Assert.IsTrue(result.TryGetLeft(out var leftValue));
-            Assert.AreEqual("safd", leftValue.Item1);
-            Assert.AreEqual(42, leftValue.Item2);
-
-            var invalidOperationException = new InvalidOperationException();
-            either = Either.Left(("asdf", Either.Left<int>().Right((Exception)invalidOperationException))).Right<Exception>();
-
-            result = either.SelectManyLeft(left => left.Item2, (left, @int) => (left.Item1, @int));
-
-            Assert.IsTrue(result.TryGetRight(out var rightTupleValue));
-            Assert.AreEqual(invalidOperationException, rightTupleValue);
-
-            var invalidCastException = new InvalidCastException();
-            either = Either.Left<(string, Either<int, Exception>)>().Right((Exception)invalidCastException);
-
-            result = either.SelectManyLeft(left => left.Item2, (left, @int) => (left.Item1, @int));
+            IEither<Exception, (string, int)> result = either.SelectManyRight(right => right.Item2, (right, @int) => (right.Item1, @int));
 
             Assert.IsTrue(result.TryGetRight(out var rightValue));
-            Assert.AreEqual(invalidCastException, rightValue);
+            Assert.AreEqual("safd", rightValue.Item1);
+            Assert.AreEqual(42, rightValue.Item2);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left<Exception>().Right(("asdf", Either.Left(invalidOperationException.AsException()).Right<int>()));
+
+            result = either.SelectManyRight(right => right.Item2, (right, @int) => (right.Item1, @int));
+
+            Assert.IsTrue(result.TryGetLeft(out var leftTupleValue));
+            Assert.AreEqual(invalidOperationException, leftTupleValue);
+
+            var invalidCastException = new InvalidCastException();
+            either = Either.Left(invalidCastException.AsException()).Right<(string, Either<Exception, int>)>();
+
+            result = either.SelectManyRight(right => right.Item2, (right, @int) => (right.Item1, @int));
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual(invalidCastException, leftValue);
         }
 
         /*[TestMethod]
