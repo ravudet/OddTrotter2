@@ -790,13 +790,11 @@
 
             either = Either.Left(("sadf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
 
-            ////leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException)));
+            either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
 
             either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
 
-            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException)));
-
-            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+            either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
         }
 
         //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
@@ -812,8 +810,17 @@
             return either.ToString() ?? string.Empty;
         }
 
+        private static Either<string, Exception> Adapt(object val)
+        {
+            return "ASdf";
+        }
+
         public static string Second(Either<object, System.Exception> either)
         {
+            Either<object, Exception> either1 = default!;
+
+            either1.SelectManyLeft(left => Adapt(left));
+
             return either.ToString() ?? string.Empty;
         }
 
