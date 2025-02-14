@@ -1898,6 +1898,40 @@
             Assert.AreEqual(@default, result);
         }
 
+        [TestMethod]
+        public void CoalesceWithRightDefaultNullEither()
+        {
+            Either<Nothing, string> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .Coalesce("ASFD"));
+        }
+
+        [TestMethod]
+        public void CoalesceWithRightDefault()
+        {
+            var value = "Asdf";
+            var @default = "default";
+            var either = Either.Left<Nothing>().Right(value);
+
+            var result = either.Coalesce(@default);
+
+            Assert.AreEqual(value, result);
+
+            either = Either.Left(new Nothing()).Right<string>();
+
+            result = either.Coalesce(@default);
+
+            Assert.AreEqual(@default, result);
+        }
+
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
         public static string First(Either<Either<short, int>, object> either)
