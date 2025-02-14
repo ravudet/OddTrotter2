@@ -1493,28 +1493,28 @@
             Assert.AreEqual(invalidCastException, leftValue);
         }
 
-        /*[TestMethod]
-        public void SelectManyLeftNoResultSelectorLeftMapException()
+        [TestMethod]
+        public void SelectManyRightNoResultSelectorRightMapException()
         {
-            var either = Either.Left(("asfd", Either.Left(42).Right<Exception>())).Right<Exception>();
+            var either = Either.Left<Exception>().Right(("asfd", Either.Left<Exception>().Right(42)));
 
             var invalidOperationException = new InvalidOperationException();
-            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException)));
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => either.SelectManyRight((Func<(string, Either<Exception, int>), Either<Exception, int>>)(right => throw invalidOperationException)));
 
-            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
 
-            either = Either.Left(("asf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+            either = Either.Left<Exception>().Right(("asf", Either.Left(new Exception()).Right<int>()));
 
-            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException)));
+            rightMapException = Assert.ThrowsException<RightMapException>(() => either.SelectManyRight((Func<(string, Either<Exception, int>), Either<Exception, int>>)(right => throw invalidOperationException)));
 
-            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
 
-            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+            either = Either.Left(new Exception()).Right<(string, Either<Exception, int>)>();
 
-            either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException));
+            either.SelectManyRight((Func<(string, Either<Exception, int>), Either<Exception, int>>)(right => throw invalidOperationException));
         }
 
-        [TestMethod]
+        /*[TestMethod]
         public void SelectManyLeftNoSelectorsNullEither()
         {
             Either<Either<string, Exception>, Exception> either =
