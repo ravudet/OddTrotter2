@@ -1514,10 +1514,10 @@
             either.SelectManyRight((Func<(string, Either<Exception, int>), Either<Exception, int>>)(right => throw invalidOperationException));
         }
 
-        /*[TestMethod]
-        public void SelectManyLeftNoSelectorsNullEither()
+        [TestMethod]
+        public void SelectManyRightNoSelectorsNullEither()
         {
-            Either<Either<string, Exception>, Exception> either =
+            Either<Exception, Either<Exception, string>> either =
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                 null
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -1527,10 +1527,10 @@
 #pragma warning disable CS8604 // Possible null reference argument.
                 either
 #pragma warning restore CS8604 // Possible null reference argument.
-                .SelectManyLeft());
+                .SelectManyRight());
         }
 
-        [TestMethod]
+        /*[TestMethod]
         public void SelectManyLeftNoSelectors()
         {
             var either = Either.Left(Either.Left("asdf").Right<Exception>()).Right<Exception>();
