@@ -984,6 +984,20 @@
                 .SelectManyLeft(left => left.Item2));
         }
 
+        [TestMethod]
+        public void SelectManyLeftNoResultSelectorNullResultSelector()
+        {
+            var either = Either.Left(("asdf", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+        }
+
         //// TODO use linq syntax in a test to assert conformance to the linq requirements
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
