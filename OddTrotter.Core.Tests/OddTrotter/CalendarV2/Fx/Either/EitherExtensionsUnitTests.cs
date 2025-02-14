@@ -801,7 +801,7 @@
         }
 
         [TestMethod]
-        public void SelectManyPinnerRightLinqQuerySyntax()
+        public void SelectManyPinnedRightLinqQuerySyntax()
         {
             var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
 
@@ -1256,22 +1256,22 @@
             either.SelectMany(right => right.Item2, (Func<(string, Either<Exception, int>), int, (string, int)>)((right, @int) => throw invalidOperationException));
         }
 
-        /*[TestMethod]
-        public void SelectManyPinnerRightLinqQuerySyntax()
+        [TestMethod]
+        public void SelectManyPinnedLeftLinqQuerySyntax()
         {
-            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+            var either = Either.Left<Exception>().Right(("safd", Either.Left<Exception>().Right(42)));
 
-            IEither<(string, int), Exception> result = 
-                from left in either
-                from @int in left.Item2
-                select (left.Item1, @int);
+            IEither<Exception, (string, int)> result = 
+                from right in either
+                from @int in right.Item2
+                select (right.Item1, @int);
 
-            Assert.IsTrue(result.TryGetLeft(out var leftValue));
-            Assert.AreEqual("safd", leftValue.Item1);
-            Assert.AreEqual(42, leftValue.Item2);
+            Assert.IsTrue(result.TryGetRight(out var rightValue));
+            Assert.AreEqual("safd", rightValue.Item1);
+            Assert.AreEqual(42, rightValue.Item2);
         }
 
-        [TestMethod]
+        /*[TestMethod]
         public void SelectManyLeftNullEither()
         {
             Either<(string, Either<int, Exception>), Exception> either =
