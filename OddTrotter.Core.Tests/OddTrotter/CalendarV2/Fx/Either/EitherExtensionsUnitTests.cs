@@ -1037,6 +1037,27 @@
             Assert.AreEqual(invalidCastException, rightValue);
         }
 
+        [TestMethod]
+        public void SelectManyLeftNoResultSelectorLeftMapException()
+        {
+            var either = Either.Left(("asfd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            var invalidOperationException = new InvalidOperationException();
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left(("asf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException));
+        }
+
         //// TODO use linq syntax in a test to assert conformance to the linq requirements
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
