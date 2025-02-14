@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
@@ -1689,6 +1690,75 @@
 
             Assert.IsTrue(either.TryGet(out right));
             Assert.AreEqual(value, right);
+        }
+
+        [TestMethod]
+        public void CoalesceRightNullEither()
+        {
+            Either<int, string> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .CoalesceRight(int.Parse));
+        }
+
+        [TestMethod]
+        public void CoalesceRightNullCoalescer()
+        {
+            var either = Either.Left(42).Right<string>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.CoalesceRight(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
+
+            either = Either.Left<int>().Right("asdf");
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.CoalesceRight(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
+        }
+
+        [TestMethod]
+        public void CoalesceRight()
+        {
+            var either = Either.Left(42).Right<string>();
+
+            var result = either.CoalesceRight(int.Parse);
+
+            Assert.AreEqual(42, result);
+
+            either = Either.Left<int>().Right("13");
+
+            result = either.CoalesceRight(int.Parse);
+
+            Assert.AreEqual(13, result);
+        }
+
+        [TestMethod]
+        public void CoalesceRightRightMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left(42).Right<string>();
+
+            var result = either.CoalesceRight(right => throw invalidOperationException);
+
+            Assert.AreEqual(42, result);
+
+            either = Either.Left<int>().Right("asdf");
+
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => either.CoalesceRight(right => throw invalidOperationException));
+
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
         }
 
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
