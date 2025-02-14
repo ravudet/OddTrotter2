@@ -1932,6 +1932,74 @@
             Assert.AreEqual(@default, result);
         }
 
+        [TestMethod]
+        public void ThrowRightNullEither()
+        {
+            Either<string, Exception> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .ThrowRight());
+        }
+
+        [TestMethod]
+        public void ThrowRight()
+        {
+            var value = "Asf";
+            var exception = new Exception();
+            var either = Either.Left(value).Right<Exception>();
+
+            var resultValue = either.ThrowRight();
+
+            Assert.AreEqual(value, resultValue);
+
+            either = Either.Left<string>().Right(exception);
+
+            var resultException = Assert.ThrowsException<Exception>(() => either.ThrowRight());
+
+            Assert.AreEqual(exception, resultException);
+        }
+
+        [TestMethod]
+        public void ThrowLeftNullEither()
+        {
+            Either<Exception, string> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .ThrowLeft());
+        }
+
+        [TestMethod]
+        public void ThrowLeft()
+        {
+            var value = "asdf";
+            var exception = new Exception();
+            var either = Either.Left<Exception>().Right(value);
+
+            var resultValue = either.ThrowLeft();
+
+            Assert.AreEqual(value, resultValue);
+
+            either = Either.Left(exception).Right<string>();
+
+            var resultException = Assert.ThrowsException<Exception>(() => either.ThrowLeft());
+
+            Assert.AreEqual(exception, resultException);
+        }
+
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
         public static string First(Either<Either<short, int>, object> either)
