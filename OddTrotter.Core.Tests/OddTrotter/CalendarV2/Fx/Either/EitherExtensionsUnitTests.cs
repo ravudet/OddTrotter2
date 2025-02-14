@@ -1216,28 +1216,28 @@
             Assert.AreEqual(invalidCastException, leftValue);
         }
 
-        /*[TestMethod]
-        public void SelectManyPinnedRightSelectorLeftMapException()
+        [TestMethod]
+        public void SelectManyPinnedLeftSelectorLeftMapException()
         {
             var invalidOperationException = new InvalidOperationException();
-            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+            var either = Either.Left<Exception>().Right(("safd", Either.Left<Exception>().Right(42)));
 
-            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => either.SelectMany((Func<(string, Either<Exception, int>), Either<Exception, int>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
 
-            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
 
-            either = Either.Left(("sadf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+            either = Either.Left<Exception>().Right(("sadf", Either.Left(new Exception()).Right<int>()));
 
-            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
+            rightMapException = Assert.ThrowsException<RightMapException>(() => either.SelectMany((Func<(string, Either<Exception, int>), Either<Exception, int>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
 
-            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
 
-            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+            either = Either.Left(new Exception()).Right<(string, Either<Exception, int>)>();
 
-            either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int));
+            either.SelectMany((Func<(string, Either<Exception, int>), Either<Exception, int>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int));
         }
 
-        [TestMethod]
+        /*[TestMethod]
         public void SelectManyPinnedRightResultSelectorLeftMapException()
         {
             var invalidOperationException = new InvalidOperationException();
