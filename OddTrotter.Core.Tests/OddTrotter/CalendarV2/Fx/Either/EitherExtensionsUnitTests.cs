@@ -1101,6 +1101,462 @@
             Assert.AreEqual(invalidCastException, rightValue);
         }
 
+        [TestMethod]
+        public void SelectManyPinnedLeftNullEither()
+        {
+            Either<Exception, (string, Either<Exception, int>)> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.s
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() => 
+#pragma warning disable CS8604 // Possible null reference argument.
+               either
+#pragma warning restore CS8604 // Possible null reference argument.
+               .SelectMany(right => right.Item2, (right, @int) => (right.Item1, @int)));
+        }
+
+        /*[TestMethod]
+        public void SelectManyPinnedRightNullSelector()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , (left, @int) => (left.Item1, @int)));
+
+            either = Either.Left(("asfd", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , (left, @int) => (left.Item1, @int)));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , (left, @int) => (left.Item1, @int)));
+        }
+
+        [TestMethod]
+        public void SelectManyPinnedRightNullResultSelector()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+
+            either = Either.Left(("asfd", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectMany(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+        }
+
+        [TestMethod]
+        public void SelectManyPinnedRight()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            IEither<(string, int), Exception> result = either.SelectMany(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual("safd", leftValue.Item1);
+            Assert.AreEqual(42, leftValue.Item2);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left(("asdf", Either.Left<int>().Right((Exception)invalidOperationException))).Right<Exception>();
+
+            result = either.SelectMany(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetRight(out var rightTupleValue));
+            Assert.AreEqual(invalidOperationException, rightTupleValue);
+
+            var invalidCastException = new InvalidCastException();
+            either = Either.Left<(string, Either<int, Exception>)>().Right((Exception)invalidCastException);
+
+            result = either.SelectMany(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetRight(out var rightValue));
+            Assert.AreEqual(invalidCastException, rightValue);
+        }
+
+        [TestMethod]
+        public void SelectManyPinnedRightSelectorLeftMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left(("sadf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            either.SelectMany((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int));
+        }
+
+        [TestMethod]
+        public void SelectManyPinnedRightResultSelectorLeftMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left(("sadf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            either.SelectMany(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
+        }
+
+        [TestMethod]
+        public void SelectManyPinnerRightLinqQuerySyntax()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            IEither<(string, int), Exception> result = 
+                from left in either
+                from @int in left.Item2
+                select (left.Item1, @int);
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual("safd", leftValue.Item1);
+            Assert.AreEqual(42, leftValue.Item2);
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNullEither()
+        {
+            Either<(string, Either<int, Exception>), Exception> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.s
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+               either
+#pragma warning restore CS8604 // Possible null reference argument.
+               .SelectManyLeft(left => left.Item2, (left, @int) => (left.Item1, @int)));
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNullSelector()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , (left, @int) => (left.Item1, @int)));
+
+            either = Either.Left(("asfd", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , (left, @int) => (left.Item1, @int)));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                , (left, @int) => (left.Item1, @int)));
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNullResultSelector()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+
+            either = Either.Left(("asfd", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+                left => left.Item2,
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), int, (string, int)>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+        }
+
+        [TestMethod]
+        public void SelectManyLeft()
+        {
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            IEither<(string, int), Exception> result = either.SelectManyLeft(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual("safd", leftValue.Item1);
+            Assert.AreEqual(42, leftValue.Item2);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left(("asdf", Either.Left<int>().Right((Exception)invalidOperationException))).Right<Exception>();
+
+            result = either.SelectManyLeft(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetRight(out var rightTupleValue));
+            Assert.AreEqual(invalidOperationException, rightTupleValue);
+
+            var invalidCastException = new InvalidCastException();
+            either = Either.Left<(string, Either<int, Exception>)>().Right((Exception)invalidCastException);
+
+            result = either.SelectManyLeft(left => left.Item2, (left, @int) => (left.Item1, @int));
+
+            Assert.IsTrue(result.TryGetRight(out var rightValue));
+            Assert.AreEqual(invalidCastException, rightValue);
+        }
+
+        [TestMethod]
+        public void SelectManyLeftSelectorLeftMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left(("sadf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException), (left, @int) => (left.Item1, @int));
+        }
+
+        [TestMethod]
+        public void SelectManyLeftResultSelectorLeftMapException()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left(("sadf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            either.SelectManyLeft(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            either.SelectManyLeft(left => left.Item2, (Func<(string, Either<int, Exception>), int, (string, int)>)((left, @int) => throw invalidOperationException));
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNoResultSelectorNullEither()
+        {
+            Either<(string, Either<int, Exception>), Exception> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .SelectManyLeft(left => left.Item2));
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNoResultSelectorNullResultSelector()
+        {
+            var either = Either.Left(("asdf", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNoResultSelector()
+        {
+            var either = Either.Left(("Asdf", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            IEither<int, Exception> result = either.SelectManyLeft(left => left.Item2);
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual(42, leftValue);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left(("asf", Either.Left<int>().Right(invalidOperationException.AsException()))).Right<Exception>();
+
+            result = either.SelectManyLeft(left => left.Item2);
+
+            Assert.IsTrue(result.TryGetRight(out var rightValue));
+            Assert.AreEqual(invalidOperationException, rightValue);
+
+            var invalidCastException = new InvalidCastException();
+            either = Either.Left<(string, Either<int, Exception>)>().Right(invalidCastException.AsException());
+
+            result = either.SelectManyLeft(left => left.Item2);
+
+            Assert.IsTrue(result.TryGetRight(out rightValue));
+            Assert.AreEqual(invalidCastException, rightValue);
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNoResultSelectorLeftMapException()
+        {
+            var either = Either.Left(("asfd", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            var invalidOperationException = new InvalidOperationException();
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left(("asf", Either.Left<int>().Right(new Exception()))).Right<Exception>();
+
+            leftMapException = Assert.ThrowsException<LeftMapException>(() => either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException)));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException));
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNoSelectorsNullEither()
+        {
+            Either<Either<string, Exception>, Exception> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .SelectManyLeft());
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNoSelectors()
+        {
+            var either = Either.Left(Either.Left("asdf").Right<Exception>()).Right<Exception>();
+
+            IEither<string, Exception> result = either.SelectManyLeft();
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual("asdf", leftValue);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left(Either.Left<string>().Right(invalidOperationException.AsException())).Right<Exception>();
+
+            result = either.SelectManyLeft();
+
+            Assert.IsTrue(result.TryGetRight(out var rightValue));
+            Assert.AreEqual(invalidOperationException, rightValue);
+
+            var invalidCastException = new InvalidCastException();
+            either = Either.Left<Either<string, Exception>>().Right(invalidCastException.AsException());
+
+            result = either.SelectManyLeft();
+
+            Assert.IsTrue(result.TryGetRight(out rightValue));
+            Assert.AreEqual(invalidCastException, rightValue);
+        }*/
+
         //// TODO use linq syntax in a test to assert conformance to the linq requirements
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
