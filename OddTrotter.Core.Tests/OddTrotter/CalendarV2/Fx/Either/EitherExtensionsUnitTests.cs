@@ -814,7 +814,6 @@
 
         }
 
-        //// TODO have a test that uses the linq query syntax for a select to ensure you have the right method signature
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
         public static string First(Either<Either<short, int>, object> either)
