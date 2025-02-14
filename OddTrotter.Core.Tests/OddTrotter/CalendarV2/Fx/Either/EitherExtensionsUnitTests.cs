@@ -1530,32 +1530,32 @@
                 .SelectManyRight());
         }
 
-        /*[TestMethod]
-        public void SelectManyLeftNoSelectors()
+        [TestMethod]
+        public void SelectManyRightNoSelectors()
         {
-            var either = Either.Left(Either.Left("asdf").Right<Exception>()).Right<Exception>();
+            var either = Either.Left<Exception>().Right(Either.Left<Exception>().Right("asdf"));
 
-            IEither<string, Exception> result = either.SelectManyLeft();
-
-            Assert.IsTrue(result.TryGetLeft(out var leftValue));
-            Assert.AreEqual("asdf", leftValue);
-
-            var invalidOperationException = new InvalidOperationException();
-            either = Either.Left(Either.Left<string>().Right(invalidOperationException.AsException())).Right<Exception>();
-
-            result = either.SelectManyLeft();
+            IEither<Exception, string> result = either.SelectManyRight();
 
             Assert.IsTrue(result.TryGetRight(out var rightValue));
-            Assert.AreEqual(invalidOperationException, rightValue);
+            Assert.AreEqual("asdf", rightValue);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left<Exception>().Right(Either.Left(invalidOperationException.AsException()).Right<string>());
+
+            result = either.SelectManyRight();
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual(invalidOperationException, leftValue);
 
             var invalidCastException = new InvalidCastException();
-            either = Either.Left<Either<string, Exception>>().Right(invalidCastException.AsException());
+            either = Either.Left(invalidCastException.AsException()).Right<Either<Exception, string>>();
 
-            result = either.SelectManyLeft();
+            result = either.SelectManyRight();
 
-            Assert.IsTrue(result.TryGetRight(out rightValue));
-            Assert.AreEqual(invalidCastException, rightValue);
-        }*/
+            Assert.IsTrue(result.TryGetLeft(out leftValue));
+            Assert.AreEqual(invalidCastException, leftValue);
+        }
 
         //// TODO use linq syntax in a test to assert conformance to the linq requirements
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
