@@ -996,6 +996,16 @@
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                 ));
+
+            either = Either.Left<(string, Either<int, Exception>)>().Right(new Exception());
+
+            Assert.ThrowsException<ArgumentNullException>(() => either.SelectManyLeft(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<(string, Either<int, Exception>), Either<int, Exception>>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
         }
 
         //// TODO use linq syntax in a test to assert conformance to the linq requirements
