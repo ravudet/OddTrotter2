@@ -1058,6 +1058,49 @@
             either.SelectManyLeft((Func<(string, Either<int, Exception>), Either<int, Exception>>)(left => throw invalidOperationException));
         }
 
+        [TestMethod]
+        public void SelectManyLeftNoSelectorsNullEither()
+        {
+            Either<Either<string, Exception>, Exception> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .SelectManyLeft());
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNoSelectors()
+        {
+            var either = Either.Left(Either.Left("asdf").Right<Exception>()).Right<Exception>();
+
+            IEither<string, Exception> result = either.SelectManyLeft();
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual("asdf", leftValue);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left(Either.Left<string>().Right(invalidOperationException.AsException())).Right<Exception>();
+
+            result = either.SelectManyLeft();
+
+            Assert.IsTrue(result.TryGetRight(out var rightValue));
+            Assert.AreEqual(invalidOperationException, rightValue);
+
+            var invalidCastException = new InvalidCastException();
+            either = Either.Left<Either<string, Exception>>().Right(invalidCastException.AsException());
+
+            result = either.SelectManyLeft();
+
+            Assert.IsTrue(result.TryGetRight(out rightValue));
+            Assert.AreEqual(invalidCastException, rightValue);
+        }
+
         //// TODO use linq syntax in a test to assert conformance to the linq requirements
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
