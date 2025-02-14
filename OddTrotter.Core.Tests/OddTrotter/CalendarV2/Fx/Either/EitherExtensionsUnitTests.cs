@@ -7,7 +7,9 @@
     using System.Text;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    
+    using OddTrotter.Calendar;
+    using Stash;
+
     [TestClass]
     public sealed class EitherExtensionsUnitTests
     {
@@ -1006,6 +1008,33 @@
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                 ));
+        }
+
+        [TestMethod]
+        public void SelectManyLeftNoResultSelector()
+        {
+            var either = Either.Left(("Asdf", Either.Left(42).Right<Exception>())).Right<Exception>();
+
+            IEither<int, Exception> result = either.SelectManyLeft(left => left.Item2);
+
+            Assert.IsTrue(result.TryGetLeft(out var leftValue));
+            Assert.AreEqual(42, leftValue);
+
+            var invalidOperationException = new InvalidOperationException();
+            either = Either.Left(("asf", Either.Left<int>().Right(invalidOperationException.AsException()))).Right<Exception>();
+
+            result = either.SelectManyLeft(left => left.Item2);
+
+            Assert.IsTrue(result.TryGetRight(out var rightValue));
+            Assert.AreEqual(invalidOperationException, rightValue);
+
+            var invalidCastException = new InvalidCastException();
+            either = Either.Left<(string, Either<int, Exception>)>().Right(invalidCastException.AsException());
+
+            result = either.SelectManyLeft(left => left.Item2);
+
+            Assert.IsTrue(result.TryGetRight(out rightValue));
+            Assert.AreEqual(invalidCastException, rightValue);
         }
 
         //// TODO use linq syntax in a test to assert conformance to the linq requirements
