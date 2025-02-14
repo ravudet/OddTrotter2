@@ -1560,7 +1560,7 @@
         [TestMethod]
         public void TryGetLeftNullEither()
         {
-            Either<string, int> either =
+            Either<string, Exception> either =
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                 null
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -1577,7 +1577,7 @@
         public void TryGetLeftLeftValue()
         {
             var value = "asdf";
-            var either = Either.Left(value).Right<int>();
+            var either = Either.Left(value).Right<Exception>();
 
             Assert.IsTrue(either.TryGetLeft(out var left));
             Assert.AreEqual(value, left);
@@ -1586,7 +1586,7 @@
         [TestMethod]
         public void TryGetLeftRightValue()
         {
-            var value = 42;
+            var value = new Exception();
             var either = Either.Left<string>().Right(value);
 
             Assert.IsFalse(either.TryGetLeft(out var left));
@@ -1596,7 +1596,7 @@
         [TestMethod]
         public void TryGetRightNullEither()
         {
-            Either<string, int> either =
+            Either<string, Exception> either =
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                 null
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -1607,6 +1607,26 @@
                 either
 #pragma warning restore CS8604 // Possible null reference argument.
                 .TryGetRight(out var right));
+        }
+
+        [TestMethod]
+        public void TryGetRightLeftValue()
+        {
+            var value = "asdf";
+            var either = Either.Left(value).Right<Exception>();
+
+            Assert.IsFalse(either.TryGetRight(out var right));
+            Assert.IsNull(right);
+        }
+
+        [TestMethod]
+        public void TryGetRightRightValue()
+        {
+            var value = new Exception();
+            var either = Either.Left<string>().Right(value);
+
+            Assert.IsTrue(either.TryGetRight(out var right));
+            Assert.AreEqual(value, right);
         }
 
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
