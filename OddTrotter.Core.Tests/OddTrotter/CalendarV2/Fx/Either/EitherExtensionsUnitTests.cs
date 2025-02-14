@@ -1271,10 +1271,10 @@
             Assert.AreEqual(42, rightValue.Item2);
         }
 
-        /*[TestMethod]
-        public void SelectManyLeftNullEither()
+        [TestMethod]
+        public void SelectManyRightNullEither()
         {
-            Either<(string, Either<int, Exception>), Exception> either =
+            Either<Exception, (string, Either<Exception, int>)> either =
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                 null
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.s
@@ -1284,10 +1284,10 @@
 #pragma warning disable CS8604 // Possible null reference argument.
                either
 #pragma warning restore CS8604 // Possible null reference argument.
-               .SelectManyLeft(left => left.Item2, (left, @int) => (left.Item1, @int)));
+               .SelectManyRight(right => right.Item2, (right, @int) => (right.Item1, @int)));
         }
 
-        [TestMethod]
+        /*[TestMethod]
         public void SelectManyLeftNullSelector()
         {
             var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
