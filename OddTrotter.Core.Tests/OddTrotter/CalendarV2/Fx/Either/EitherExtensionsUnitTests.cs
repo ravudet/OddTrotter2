@@ -1629,6 +1629,68 @@
             Assert.AreEqual(value, right);
         }
 
+        [TestMethod]
+        public void TryGetLeftSideNullEither()
+        {
+            Either<string, Nothing> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .TryGet(out var left));
+        }
+
+        [TestMethod]
+        public void TryGetLeftSide()
+        {
+            var value = "Asdf";
+            var either = Either.Left(value).Right<Nothing>();
+
+            Assert.IsTrue(either.TryGet(out var left));
+            Assert.AreEqual(value, left);
+
+            either = Either.Left<string>().Right(new Nothing());
+
+            Assert.IsFalse(either.TryGet(out left));
+            Assert.IsNull(left);
+        }
+
+        [TestMethod]
+        public void TryGetRightSideNullEither()
+        {
+            Either<Nothing, string> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
+                .TryGet(out var right));
+        }
+
+        [TestMethod]
+        public void TryGetRightSide()
+        {
+            var value = "ASdf";
+            var either = Either.Left(new Nothing()).Right<string>();
+
+            Assert.IsFalse(either.TryGet(out var right));
+            Assert.IsNull(right);
+
+            either = Either.Left<Nothing>().Right(value);
+
+            Assert.IsTrue(either.TryGet(out right));
+            Assert.AreEqual(value, right);
+        }
+
         //// TODO add a comment to the select extension of what haskell operation it is analogous to
 
         public static string First(Either<Either<short, int>, object> either)
