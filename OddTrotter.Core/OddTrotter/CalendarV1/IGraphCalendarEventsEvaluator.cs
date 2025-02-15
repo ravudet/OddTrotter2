@@ -583,7 +583,7 @@
                         }
                         catch (JsonException jsonException) //// TODO always write out the exception name
                         {
-                            return Either2
+                            return Either
                                 .Left<GraphCalendarEvent>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     "An error occurred while translating the OData collection element into a Graph calendar event",
@@ -594,7 +594,7 @@
                         if (graphCalendarEvent == null)
                         {
                             // OData allows null element in collections, but we know that graph is not supposed to return null events
-                            return Either2
+                            return Either
                                 .Left<GraphCalendarEvent>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     "An error occurred while translating the OData collection element into a Graph calendar event",
@@ -658,7 +658,7 @@
 
                         if (invalidities.Count > 0)
                         { 
-                            return Either2
+                            return Either
                                 .Left<GraphCalendarEvent>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     $"An error occurred while translating the OData collection element into a Graph calendar event: {string.Join(", ", invalidities)}",
@@ -671,12 +671,15 @@
 
                         return
                             start
-                            .Zip(
+                            .Zip<TimeStructure, GraphCalendarEventsContextTranslationException, BodyStructure, GraphCalendarEventsContextTranslationException, (TimeStructure, BodyStructure), GraphCalendarEventsContextTranslationException>(
                                 body,
+                                (left, right) => (left, right),
+                                (startSuccess, bodyError) => bodyError, //// TODO incorporate the known start success information
+                                (startError, bodySuccess) => startError,  //// TODO incorporate the known body success information
                                 (startError, bodyError) => new GraphCalendarEventsContextTranslationException(
                                     $"{startError.Message}. {bodyError.Message}.", //// TODO the period here is why every exception message should use proper punctuation
                                     rawEventContents))
-                            .VisitSelect(
+                            .Select(
                                 left => new GraphCalendarEvent(
                                     this.Id!,
                                     this.Subject!,
@@ -707,17 +710,17 @@
 
                         if (invalidities.Count > 0)
                         {
-                            return Either2
+                            return Either
                                 .Left<BodyStructure>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     $"An error occurred while translating the OData collection element into the '{nameof(GraphCalendarEventBuilder.Body)}' portion of a Graph calendar event: {string.Join(", ", invalidities)}",
                                     rawEventContents));
                         }
 
-                        return Either2
-                            .Right<GraphCalendarEventsContextTranslationException>()
+                        return Either
                             .Left(new BodyStructure(
-                                this.Content!)); //// TODO see if you can avoid the bang
+                                this.Content!)) //// TODO see if you can avoid the bang
+                            .Right<GraphCalendarEventsContextTranslationException>();
                     }
                 }
 
@@ -749,7 +752,7 @@
 
                         if (invalidities.Count > 0)
                         {
-                            return Either2
+                            return Either
                                 .Left<TimeStructure>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     $"An error occurred while translating the OData collection element into the '{nameof(GraphCalendarEventBuilder.Start)}' portion of a Graph calendar event: {string.Join(", ", invalidities)}",
@@ -757,11 +760,11 @@
                         }
 
                         //// TODO see if you can avoid the bangs in the rest of this methods
-                        return Either2
-                            .Right<GraphCalendarEventsContextTranslationException>()
+                        return Either
                             .Left(new TimeStructure(
-                                this.DateTime!, 
-                                this.TimeZone!));
+                                this.DateTime!,
+                                this.TimeZone!))
+                            .Right<GraphCalendarEventsContextTranslationException>();
                     }
                 }
             }
