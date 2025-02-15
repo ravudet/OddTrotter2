@@ -34,24 +34,24 @@ namespace OddTrotter.Calendar
 
         public static IEither<T, Nothing> ToEither<T>(this T? value)
         {
-            return value == null ? Either2.Left<T>().Right(new Nothing()) : Either2.Right<Nothing>().Left(value);
+            return value == null ? Either.Left<T>().Right(new Nothing()) : Either.Left(value).Right<Nothing>();
         }
 
         private static IEither<int, Nothing> TryParse(string input)
         {
             if (int.TryParse(input, out var output))
             {
-                return Either2.Right<Nothing>().Left(output);
+                return Either.Left(output).Right<Nothing>();
             }
             else
             {
-                return Either2.Left<int>().Right(new Nothing());
+                return Either.Left<int>().Right(new Nothing());
             }
         }
 
         public static Try<TIn, TOut> ToTry<TIn, TOut>(this TryOld<TIn, TOut> @try)
         {
-            return input => @try(input, out var output) ? Either2.Right<Nothing>().Left(output) : Either2.Left<TOut>().Right(new Nothing());
+            return input => @try(input, out var output) ? Either.Left(output).Right<Nothing>() : Either.Left<TOut>().Right(new Nothing());
         }
 
         /// <summary>
@@ -69,16 +69,7 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(either));
             }
 
-            if (either is IEither<TOut, Nothing>.Left left)
-            {
-                value = left.Value;
-                return true;
-            }
-            else
-            {
-                value = default;
-                return false;
-            }
+            return either.TryGet(out value);
         }
 
         public static IEnumerable<TResult> TrySelect<TElement, TResult>(this IEnumerable<TElement> source, TryOld<TElement, TResult> @try)
@@ -91,9 +82,9 @@ namespace OddTrotter.Calendar
             foreach (var element in source)
             {
                 var either = @try(element);
-                if (either is IEither<TResult, Nothing>.Left left)
+                if (either.TryGet(out var left))
                 {
-                    yield return left.Value;
+                    yield return left;
                 }
             }
         }
@@ -106,14 +97,14 @@ namespace OddTrotter.Calendar
 
         public static IEither<TResult, Nothing> TryLeft<TLeft, TRight, TResult>(this IEither<TLeft, TRight> either, Func<TLeft, TResult> leftSelector)
         {
-            return either.Visit(
-                left => Either2.Right<Nothing>().Left(leftSelector(left)),
-                right => Either2.Left<TResult>().Right(new Nothing()));
+            return either.Apply(
+                left => Either.Left(leftSelector(left)).Right<Nothing>(),
+                right => Either.Left<TResult>().Right(new Nothing()));
         }
 
         public static bool TryRight<TLeft, TRight, TResult>(this IEither<TLeft, TRight> either, Func<TLeft, TResult> leftSelector, Func<TRight, TResult> rightSelector, out TResult result)
         {
-            var selected = either.Visit(
+            var selected = either.Apply(
                 left => (Result: leftSelector(left), IsLeft: false),
                 right => (Result: rightSelector(right), IsLeft: true));
 
