@@ -202,40 +202,6 @@ namespace OddTrotter.Calendar
         }
     }
 
-    public static class EitherExtensions
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
-        /// <param name="leftFactory"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static Either<TLeft, TRight> Left<TLeft, TRight>(this Either2.FactoryLeft<TRight> leftFactory, TLeft value)
-        {
-            // `leftfactory` is only be used to "carry" the `tright` type, so you don't need to do any assertions on it; `value` is allowed to be whatever the caller wants, so we don't do any assertions on it
-
-            return new Either<TLeft, TRight>.Left(value);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
-        /// <param name="rightFactory"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static Either<TLeft, TRight> Right<TLeft, TRight>(this Either2.FactoryRight<TLeft> rightFactory, TRight value)
-        {
-            // `rightfactory` is only be used to "carry" the `tleft` type, so you don't need to do any assertions on it; `value` is allowed to be whatever the caller wants, so we don't do any assertions on it
-
-            return new Either<TLeft, TRight>.Right(value);
-        }
-
-    }
-
     public static class EitherAsyncExtensions
     {
         /// <summary>
@@ -312,16 +278,6 @@ namespace OddTrotter.Calendar
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <returns></returns>
-        public static FactoryRight<TLeft> Left<TLeft>()
-        {
-            return FactoryRight<TLeft>.Instance;
-        }
-
-        /// <summary>
         /// you named it this way so that the `left` method and `leftfactory` don't conflict in the intellisense prompts
         /// </summary>
         /// <typeparam name="TRight"></typeparam>
@@ -333,104 +289,6 @@ namespace OddTrotter.Calendar
             private FactoryLeft()
             {
             }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public static FactoryLeft<TRight> Instance { get; } = new FactoryLeft<TRight>();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TRight"></typeparam>
-        /// <returns></returns>
-        public static FactoryLeft<TRight> Right<TRight>()
-        {
-            return FactoryLeft<TRight>.Instance;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="either"></param>
-        /// <param name="leftDispatch"></param>
-        /// <param name="rightDispatch"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> is <see langword="null"/></exception>
-        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> can throw</exception> //// TODO is this good?
-        public static TResult Visit<TLeft, TRight, TResult>(
-            this Either<TLeft, TRight> either,
-            Func<TLeft, TResult> leftDispatch,
-            Func<TRight, TResult> rightDispatch)
-        {
-            if (either == null)
-            {
-                throw new ArgumentNullException(nameof(either));
-            }
-
-            if (leftDispatch == null)
-            {
-                throw new ArgumentNullException(nameof(leftDispatch));
-            }
-
-            if (rightDispatch == null)
-            {
-                throw new ArgumentNullException(nameof(rightDispatch));
-            }
-
-            return either.Visit<TLeft, TRight, TResult, Nothing>(
-                (left, context) => leftDispatch(left.Value), //// TODO is there a way to wrap these without creating a closure?
-                (right, context) => rightDispatch(right.Value),
-                default);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <typeparam name="TContext"></typeparam>
-        /// <param name="either"></param>
-        /// <param name="leftDispatch"></param>
-        /// <param name="rightDispatch"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> or <paramref name="context"/> is <see langword="null"/></exception>
-        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftDispatch"/> or <paramref name="rightDispatch"/> can throw</exception> //// TODO is this good?
-        public static TResult Visit<TLeft, TRight, TResult, TContext>(
-            this Either<TLeft, TRight> either,
-            Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,
-            Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch,
-            TContext context)
-        {
-            if (either == null)
-            {
-                throw new ArgumentNullException(nameof(either));
-            }
-
-            if (leftDispatch == null)
-            {
-                throw new ArgumentNullException(nameof(leftDispatch));
-            }
-
-            if (rightDispatch == null)
-            {
-                throw new ArgumentNullException(nameof(rightDispatch));
-            }
-
-            if (context == null)
-            {
-                //// TODO the purpose of `context` is to pass context into the dispatch method; it being `null` defeats the purpose of that concept, though maybe this is just being too strict; you do have `Void` if any caller really doesn't want to provide something; i'm not sure what's right; whichever you decide (keep this check or remove it), you need to be consistent across all of the visitors
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            var visitor = new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
-            return visitor.Visit(either, context);
         }
 
         /// <summary>
