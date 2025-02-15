@@ -356,7 +356,7 @@
             // code quality:
             // separate files
             // comment line at the top of the file
-            // namespaces
+            // namespace
             // `using` statements
             // readonly structs
             // `sealed` (classes and overriden methods)
@@ -364,7 +364,6 @@
             // struct default constructors
             // dead code
             //
-            // line lengths
             // precondition checks
             //   `argumentnullexception.throwifnull`
             //   `argumentnullinline.throwifnull`
@@ -375,10 +374,12 @@
             // give caught exceptions meaningful variable names
             // `using` blocks
             // scope suppressions as narrowly as possible
+            // line lengths
             // unit tests
             // do everything above for unit tests
 
             //// TODO code review unit tests for either extensions
+            //// TODO asexception extension
             //// TODO move everything to use the new either extensions
             //// TODO then do try, and move everything to use it
             //// TODO then do enumerableextensions, nd move everything to use it
