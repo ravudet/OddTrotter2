@@ -32,12 +32,12 @@ namespace OddTrotter.Calendar
             return source.TrySelect(element => element.ToEither());
         }
 
-        public static Either<T, Nothing> ToEither<T>(this T? value)
+        public static IEither<T, Nothing> ToEither<T>(this T? value)
         {
             return value == null ? Either2.Left<T>().Right(new Nothing()) : Either2.Right<Nothing>().Left(value);
         }
 
-        private static Either<int, Nothing> TryParse(string input)
+        private static IEither<int, Nothing> TryParse(string input)
         {
             if (int.TryParse(input, out var output))
             {
@@ -62,14 +62,14 @@ namespace OddTrotter.Calendar
         /// <param name="value"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        public static bool Try<TOut>(this Either<TOut, Nothing> either, [MaybeNullWhen(false)] out TOut value)
+        public static bool Try<TOut>(this IEither<TOut, Nothing> either, [MaybeNullWhen(false)] out TOut value)
         {
             if (either == null)
             {
                 throw new ArgumentNullException(nameof(either));
             }
 
-            if (either is Either<TOut, Nothing>.Left left)
+            if (either is IEither<TOut, Nothing>.Left left)
             {
                 value = left.Value;
                 return true;
@@ -91,27 +91,27 @@ namespace OddTrotter.Calendar
             foreach (var element in source)
             {
                 var either = @try(element);
-                if (either is Either<TResult, Nothing>.Left left)
+                if (either is IEither<TResult, Nothing>.Left left)
                 {
                     yield return left.Value;
                 }
             }
         }
 
-        public static Either<TLeft, Nothing> TryLeft<TLeft, TRight>(this Either<TLeft, TRight> either)
+        public static IEither<TLeft, Nothing> TryLeft<TLeft, TRight>(this IEither<TLeft, TRight> either)
         {
             //// TODO maybe call this "coalesceleft" to conform with "null coalescing operator"?
             return either.TryLeft(_ => _);
         }
 
-        public static Either<TResult, Nothing> TryLeft<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector)
+        public static IEither<TResult, Nothing> TryLeft<TLeft, TRight, TResult>(this IEither<TLeft, TRight> either, Func<TLeft, TResult> leftSelector)
         {
             return either.Visit(
                 left => Either2.Right<Nothing>().Left(leftSelector(left)),
                 right => Either2.Left<TResult>().Right(new Nothing()));
         }
 
-        public static bool TryRight<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector, Func<TRight, TResult> rightSelector, out TResult result)
+        public static bool TryRight<TLeft, TRight, TResult>(this IEither<TLeft, TRight> either, Func<TLeft, TResult> leftSelector, Func<TRight, TResult> rightSelector, out TResult result)
         {
             var selected = either.Visit(
                 left => (Result: leftSelector(left), IsLeft: false),
@@ -800,7 +800,7 @@ namespace OddTrotter.Calendar
                             .Right(new Nothing()));
         }
 
-        public static Either<TResult, Nothing> TryDefault<TElement, TError, TDefault, TResult>(
+        public static IEither<TResult, Nothing> TryDefault<TElement, TError, TDefault, TResult>(
             this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult,
             Func<TElement, TResult> elementSelector,
             Func<TError, TResult> errorSelector,
@@ -846,10 +846,10 @@ namespace OddTrotter.Calendar
             return selected.IsDefault;
         }
 
-        public static Either<TElement, Either<TError, TDefault>> ToEither<TElement, TError, TDefault>(this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult)
+        public static IEither<TElement, IEither<TError, TDefault>> ToEither<TElement, TError, TDefault>(this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult)
         {
             return firstOrDefaultResult.Visit(
-                element => Either2.Right<Either<TError, TDefault>>().Left(element),
+                element => Either2.Right<IEither<TError, TDefault>>().Left(element),
                 error => Either2.Left<TElement>().Right(Either2.Right<TDefault>().Left(error)),
                 @default => Either2.Left<TElement>().Right(Either2.Left<TError>().Right(@default)));
         }
@@ -1176,7 +1176,7 @@ namespace OddTrotter.Calendar
             return queryResult;
         }
 
-        private sealed class SplitVisitor<TValue, TError, TRight> : QueryResult<Either<TValue, TRight>, TError>.Visitor<TError?, (Action<TValue>, Action<TRight>)>
+        private sealed class SplitVisitor<TValue, TError, TRight> : QueryResult<IEither<TValue, TRight>, TError>.Visitor<TError?, (Action<TValue>, Action<TRight>)>
         {
             private SplitVisitor()
             {
@@ -1184,12 +1184,12 @@ namespace OddTrotter.Calendar
 
             public static SplitVisitor<TValue, TError, TRight> Instance { get; } = new SplitVisitor<TValue, TError, TRight>();
 
-            public override TError? Dispatch(QueryResult<Either<TValue, TRight>, TError>.Final node, (Action<TValue>, Action<TRight>) context)
+            public override TError? Dispatch(QueryResult<IEither<TValue, TRight>, TError>.Final node, (Action<TValue>, Action<TRight>) context)
             {
                 return default;
             }
 
-            public override TError? Dispatch(QueryResult<Either<TValue, TRight>, TError>.Element node, (Action<TValue>, Action<TRight>) context)
+            public override TError? Dispatch(QueryResult<IEither<TValue, TRight>, TError>.Element node, (Action<TValue>, Action<TRight>) context)
             {
                 node.Value.Visit(
                     (left, @void) =>
@@ -1206,14 +1206,14 @@ namespace OddTrotter.Calendar
                 return default;
             }
 
-            public override TError? Dispatch(QueryResult<Either<TValue, TRight>, TError>.Partial node, (Action<TValue>, Action<TRight>) context)
+            public override TError? Dispatch(QueryResult<IEither<TValue, TRight>, TError>.Partial node, (Action<TValue>, Action<TRight>) context)
             {
                 return node.Error;
             }
         }
 
         public static TError? Split<TValue, TError, TRight>(
-            this QueryResult<Either<TValue, TRight>, TError> queryResult,
+            this QueryResult<IEither<TValue, TRight>, TError> queryResult,
             Action<TValue> leftAction,
             Action<TRight> rightAction)
         {
@@ -1442,12 +1442,12 @@ namespace OddTrotter.Calendar
             }
         }
 
-        public static Either<TValue, TError> First<TValue, TError>(this QueryResult<TValue, TError> queryResult)
+        public static IEither<TValue, TError> First<TValue, TError>(this QueryResult<TValue, TError> queryResult)
         {
             return FirstVisitor<TValue, TError>.Instance.Visit(queryResult, default);
         }
 
-        private sealed class FirstVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<Either<TValue, TError>, Nothing>
+        private sealed class FirstVisitor<TValue, TError> : QueryResult<TValue, TError>.Visitor<IEither<TValue, TError>, Nothing>
         {
             private FirstVisitor()
             {
@@ -1455,17 +1455,17 @@ namespace OddTrotter.Calendar
 
             public static FirstVisitor<TValue, TError> Instance { get; } = new FirstVisitor<TValue, TError>();
 
-            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Final node, Nothing context)
+            public override IEither<TValue, TError> Dispatch(QueryResult<TValue, TError>.Final node, Nothing context)
             {
                 throw new InvalidOperationException("TODO");
             }
 
-            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, Nothing context)
+            public override IEither<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, Nothing context)
             {
                 return Either2.Right<TError>().Left(node.Value);
             }
 
-            public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Nothing context)
+            public override IEither<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Nothing context)
             {
                 return Either2.Left<TValue>().Right(node.Error);
             }
