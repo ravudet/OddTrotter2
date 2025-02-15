@@ -378,7 +378,6 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO code review unit tests for either extensions
             //// TODO asexception extension
             //// TODO move everything to use the new either extensions
             //// TODO then do try, and move everything to use it
