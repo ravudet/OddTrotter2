@@ -9,6 +9,9 @@
 
     public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 
+    //// TODO maybe you also want this for stuff like Either<Left, Nothing>.TryGet?
+    public delegate bool Try<TOutput>(out TOutput output);
+
     //// TODO maybe this is called something that's not try? or maybe the above is called something that's not try; one of them is definitely try, and the other is probably more verbose
     /*public delegate bool Try4<TOutput>([MaybeNullWhen(false)] out TOutput output);
 
