@@ -259,39 +259,6 @@ namespace OddTrotter.Calendar
     public static class Either2
     {
         /// <summary>
-        /// you named it this way so that the `right` method and `rightfactory` don't conflict in the intellisense prompts
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        public sealed class FactoryRight<TLeft>
-        {
-            /// <summary>
-            /// 
-            /// </summary>
-            private FactoryRight()
-            {
-            }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public static FactoryRight<TLeft> Instance { get; } = new FactoryRight<TLeft>();
-        }
-
-        /// <summary>
-        /// you named it this way so that the `left` method and `leftfactory` don't conflict in the intellisense prompts
-        /// </summary>
-        /// <typeparam name="TRight"></typeparam>
-        public sealed class FactoryLeft<TRight>
-        {
-            /// <summary>
-            /// 
-            /// </summary>
-            private FactoryLeft()
-            {
-            }
-        }
-
-        /// <summary>
         /// TODO should this be a struct?
         /// TODO it can't be a struct because the `Either.Visitor` is not an interface, and it "can't" be an interface because it has an implementation for `Visit` (i put "can't" in quotes because maybe there's a way around that)
         /// TODO what you might be able to do is have a concrete `Either.Visitor` class (or maybe that should be a struct?) and have a new interface `IDispatcher` that the `visitor` takes in the constructor; then, you could have `dispatcher`s that are structs
