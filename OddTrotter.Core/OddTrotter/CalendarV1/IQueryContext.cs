@@ -1182,15 +1182,15 @@ namespace OddTrotter.Calendar
 
             public override TError? Dispatch(QueryResult<IEither<TValue, TRight>, TError>.Element node, (Action<TValue>, Action<TRight>) context)
             {
-                node.Value.Visit(
+                node.Value.Apply(
                     (left, @void) =>
                     {
-                        context.Item1(left.Value);
+                        context.Item1(left);
                         return new Nothing();
                     },
                     (right, @void) =>
                     {
-                        context.Item2(right.Value);
+                        context.Item2(right);
                         return new Nothing();
                     },
                     new Nothing()); //// TODO shouldn't you pass in `context` instead of creating closures?
@@ -1453,12 +1453,12 @@ namespace OddTrotter.Calendar
 
             public override IEither<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, Nothing context)
             {
-                return Either2.Right<TError>().Left(node.Value);
+                return Either.Left(node.Value).Right<TError>();
             }
 
             public override IEither<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Nothing context)
             {
-                return Either2.Left<TValue>().Right(node.Error);
+                return Either.Left<TValue>().Right(node.Error);
             }
         }
 
