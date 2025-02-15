@@ -13,6 +13,7 @@
     using System.Threading.Tasks.Sources;
     using System.Xml.Linq;
 
+    using Fx.Either;
     using Microsoft.Extensions.Caching.Memory;
     using OddTrotter.AzureBlobClient;
     using OddTrotter.Calendar;
@@ -206,26 +207,26 @@
         /// <param name="queryResult"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> is <see langword="null"/></exception>
-        private static TodoListResultBuilder Convert(QueryResult<Either<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> queryResult, DateTime lastRecordedEventTimeStamp)
+        private static TodoListResultBuilder Convert(QueryResult<IEither<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> queryResult, DateTime lastRecordedEventTimeStamp)
         {
             ArgumentNullException.ThrowIfNull(queryResult);
 
             var builder = new TodoListResultBuilder(lastRecordedEventTimeStamp);
 
-            while (queryResult is QueryResult<Either<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element element)
+            while (queryResult is QueryResult<IEither<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element element)
             {
-                element.Value.Visit(
+                element.Value.Apply(
                     (left, context) =>
                     {
-                        if (left.Value.Start < context.EndTimestamp)
+                        if (left.Start < context.EndTimestamp)
                         {
-                            context.EndTimestamp = left.Value.Start.DateTime; //// TODO why did you choose datetimeoffset some places and datetime others?
+                            context.EndTimestamp = left.Start.DateTime; //// TODO why did you choose datetimeoffset some places and datetime others?
                         }
 
                         IEnumerable<string> parsedBody;
                         try
                         {
-                            parsedBody = ParseEventBody(left.Value.Body);
+                            parsedBody = ParseEventBody(left.Body);
                         }
                         catch (Exception exception)
                         {
@@ -240,7 +241,7 @@
                     {
                         //// TODO do you want to stop recording the endtimestamp if a translation error occurred, or should the user be expected to handle it at that point? if the user is expected to handle it, it'd probably be good to put the errors in a more permanent storage so that a browser window mishap doesn't cause data loss
                         //// TODO i think you should let the user handle it because otherwise a calendar error will get them permanently stuck at a certain timestamp and they will need to actually go to the calendar event and fix it, instead of just checking that the error can be skipped and ignoring it, letting the next refresh remove it; you *will* want a way to persist the errors though for the browser mishap reason
-                        context.TranslationErrors.Add(right.Value);
+                        context.TranslationErrors.Add(right);
                         return new Nothing();
                     },
                     builder);
@@ -248,7 +249,7 @@
                 queryResult = element.Next();
             }
 
-            if (queryResult is QueryResult<Either<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial partial)
+            if (queryResult is QueryResult<IEither<Calendar.CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial partial)
             {
                 builder.PagingError = partial.Error;
             }
@@ -423,12 +424,12 @@
             //// TODO this is actually pretty weird; you did a good job separating when the queries are in-memory vs client-based; but, in this todolistservice you actually want them all to be given to the calendareventscontext so that it can do in-memory filtering to prevent network calls when getting the series events; this further exacerbates the issue around queryresult<either, error> because in these in-memory ones, you really do want the either (and you want the caller to be able to tell us the behavior for both sides of the either) //// TODO is this last part about the either really the case? isn't it *actually* that the calendareventcontext knows that we should always surface errors, and as written we are putting the consistency burden on the todolistservice?
             var todoListEvents2 = calendarEvents
                 .Where(calendarEvent => 
-                    calendarEvent.Visit(
+                    calendarEvent.Apply(
                         left => left.Subject.Contains("todo list", StringComparison.OrdinalIgnoreCase),
                         right => true))
                 .Where(calendarEvent => //// TODO this should go in the "on the service" portion
                     calendarEvent
-                        .Visit(
+                        .Apply(
                             left => left.Start > originalLastRecordedEventTimeStamp, // there's a bug in the graph api; it treats gt as ge, so we need to do this extra check locally
                             right => true));
 

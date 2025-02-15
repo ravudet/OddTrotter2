@@ -6,6 +6,8 @@
     using System.Text.Json;
     using System.Threading.Tasks;
 
+    using Fx.Either;
+
     public interface IGraphOdataStructuredContext
     {
         OdataServiceRoot ServiceRoot { get; }
@@ -120,7 +122,7 @@
                 throw new GraphClient.UnauthorizedAccessTokenException(
                     request.RelativeUri.OriginalString,
                     this.accessToken,
-                    response.ResponseContent.Visit(
+                    response.ResponseContent.Apply(
                         left => JsonSerializer.Serialize(left), //// TODO since we were able to deserialize, i *think* we can trust that this won't throw
                         right => JsonSerializer.Serialize(right))); //// TODO since we were able to deserialize, i *think* we can trust that this won't throw
             }
