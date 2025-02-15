@@ -507,7 +507,7 @@
 
                 return odataCollectionResponse
                     .ResponseContent
-                    .VisitSelect(
+                    .Select(
                         left => this.getPageVisitor.Visit(left, default),
                         right => new GraphProcessingException(
                             odataCollectionResponse.HttpStatusCode,
