@@ -234,43 +234,6 @@ namespace OddTrotter.Calendar
             return new Either<TLeft, TRight>.Right(value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeftOld"></typeparam>
-        /// <typeparam name="TRightOld"></typeparam>
-        /// <typeparam name="TLeftNew"></typeparam>
-        /// <typeparam name="TRightNew"></typeparam>
-        /// <param name="either"></param>
-        /// <param name="leftSelector"></param>
-        /// <param name="rightSelector"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> or <paramref name="rightSelector"/> is <see langword="null"/></exception>
-        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw</exception> //// TODO is this good?
-        public static Either<TLeftNew, TRightNew> VisitSelect<TLeftOld, TRightOld, TLeftNew, TRightNew>(
-            this Either<TLeftOld, TRightOld> either,
-            Func<TLeftOld, TLeftNew> leftSelector,
-            Func<TRightOld, TRightNew> rightSelector)
-        {
-            if (either == null)
-            {
-                throw new ArgumentNullException(nameof(either));
-            }
-
-            if (leftSelector == null)
-            {
-                throw new ArgumentNullException(nameof(leftSelector));
-            }
-
-            if (rightSelector == null)
-            {
-                throw new ArgumentNullException(nameof(rightSelector));
-            }
-
-            return either.Visit(
-                left => Either2.Right<TRightNew>().Left(leftSelector(left)), //// TODO can you avoid these closures somehow?
-                right => Either2.Left<TLeftNew>().Right(rightSelector(right)));
-        }
     }
 
     public static class EitherAsyncExtensions
@@ -392,61 +355,6 @@ namespace OddTrotter.Calendar
         /// </summary>
         /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TRight"></typeparam>
-        /// <param name="either"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-        /// <exception cref="TRight">Thrown if <paramref name="either"/> is <see cref="Either{TLeft, TRight}.Right"/></exception>
-        public static TLeft ThrowRight<TLeft, TRight>(this Either<TLeft, TRight> either) where TRight : Exception
-        {
-            if (either == null)
-            {
-                throw new ArgumentNullException(nameof(either));
-            }
-
-            return either.Visit(left => left, right => throw right);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeftOld"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
-        /// <typeparam name="TLeftNew"></typeparam>
-        /// <param name="either"></param>
-        /// <param name="selector"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="selector"/> is <see langword="null"/></exception>
-        /// <exception cref="Exception">Throws any of the exceptions that <paramref name="selector"/> can throw</exception> //// TODO is this good?
-        public static Either<TLeftNew, TRight> SelectLeft<TLeftOld, TRight, TLeftNew>(
-            this Either<TLeftOld, TRight> either, 
-            Func<TLeftOld, TLeftNew> selector)
-        {
-            if (either == null)
-            {
-                throw new ArgumentNullException(nameof(either));
-            }
-
-            if (selector == null)
-            {
-                throw new ArgumentNullException(nameof(selector));
-            }
-
-            return either.VisitSelect(selector, _ => _);
-        }
-
-        public static Either<TLeft, TRightNew> SelectRight<TLeft, TRightOld, TRightNew>(this Either<TLeft, TRightOld> either, Func<TRightOld, TRightNew> selector)
-        {
-            return either.Visit<TLeft, TRightOld, Either<TLeft, TRightNew>, bool>(
-                (left, context) => new Either<TLeft, TRightNew>.Left(left.Value),
-                (right, context) => new Either<TLeft, TRightNew>.Right(selector(right.Value)),
-                false);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TLeft"></typeparam>
-        /// <typeparam name="TRight"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="either"></param>
         /// <param name="leftDispatch"></param>
@@ -523,13 +431,6 @@ namespace OddTrotter.Calendar
 
             var visitor = new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
             return visitor.Visit(either, context);
-        }
-
-        public static Either<TLeft, TRight>.Visitor<TResult, TContext> Visitor<TLeft, TRight, TResult, TContext>(
-            Func<Either<TLeft, TRight>.Left, TContext, TResult> leftDispatch,
-            Func<Either<TLeft, TRight>.Right, TContext, TResult> rightDispatch)
-        {
-            return new DelegateVisitor<TLeft, TRight, TResult, TContext>(leftDispatch, rightDispatch);
         }
 
         /// <summary>
