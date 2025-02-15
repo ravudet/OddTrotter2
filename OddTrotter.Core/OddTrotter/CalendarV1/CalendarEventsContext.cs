@@ -732,6 +732,7 @@ namespace OddTrotter.Calendar
         public static Expression<Func<CalendarEvent, bool>> IsNotCancelled { get; } = calendarEvent => !calendarEvent.IsCancelled;
 
 
+        //// TODO normalize all of your visitors with the pattern (naming, internal protected in the visitor, etc) that you are using in other repos
         /*/// <summary>
         /// 
         /// </summary>
