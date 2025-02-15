@@ -11,9 +11,11 @@ namespace OddTrotter.Calendar
     using System.Threading.Tasks;
     using static OddTrotter.Calendar.QueryResultExtensions;
 
+    using Fx.Either;
+
     public delegate bool TryOld<TIn, TOut>(TIn input, out TOut output);
 
-    public delegate Either<TOut, Nothing> Try<TIn, TOut>(TIn input);
+    public delegate IEither<TOut, Nothing> Try<TIn, TOut>(TIn input);
 
     public static class Driver
     {
@@ -32,24 +34,24 @@ namespace OddTrotter.Calendar
 
         public static Either<T, Nothing> ToEither<T>(this T? value)
         {
-            return value == null ? Either.Left<T>().Right(new Nothing()) : Either.Right<Nothing>().Left(value);
+            return value == null ? Either2.Left<T>().Right(new Nothing()) : Either2.Right<Nothing>().Left(value);
         }
 
         private static Either<int, Nothing> TryParse(string input)
         {
             if (int.TryParse(input, out var output))
             {
-                return Either.Right<Nothing>().Left(output);
+                return Either2.Right<Nothing>().Left(output);
             }
             else
             {
-                return Either.Left<int>().Right(new Nothing());
+                return Either2.Left<int>().Right(new Nothing());
             }
         }
 
         public static Try<TIn, TOut> ToTry<TIn, TOut>(this TryOld<TIn, TOut> @try)
         {
-            return input => @try(input, out var output) ? Either.Right<Nothing>().Left(output) : Either.Left<TOut>().Right(new Nothing());
+            return input => @try(input, out var output) ? Either2.Right<Nothing>().Left(output) : Either2.Left<TOut>().Right(new Nothing());
         }
 
         /// <summary>
@@ -105,8 +107,8 @@ namespace OddTrotter.Calendar
         public static Either<TResult, Nothing> TryLeft<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector)
         {
             return either.Visit(
-                left => Either.Right<Nothing>().Left(leftSelector(left)),
-                right => Either.Left<TResult>().Right(new Nothing()));
+                left => Either2.Right<Nothing>().Left(leftSelector(left)),
+                right => Either2.Left<TResult>().Right(new Nothing()));
         }
 
         public static bool TryRight<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> leftSelector, Func<TRight, TResult> rightSelector, out TResult result)
@@ -767,7 +769,7 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="firstOrDefaultResult"/> or <paramref name="elementSelector"/> or <paramref name="errorSelector"/> is <see langword="null"/></exception>
         /// <exception cref="Exception">Throws any of the exceptions that <paramref name="elementSelector"/> or <paramref name="errorSelector"/> can throw</exception> //// TODO is this good?
-        public static Either<TResult, Nothing> TryNotDefault<TElement, TError, TDefault, TResult>(
+        public static IEither<TResult, Nothing> TryNotDefault<TElement, TError, TDefault, TResult>(
             this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult,
             Func<TElement, TResult> elementSelector,
             Func<TError, TResult> errorSelector)
@@ -784,14 +786,14 @@ namespace OddTrotter.Calendar
                 .Visit(
                     element =>
                         Either
-                            .Right<Nothing>()
                             .Left(
-                                elementSelector(element)),
+                                elementSelector(element))
+                            .Right<Nothing>(),
                     error =>
                         Either
-                            .Right<Nothing>()
                             .Left(
-                                errorSelector(error)),
+                                errorSelector(error))
+                            .Right<Nothing>(),
                     @default =>
                         Either
                             .Left<TResult>()
@@ -806,11 +808,11 @@ namespace OddTrotter.Calendar
         {
             if (firstOrDefaultResult.TryIsDefault(elementSelector, errorSelector, defaultSelector, out var result))
             {
-                return Either.Right<Nothing>().Left(result);
+                return Either2.Right<Nothing>().Left(result);
             }
             else
             {
-                return Either.Left<TResult>().Right(new Nothing());
+                return Either2.Left<TResult>().Right(new Nothing());
             }
         }
 
@@ -847,9 +849,9 @@ namespace OddTrotter.Calendar
         public static Either<TElement, Either<TError, TDefault>> ToEither<TElement, TError, TDefault>(this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult)
         {
             return firstOrDefaultResult.Visit(
-                element => Either.Right<Either<TError, TDefault>>().Left(element),
-                error => Either.Left<TElement>().Right(Either.Right<TDefault>().Left(error)),
-                @default => Either.Left<TElement>().Right(Either.Left<TError>().Right(@default)));
+                element => Either2.Right<Either<TError, TDefault>>().Left(element),
+                error => Either2.Left<TElement>().Right(Either2.Right<TDefault>().Left(error)),
+                @default => Either2.Left<TElement>().Right(Either2.Left<TError>().Right(@default)));
         }
 
         /// <summary>
@@ -1460,12 +1462,12 @@ namespace OddTrotter.Calendar
 
             public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Element node, Nothing context)
             {
-                return Either.Right<TError>().Left(node.Value);
+                return Either2.Right<TError>().Left(node.Value);
             }
 
             public override Either<TValue, TError> Dispatch(QueryResult<TValue, TError>.Partial node, Nothing context)
             {
-                return Either.Left<TValue>().Right(node.Error);
+                return Either2.Left<TValue>().Right(node.Error);
             }
         }
 

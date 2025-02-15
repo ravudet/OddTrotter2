@@ -1716,7 +1716,7 @@ namespace OddTrotter.Calendar
                             .SelectMany(header =>
                                 header.Value.Select(value => (header.Key, value)))
                             .Select(header => new HttpHeader(header.Key, header.Key)), // `HttpClient` validates the headers for us, so we don't have to worry about `HttpHeader` throwing
-                        Either.Left<OdataCollectionResponse>().Right(odataErrorResponse));
+                        Either2.Left<OdataCollectionResponse>().Right(odataErrorResponse));
                 }
 
                 OdataCollectionResponseBuilder? odataCollectionResponseBuilder;
@@ -1745,7 +1745,7 @@ namespace OddTrotter.Calendar
                         .SelectMany(header =>
                             header.Value.Select(value => (header.Key, value)))
                         .Select(header => new HttpHeader(header.Key, header.Key)),  // `HttpClient` validates the headers for us, so we don't have to worry about `HttpHeader` throwing
-                    Either.Right<OdataErrorResponse>().Left(odataCollectionResponse));
+                    Either2.Right<OdataErrorResponse>().Left(odataCollectionResponse));
             }
             finally
             {
@@ -1776,7 +1776,7 @@ namespace OddTrotter.Calendar
 
                 if (invalidities.Count > 0)
                 {
-                    return Either
+                    return Either2
                         .Left<OdataCollectionResponse>()
                         .Right(
                             new OdataSuccessDeserializationException(
@@ -1802,7 +1802,7 @@ namespace OddTrotter.Calendar
             {
                 if (nextLink == null)
                 {
-                    return Either
+                    return Either2
                         .Right<OdataSuccessDeserializationException>()
                         .Left(OdataNextLink.Null.Instance.AsBase());
                 }
@@ -1816,7 +1816,7 @@ namespace OddTrotter.Calendar
                 catch (UriFormatException uriFormatException)
                 {
                     //// TODO i think your exception parameter pattern should be: exception specific stuff, message, inner
-                    return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", uriFormatException, "TODO"));
+                    return Either2.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", uriFormatException, "TODO"));
                 }
 
                 if (uri.IsAbsoluteUri)
@@ -1825,7 +1825,7 @@ namespace OddTrotter.Calendar
                     var schemeDelimiterIndex = nextLink.IndexOf(schemeDelimiter, 0);
                     if (schemeDelimiterIndex < 0)
                     {
-                        return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
+                        return Either2.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
                     var providedScheme = Substring2(uri.OriginalString, 0, schemeDelimiterIndex); // we know that it's a valid URI, so if the scheme delimiter is present, there must be a scheme
@@ -1840,14 +1840,14 @@ namespace OddTrotter.Calendar
                     }
                     else
                     {
-                        return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
+                        return Either2.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
                     var hostDelimiter = "/";
                     var hostDelimiterIndex = uri.OriginalString.IndexOf(hostDelimiter, schemeDelimiterIndex + schemeDelimiter.Length); // we know it's a valid URI, so if there was a scheme, there must be a host
                     if (hostDelimiterIndex < 0)
                     {
-                        return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
+                        return Either2.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                     }
 
                     var fullHost = Substring2(uri.OriginalString, schemeDelimiterIndex + schemeDelimiter.Length, hostDelimiterIndex); // we know it's a valid URI, so if there was a scheme, there must be a host
@@ -1869,7 +1869,7 @@ namespace OddTrotter.Calendar
                         if (portStartIndex == fullHost.Length)
                         {
                             // it's legal for a URI to have a port delimiter without a port
-                            return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
+                            return Either2.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO"));
                         }
 
                         var providedPort = Substring2(fullHost, portStartIndex, fullHost.Length);
@@ -1879,14 +1879,14 @@ namespace OddTrotter.Calendar
                         }
                         catch
                         {
-                            return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO")); //// TODO preserve exception
+                            return Either2.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO", "TODO")); //// TODO preserve exception
                         }
                     }
 
                     var segmentsStartIndex = hostDelimiterIndex + hostDelimiter.Length;
                     if (segmentsStartIndex == uri.OriginalString.Length)
                     {
-                        return Either.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO this is a legal service root, but not a legal nextlink", "TODO"));
+                        return Either2.Left<OdataNextLink>().Right(new OdataSuccessDeserializationException("TODO this is a legal service root, but not a legal nextlink", "TODO"));
                     }
 
                     var providedRelativeUri = Substring2(uri.OriginalString, segmentsStartIndex, uri.OriginalString.Length);
@@ -1896,7 +1896,7 @@ namespace OddTrotter.Calendar
 
                     if (port == null)
                     {
-                        return Either
+                        return Either2
                             .Right<OdataSuccessDeserializationException>()
                             .Left(
                                 new OdataNextLink.Absolute(
@@ -1908,7 +1908,7 @@ namespace OddTrotter.Calendar
                     }
                     else
                     {
-                        return Either
+                        return Either2
                             .Right<OdataSuccessDeserializationException>()
                             .Left(
                                 new OdataNextLink.Absolute(
@@ -1923,7 +1923,7 @@ namespace OddTrotter.Calendar
                 }
                 else
                 {
-                    return Either
+                    return Either2
                             .Right<OdataSuccessDeserializationException>()
                             .Left(
                                 new OdataNextLink.Relative(ParseSegments(uri.OriginalString)
@@ -2027,7 +2027,7 @@ namespace OddTrotter.Calendar
 
                 if (invalidities.Count > 0)
                 {
-                    return Either
+                    return Either2
                         .Left<OdataErrorResponse>()
                         .Right(
                             new OdataErrorDeserializationException(
@@ -2035,7 +2035,7 @@ namespace OddTrotter.Calendar
                                 responseContents));
                 }
 
-                return Either.Right<OdataErrorDeserializationException>().Left(new OdataErrorResponse(this.Code!)); //// TODO see if you can avoid the bang
+                return Either2.Right<OdataErrorDeserializationException>().Left(new OdataErrorResponse(this.Code!)); //// TODO see if you can avoid the bang
             }
         }
     }

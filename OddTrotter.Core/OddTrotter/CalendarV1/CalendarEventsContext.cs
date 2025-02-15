@@ -6,6 +6,8 @@ namespace OddTrotter.Calendar
     using System.Text.Json;
     using System.Threading.Tasks;
 
+    using Fx.Either;
+
     /// <summary>
     /// This represents all of the calendar event invites that have an occurrence after a given timestamp. This can't be done on
     /// Graph with a simple `$filter` because series event masters often preserve the timestamp of the first instance which will
@@ -14,7 +16,7 @@ namespace OddTrotter.Calendar
     public sealed class CalendarEventsContext : 
         IQueryContext
             <
-                Either
+                IEither
                     <
                         CalendarEvent,
                         CalendarEventsContextTranslationException
@@ -123,7 +125,7 @@ namespace OddTrotter.Calendar
                 <
                     QueryResult
                         <
-                            Either
+                            IEither
                                 <
                                     CalendarEvent,
                                     CalendarEventsContextTranslationException
@@ -152,7 +154,7 @@ namespace OddTrotter.Calendar
         private static
             QueryResult
                 <
-                    Either
+                    IEither
                         <
                             CalendarEvent, 
                             CalendarEventsContextTranslationException
@@ -162,7 +164,7 @@ namespace OddTrotter.Calendar
             Adapt(
                 QueryResult
                     <
-                        Either
+                        IEither
                             <
                                 OddTrotter.Calendar.GraphCalendarEvent, 
                                 GraphCalendarEventsContextTranslationException
@@ -181,14 +183,14 @@ namespace OddTrotter.Calendar
                 .Select(
                     graphCalendarEvent =>
                         graphCalendarEvent
-                            .VisitSelect(
+                            .Select(
                                 left => 
                                     ToCalendarEvent(left),
                                 right =>
                                     new CalendarEventsContextTranslationException(
                                         $"An error occurred while translating the OData response into a Graph calendar event",
                                         right))
-                            .PropogateRight());
+                            .SelectManyLeft());
         }
 
         /// <summary>
@@ -204,7 +206,7 @@ namespace OddTrotter.Calendar
                 <
                     QueryResult
                         <
-                            Either
+                            IEither
                                 <
                                     CalendarEvent,
                                     CalendarEventsContextTranslationException
@@ -252,7 +254,7 @@ namespace OddTrotter.Calendar
         /// <param name="endTime"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEvents()
+        private async Task<QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEvents()
         {
             var seriesEventMasters =
                 await this.GetSeriesEventMasters().ConfigureAwait(false);
@@ -271,49 +273,48 @@ namespace OddTrotter.Calendar
                 .TrySelectAsync(
                     seriesPlusInstanceOrTranslationError =>
                         seriesPlusInstanceOrTranslationError
-                            .Visit(
+                            .Apply(
                                 seriesPlusInstance =>
                                     seriesPlusInstance
                                         .FirstInstance
                                         .TryNotDefault( //// TODO i *think* both delegates here are just doing identity operations; do you want to have a `trynotdefault` convenience overload that returns bool with and out parameter of the either of the other two?
                                             instance => 
                                                 Either
-                                                    .Right<CalendarEventsContextTranslationException>()
                                                     .Left(
                                                         (
-                                                            SeriesMaster: seriesPlusInstance.SeriesMaster, 
+                                                            SeriesMaster: seriesPlusInstance.SeriesMaster,
                                                             Instance: Either
-                                                                .Right<CalendarEventsContextPagingException>()
                                                                 .Left(instance)
-                                                        )),
+                                                                .Right<CalendarEventsContextPagingException>()
+                                                        ))
+                                                    .Right<CalendarEventsContextTranslationException>(),
                                             instancePagingError =>
                                                 Either
-                                                    .Right<CalendarEventsContextTranslationException>()
                                                     .Left(
                                                         (
                                                             SeriesMaster: seriesPlusInstance.SeriesMaster,
                                                             Instance: Either
                                                                 .Left
                                                                     <
-                                                                        Either
+                                                                        IEither
                                                                             <
                                                                                 CalendarEvent,
                                                                                 CalendarEventsContextTranslationException
                                                                             >
                                                                     >()
                                                                 .Right(instancePagingError)
-                                                        ))),
+                                                        ))
+                                                    .Right<CalendarEventsContextTranslationException>()),
                                 translationError => Either
-                                    .Right<Nothing>()
                                     .Left(
                                         Either
                                             .Left
                                                 <
                                                     (
                                                         CalendarEvent SeriesMaster,
-                                                        Either
+                                                        Fx.Either.Either
                                                             <
-                                                                Either
+                                                                IEither
                                                                     <
                                                                         CalendarEvent,
                                                                         CalendarEventsContextTranslationException
@@ -322,7 +323,8 @@ namespace OddTrotter.Calendar
                                                             > Instance
                                                     )
                                                 >()
-                                            .Right(translationError))))
+                                            .Right(translationError))
+                                    .Right<Nothing>())
                 .SelectAsync(
                     seriesPlusInstanceOrTranslationError =>
                         seriesPlusInstanceOrTranslationError.SelectLeft(
@@ -334,7 +336,7 @@ namespace OddTrotter.Calendar
                                             instanceOrTranslationError
                                                 .Visit( //// TODO isn't this just a select?
                                                     instance => 
-                                                        Either
+                                                        Either2
                                                             .Right<CalendarEventsContextTranslationException>()
                                                             .Left(
                                                                 new CalendarEvent(
@@ -344,13 +346,13 @@ namespace OddTrotter.Calendar
                                                                     instance.Start,
                                                                     seriesPlusInstance.SeriesMaster.IsCancelled)),
                                                     translationError =>
-                                                        Either
+                                                        Either2
                                                             .Left<CalendarEvent>()
                                                             .Right(
                                                                 //// TODO should the translation error be a discriminated union? that way callers can differentiate? or does that leak too many details?
                                                                 new CalendarEventsContextTranslationException($"A future instance was found for the series master with ID '{seriesPlusInstance.SeriesMaster.Id}' but the instance could not be translated correctly. The series master was '{JsonSerializer.Serialize(seriesPlusInstance.SeriesMaster)}'. TODO is the underlying error giving us the time range?", translationError))), //// TODO assuming because it got deserialized it can be serialized again...
                                         pagingError => 
-                                            Either
+                                            Either2
                                                 .Left<CalendarEvent>()
                                                 .Right(
                                                     new CalendarEventsContextTranslationException($"A future instance was not found for the series master with ID '{seriesPlusInstance.SeriesMaster.Id}' because an error occurred while retrieving the instances for that master. It is possible that a future instanace exists.", pagingError))))
@@ -365,7 +367,7 @@ namespace OddTrotter.Calendar
         /// <param name="seriesMaster"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="seriesMaster"/> is <see langword="null"/></exception>
-        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstancesInSeries(CalendarEvent seriesMaster)
+        private async Task<QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstancesInSeries(CalendarEvent seriesMaster)
         {
             if (seriesMaster == null)
             {
@@ -461,7 +463,7 @@ namespace OddTrotter.Calendar
             public TimeSpan FirstInstanceInSeriesLookahead { get; }
         }
 
-        private sealed class GetInstancesInSeriesVisitor : QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.AsyncVisitor<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>, GetInstancesInSeriesContext>
+        private sealed class GetInstancesInSeriesVisitor : QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.AsyncVisitor<QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>, GetInstancesInSeriesContext>
         {
             /// <summary>
             /// 
@@ -477,7 +479,7 @@ namespace OddTrotter.Calendar
 
             /// <inheritdoc/>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-            public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Final node, GetInstancesInSeriesContext context)
+            public override async Task<QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Final node, GetInstancesInSeriesContext context)
             {
                 if (node == null)
                 {
@@ -513,7 +515,7 @@ namespace OddTrotter.Calendar
 
             /// <inheritdoc/>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-            public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element node, GetInstancesInSeriesContext context)
+            public override async Task<QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element node, GetInstancesInSeriesContext context)
             {
                 if (node == null)
                 {
@@ -530,7 +532,7 @@ namespace OddTrotter.Calendar
 
             /// <inheritdoc/>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-            public override async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial node, GetInstancesInSeriesContext context)
+            public override async Task<QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> DispatchAsync(QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial node, GetInstancesInSeriesContext context)
             {
                 if (node == null)
                 {
@@ -542,11 +544,11 @@ namespace OddTrotter.Calendar
                     throw new ArgumentNullException(nameof(context));
                 }
 
-                return await Task.FromResult(new QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial(node.Error)).ConfigureAwait(false);
+                return await Task.FromResult(new QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Partial(node.Error)).ConfigureAwait(false);
             }
         }
 
-        private sealed class GetInstancesInSeriesResult : QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element
+        private sealed class GetInstancesInSeriesResult : QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element
         {
             private readonly Element queryResult;
             private readonly GetInstancesInSeriesContext context;
@@ -557,7 +559,7 @@ namespace OddTrotter.Calendar
             /// <param name="queryResult"></param>
             /// <param name="context"></param>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="context"/> is <see langword="null"/></exception>
-            public GetInstancesInSeriesResult(QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element queryResult, GetInstancesInSeriesContext context)
+            public GetInstancesInSeriesResult(QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>.Element queryResult, GetInstancesInSeriesContext context)
                 : base((queryResult ?? throw new ArgumentNullException(nameof(queryResult))).Value)
             {
                 if (context == null)
@@ -570,7 +572,7 @@ namespace OddTrotter.Calendar
             }
 
             /// <inheritdoc/>
-            public override QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Next()
+            public override QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Next()
             {
                 return GetInstancesInSeriesVisitor.Instance.VisitAsync(this.queryResult.Next(), this.context).ConfigureAwait(false).GetAwaiter().GetResult(); //// TODO async query result
             }
@@ -582,7 +584,7 @@ namespace OddTrotter.Calendar
         /// <param name="context"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-        private static async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstancesInSeries(GetInstancesInSeriesContext context)
+        private static async Task<QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetInstancesInSeries(GetInstancesInSeriesContext context)
         {
             if (context == null)
             {
@@ -617,7 +619,7 @@ namespace OddTrotter.Calendar
         /// <param name="graphCalendarEvent"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEvent"/> is <see langword="null"/></exception>
-        private static Either<CalendarEvent, CalendarEventsContextTranslationException> ToCalendarEvent(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
+        private static IEither<CalendarEvent, CalendarEventsContextTranslationException> ToCalendarEvent(OddTrotter.Calendar.GraphCalendarEvent graphCalendarEvent)
         {
             if (graphCalendarEvent == null)
             {
@@ -643,7 +645,7 @@ namespace OddTrotter.Calendar
             }
             catch (FormatException formatException)
             {
-                return Either
+                return Either2
                     .Left<CalendarEvent>()
                     .Right(
                         new CalendarEventsContextTranslationException(
@@ -651,7 +653,7 @@ namespace OddTrotter.Calendar
                             formatException));
             }
 
-            return Either
+            return Either2
                 .Right<CalendarEventsContextTranslationException>()
                 .Left(
                     new CalendarEvent(
@@ -668,7 +670,7 @@ namespace OddTrotter.Calendar
         /// <param name="graphClient"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        private async Task<QueryResult<Either<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
+        private async Task<QueryResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException>> GetSeriesEventMasters()
         {
             var url =
                 $"{this.calendarUriPath.Path}/events?" +

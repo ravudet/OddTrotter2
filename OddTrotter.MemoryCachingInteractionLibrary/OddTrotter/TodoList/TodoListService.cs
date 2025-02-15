@@ -379,7 +379,6 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO asexception extension
             //// TODO move everything to use the new either extensions
             //// TODO then do try, and move everything to use it
             //// TODO then do enumerableextensions, nd move everything to use it

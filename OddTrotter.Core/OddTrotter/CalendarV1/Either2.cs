@@ -1,4 +1,5 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+using Fx.Either;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -211,7 +212,7 @@ namespace OddTrotter.Calendar
         /// <param name="leftFactory"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static Either<TLeft, TRight> Left<TLeft, TRight>(this Either.FactoryLeft<TRight> leftFactory, TLeft value)
+        public static Either<TLeft, TRight> Left<TLeft, TRight>(this Either2.FactoryLeft<TRight> leftFactory, TLeft value)
         {
             // `leftfactory` is only be used to "carry" the `tright` type, so you don't need to do any assertions on it; `value` is allowed to be whatever the caller wants, so we don't do any assertions on it
 
@@ -226,7 +227,7 @@ namespace OddTrotter.Calendar
         /// <param name="rightFactory"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static Either<TLeft, TRight> Right<TLeft, TRight>(this Either.FactoryRight<TLeft> rightFactory, TRight value)
+        public static Either<TLeft, TRight> Right<TLeft, TRight>(this Either2.FactoryRight<TLeft> rightFactory, TRight value)
         {
             // `rightfactory` is only be used to "carry" the `tleft` type, so you don't need to do any assertions on it; `value` is allowed to be whatever the caller wants, so we don't do any assertions on it
 
@@ -267,18 +268,18 @@ namespace OddTrotter.Calendar
             }
 
             return either.Visit(
-                left => Either.Right<TRightNew>().Left(leftSelector(left)), //// TODO can you avoid these closures somehow?
-                right => Either.Left<TLeftNew>().Right(rightSelector(right)));
+                left => Either2.Right<TRightNew>().Left(leftSelector(left)), //// TODO can you avoid these closures somehow?
+                right => Either2.Left<TLeftNew>().Right(rightSelector(right)));
         }
 
         public static Either<(T1, T2), TRight> ShiftRight<T1, T2, TRight>(this Either<(T1, Either<T2, TRight>), TRight> either)
         {
             return either.Visit(
                 (left, context) => left.Value.Item2.Visit(
-                    (subLeft, subContext) => Either.Right<TRight>().Left((left.Value.Item1, subLeft.Value)),
-                    (subRight, subContext) => Either.Left<(T1, T2)>().Right(subRight.Value), 
+                    (subLeft, subContext) => Either2.Right<TRight>().Left((left.Value.Item1, subLeft.Value)),
+                    (subRight, subContext) => Either2.Left<(T1, T2)>().Right(subRight.Value), 
                     new Nothing()),
-                (right, context) => Either.Left<(T1, T2)>().Right(right.Value),
+                (right, context) => Either2.Left<(T1, T2)>().Right(right.Value),
                 new Nothing());
         }
 
@@ -301,20 +302,20 @@ namespace OddTrotter.Calendar
                         .Value
                         .Visit(
                             (subLeft, subContext) => 
-                                Either
+                                Either2
                                     .Right<TRight>()
                                     .Left(
                                         subLeft
                                             .Value),
                             (subRight, subContext) => 
-                                Either
+                                Either2
                                     .Left<TLeft>()
                                     .Right(
                                         subRight
                                             .Value),
                     new Nothing()),
                 (right, context) => 
-                    Either
+                    Either2
                         .Left<TLeft>()
                         .Right(
                             right
@@ -355,21 +356,21 @@ namespace OddTrotter.Calendar
             return first.Visit(
                 leftFirst => second
                     .Visit(
-                        leftSecond => Either
+                        leftSecond => Either2
                             .Right<TRight>()
                             .Left(
                                 (leftFirst, leftSecond)),
-                        rightSecond => Either
+                        rightSecond => Either2
                                     .Left<(TLeftFirst, TLeftSecond)>()
                                     .Right(
                                         rightSecond)),
                 rightFirst => second
                     .Visit(
-                        leftSecond => Either
+                        leftSecond => Either2
                             .Left<(TLeftFirst, TLeftSecond)>()
                             .Right(
                                 rightFirst),
-                        rightSecond => Either
+                        rightSecond => Either2
                             .Left<(TLeftFirst, TLeftSecond)>()
                             .Right(
                                 rightAggregator(rightFirst, rightSecond))));
@@ -391,8 +392,8 @@ namespace OddTrotter.Calendar
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> or <paramref name="leftSelector"/> or <paramref name="rightSelector"/> is <see langword="null"/></exception>
         /// <exception cref="Exception">Throws any of the exceptions that <paramref name="leftSelector"/> or <paramref name="rightSelector"/> can throw</exception> //// TODO is this good?
-        public static async Task<Either<TLeftNew, TRightNew>> SelectAsync<TLeftOld, TRightOld, TLeftNew, TRightNew>(
-            this Either<TLeftOld, TRightOld> either,
+        public static async Task<IEither<TLeftNew, TRightNew>> SelectAsync<TLeftOld, TRightOld, TLeftNew, TRightNew>(
+            this Fx.Either.IEither<TLeftOld, TRightOld> either,
             Func<TLeftOld, Task<TLeftNew>> leftSelector,
             Func<TRightOld, Task<TRightNew>> rightSelector)
         {
@@ -411,12 +412,18 @@ namespace OddTrotter.Calendar
                 throw new ArgumentNullException(nameof(rightSelector));
             }
 
-            return await either
+            return await Task.FromResult(
+                either
+                    .Select(
+                    left => leftSelector(left).ConfigureAwait(false).GetAwaiter().GetResult(),
+                    right => rightSelector(right).ConfigureAwait(false).GetAwaiter().GetResult()));
+
+            /*return await either
                 .VisitAsync(
                     async (left, context) => Either.Right<TRightNew>().Left(await leftSelector(left.Value).ConfigureAwait(false)),
                     async (right, context) => Either.Left<TLeftNew>().Right(await rightSelector(right.Value).ConfigureAwait(false)),
                     new Nothing())
-                .ConfigureAwait(false);
+                .ConfigureAwait(false);*/
         }
 
         /// <summary>
@@ -511,7 +518,7 @@ namespace OddTrotter.Calendar
     /// TODO reconcile this class with the extensions class
     /// TODO are there any other variations of these methods that you should implement "out of the box"?
     /// </summary>
-    public static class Either
+    public static class Either2
     {
         /// <summary>
         /// you named it this way so that the `right` method and `rightfactory` don't conflict in the intellisense prompts

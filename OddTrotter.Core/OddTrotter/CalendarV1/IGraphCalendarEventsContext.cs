@@ -5,11 +5,13 @@
     using System.Linq.Expressions;
     using System.Threading.Tasks;
 
+    using Fx.Either;
+
     public interface IGraphCalendarEventsContext
     {
         //// TODO i think you like having the "context" *and* "evaluator" types because the context is pretty specific to GET requests (is this true? what about a `$select` on a `POST` request?) //// TODO as i typed this i became less convinced, but we should try it anyway
 
-        Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Evaluate();
+        Task<QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Evaluate();
 
         IGraphCalendarEventsContext Filter(Expression<Func<GraphCalendarEvent, bool>> filter);
 

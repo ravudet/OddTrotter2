@@ -583,7 +583,7 @@
                         }
                         catch (JsonException jsonException) //// TODO always write out the exception name
                         {
-                            return Either
+                            return Either2
                                 .Left<GraphCalendarEvent>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     "An error occurred while translating the OData collection element into a Graph calendar event",
@@ -594,7 +594,7 @@
                         if (graphCalendarEvent == null)
                         {
                             // OData allows null element in collections, but we know that graph is not supposed to return null events
-                            return Either
+                            return Either2
                                 .Left<GraphCalendarEvent>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     "An error occurred while translating the OData collection element into a Graph calendar event",
@@ -658,7 +658,7 @@
 
                         if (invalidities.Count > 0)
                         { 
-                            return Either
+                            return Either2
                                 .Left<GraphCalendarEvent>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     $"An error occurred while translating the OData collection element into a Graph calendar event: {string.Join(", ", invalidities)}",
@@ -707,14 +707,14 @@
 
                         if (invalidities.Count > 0)
                         {
-                            return Either
+                            return Either2
                                 .Left<BodyStructure>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     $"An error occurred while translating the OData collection element into the '{nameof(GraphCalendarEventBuilder.Body)}' portion of a Graph calendar event: {string.Join(", ", invalidities)}",
                                     rawEventContents));
                         }
 
-                        return Either
+                        return Either2
                             .Right<GraphCalendarEventsContextTranslationException>()
                             .Left(new BodyStructure(
                                 this.Content!)); //// TODO see if you can avoid the bang
@@ -749,7 +749,7 @@
 
                         if (invalidities.Count > 0)
                         {
-                            return Either
+                            return Either2
                                 .Left<TimeStructure>()
                                 .Right(new GraphCalendarEventsContextTranslationException(
                                     $"An error occurred while translating the OData collection element into the '{nameof(GraphCalendarEventBuilder.Start)}' portion of a Graph calendar event: {string.Join(", ", invalidities)}",
@@ -757,7 +757,7 @@
                         }
 
                         //// TODO see if you can avoid the bangs in the rest of this methods
-                        return Either
+                        return Either2
                             .Right<GraphCalendarEventsContextTranslationException>()
                             .Left(new TimeStructure(
                                 this.DateTime!, 

@@ -3,6 +3,8 @@
     using System;
     using System.Linq.Expressions;
 
+    using Fx.Either;
+
     /// <summary>
     /// TODO better way to handle "either"s? TODO maybe `iquerycontext` should has an additional parameter which specifies what the elements in the evaluated result will be? something like `iquerycontext{tvalue, tresult, terror}` where `tvalue` isn't actually used directly, it's used by mixins and extension methods? TODO you can have an "alias" interface like `IQueryContext{tvalue, terror} : iquerycontext{tavlue, tvalue, terror}`
     /// </summary>
@@ -10,7 +12,7 @@
     /// <typeparam name="TTranslationError"></typeparam>
     /// <typeparam name="TQueryError"></typeparam>
     /// <typeparam name="TQueryContext"></typeparam>
-    public interface IWhereQueryContextMixin<TValue, TTranslationError, TQueryError, TQueryContext> : IQueryContext<Either<TValue, TTranslationError>, TQueryError> where TQueryContext : IQueryContext<Either<TValue, TTranslationError>, TQueryError>
+    public interface IWhereQueryContextMixin<TValue, TTranslationError, TQueryError, TQueryContext> : IQueryContext<IEither<TValue, TTranslationError>, TQueryError> where TQueryContext : IQueryContext<IEither<TValue, TTranslationError>, TQueryError>
     {
         /// <summary>
         /// 
