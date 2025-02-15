@@ -1,15 +1,12 @@
-﻿namespace Fx.Either
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.Either
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
     using System.Linq;
-    using System.Security.Cryptography;
     using System.Text;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using OddTrotter.Calendar;
-    using Stash;
 
     [TestClass]
     public sealed class EitherExtensionsUnitTests
@@ -1022,7 +1019,7 @@
             Assert.AreEqual(42, leftValue);
 
             var invalidOperationException = new InvalidOperationException();
-            either = Either.Left(("asf", Either.Left<int>().Right(invalidOperationException.AsException()))).Right<Exception>();
+            either = Either.Left(("asf", Either.Left<int>().Right((Exception)invalidOperationException))).Right<Exception>();
 
             result = either.SelectManyLeft(left => left.Item2);
 
@@ -1030,7 +1027,7 @@
             Assert.AreEqual(invalidOperationException, rightValue);
 
             var invalidCastException = new InvalidCastException();
-            either = Either.Left<(string, Either<int, Exception>)>().Right(invalidCastException.AsException());
+            either = Either.Left<(string, Either<int, Exception>)>().Right((Exception)invalidCastException);
 
             result = either.SelectManyLeft(left => left.Item2);
 
@@ -1086,7 +1083,7 @@
             Assert.AreEqual("asdf", leftValue);
 
             var invalidOperationException = new InvalidOperationException();
-            either = Either.Left(Either.Left<string>().Right(invalidOperationException.AsException())).Right<Exception>();
+            either = Either.Left(Either.Left<string>().Right((Exception)invalidOperationException)).Right<Exception>();
 
             result = either.SelectManyLeft();
 
@@ -1094,7 +1091,7 @@
             Assert.AreEqual(invalidOperationException, rightValue);
 
             var invalidCastException = new InvalidCastException();
-            either = Either.Left<Either<string, Exception>>().Right(invalidCastException.AsException());
+            either = Either.Left<Either<string, Exception>>().Right((Exception)invalidCastException);
 
             result = either.SelectManyLeft();
 
@@ -1201,7 +1198,7 @@
             Assert.AreEqual(42, rightValue.Item2);
 
             var invalidOperationException = new InvalidOperationException();
-            either = Either.Left<Exception>().Right(("asdf", Either.Left(invalidOperationException.AsException()).Right<int>()));
+            either = Either.Left<Exception>().Right(("asdf", Either.Left((Exception)invalidOperationException).Right<int>()));
 
             result = either.SelectMany(right => right.Item2, (right, @int) => (right.Item1, @int));
 
@@ -1209,7 +1206,7 @@
             Assert.AreEqual(invalidOperationException, leftTupleValue);
 
             var invalidCastException = new InvalidCastException();
-            either = Either.Left(invalidCastException.AsException()).Right<(string, Either<Exception, int>)>();
+            either = Either.Left((Exception)invalidCastException).Right<(string, Either<Exception, int>)>();
 
             result = either.SelectMany(right => right.Item2, (right, @int) => (right.Item1, @int));
 
@@ -1371,7 +1368,7 @@
             Assert.AreEqual(42, rightValue.Item2);
 
             var invalidOperationException = new InvalidOperationException();
-            either = Either.Left<Exception>().Right(("asdf", Either.Left(invalidOperationException.AsException()).Right<int>()));
+            either = Either.Left<Exception>().Right(("asdf", Either.Left((Exception)invalidOperationException).Right<int>()));
 
             result = either.SelectManyRight(right => right.Item2, (right, @int) => (right.Item1, @int));
 
@@ -1379,7 +1376,7 @@
             Assert.AreEqual(invalidOperationException, leftTupleValue);
 
             var invalidCastException = new InvalidCastException();
-            either = Either.Left(invalidCastException.AsException()).Right<(string, Either<Exception, int>)>();
+            either = Either.Left((Exception)invalidCastException).Right<(string, Either<Exception, int>)>();
 
             result = either.SelectManyRight(right => right.Item2, (right, @int) => (right.Item1, @int));
 
@@ -1478,7 +1475,7 @@
             Assert.AreEqual(42, rightValue);
 
             var invalidOperationException = new InvalidOperationException();
-            either = Either.Left<Exception>().Right(("asf", Either.Left(invalidOperationException.AsException()).Right<int>()));
+            either = Either.Left<Exception>().Right(("asf", Either.Left((Exception)invalidOperationException).Right<int>()));
 
             result = either.SelectManyRight(right => right.Item2);
 
@@ -1486,7 +1483,7 @@
             Assert.AreEqual(invalidOperationException, leftValue);
 
             var invalidCastException = new InvalidCastException();
-            either = Either.Left(invalidCastException.AsException()).Right<(string, Either<Exception, int>)>();
+            either = Either.Left((Exception)invalidCastException).Right<(string, Either<Exception, int>)>();
 
             result = either.SelectManyRight(right => right.Item2);
 
@@ -1542,7 +1539,7 @@
             Assert.AreEqual("asdf", rightValue);
 
             var invalidOperationException = new InvalidOperationException();
-            either = Either.Left<Exception>().Right(Either.Left(invalidOperationException.AsException()).Right<string>());
+            either = Either.Left<Exception>().Right(Either.Left((Exception)invalidOperationException).Right<string>());
 
             result = either.SelectManyRight();
 
@@ -1550,7 +1547,7 @@
             Assert.AreEqual(invalidOperationException, leftValue);
 
             var invalidCastException = new InvalidCastException();
-            either = Either.Left(invalidCastException.AsException()).Right<Either<Exception, string>>();
+            either = Either.Left((Exception)invalidCastException).Right<Either<Exception, string>>();
 
             result = either.SelectManyRight();
 
