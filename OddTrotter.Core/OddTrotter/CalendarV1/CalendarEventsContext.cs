@@ -324,39 +324,39 @@ namespace OddTrotter.Calendar
                                                     )
                                                 >()
                                             .Right(translationError))
-                                    .Right<Nothing>())
+                                    .Right<Nothing>()))
                 .SelectAsync(
                     seriesPlusInstanceOrTranslationError =>
                         seriesPlusInstanceOrTranslationError.SelectLeft(
                             seriesPlusInstance =>
                                 seriesPlusInstance
                                     .Instance
-                                    .Visit(
+                                    .Apply(
                                         instanceOrTranslationError =>
                                             instanceOrTranslationError
-                                                .Visit( //// TODO isn't this just a select?
+                                                .Apply( //// TODO isn't this just a select?
                                                     instance => 
-                                                        Either2
-                                                            .Right<CalendarEventsContextTranslationException>()
+                                                        Either
                                                             .Left(
                                                                 new CalendarEvent(
                                                                     seriesPlusInstance.SeriesMaster.Id,
                                                                     seriesPlusInstance.SeriesMaster.Subject,
                                                                     seriesPlusInstance.SeriesMaster.Body,
                                                                     instance.Start,
-                                                                    seriesPlusInstance.SeriesMaster.IsCancelled)),
+                                                                    seriesPlusInstance.SeriesMaster.IsCancelled))
+                                                            .Right<CalendarEventsContextTranslationException>(),
                                                     translationError =>
-                                                        Either2
+                                                        Either
                                                             .Left<CalendarEvent>()
                                                             .Right(
                                                                 //// TODO should the translation error be a discriminated union? that way callers can differentiate? or does that leak too many details?
                                                                 new CalendarEventsContextTranslationException($"A future instance was found for the series master with ID '{seriesPlusInstance.SeriesMaster.Id}' but the instance could not be translated correctly. The series master was '{JsonSerializer.Serialize(seriesPlusInstance.SeriesMaster)}'. TODO is the underlying error giving us the time range?", translationError))), //// TODO assuming because it got deserialized it can be serialized again...
                                         pagingError => 
-                                            Either2
+                                            Either
                                                 .Left<CalendarEvent>()
                                                 .Right(
                                                     new CalendarEventsContextTranslationException($"A future instance was not found for the series master with ID '{seriesPlusInstance.SeriesMaster.Id}' because an error occurred while retrieving the instances for that master. It is possible that a future instanace exists.", pagingError))))
-                        .PropogateRight())
+                        .SelectManyLeft())
                 .ConfigureAwait(false);
             return mastersWithInstances;
         }
