@@ -293,7 +293,7 @@
         /// <param name="nextPage"></param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="events"/> or <paramref name="nextPage"/> is <see langword="null"/></exception>
         public GraphCalendarEventsResponse(
-            IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> events,
+            IReadOnlyList<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> events,
             OdataNextLink nextPage)
         {
             if (events == null)
@@ -310,7 +310,7 @@
             this.NextPage = nextPage;
         }
 
-        public IReadOnlyList<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> Events { get; }
+        public IReadOnlyList<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>> Events { get; }
 
         public OdataNextLink NextPage { get; } //// TODO this adds a direct dependency on odata; is that ok?
     }
@@ -554,7 +554,7 @@
                     return new GraphCalendarEventsResponse(graphCalendarEvents, node.NextLink);
                 }
 
-                private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, Nothing>
+                private sealed class OdataCollectionValueVisitor : OdataCollectionValue.Visitor<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, Nothing>
                 {
                     /// <summary>
                     /// 
@@ -569,7 +569,7 @@
                     public static OdataCollectionValueVisitor Instance { get; } = new OdataCollectionValueVisitor();
 
                     /// <inheritdoc/>
-                    internal sealed override Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Dispatch(OdataCollectionValue.Json node, Nothing context)
+                    internal sealed override IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Dispatch(OdataCollectionValue.Json node, Nothing context)
                     {
                         if (node == null)
                         {
@@ -627,7 +627,7 @@
                     /// </summary>
                     /// <param name="rawEventContents"></param>
                     /// <returns></returns>
-                    public Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
+                    public IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
                     {
                         var invalidities = new List<string>();
 
@@ -696,7 +696,7 @@
                     /// 
                     /// </summary>
                     /// <returns></returns>
-                    public Either<BodyStructure, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
+                    public IEither<BodyStructure, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
                     {
                         var invalidities = new List<string>();
 
@@ -733,7 +733,7 @@
                     /// 
                     /// </summary>
                     /// <returns></returns>
-                    public Either<TimeStructure, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
+                    public IEither<TimeStructure, GraphCalendarEventsContextTranslationException> Build(string rawEventContents)
                     {
                         var invalidities = new List<string>();
 
@@ -878,7 +878,7 @@
 
     public static class GraphCalendarEventsContextExtensions
     {
-        private sealed class PageQueryResult : QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Element
+        private sealed class PageQueryResult : QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Element
         {
             private readonly GraphCalendarEventsResponse graphCalendarEventsResponse;
             private readonly int index;
@@ -916,7 +916,7 @@
             }
 
             /// <inheritdoc/>
-            public override QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> Next()
+            public override QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException> Next()
             {
                 if (this.index + 1 < this.graphCalendarEventsResponse.Events.Count)
                 {
@@ -935,7 +935,7 @@
         /// <param name="graphQuery">TODO this allows <paramref name="graphQuery"/> to be a paging query; do you want to protect against that for some reason?</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="graphQuery"/> is <see langword="null"</exception>
-        public static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
+        public static async Task<QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
             this IGraphCalendarEventsEvaluator graphCalendarEventsContext,
             GraphQuery graphQuery)
         {
@@ -992,7 +992,7 @@
         /// <param name="graphQuery">TODO this allows <paramref name="graphQuery"/> to be a paging query; do you want to protect against that for some reason?</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="graphCalendarEventsContext"/> or <paramref name="graphQuery"/> or <paramref name="odataNextLinkVisitor"/> is <see langword="null"</exception>
-        private static async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
+        private static async Task<QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Page(
             this IGraphCalendarEventsEvaluator graphCalendarEventsContext,
             GraphQuery graphQuery,
             OdataNextLinkVisitor odataNextLinkVisitor)
@@ -1019,7 +1019,7 @@
             }
             catch (Exception exception) when (exception is HttpRequestException or GraphErrorDeserializationException or GraphSuccessDeserializationException or UnauthorizedAccessException or GraphProcessingException)
             {
-                return new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Partial(new GraphPagingException("TODO", exception)); //// TODO consolidating into one exception type makes it pretty difficult for a caller to be able to write error handling code...
+                return new QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Partial(new GraphPagingException("TODO", exception)); //// TODO consolidating into one exception type makes it pretty difficult for a caller to be able to write error handling code...
             }
 
             if (response.Events.Count == 0)
@@ -1031,7 +1031,7 @@
             return new PageQueryResult(response, 0, odataNextLinkVisitor);
         }
 
-        private sealed class OdataNextLinkVisitor : OdataNextLink.Visitor<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>, Nothing>
+        private sealed class OdataNextLinkVisitor : OdataNextLink.Visitor<QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>, Nothing>
         {
             private readonly IGraphCalendarEventsEvaluator graphCalendarEventsContext;
             private readonly Func<OdataNextLink.Absolute, IGraphCalendarEventsEvaluator> contextGenerator;
@@ -1061,18 +1061,18 @@
             }
 
             /// <inheritdoc/>
-            protected internal override Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Null node, Nothing context)
+            protected internal override Task<QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Null node, Nothing context)
             {
                 if (node == null)
                 {
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                return Task.FromResult(new QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final().AsBase());
+                return Task.FromResult(new QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>.Final().AsBase());
             }
 
             /// <inheritdoc/>
-            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Relative node, Nothing context)
+            protected internal override async Task<QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Relative node, Nothing context)
             {
                 if (node == null)
                 {
@@ -1089,7 +1089,7 @@
             }
 
             /// <inheritdoc/>
-            protected internal override async Task<QueryResult<Either<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Absolute node, Nothing context)
+            protected internal override async Task<QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> AcceptAsync(OdataNextLink.Absolute node, Nothing context)
             {
                 if (node == null)
                 {
