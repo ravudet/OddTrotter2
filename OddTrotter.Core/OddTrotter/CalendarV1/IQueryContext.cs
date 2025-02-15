@@ -799,11 +799,11 @@ namespace OddTrotter.Calendar
         {
             if (firstOrDefaultResult.TryIsDefault(elementSelector, errorSelector, defaultSelector, out var result))
             {
-                return Either2.Right<Nothing>().Left(result);
+                return Either.Left(result).Right<Nothing>();
             }
             else
             {
-                return Either2.Left<TResult>().Right(new Nothing());
+                return Either.Left<TResult>().Right(new Nothing());
             }
         }
 
@@ -840,9 +840,9 @@ namespace OddTrotter.Calendar
         public static IEither<TElement, IEither<TError, TDefault>> ToEither<TElement, TError, TDefault>(this FirstOrDefaultResult<TElement, TError, TDefault> firstOrDefaultResult)
         {
             return firstOrDefaultResult.Visit(
-                element => Either2.Right<IEither<TError, TDefault>>().Left(element),
-                error => Either2.Left<TElement>().Right(Either2.Right<TDefault>().Left(error)),
-                @default => Either2.Left<TElement>().Right(Either2.Left<TError>().Right(@default)));
+                element => Either.Left(element).Right<Fx.Either.Either<TError, TDefault>>(),
+                error => Either.Left<TElement>().Right(Either.Left(error).Right<TDefault>()),
+                @default => Either.Left<TElement>().Right(Either.Left<TError>().Right(@default)));
         }
 
         /// <summary>
