@@ -350,6 +350,7 @@
 
 
             //// TODO TOPIC should the either extensions be lazy?
+            //// TODO TOPIC should i add the "ambiguous" select methods for left and right in order to light up the comprehension syntax?
 
             // TODO write up code quality list and create blog posts
             // code quality:

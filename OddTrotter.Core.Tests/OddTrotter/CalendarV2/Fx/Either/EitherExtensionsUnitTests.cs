@@ -802,7 +802,7 @@
         }
 
         [TestMethod]
-        public void SelectManyPinnedRightLinqQuerySyntax()
+        public void SelectManyPinnedRightLinqQueryComprehension()
         {
             var either = Either.Left(("safd", Either.Left(42).Right<Exception>())).Right<Exception>();
 
@@ -1258,7 +1258,7 @@
         }
 
         [TestMethod]
-        public void SelectManyPinnedLeftLinqQuerySyntax()
+        public void SelectManyPinnedLeftLinqQueryComprehension()
         {
             var either = Either.Left<Exception>().Right(("safd", Either.Left<Exception>().Right(42)));
 
