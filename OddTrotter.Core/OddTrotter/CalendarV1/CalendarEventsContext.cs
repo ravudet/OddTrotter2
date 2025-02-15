@@ -645,7 +645,7 @@ namespace OddTrotter.Calendar
             }
             catch (FormatException formatException)
             {
-                return Either2
+                return Either
                     .Left<CalendarEvent>()
                     .Right(
                         new CalendarEventsContextTranslationException(
@@ -653,15 +653,15 @@ namespace OddTrotter.Calendar
                             formatException));
             }
 
-            return Either2
-                .Right<CalendarEventsContextTranslationException>()
+            return Either
                 .Left(
                     new CalendarEvent(
                         graphCalendarEvent.Id,
                         graphCalendarEvent.Subject,
                         graphCalendarEvent.Body.Content,
                         start,
-                        graphCalendarEvent.IsCancelled));
+                        graphCalendarEvent.IsCancelled))
+                .Right<CalendarEventsContextTranslationException>();
         }
 
         /// <summary>
