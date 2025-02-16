@@ -11,8 +11,8 @@
     //// TODO my current conclusion:
     //// have try (the current pattern) and trycovariant (a covariant "overload")
     //// have an extension that uses the try pattern with trycovariant
-    //// have an extension that converts trycovariant to try
-    //// use try everywhere that covariance is irrelevant
+    //// have an extension that adapts trycovariant to try
+    //// use try everywhere that covariance is irrelevant; callers interested in consistently using trycovariant are welcome to call the adapter (this means, we should not create convenience overloads everywhere)
 
     public delegate bool TryOld<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 
@@ -48,8 +48,31 @@
             };
         }
 
+        public class Animal
+        {
+        }
+
+        public class Dog : Animal
+        {
+        }
+
+        public class Husky : Dog
+        {
+        }
+
+        public class Cat : Animal
+        {
+        }
+
+        public static Try<Animal, Husky> GetTry()
+        {
+        }
+
         public static void DoWork(Try<string, int> @try)
         {
+            var animals = new Animal[0];
+
+            animals.TrySelect<Animal, Dog>(GetTry());
         }
 
         public static Try<TOutput> ToTry<TInput, TOutput>(this Try<TInput, TOutput> @try, TInput input)
