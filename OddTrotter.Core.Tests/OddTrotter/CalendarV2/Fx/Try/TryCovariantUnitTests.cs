@@ -31,6 +31,10 @@ namespace Fx.Try
         {
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <param name="data"></param>
         private static void Foo(IEnumerable<TryCovariant<Rectangle, Animal>> data)
         {
         }

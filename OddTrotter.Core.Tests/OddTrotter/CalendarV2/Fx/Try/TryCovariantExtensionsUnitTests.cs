@@ -1,9 +1,10 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Fx.Try
 {
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System;
     using System.Diagnostics.CodeAnalysis;
+
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public sealed class TryCovariantExtensionsUnitTests
@@ -39,6 +40,12 @@ namespace Fx.Try
             return MakeString;
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="success"></param>
+        /// <returns></returns>
         [return: MaybeNull]
         private static string MakeString(int input, out bool success)
         {

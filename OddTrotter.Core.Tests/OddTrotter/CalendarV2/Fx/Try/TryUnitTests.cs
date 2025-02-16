@@ -12,6 +12,10 @@ namespace Fx.Try
             Foo(int.TryParse);
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <param name="try"></param>
         private static void Foo(Try<string, int> @try)
         {
         }
