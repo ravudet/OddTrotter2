@@ -7,10 +7,58 @@
 
     using global::Fx.Either;
 
-    public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
+    public delegate bool TryOld<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
+
+    [return: MaybeNull]
+    public delegate TOutput Try<in TInput, out TOutput>(TInput input, out bool tried);
 
     //// TODO maybe you also want this for stuff like Either<Left, Nothing>.TryGet?
-    public delegate bool Try<TOutput>(out TOutput output);
+    public delegate bool Try<TOutput>([MaybeNullWhen(false)] out TOutput output);
+
+    public static class MoreTryPlayground
+    {
+        [return: MaybeNull]
+        public static string Foo()
+        {
+            return null;
+        }
+
+        public static void Convert()
+        {
+            DoWork(int.TryParse);
+        }
+
+        public static void DoWork(TryOld<string, int> @try)
+        {
+        }
+
+        public static Try<TInput, TOutput> ToTry<TInput, TOutput>(this TryOld<TInput, TOutput> @try)
+        {
+            return [return: MaybeNull](TInput input, out bool tried) =>
+            {
+                tried = @try(input, out var output);
+                return output;
+            };
+        }
+
+        public static void DoWork(Try<string, int> @try)
+        {
+        }
+
+        public static Try<TOutput> ToTry<TInput, TOutput>(this Try<TInput, TOutput> @try, TInput input)
+        {
+            return ([MaybeNullWhen(false)] out TOutput output) => @try(input, out output);
+        }
+
+        public static IEnumerable<TResult> TrySelect<TSource, TResult>(this IEnumerable<TSource> source, Try<TSource, TResult> @try)
+        {
+        }
+
+        public static IEnumerable<TResult> TrySelect<TResult>(this IEnumerable<IEither<TResult, Nothing>> source)
+        {
+            return TrySelect(source, (IEither<TResult, Nothing> element, [MaybeNullWhen(false)] out TResult result) => element.TryGet(out result));
+        }
+    }
 
     //// TODO maybe this is called something that's not try? or maybe the above is called something that's not try; one of them is definitely try, and the other is probably more verbose
     /*public delegate bool Try4<TOutput>([MaybeNullWhen(false)] out TOutput output);
