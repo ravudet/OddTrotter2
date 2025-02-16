@@ -380,7 +380,6 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO move everything to the new try
             //// TODO then do enumerableextensions, nd move everything to use it
             //// TODO then do querycontext (and move everything to use it); the query context stuff will need some diligence and effort around adding the third type parameter that allows mixins to work correctly; do query contexts next probably and just know that you're going to need to put the effort in
             //// TODO do a pass cleaning up the existing code using the code quality above and either addressing todos or marking them TODO FUTURE and TODO TOPIC
