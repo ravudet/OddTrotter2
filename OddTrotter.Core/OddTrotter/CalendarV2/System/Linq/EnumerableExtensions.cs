@@ -3,7 +3,7 @@
     using global::System;
     using global::System.Collections.Generic;
 
-    using CalendarV2.Fx.Try;
+    using global::Fx.Try;
     using global::Fx.Either;
 
     public static class EnumerableExtensions
