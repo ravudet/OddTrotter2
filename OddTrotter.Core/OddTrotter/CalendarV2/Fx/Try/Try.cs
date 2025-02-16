@@ -8,6 +8,12 @@
     using global::Fx.Either;
     using OddTrotter.TodoList;
 
+    //// TODO my current conclusion:
+    //// have try (the current pattern) and trycovariant (a covariant "overload")
+    //// have an extension that uses the try pattern with trycovariant
+    //// have an extension that converts trycovariant to try
+    //// use try everywhere that covariance is irrelevant
+
     public delegate bool TryOld<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 
     [return: MaybeNull]
