@@ -2,6 +2,7 @@
 namespace OddTrotter.Calendar
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq.Expressions;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -271,7 +272,8 @@ namespace OddTrotter.Calendar
                             },
                             translationError => Task.FromResult(translationError))) //// TODO go through all of your lambda code and make sure they have meaningful names
                 .TrySelectAsync(
-                    seriesPlusInstanceOrTranslationError =>
+                    (IEither<(CalendarEvent SeriesMaster, QueryResultExtensions.FirstOrDefaultResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException, Nothing> FirstInstance), CalendarEventsContextTranslationException> seriesPlusInstanceOrTranslationError, [MaybeNullWhen(false)] out Either<(CalendarEvent SeriesMaster, Either<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Instance), CalendarEventsContextTranslationException>
+                 output) =>
                         seriesPlusInstanceOrTranslationError
                             .Apply(
                                 seriesPlusInstance =>
@@ -324,7 +326,8 @@ namespace OddTrotter.Calendar
                                                     )
                                                 >()
                                             .Right(translationError))
-                                    .Right<Nothing>()))
+                                    .Right<Nothing>())
+                            .TryGet(out output))
                 .SelectAsync(
                     seriesPlusInstanceOrTranslationError =>
                         seriesPlusInstanceOrTranslationError.SelectLeft(

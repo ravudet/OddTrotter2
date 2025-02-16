@@ -12,6 +12,7 @@ namespace OddTrotter.Calendar
     using static OddTrotter.Calendar.QueryResultExtensions;
 
     using Fx.Either;
+    using Fx.Try;
 
     public delegate bool TryOld<TIn, TOut>(TIn input, out TOut output);
 
@@ -22,15 +23,15 @@ namespace OddTrotter.Calendar
         public static void DoWork()
         {
             var data = new[] { "Asfd" };
-            var ints = data.TrySelect((TryOld<string, int>)int.TryParse);
-            var ints2 = data.TrySelect<string, int>(int.TryParse);
-            var ints3 = data.TrySelect(TryParse);
+            ////var ints = data.TrySelect((TryOld<string, int>)int.TryParse);
+            ////var ints2 = data.TrySelect<string, int>(int.TryParse);
+            ////var ints3 = data.TrySelect(TryParse);
         }
 
-        public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> source)
+        /*public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> source)
         {
             return source.TrySelect(element => element.ToEither());
-        }
+        }*/
 
         public static IEither<T, Nothing> ToEither<T>(this T? value)
         {
@@ -49,10 +50,10 @@ namespace OddTrotter.Calendar
             }
         }
 
-        public static Try<TIn, TOut> ToTry<TIn, TOut>(this TryOld<TIn, TOut> @try)
+        /*public static Try<TIn, TOut> ToTry<TIn, TOut>(this TryOld<TIn, TOut> @try)
         {
             return input => @try(input, out var output) ? Either.Left(output).Right<Nothing>() : Either.Left<TOut>().Right(new Nothing());
-        }
+        }*/
 
         /// <summary>
         /// 
@@ -72,12 +73,12 @@ namespace OddTrotter.Calendar
             return either.TryGet(out value);
         }
 
-        public static IEnumerable<TResult> TrySelect<TElement, TResult>(this IEnumerable<TElement> source, TryOld<TElement, TResult> @try)
+        /*public static IEnumerable<TResult> TrySelect<TElement, TResult>(this IEnumerable<TElement> source, TryOld<TElement, TResult> @try)
         {
             return source.TrySelect(@try.ToTry());
-        }
+        }*/
 
-        public static IEnumerable<TResult> TrySelect<TElement, TResult>(this IEnumerable<TElement> source, Try<TElement, TResult> @try)
+        /*public static IEnumerable<TResult> TrySelect<TElement, TResult>(this IEnumerable<TElement> source, Try<TElement, TResult> @try)
         {
             foreach (var element in source)
             {
@@ -87,7 +88,7 @@ namespace OddTrotter.Calendar
                     yield return left;
                 }
             }
-        }
+        }*/
 
         public static IEither<TLeft, Nothing> TryLeft<TLeft, TRight>(this IEither<TLeft, TRight> either)
         {
@@ -380,6 +381,13 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultAsyncExtensions
     {
+        public static async Task<QueryResult<TResult, TError>> TrySelectAsync<TValue, TError, TResult>(this Task<QueryResult<TValue, TError>> queryResult, Fx.Try.Try<TValue, TResult> @try)
+        {
+            Try<TValue, TResult> eitherTry = (TValue input) => @try(input, out var output) ? Either.Left(output).Right<Nothing>() : Either.Left<TResult>().Right(new Nothing());
+
+            return await queryResult.TrySelectAsync(eitherTry).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// TODO this is a net-new concept, probably you should actually document it; maybe start documenting everything?
         /// </summary>
