@@ -271,16 +271,15 @@ namespace OddTrotter.Calendar
                                 return (SeriesMaster: seriesMaster, FirstInstance: instances.FirstOrDefault());
                             },
                             translationError => Task.FromResult(translationError))) //// TODO go through all of your lambda code and make sure they have meaningful names
-                .TrySelectAsync(
-                    (IEither<(CalendarEvent SeriesMaster, QueryResultExtensions.FirstOrDefaultResult<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException, Nothing> FirstInstance), CalendarEventsContextTranslationException> seriesPlusInstanceOrTranslationError, [MaybeNullWhen(false)] out Either<(CalendarEvent SeriesMaster, Either<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Instance), CalendarEventsContextTranslationException>
-                 output) =>
+                .SelectAsync(
+                    seriesPlusInstanceOrTranslationError =>
                         seriesPlusInstanceOrTranslationError
                             .Apply(
                                 seriesPlusInstance =>
                                     seriesPlusInstance
                                         .FirstInstance
                                         .TryNotDefault( //// TODO i *think* both delegates here are just doing identity operations; do you want to have a `trynotdefault` convenience overload that returns bool with and out parameter of the either of the other two?
-                                            instance => 
+                                            instance =>
                                                 Either
                                                     .Left(
                                                         (
@@ -326,8 +325,10 @@ namespace OddTrotter.Calendar
                                                     )
                                                 >()
                                             .Right(translationError))
-                                    .Right<Nothing>())
-                            .TryGet(out output))
+                                    .Right<Nothing>()))
+                .TrySelectAsync(
+                    (IEither<Either<(CalendarEvent SeriesMaster, Either<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Instance), CalendarEventsContextTranslationException>, Nothing> seriesPlusInstanceOrTranslationError, [MaybeNullWhen(false)] out Either<(CalendarEvent SeriesMaster, Either<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Instance), CalendarEventsContextTranslationException> output) =>
+                        seriesPlusInstanceOrTranslationError.TryGet(out output))
                 .SelectAsync(
                     seriesPlusInstanceOrTranslationError =>
                         seriesPlusInstanceOrTranslationError.SelectLeft(
