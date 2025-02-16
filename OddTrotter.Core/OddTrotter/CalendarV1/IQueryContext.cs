@@ -280,6 +280,12 @@ namespace OddTrotter.Calendar
 
     public static class QueryResultAsyncExtensions
     {
+        public static async Task<QueryResult<TValue, TError>> TrySelectAsync<TValue, TError>(this Task<QueryResult<IEither<TValue, Nothing>, TError>> queryResult)
+        {
+            //// TODO is there a way to avoid all of this type specification through some sort of type inference? what is missing that makes type inference not work?
+            return await queryResult.TrySelectAsync((IEither<TValue, Nothing> either, [MaybeNullWhen(false)] out TValue result) => either.TryGet(out result)).ConfigureAwait(false);
+        }
+
         public static async Task<QueryResult<TResult, TError>> TrySelectAsync<TValue, TError, TResult>(this Task<QueryResult<TValue, TError>> queryResult, Fx.Try.Try<TValue, TResult> @try)
         {
             if (queryResult == null)

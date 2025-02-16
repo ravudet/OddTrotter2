@@ -326,9 +326,7 @@ namespace OddTrotter.Calendar
                                                 >()
                                             .Right(translationError))
                                     .Right<Nothing>()))
-                .TrySelectAsync(
-                    (IEither<Either<(CalendarEvent SeriesMaster, Either<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Instance), CalendarEventsContextTranslationException>, Nothing> seriesPlusInstanceOrTranslationError, [MaybeNullWhen(false)] out Either<(CalendarEvent SeriesMaster, Either<IEither<CalendarEvent, CalendarEventsContextTranslationException>, CalendarEventsContextPagingException> Instance), CalendarEventsContextTranslationException> output) =>
-                        seriesPlusInstanceOrTranslationError.TryGet(out output))
+                .TrySelectAsync()
                 .SelectAsync(
                     seriesPlusInstanceOrTranslationError =>
                         seriesPlusInstanceOrTranslationError.SelectLeft(
