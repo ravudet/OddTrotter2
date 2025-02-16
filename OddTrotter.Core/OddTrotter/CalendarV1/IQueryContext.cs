@@ -306,23 +306,6 @@ namespace OddTrotter.Calendar
     {
         public static async Task<QueryResult<TResult, TError>> TrySelectAsync<TValue, TError, TResult>(this Task<QueryResult<TValue, TError>> queryResult, Fx.Try.Try<TValue, TResult> @try)
         {
-            Try<TValue, TResult> eitherTry = (TValue input) => @try(input, out var output) ? Either.Left(output).Right<Nothing>() : Either.Left<TResult>().Right(new Nothing());
-
-            return await queryResult.TrySelectAsync(eitherTry).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// TODO this is a net-new concept, probably you should actually document it; maybe start documenting everything?
-        /// </summary>
-        /// <typeparam name="TValue"></typeparam>
-        /// <typeparam name="TError"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="queryResult"></param>
-        /// <param name="try"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="try"/> is <see langword="null"/></exception>
-        public static async Task<QueryResult<TResult, TError>> TrySelectAsync<TValue, TError, TResult>(this Task<QueryResult<TValue, TError>> queryResult, Try<TValue, TResult> @try)
-        {
             if (queryResult == null)
             {
                 throw new ArgumentNullException(nameof(queryResult));
@@ -339,7 +322,7 @@ namespace OddTrotter.Calendar
         private sealed class TrySelectResult<TValue, TError, TResult> : QueryResult<TResult, TError>.Element
         {
             private readonly QueryResult<TValue, TError>.Element queryResult;
-            private readonly Try<TValue, TResult> @try;
+            private readonly Fx.Try.Try<TValue, TResult> @try;
 
             /// <summary>
             /// 
@@ -348,7 +331,7 @@ namespace OddTrotter.Calendar
             /// <param name="queryResult"></param>
             /// <param name="try"></param>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="queryResult"/> or <paramref name="try"/> is <see langword="null"/></exception>
-            public TrySelectResult(TResult value, QueryResult<TValue, TError>.Element queryResult, Try<TValue, TResult> @try)
+            public TrySelectResult(TResult value, QueryResult<TValue, TError>.Element queryResult, Fx.Try.Try<TValue, TResult> @try)
                 : base(value)
             {
                 ArgumentNullException.ThrowIfNull(queryResult, nameof(queryResult));
@@ -366,7 +349,7 @@ namespace OddTrotter.Calendar
             }
         }
 
-        private sealed class TrySelectVisitor<TValue, TError, TResult> : QueryResult<TValue, TError>.AsyncVisitor<QueryResult<TResult, TError>, Try<TValue, TResult>>
+        private sealed class TrySelectVisitor<TValue, TError, TResult> : QueryResult<TValue, TError>.AsyncVisitor<QueryResult<TResult, TError>, Fx.Try.Try<TValue, TResult>>
         {
             /// <summary>
             /// 
@@ -382,7 +365,7 @@ namespace OddTrotter.Calendar
 
             /// <inheritdoc/>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Final node, Try<TValue, TResult> context)
+            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Final node, Fx.Try.Try<TValue, TResult> context)
             {
                 if (node == null)
                 {
@@ -400,7 +383,7 @@ namespace OddTrotter.Calendar
             /// <inheritdoc/>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
             /// <exception cref="Exception">Throws any of the exceptions that <paramref name="context"/> can throw</exception> //// TODO is this good?
-            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Element node, Try<TValue, TResult> context)
+            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Element node, Fx.Try.Try<TValue, TResult> context)
             {
                 if (node == null)
                 {
@@ -412,7 +395,7 @@ namespace OddTrotter.Calendar
                     throw new ArgumentNullException(nameof(context));
                 }
 
-                if (context(node.Value).Try(out var value)) //// TODO you have an unstated convention that interfaces and delegates and methods you define won't return null unless explicitly documented or marked up with `?`; do you want to keep doing that, or state explicitly stating that null can't be returned?
+                if (context(node.Value, out var value)) //// TODO you have an unstated convention that interfaces and delegates and methods you define won't return null unless explicitly documented or marked up with `?`; do you want to keep doing that, or state explicitly stating that null can't be returned?
                 {
                     return new TrySelectResult<TValue, TError, TResult>(value, node, context);
                 }
@@ -424,7 +407,7 @@ namespace OddTrotter.Calendar
 
             /// <inheritdoc/>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> is <see langword="null"/></exception>
-            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Partial node, Try<TValue, TResult> context)
+            public override async Task<QueryResult<TResult, TError>> DispatchAsync(QueryResult<TValue, TError>.Partial node, Fx.Try.Try<TValue, TResult> context)
             {
                 if (node == null)
                 {
