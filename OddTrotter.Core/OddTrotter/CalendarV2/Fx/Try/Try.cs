@@ -6,6 +6,7 @@
     using global::System.Linq;
 
     using global::Fx.Either;
+    using OddTrotter.TodoList;
 
     public delegate bool TryOld<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 
@@ -52,11 +53,31 @@
 
         public static IEnumerable<TResult> TrySelect<TSource, TResult>(this IEnumerable<TSource> source, Try<TSource, TResult> @try)
         {
+            /*foreach (var element in source)
+            {
+                if (@try.Try(element, out var result))
+                {
+                    yield return result;
+                }
+            }*/
+
+            return source.TrySelect(@try.ToTry());
         }
 
-        public static IEnumerable<TResult> TrySelect<TResult>(this IEnumerable<IEither<TResult, Nothing>> source)
+        public static TryOld<TInput, TOutput> ToTry<TInput, TOutput>(this Try<TInput, TOutput> @try)
         {
-            return TrySelect(source, (IEither<TResult, Nothing> element, [MaybeNullWhen(false)] out TResult result) => element.TryGet(out result));
+            return @try.Try;
+        }
+
+        public static IEnumerable<TResult> TrySelect<TSource, TResult>(this IEnumerable<TSource> source, TryOld<TSource, TResult> @try)
+        {
+            return source.TrySelect(@try.ToTry());
+        }
+
+        public static bool Try<TInput, TOutput>(this Try<TInput, TOutput> @try, TInput input, [MaybeNullWhen(false)] out TOutput output)
+        {
+            output = @try(input, out var tried);
+            return tried;
         }
     }
 
