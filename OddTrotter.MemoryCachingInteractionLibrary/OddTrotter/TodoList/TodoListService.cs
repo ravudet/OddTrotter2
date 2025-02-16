@@ -380,7 +380,6 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO code review trycovariant
             //// TODO code review trycovariantextensions
             //// TODO move everything to the new try
             //// TODO then do enumerableextensions, nd move everything to use it
