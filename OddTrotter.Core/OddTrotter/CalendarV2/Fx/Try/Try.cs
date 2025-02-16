@@ -1,4 +1,4 @@
-﻿namespace CalendarV2.Fx.Try
+﻿namespace Fx.Try
 {
     using global::System;
     using global::System.Collections.Generic;
@@ -14,101 +14,7 @@
     //// have an extension that adapts trycovariant to try
     //// use try everywhere that covariance is irrelevant; callers interested in consistently using trycovariant are welcome to call the adapter (this means, we should not create convenience overloads everywhere)
 
-    public delegate bool TryOld<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
-
-    [return: MaybeNull]
-    public delegate TOutput Try<in TInput, out TOutput>(TInput input, out bool tried);
-
-    //// TODO maybe you also want this for stuff like Either<Left, Nothing>.TryGet?
-    public delegate bool Try<TOutput>([MaybeNullWhen(false)] out TOutput output);
-
-    public static class MoreTryPlayground
-    {
-        [return: MaybeNull]
-        public static string Foo()
-        {
-            return null;
-        }
-
-        public static void Convert()
-        {
-            DoWork(int.TryParse);
-        }
-
-        public static void DoWork(TryOld<string, int> @try)
-        {
-        }
-
-        public static Try<TInput, TOutput> ToTry<TInput, TOutput>(this TryOld<TInput, TOutput> @try)
-        {
-            return [return: MaybeNull](TInput input, out bool tried) =>
-            {
-                tried = @try(input, out var output);
-                return output;
-            };
-        }
-
-        public class Animal
-        {
-        }
-
-        public class Dog : Animal
-        {
-        }
-
-        public class Husky : Dog
-        {
-        }
-
-        public class Cat : Animal
-        {
-        }
-
-        public static Try<Animal, Husky> GetTry()
-        {
-        }
-
-        public static void DoWork(Try<string, int> @try)
-        {
-            var animals = new Animal[0];
-
-            animals.TrySelect<Animal, Dog>(GetTry());
-        }
-
-        public static Try<TOutput> ToTry<TInput, TOutput>(this Try<TInput, TOutput> @try, TInput input)
-        {
-            return ([MaybeNullWhen(false)] out TOutput output) => @try(input, out output);
-        }
-
-        public static IEnumerable<TResult> TrySelect<TSource, TResult>(this IEnumerable<TSource> source, Try<TSource, TResult> @try)
-        {
-            /*foreach (var element in source)
-            {
-                if (@try.Try(element, out var result))
-                {
-                    yield return result;
-                }
-            }*/
-
-            return source.TrySelect(@try.ToTry());
-        }
-
-        public static TryOld<TInput, TOutput> ToTry<TInput, TOutput>(this Try<TInput, TOutput> @try)
-        {
-            return @try.Try;
-        }
-
-        public static IEnumerable<TResult> TrySelect<TSource, TResult>(this IEnumerable<TSource> source, TryOld<TSource, TResult> @try)
-        {
-            return source.TrySelect(@try.ToTry());
-        }
-
-        public static bool Try<TInput, TOutput>(this Try<TInput, TOutput> @try, TInput input, [MaybeNullWhen(false)] out TOutput output)
-        {
-            output = @try(input, out var tried);
-            return tried;
-        }
-    }
+    public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
 
     //// TODO maybe this is called something that's not try? or maybe the above is called something that's not try; one of them is definitely try, and the other is probably more verbose
     /*public delegate bool Try4<TOutput>([MaybeNullWhen(false)] out TOutput output);
