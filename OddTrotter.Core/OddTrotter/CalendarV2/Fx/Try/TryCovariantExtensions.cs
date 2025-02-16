@@ -16,7 +16,10 @@ namespace Fx.Try
         /// <param name="output"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="try"/> is <see langword="null"/></exception>
-        public static bool Try<TInput, TOutput>(this TryCovariant<TInput, TOutput> @try, TInput input, [MaybeNullWhen(false)] out TOutput output)
+        public static bool Try<TInput, TOutput>(
+            this TryCovariant<TInput, TOutput> @try, 
+            TInput input,
+            [MaybeNullWhen(false)] out TOutput output)
         {
             ArgumentNullException.ThrowIfNull(@try);
 
