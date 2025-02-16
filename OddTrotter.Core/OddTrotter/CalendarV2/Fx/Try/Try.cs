@@ -15,66 +15,8 @@
     //// use try everywhere that covariance is irrelevant; callers interested in consistently using trycovariant are welcome to call the adapter (this means, we should not create convenience overloads everywhere)
 
     public delegate bool Try<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput output);
-
-    //// TODO maybe this is called something that's not try? or maybe the above is called something that's not try; one of them is definitely try, and the other is probably more verbose
-    /*public delegate bool Try4<TOutput>([MaybeNullWhen(false)] out TOutput output);
-
-    public static class TryPlayground
-    {
-        public static void DoWork(Either<string, Nothing> either)
-        {
-            UseTry<string>(either.TryGet);
-        }
-
-        private static bool TryGetValue(Either<string, Nothing> either, out string value)
-        {
-            value = string.Empty;
-            return true;
-        }
-
-        private static void UseTry<TOutput>(Try4<TOutput> @try)
-        {
-
-        }
-    }*/
-
-    //// TODO TOPIC everything below here
-
-    public delegate TOutput? Try1<in TInput, out TOutput>(TInput input, out bool success);
-    public delegate bool Try2<in TInput, TOutput>(TInput input, [MaybeNullWhen(false)] out TOutput success);
-    public delegate IEither<TOutput, Nothing> Try3<in TInput, out TOutput>(TInput input);
     
-    public static class Try1Extensions
-    {
-        public static bool Try<TInput, TOutput>(this Try1<TInput, TOutput> @try, TInput input, [MaybeNullWhen(false)] out TOutput output)
-        {
-            output = @try(input, out var success);
-            return success;
-        }
-
-        public static Try2<TInput, TOutput> ToTry2<TInput, TOutput>(this Try1<TInput, TOutput> @try)
-        {
-            return @try.Try;
-        }
-    }
-
-    public static class Try2Extensions
-    {
-        public static bool Try<TInput, TOutput>(this Try2<TInput, TOutput> @try, TInput input, [MaybeNullWhen(false)] out TOutput output)
-        {
-            return @try(input, out output);
-        }
-
-        /*public static Try<TInput, TOutput> ToTry<TInput, TOutput>(this OldTry<TInput, TOutput> oldTry)
-        {
-            return (TInput input, out bool success) =>
-            {
-                success = oldTry(input, out var output);
-                return output!; //// TODO can you actually do this if `output` ends up being `null`?
-            };
-        }*/
-    }
-
+    
     public static class Try3Extensions
     {
         public static bool Try<TInput, TOutput>(this Try3<TInput, TOutput> @try, TInput input, [MaybeNullWhen(false)] out TOutput output)
