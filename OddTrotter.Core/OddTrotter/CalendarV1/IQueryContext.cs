@@ -16,6 +16,27 @@ namespace OddTrotter.Calendar
 
     public delegate IEither<TOut, Nothing> Try<TIn, TOut>(TIn input);
 
+    public static class Driver
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOut"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
+        public static bool Try<TOut>(this IEither<TOut, Nothing> either, [MaybeNullWhen(false)] out TOut value)
+        {
+            if (either == null)
+            {
+                throw new ArgumentNullException(nameof(either));
+            }
+
+            return either.TryGet(out value);
+        }
+    }
+
     public interface IQueryContext<TValue, TError>
     {
         /// <summary>
