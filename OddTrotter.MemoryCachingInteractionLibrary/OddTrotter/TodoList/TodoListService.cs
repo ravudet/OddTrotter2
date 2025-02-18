@@ -350,9 +350,10 @@
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
 
 
-            //// TODO topic asbaseplayground
+            //// TODO TOPIC asbaseplayground
             //// TODO TOPIC should the either extensions be lazy?
             //// TODO TOPIC should i add the "ambiguous" select methods for left and right in order to light up the comprehension syntax?
+            //// TODO TOPIC should firstordefault go in its own file? i feel like i'm abusing nested classes at this point
 
             // TODO write up code quality list and create blog posts
             // code quality:
@@ -384,6 +385,7 @@
             //// TODO then do querycontext (and move everything to use it); the query context stuff will need some diligence and effort around adding the third type parameter that allows mixins to work correctly; do query contexts next probably and just know that you're going to need to put the effort in
             //// TODO do a pass cleaning up the existing code using the code quality above and either addressing todos or marking them TODO FUTURE and TODO TOPIC
 
+            //// TODO should you make generic tests for either? you could re-use them between `Either` and `FirstOrDefault`
             //// TODO mvoe things out of the calendarv2 folder
             //// TODO int.maxmagnitude(and others) intellisense doc doesn't match the learn doc
             //// TODO make sure anything that is not completely accurate is marked as `internal`
