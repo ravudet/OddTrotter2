@@ -1,10 +1,10 @@
-﻿namespace CalendarV2.System.Linq
+﻿namespace System.Linq
 {
-    using global::System;
-    using global::System.Collections.Generic;
+    using System;
+    using System.Collections.Generic;
 
-    using global::Fx.Try;
-    using global::Fx.Either;
+    using Fx.Either;
+    using Fx.Try;
 
     public static class EnumerableExtensions
     {
@@ -58,10 +58,11 @@
             return source.EitherFirstOrDefault(default(TElement));
         }
 
-        /*public static TElement? Foo<TElement>(this IEnumerable<TElement> source)
+        public static TElement? Foo<TElement>(this IEnumerable<TElement> source)
         {
-            return source.EitherFirstOrDefault().Coalesce();
-        }*/
+            //// TODO do you want a concenience overload for coalesce around nullables?
+            return source.EitherFirstOrDefault().CoalesceLeft(left => left);
+        }
 
         /// <summary>
         /// 
@@ -72,28 +73,23 @@
         /// <param name="default"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> is <see langword="null"/></exception>
+        /// <remarks>
+        /// I wasn't sure if I liked having a second <typeparamref name="TDefault"/> type parameter, but ultimately it just gives callers more flexibility (i.e. cases where <typeparamref name="TElement"/> and <typeparamref name="TDefault"/> are the same get resolved by the caller to simply call this method anyway). Even if we only had one type parameter, we could still implement the LINQ overloads by delegating to this overload, and this method also provides the flexibility in cases where the type parameter is the same of diffentiating between and first and a default. 
+        /// </remarks>
         public static FirstOrDefault<TElement, TDefault> EitherFirstOrDefault<TElement, TDefault>(
             this IEnumerable<TElement> source,
             TDefault @default)
         {
             ArgumentNullException.ThrowIfNull(source);
 
-            //// TODO you questioned this before, but here's a conclusion: i actually like that the default is it's own type parameter because it allows for more verbose cases; having the same type would just be another convenience method, but it's still beneficial over the linq implementation because you can differentiate between first or default; further, you can implement the linq overload as a convenience method on top of this one
-
-            //// TODO actually write the convenience method mentioned in the comment above
-
             using (var enumerator = source.GetEnumerator())
             {
                 if (!enumerator.MoveNext())
                 {
-                    //// TODO use implicit cast when it's availalbe?
-                    return new FirstOrDefault<TElement, TDefault>(new Either<TElement, TDefault>.Right(
-                        @default));
+                    return new FirstOrDefault<TElement, TDefault>(@default);
                 }
 
-                //// TODO use implicit case when it's available?
-                return new FirstOrDefault<TElement, TDefault>(new Either<TElement, TDefault>.Left(
-                    enumerator.Current));
+                return new FirstOrDefault<TElement, TDefault>(enumerator.Current);
             }
         }
 
