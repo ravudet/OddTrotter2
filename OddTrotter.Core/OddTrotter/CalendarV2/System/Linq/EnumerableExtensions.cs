@@ -34,7 +34,7 @@ namespace System.Linq
                 ArgumentNullException.ThrowIfNull(leftMap);
                 ArgumentNullException.ThrowIfNull(rightMap);
 
-                return either.Apply(leftMap, rightMap, context);
+                return this.either.Apply(leftMap, rightMap, context);
             }
         }
 
@@ -63,7 +63,11 @@ namespace System.Linq
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> is <see langword="null"/></exception>
         /// <remarks>
-        /// I wasn't sure if I liked having a second <typeparamref name="TDefault"/> type parameter, but ultimately it just gives callers more flexibility (i.e. cases where <typeparamref name="TElement"/> and <typeparamref name="TDefault"/> are the same get resolved by the caller to simply call this method anyway). Even if we only had one type parameter, we could still implement the LINQ overloads by delegating to this overload, and this method also provides the flexibility in cases where the type parameter is the same of diffentiating between and first and a default. 
+        /// I wasn't sure if I liked having a second <typeparamref name="TDefault"/> type parameter, but ultimately it just gives
+        /// callers more flexibility (i.e. cases where <typeparamref name="TElement"/> and <typeparamref name="TDefault"/> are
+        /// the same get resolved by the caller to simply call this method anyway). Even if we only had one type parameter, we
+        /// could still implement the LINQ overloads by delegating to this overload, and this method also provides the
+        /// flexibility in cases where the type parameter is the same of diffentiating between and first and a default. 
         /// </remarks>
         public static FirstOrDefault<TElement, TDefault> EitherFirstOrDefault<TElement, TDefault>(
             this IEnumerable<TElement> source,
@@ -90,7 +94,9 @@ namespace System.Linq
         /// <param name="source"></param>
         /// <param name="try"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> or <paramref name="try"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="source"/> or <paramref name="try"/> is <see langword="null"/>
+        /// </exception>
         public static IEnumerable<TResult> TrySelect<TElement, TResult>(
             this IEnumerable<TElement> source,
             Try<TElement, TResult> @try)
