@@ -11,7 +11,7 @@ namespace System.Linq
         [TestMethod]
         public void FirstOrDefaultNullEither()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => new EnumerableExtensions.FirstOrDefault<string, int>(
+            Assert.ThrowsException<ArgumentNullException>(() => new FirstOrDefault<string, int>(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                 null
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -21,7 +21,7 @@ namespace System.Linq
         [TestMethod]
         public void ApplyLeft()
         {
-            IEither<string, int> firstOrDefault = new EnumerableExtensions.FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
+            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
 
             var result = firstOrDefault.Apply((left, context) => left[0], (right, context) => right.ToString()[0], new Nothing());
 
@@ -31,7 +31,7 @@ namespace System.Linq
         [TestMethod]
         public void ApplyRight()
         {
-            IEither<string, int> firstOrDefault = new EnumerableExtensions.FirstOrDefault<string, int>(new Either<string, int>.Right(42));
+            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Right(42));
 
             var result = firstOrDefault.Apply((left, context) => left[0], (right, context) => right.ToString()[0], new Nothing());
 
@@ -41,7 +41,7 @@ namespace System.Linq
         [TestMethod]
         public void ApplyLeftException()
         {
-            IEither<string, int> firstOrDefault = new EnumerableExtensions.FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
+            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
 
             var invalidOperationException = new InvalidOperationException();
             var invalidCastException = new InvalidCastException();
@@ -58,7 +58,7 @@ namespace System.Linq
         [TestMethod]
         public void ApplyRightException()
         {
-            IEither<string, int> firstOrDefault = new EnumerableExtensions.FirstOrDefault<string, int>(new Either<string, int>.Right(42));
+            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Right(42));
 
             var invalidOperationException = new InvalidOperationException();
             var invalidCastException = new InvalidCastException();
@@ -75,7 +75,7 @@ namespace System.Linq
         [TestMethod]
         public void ApplyNullLeftMap()
         {
-            IEither<string, int> firstOrDefault = new EnumerableExtensions.FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
+            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
 
             Assert.ThrowsException<ArgumentNullException>(() => firstOrDefault.Apply<Nothing, Nothing>(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -87,7 +87,7 @@ namespace System.Linq
         [TestMethod]
         public void ApplyNullRightMap()
         {
-            IEither<string, int> firstOrDefault = new EnumerableExtensions.FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
+            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
 
             Assert.ThrowsException<ArgumentNullException>(() => firstOrDefault.Apply<Nothing, Nothing>((left, context) => default,
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.

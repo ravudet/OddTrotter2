@@ -9,35 +9,6 @@ namespace System.Linq
 
     public static class EnumerableExtensions
     {
-        public sealed class FirstOrDefault<TFirst, TDefault> : IEither<TFirst, TDefault>
-        {
-            private readonly IEither<TFirst, TDefault> either;
-
-            /// <summary>
-            /// placeholder
-            /// </summary>
-            /// <param name="either"></param>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
-            public FirstOrDefault(IEither<TFirst, TDefault> either)
-            {
-                ArgumentNullException.ThrowIfNull(either);
-
-                this.either = either;
-            }
-
-            /// <inheritdoc/>
-            public TResult Apply<TResult, TContext>(
-                Func<TFirst, TContext, TResult> leftMap, 
-                Func<TDefault, TContext, TResult> rightMap,
-                TContext context)
-            {
-                ArgumentNullException.ThrowIfNull(leftMap);
-                ArgumentNullException.ThrowIfNull(rightMap);
-
-                return this.either.Apply(leftMap, rightMap, context);
-            }
-        }
-
         /// <summary>
         /// placeholder
         /// </summary>
