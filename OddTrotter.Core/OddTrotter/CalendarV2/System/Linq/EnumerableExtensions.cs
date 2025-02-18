@@ -1,4 +1,5 @@
-﻿namespace System.Linq
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace System.Linq
 {
     using System;
     using System.Collections.Generic;
@@ -12,13 +13,8 @@
         {
             private readonly IEither<TFirst, TDefault> either;
 
-            public FirstOrDefault(Either<TFirst, TDefault> either)
-            {
-                this.either = either;
-            }
-
             /// <summary>
-            /// 
+            /// placeholder
             /// </summary>
             /// <param name="either"></param>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="either"/> is <see langword="null"/></exception>
@@ -26,25 +22,24 @@
             {
                 ArgumentNullException.ThrowIfNull(either);
 
-                //// TODO any type that looks like this can actually end up implementing their own either and visitor and whatnot if the performance of the eitherdelegatevisitor ends up being bad...
                 this.either = either;
             }
 
             /// <inheritdoc/>
             public TResult Apply<TResult, TContext>(
-                global::System.Func<TFirst, TContext, TResult> leftAccept, 
-                global::System.Func<TDefault, TContext, TResult> rightAccept,
+                Func<TFirst, TContext, TResult> leftMap, 
+                Func<TDefault, TContext, TResult> rightMap,
                 TContext context)
             {
-                ArgumentNullException.ThrowIfNull(leftAccept);
-                ArgumentNullException.ThrowIfNull(rightAccept);
+                ArgumentNullException.ThrowIfNull(leftMap);
+                ArgumentNullException.ThrowIfNull(rightMap);
 
-                return either.Apply(leftAccept, rightAccept, context);
+                return either.Apply(leftMap, rightMap, context);
             }
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <param name="source"></param>
@@ -58,14 +53,8 @@
             return source.EitherFirstOrDefault(default(TElement));
         }
 
-        public static TElement? Foo<TElement>(this IEnumerable<TElement> source)
-        {
-            //// TODO do you want a concenience overload for coalesce around nullables?
-            return source.EitherFirstOrDefault().CoalesceLeft(left => left);
-        }
-
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <typeparam name="TDefault"></typeparam>
@@ -86,14 +75,41 @@
             {
                 if (!enumerator.MoveNext())
                 {
-                    return new FirstOrDefault<TElement, TDefault>(@default);
+                    return new FirstOrDefault<TElement, TDefault>(Either.Left<TElement>().Right(@default));
                 }
 
-                return new FirstOrDefault<TElement, TDefault>(enumerator.Current);
+                return new FirstOrDefault<TElement, TDefault>(Either.Left(enumerator.Current).Right<TDefault>());
             }
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="try"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> or <paramref name="try"/> is <see langword="null"/></exception>
         public static IEnumerable<TResult> TrySelect<TElement, TResult>(
+            this IEnumerable<TElement> source,
+            Try<TElement, TResult> @try)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(@try);
+
+            return TrySelectIterator(source, @try);
+        }
+
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source">assumed to not be <see langword="null"/></param>
+        /// <param name="try">assumed to not be <see langword="null"/></param>
+        /// <returns></returns>
+        private static IEnumerable<TResult> TrySelectIterator<TElement, TResult>(
             this IEnumerable<TElement> source,
             Try<TElement, TResult> @try)
         {

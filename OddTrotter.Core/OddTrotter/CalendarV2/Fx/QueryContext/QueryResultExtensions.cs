@@ -4,7 +4,6 @@
     using global::System.Collections.Generic;
     using global::System.Linq;
 
-    using CalendarV2.System.Linq;
     using global::Fx.Either;
 
     /// <summary>
