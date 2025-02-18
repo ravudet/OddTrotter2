@@ -6,7 +6,7 @@ namespace System.Linq
     using System;
 
     [TestClass]
-    public sealed class EnumerableExtensionsUnitTests
+    public sealed class FirstOrDefaultUnitTests
     {
         [TestMethod]
         public void FirstOrDefaultNullEither()
