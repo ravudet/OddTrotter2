@@ -1,6 +1,6 @@
-﻿namespace CalendarV2.Fx.QueryContext
+﻿namespace Fx.QueryContext
 {
-    using global::System.Threading.Tasks;
+    using System.Collections.Generic;
 
     /// <summary>
     /// TODO covariance and contravariance
@@ -9,6 +9,6 @@
     /// <typeparam name="TError"></typeparam>
     public interface IQueryContext<TValue, TError>
     {
-        Task<QueryResult<TValue, TError>> Evaluate();
+        IAsyncEnumerable<QueryResultNode<TValue, TError>> Evaluate();
     }
 }
