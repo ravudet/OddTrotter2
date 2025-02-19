@@ -1,9 +1,10 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace System.Linq
 {
+    using System;
+
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using System;
 
     [TestClass]
     public sealed class FirstOrDefaultUnitTests
@@ -79,9 +80,9 @@ namespace System.Linq
 
             Assert.ThrowsException<ArgumentNullException>(() => firstOrDefault.Apply<Nothing, Nothing>(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                null,
+                null
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-                (right, context) => default, default));
+                , (right, context) => default, default));
         }
 
         [TestMethod]
@@ -91,9 +92,9 @@ namespace System.Linq
 
             Assert.ThrowsException<ArgumentNullException>(() => firstOrDefault.Apply<Nothing, Nothing>((left, context) => default,
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                null,
+                null
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-                default));
+                , default));
         }
     }
 }
