@@ -17,6 +17,8 @@
 
         public abstract class Value : QueryResultNode<TValue, TError>
         {
+            public abstract TValue TheValue { get; } //// TODO better name
+
             protected override TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, TContext context)
             {
                 return visitor.Accept(this, context);

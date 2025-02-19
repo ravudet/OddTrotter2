@@ -1,6 +1,7 @@
 ﻿namespace Fx.QueryContext
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// TODO covariance and contravariance
@@ -9,6 +10,6 @@
     /// <typeparam name="TError"></typeparam>
     public interface IQueryContext<TValue, TError>
     {
-        IAsyncEnumerable<QueryResultNode<TValue, TError>> Evaluate();
+        Task<QueryResultNode<TValue, TError>> Evaluate();
     }
 }
