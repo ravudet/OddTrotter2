@@ -2,6 +2,7 @@
 namespace System.Linq
 {
     using Fx.Either;
+    using Fx.Try;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Collections.Generic;
 
@@ -90,5 +91,36 @@ namespace System.Linq
             Assert.AreEqual(element, left);
             Assert.IsFalse(firstOrDefault.TryGetRight(out var right));
         }
+
+        [TestMethod]
+        public void TrySelectNullSource()
+        {
+            IEnumerable<string> source =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                source
+#pragma warning restore CS8604 // Possible null reference argument.
+                .TrySelect(IntTryParse));
+        }
+
+        [TestMethod]
+        public void TrySelectNullTry()
+        {
+            var source = new[] { "42" };
+            Try<string, int> @try =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() => source.TrySelect(@try));
+        }
+
+        private static Try<string, int> IntTryParse { get; } = int.TryParse;
     }
 }
