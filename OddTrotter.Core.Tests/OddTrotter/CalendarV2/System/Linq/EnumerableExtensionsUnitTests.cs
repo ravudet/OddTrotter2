@@ -1,10 +1,12 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace System.Linq
 {
+
+    using System.Collections.Generic;
+
     using Fx.Either;
     using Fx.Try;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using System.Collections.Generic;
 
     [TestClass]
     public sealed class EnumerableExtensionsUnitTests
