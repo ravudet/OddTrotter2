@@ -381,6 +381,7 @@
             // unit tests
             // do everything above for unit tests
 
+            //// TODO add obsolete attribute to the implicit operator on either so you get a build warning if you actually use it; is there a way to make *this specific one* a warning instead of an error?
             //// TODO code review firstordefaultunittests
             //// TODO then write enumerable extensions unit tests
             //// TODO then code review enumerable extensions unit tests

@@ -61,7 +61,7 @@ namespace Stash
         }
     }
 
-    public static class Type2
+    public static class Type2 //// TODO call this `of` and call the method `type`?
     {
         public static Type2<T> Of<T>()
         {
@@ -70,7 +70,7 @@ namespace Stash
         }
     }
 
-    public sealed class Type2<T>
+    public sealed class Type2<T> //// TODO rename this `type<T>`; i'm not sure yet if you want to make this derive from `type`
     {
         private Type2()
         {
