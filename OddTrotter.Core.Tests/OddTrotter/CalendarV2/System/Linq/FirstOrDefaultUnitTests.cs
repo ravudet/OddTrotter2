@@ -24,7 +24,10 @@ namespace System.Linq
         {
             IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
 
-            var result = firstOrDefault.Apply((left, context) => left[0], (right, context) => right.ToString()[0], new Nothing());
+            var result = firstOrDefault.Apply(
+                (left, context) => left[0],
+                (right, context) => right.ToString()[0], 
+                new Nothing());
 
             Assert.AreEqual('a', result);
         }
@@ -34,7 +37,9 @@ namespace System.Linq
         {
             IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Right(42));
 
-            var result = firstOrDefault.Apply((left, context) => left[0], (right, context) => right.ToString()[0], new Nothing());
+            var result = firstOrDefault.Apply(
+                (left, context) => left[0],
+                (right, context) => right.ToString()[0], new Nothing());
 
             Assert.AreEqual('4', result);
         }
@@ -90,11 +95,14 @@ namespace System.Linq
         {
             IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
 
-            Assert.ThrowsException<ArgumentNullException>(() => firstOrDefault.Apply<Nothing, Nothing>((left, context) => default,
+            Assert.ThrowsException<ArgumentNullException>(
+                () => 
+                    firstOrDefault.Apply<Nothing, Nothing>(
+                        (left, context) => default,
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                null
+                        null
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-                , default));
+                        , default));
         }
     }
 }
