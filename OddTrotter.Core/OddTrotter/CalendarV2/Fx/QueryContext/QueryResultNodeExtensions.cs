@@ -8,7 +8,7 @@ namespace Fx.QueryContext
             this QueryResultNode<TValue, TError> queryResultNode, 
             Func<TValue, bool> predicate)
         {
-            //// TODO does enumerable start "before" the first element so that it can do laziness? your predicament below is that you have to do some amount of processing before you can know what type of node you should be returning; returning a "before first element" node would mean that you could defer that processing until the value itself is actually requested
+            //// TODO does enumerable start "before" the first element so that it can do laziness? your predicament below is that you have to do some amount of processing before you can know what type of node you should be returning; returning a "before first element" node would mean that you could defer that processing until the value itself is actually requested //// TODO nah, yuou can do deferrred execution with just an interface, the "Before first element" thing is to model empty sequences
             //// TODO i think i might need several more attempts at implementing query result from the bottom up before it's actually "good"
         }
 
