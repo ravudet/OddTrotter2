@@ -118,9 +118,23 @@ namespace System.Linq
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                 ;
 
-            Assert.ThrowsException<ArgumentNullException>(() => source.TrySelect(@try));
+            Assert.ThrowsException<ArgumentNullException>(() => source.TrySelect(
+#pragma warning disable CS8604 // Possible null reference argument.
+                @try
+#pragma warning restore CS8604 // Possible null reference argument.
+                ));
         }
 
         private static Try<string, int> IntTryParse { get; } = int.TryParse;
+
+        [TestMethod]
+        public void TrySelect()
+        {
+            var source = new[] { "42", "asdf" };
+
+            var parsed = source.TrySelect(IntTryParse);
+
+            CollectionAssert.AreEquivalent(new[] { 42 }, parsed.ToArray());
+        }
     }
 }
