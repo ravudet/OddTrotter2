@@ -5,6 +5,7 @@
     using System.Linq;
 
     using Fx.Either;
+    using static OddTrotter.Calendar.OdataCollectionResponse;
 
     public static class QueryResultExtensions
     {
@@ -73,17 +74,16 @@
 
                 protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Terminal node, Nothing context)
                 {
-                    return new TerminalVisitor(this.predicate).Visit(node, context);
+                    return TerminalVisitor.Instance.Visit(node, context);
                 }
 
                 private sealed class TerminalVisitor : QueryResultNode<TValue, TError>.Terminal.Visitor<QueryResultNode<TValue, TError>, Nothing>
                 {
-                    private readonly Func<TValue, bool> predicate;
-
-                    public TerminalVisitor(Func<TValue, bool> predicate)
+                    private TerminalVisitor()
                     {
-                        this.predicate = predicate;
                     }
+
+                    public static TerminalVisitor Instance { get; } = new TerminalVisitor();
 
                     protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Terminal.Error node, Nothing context)
                     {
@@ -92,7 +92,94 @@
 
                     protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Terminal.Empty node, Nothing context)
                     {
-                        return node;
+                        return QueryResultNode<TValue, TError>.Terminal.Empty.Instance;
+                    }
+                }
+            }
+        }
+
+        public static IQueryResult<TResult, TError> Select<TSource, TError, TResult>(this IQueryResult<TSource, TError> source, Func<TSource, TResult> selector)
+        {
+            //// TODO include an overload that selects the error
+
+            return new SelectQueryResult<TSource, TError, TResult>(source, selector);
+        }
+
+        private sealed class SelectQueryResult<TSource, TError, TResult> : IQueryResult<TResult, TError>
+        {
+            private readonly IQueryResult<TSource, TError> source;
+            private readonly Func<TSource, TResult> selector;
+
+            public SelectQueryResult(IQueryResult<TSource, TError> source, Func<TSource, TResult> selector)
+            {
+                this.source = source;
+                this.selector = selector;
+            }
+
+            public QueryResultNode<TResult, TError> Nodes
+            {
+                get
+                {
+                    return new Visitor(this.selector).Visit(this.source.Nodes, new Nothing());
+                }
+            }
+
+            private sealed class Visitor : QueryResultNode<TSource, TError>.Visitor<QueryResultNode<TResult, TError>, Nothing>
+            {
+                private readonly Func<TSource, TResult> selector;
+
+                public Visitor(Func<TSource, TResult> selector)
+                {
+                    this.selector = selector;
+                }
+
+                protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Element node, Nothing context)
+                {
+                    return new Element(this.selector(node.Value), this, node.Next());
+                }
+
+                private sealed class Element : QueryResultNode<TResult, TError>.Element
+                {
+                    private readonly Visitor visitor;
+                    private readonly QueryResultNode<TSource, TError> next;
+
+                    public Element(TResult value, Visitor visitor, QueryResultNode<TSource, TError> next)
+                    {
+                        Value = value;
+                        this.visitor = visitor;
+                        this.next = next;
+                    }
+
+                    public override TResult Value { get; }
+
+                    public override QueryResultNode<TResult, TError> Next()
+                    {
+                        return this.visitor.Visit(this.next, new Nothing());
+                    }
+                }
+
+                protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Terminal node, Nothing context)
+                {
+                    throw new NotImplementedException();
+                }
+
+                private sealed class TerminalVisitor : QueryResultNode<TSource, TError>.Terminal.Visitor<QueryResultNode<TResult, TError>, Nothing>
+                {
+                    private TerminalVisitor()
+                    {
+                        //// TODO is there a single "passthrough" terminal visitor implementation?
+                    }
+
+                    public static TerminalVisitor Instance { get; } = new TerminalVisitor();
+
+                    protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Terminal.Error node, Nothing context)
+                    {
+                        return new QueryResultNode<TResult, TError>.Terminal.Error(node.Value);
+                    }
+
+                    protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Terminal.Empty node, Nothing context)
+                    {
+                        return QueryResultNode<TResult, TError>.Terminal.Empty.Instance;
                     }
                 }
             }

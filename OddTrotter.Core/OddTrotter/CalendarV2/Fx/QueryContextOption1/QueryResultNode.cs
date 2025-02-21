@@ -78,7 +78,7 @@
                 {
                 }
 
-                public static QueryResultNode<TValue, Terminal>.Terminal.Empty Instance { get; } = new QueryResultNode<TValue, Terminal>.Terminal.Empty();
+                public static QueryResultNode<TValue, TError>.Terminal.Empty Instance { get; } = new QueryResultNode<TValue, TError>.Terminal.Empty();
 
                 protected override TResult Dispatch<TResult, TContext>(QueryResultNode<TValue, TError>.Terminal.Visitor<TResult, TContext> visitor, TContext context)
                 {
