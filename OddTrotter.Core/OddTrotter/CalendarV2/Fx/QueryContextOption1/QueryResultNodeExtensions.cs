@@ -1,8 +1,8 @@
-﻿using System;
-
-namespace Fx.QueryContextOption1
+﻿namespace Fx.QueryContextOption1
 {
-    /*public static class QueryResultNodeExtensions
+    /*using System;
+
+    public static class QueryResultNodeExtensions
     {
         public static QueryResultNode<TValue, TError> Where<TValue, TError>(
             this QueryResultNode<TValue, TError> queryResultNode, 

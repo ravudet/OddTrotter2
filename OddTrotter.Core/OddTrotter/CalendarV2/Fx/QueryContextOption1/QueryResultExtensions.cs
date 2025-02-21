@@ -6,6 +6,99 @@
 
     using Fx.Either;
 
+    public static class QueryResultExtensions
+    {
+        public static IQueryResult<TValue, TError> Where<TValue, TError>(this IQueryResult<TValue, TError> source, Func<TValue, bool> predicate)
+        {
+            return new WhereQueryResult<TValue, TError>(source, predicate);
+        }
+
+        private sealed class WhereQueryResult<TValue, TError> : IQueryResult<TValue, TError>
+        {
+            private readonly IQueryResult<TValue, TError> source;
+            private readonly Func<TValue, bool> predicate;
+
+            public WhereQueryResult(IQueryResult<TValue, TError> source, Func<TValue, bool> predicate)
+            {
+                this.source = source;
+                this.predicate = predicate;
+            }
+
+            public QueryResultNode<TValue, TError> Nodes
+            {
+                get
+                {
+                    return new Visitor(this.predicate).Visit(this.source.Nodes, new Nothing());
+                }
+            }
+
+            private sealed class Visitor : QueryResultNode<TValue, TError>.Visitor<QueryResultNode<TValue, TError>, Nothing>
+            {
+                private readonly Func<TValue, bool> predicate;
+
+                public Visitor(Func<TValue, bool> predicate)
+                {
+                    this.predicate = predicate;
+                }
+
+                protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Element node, Nothing context)
+                {
+                    if (this.predicate(node.Value))
+                    {
+                        return new Element(node.Value, this, node.Next());
+                    }
+
+                    return this.Visit(node.Next(), context);
+                }
+
+                private sealed class Element : QueryResultNode<TValue, TError>.Element
+                {
+                    private readonly Visitor visitor;
+                    private readonly QueryResultNode<TValue, TError> next;
+
+                    public Element(TValue value, Visitor visitor, QueryResultNode<TValue, TError> next)
+                    {
+                        Value = value;
+                        this.visitor = visitor;
+                        this.next = next;
+                    }
+
+                    public override TValue Value { get; }
+
+                    public override QueryResultNode<TValue, TError> Next()
+                    {
+                        return this.visitor.Visit(this.next, new Nothing());
+                    }
+                }
+
+                protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Terminal node, Nothing context)
+                {
+                    return new TerminalVisitor(this.predicate).Visit(node, context);
+                }
+
+                private sealed class TerminalVisitor : QueryResultNode<TValue, TError>.Terminal.Visitor<QueryResultNode<TValue, TError>, Nothing>
+                {
+                    private readonly Func<TValue, bool> predicate;
+
+                    public TerminalVisitor(Func<TValue, bool> predicate)
+                    {
+                        this.predicate = predicate;
+                    }
+
+                    protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Terminal.Error node, Nothing context)
+                    {
+                        return new QueryResultNode<TValue, TError>.Terminal.Error(node.Value);
+                    }
+
+                    protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Terminal.Empty node, Nothing context)
+                    {
+                        return node;
+                    }
+                }
+            }
+        }
+    }
+
     /*/// <summary>
     /// TODO use `ieither` instead of `either`
     /// </summary>

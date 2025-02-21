@@ -10,6 +10,6 @@
     /// <typeparam name="TError"></typeparam>
     public interface IQueryContext<TValue, TError>
     {
-        Task<QueryResultNode<TValue, TError>> Evaluate();
+        Task<IQueryResult<TValue, TError>> Evaluate();
     }
 }
