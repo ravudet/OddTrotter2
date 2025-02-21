@@ -1,6 +1,6 @@
 ﻿namespace Fx.QueryContext
 {
-    using System;
+    /*using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -9,9 +9,11 @@
         private QueryResult()
         {
             //// TODO is this an `either`? //// TODO this may be an either, but you don't know left or right until you've started enumerating; maybe you should have a `queryresult` which has a `ienumerable<queryresultnode>`?
+            //// TODO because there's the `ieither` interface now, you might actually be able to have `queryresult : ieither` //// TODO this really just keeps coming back to: you have to enumerate the values to get the error; i'm choosing to now allow the caller to ignore this because i don't know what to do with the realized values that we had to enumerate before the error occurred; it's not guaranteed that these will be repeatable; //// TODO you *could* have the two options for either be ienumerable<value> and queryresultnode<value, error> and in all of your methods don't allow a different func to be applied to the values; but then you won't be really implementing the `apply` method in `ieither`; but that *might* be a real use case that you're not really thinking of (i.e. i need to do something different with each element if it turns out to be eventually result in an error); write out an example of this and see which option looks better //// TODO is there a way that you can (for the error case) accept a map for the enumerable of values and a map for the error, that way the *caller* isn't the one having to do things in the right order?
             //// TODO can `queryresultnode` be a ref struct? and then you can have it allow ref struct too; you don't need to have dynamically allocated memory once you've received the network response; or rather, you can allocate the memory on the stack as you're streaming the network response
             //// TODO can you have a select into a ref struct? how about from a ref struct?
             //// TODO use `in` parameters for the `context` in all visitors?
+            //// TODO do you need an interface?
         }
 
         protected abstract TResult Dispatch<TResult, TContext>(Visitor<TResult, TContext> visitor, in TContext context);
@@ -113,5 +115,5 @@
                 return await visitor.AcceptAsync(this, context).ConfigureAwait(false);
             }
         }
-    }
+    }*/
 }

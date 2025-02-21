@@ -2,7 +2,7 @@
 
 namespace Fx.QueryContext
 {
-    public static class QueryResultNodeExtensions
+    /*public static class QueryResultNodeExtensions
     {
         public static QueryResultNode<TValue, TError> Where<TValue, TError>(
             this QueryResultNode<TValue, TError> queryResultNode, 
@@ -20,7 +20,7 @@ namespace Fx.QueryContext
 
             public static WhereVisitor<TValue, TError> Instance { get; } = new WhereVisitor<TValue, TError>();
 
-            protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Value node, Func<TValue, bool> context)
+            protected internal override QueryResultNode<TValue, TError> Accept(QueryResultNode<TValue, TError>.Element node, Func<TValue, bool> context)
             {
             }
 
@@ -30,11 +30,11 @@ namespace Fx.QueryContext
             }
         }
 
-        private sealed class WhereNode<TValue, TError> : QueryResultNode<TValue, TError>.Value
+        private sealed class WhereNode<TValue, TError> : QueryResultNode<TValue, TError>.Element
         {
-            private readonly Value node;
+            private readonly Element node;
 
-            public WhereNode(QueryResultNode<TValue, TError>.Value node)
+            public WhereNode(QueryResultNode<TValue, TError>.Element node)
             {
                 this.node = node;
             }
@@ -44,5 +44,5 @@ namespace Fx.QueryContext
                 
             }
         }
-    }
+    }*/
 }

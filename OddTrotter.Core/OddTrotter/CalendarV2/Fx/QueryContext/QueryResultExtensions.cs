@@ -6,7 +6,7 @@
 
     using Fx.Either;
 
-    /// <summary>
+    /*/// <summary>
     /// TODO use `ieither` instead of `either`
     /// </summary>
     public static class QueryResultExtensions
@@ -400,5 +400,5 @@
                     node.Values.DistinctBy(context.KeySelector, context.Comparer), node.Error);
             }
         }
-    }
+    }*/
 }
