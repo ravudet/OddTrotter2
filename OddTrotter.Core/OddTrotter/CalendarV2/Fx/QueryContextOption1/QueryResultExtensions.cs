@@ -250,7 +250,27 @@
 
                 protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Terminal node, Nothing context)
                 {
-                    throw new NotImplementedException();
+                    return TerminalVisitor.Instance.Visit(node, context);
+                }
+
+                private sealed class TerminalVisitor : QueryResultNode<TSource, TError>.Terminal.Visitor<QueryResultNode<TResult, TError>, Nothing>
+                {
+                    private TerminalVisitor()
+                    {
+                        //// TODO is there a single "passthrough" terminal visitor implementation?
+                    }
+
+                    public static TerminalVisitor Instance { get; } = new TerminalVisitor();
+
+                    protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Terminal.Error node, Nothing context)
+                    {
+                        return new QueryResultNode<TResult, TError>.Terminal.Error(node.Value);
+                    }
+
+                    protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Terminal.Empty node, Nothing context)
+                    {
+                        return QueryResultNode<TResult, TError>.Terminal.Empty.Instance;
+                    }
                 }
             }
         }
