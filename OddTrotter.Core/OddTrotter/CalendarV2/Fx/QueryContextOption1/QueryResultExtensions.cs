@@ -5,7 +5,7 @@
     using System.Linq;
 
     using Fx.Either;
-    using static OddTrotter.Calendar.OdataCollectionResponse;
+    using Fx.Try;
 
     public static class QueryResultExtensions
     {
@@ -160,7 +160,7 @@
 
                 protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Terminal node, Nothing context)
                 {
-                    throw new NotImplementedException();
+                    return TerminalVisitor.Instance.Visit(node, context);
                 }
 
                 private sealed class TerminalVisitor : QueryResultNode<TSource, TError>.Terminal.Visitor<QueryResultNode<TResult, TError>, Nothing>
@@ -181,6 +181,76 @@
                     {
                         return QueryResultNode<TResult, TError>.Terminal.Empty.Instance;
                     }
+                }
+            }
+        }
+
+        public static IQueryResult<TResult, TError> TrySelect<TSource, TError, TResult>(this IQueryResult<TSource, TError> source, Try<TSource, TResult> @try)
+        {
+            return new TrySelectQueryResult<TSource, TError, TResult>(source, @try);
+        }
+
+        private sealed class TrySelectQueryResult<TSource, TError, TResult> : IQueryResult<TResult, TError>
+        {
+            private readonly IQueryResult<TSource, TError> source;
+            private readonly Try<TSource, TResult> @try;
+
+            public TrySelectQueryResult(IQueryResult<TSource, TError> source, Try<TSource, TResult> @try)
+            {
+                this.source = source;
+                this.@try = @try;
+            }
+
+            public QueryResultNode<TResult, TError> Nodes
+            {
+                get
+                {
+                    return new Visitor(this.@try).Visit(this.source.Nodes, new Nothing());
+                }
+            }
+
+            private sealed class Visitor : QueryResultNode<TSource, TError>.Visitor<QueryResultNode<TResult, TError>, Nothing>
+            {
+                private readonly Try<TSource, TResult> @try;
+
+                public Visitor(Try<TSource, TResult> @try)
+                {
+                    this.@try = @try;
+                }
+
+                protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Element node, Nothing context)
+                {
+                    if (this.@try(node.Value, out var result))
+                    {
+                        return new Element(result, this, node.Next());
+                    }
+
+                    return this.Visit(node.Next(), context);
+                }
+
+                private sealed class Element : QueryResultNode<TResult, TError>.Element
+                {
+                    private readonly Visitor visitor;
+                    private readonly QueryResultNode<TSource, TError> next;
+
+                    public Element(TResult value, Visitor visitor, QueryResultNode<TSource, TError> next)
+                    {
+                        Value = value;
+                        this.visitor = visitor;
+                        this.next = next;
+                    }
+
+                    public override TResult Value { get; }
+
+                    public override QueryResultNode<TResult, TError> Next()
+                    {
+                        return this.visitor.Visit(this.next, new Nothing());
+                    }
+                }
+
+                protected internal override QueryResultNode<TResult, TError> Accept(QueryResultNode<TSource, TError>.Terminal node, Nothing context)
+                {
+                    throw new NotImplementedException();
                 }
             }
         }
