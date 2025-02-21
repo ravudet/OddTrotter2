@@ -1,4 +1,4 @@
-﻿namespace Fx.QueryContext
+﻿namespace Fx.QueryContextOption1
 {
     /// <summary>
     /// TODO covariance and contravariance if possible

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Fx.QueryContext
+namespace Fx.QueryContextOption1
 {
     /*public static class QueryResultNodeExtensions
     {

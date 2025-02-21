@@ -1,4 +1,4 @@
-﻿namespace Fx.QueryContext
+﻿namespace Fx.QueryContextOption1
 {
     public abstract class QueryResultNode<TValue, TError>
     {

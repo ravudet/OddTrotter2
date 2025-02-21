@@ -1,4 +1,4 @@
-﻿namespace Fx.QueryContext
+﻿namespace Fx.QueryContextOption1
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
