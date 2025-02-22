@@ -12,11 +12,24 @@
             Assert.AreEqual("asdfasdf3asdf2", value);
         }
 
+        [TestMethod]
+        public async Task Test()
+        {
+            var value = await new AwaitedType().GetValue();
+            Assert.AreEqual("asdf", value);
+        }
+
         private sealed class AwaitedType
         {
             public ITask<string> GetValue()
             {
-                return new TaskWrapper<string>(Task.Delay(100).ContinueWith(_ => "asdf"));
+                return new TaskWrapper<string>(Foo());
+            }
+
+            public async Task<string> Foo()
+            {
+                await Task.Delay(100).ConfigureAwait(false);
+                return "asdf";
             }
 
             public ITask<string> GetAnotherValue()
