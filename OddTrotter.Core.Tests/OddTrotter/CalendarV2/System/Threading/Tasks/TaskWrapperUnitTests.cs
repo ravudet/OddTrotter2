@@ -8,7 +8,7 @@
         [TestMethod]
         public async Task Await()
         {
-            var value = await new AwaitedType().GetValue2();
+            var value = await new AwaitedType().GetValue2().ConfigureAwait(false);
             Assert.AreEqual("asdfasdf3asdf2", value);
         }
 
