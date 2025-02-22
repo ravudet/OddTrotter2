@@ -29,9 +29,12 @@
             {
                 get
                 {
-                    return new Visitor(this.predicate).Visit(this.source.Nodes, new Nothing());
+                    throw new NotImplementedException();
+                    ////return new Visitor(this.predicate).Visit(this.source.Nodes, new Nothing());
                 }
             }
+
+            IQueryResultNode<TValue, TError> IQueryResult<TValue, TError>.Nodes => throw new NotImplementedException();
 
             private sealed class Visitor : QueryResultNode<TValue, TError>.Visitor<QueryResultNode<TValue, TError>, Nothing>
             {
@@ -120,9 +123,12 @@
             {
                 get
                 {
-                    return new Visitor(this.selector).Visit(this.source.Nodes, new Nothing());
+                    throw new NotImplementedException();
+                    ////return new Visitor(this.selector).Visit(this.source.Nodes, new Nothing());
                 }
             }
+
+            IQueryResultNode<TResult, TError> IQueryResult<TResult, TError>.Nodes => throw new NotImplementedException();
 
             private sealed class Visitor : QueryResultNode<TSource, TError>.Visitor<QueryResultNode<TResult, TError>, Nothing>
             {
@@ -205,9 +211,12 @@
             {
                 get
                 {
-                    return new Visitor(this.@try).Visit(this.source.Nodes, new Nothing());
+                    throw new NotImplementedException();
+                    ////return new Visitor(this.@try).Visit(this.source.Nodes, new Nothing());
                 }
             }
+
+            IQueryResultNode<TResult, TError> IQueryResult<TResult, TError>.Nodes => throw new NotImplementedException();
 
             private sealed class Visitor : QueryResultNode<TSource, TError>.Visitor<QueryResultNode<TResult, TError>, Nothing>
             {

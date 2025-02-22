@@ -24,6 +24,11 @@
             {
                 throw new NotImplementedException();
             }
+
+            ITask<IQueryResult<string, Exception>> IQueryContext<string, string, Exception>.Evaluate()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public interface IQueryContextMonad<TQueryContext, TResponse, TValue, TError> : IQueryContext<TResponse, TValue, TError> where TQueryContext : IQueryContext<TResponse, TValue, TError>
@@ -70,6 +75,11 @@
             {
                 throw new NotImplementedException();
             }
+
+            ITask<IQueryResult<TResponse, TError>> IQueryContext<TResponse, TValue, TError>.Evaluate()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public static Bar<TQueryContext, TResponse, TValue, TError> ToBar<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext)
@@ -81,6 +91,11 @@
         public sealed class Fizz : IQueryContext<string, string, Exception>
         {
             public Task<IQueryResult<string, Exception>> Evaluate()
+            {
+                throw new NotImplementedException();
+            }
+
+            ITask<IQueryResult<string, Exception>> IQueryContext<string, string, Exception>.Evaluate()
             {
                 throw new NotImplementedException();
             }
@@ -111,6 +126,11 @@
             public Buzz Where(Expression<Func<string, bool>> predicate)
             {
                 //// TODO i think the mixin should call this `whereimpl` and you have the `where` extension on the mixin to support wrapping the result in a monad where applicable (otherwise the implementer of the monad will need to constantly wrap their results in the monad)
+                throw new NotImplementedException();
+            }
+
+            ITask<IQueryResult<string, Exception>> IQueryContext<string, string, Exception>.Evaluate()
+            {
                 throw new NotImplementedException();
             }
         }
@@ -144,6 +164,11 @@
             }
 
             public Frob Where(Expression<Func<string, bool>> predicate)
+            {
+                throw new NotImplementedException();
+            }
+
+            ITask<IQueryResult<string, Exception>> IQueryContext<string, string, Exception>.Evaluate()
             {
                 throw new NotImplementedException();
             }

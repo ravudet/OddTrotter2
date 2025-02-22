@@ -11,7 +11,7 @@
             this.task = task;
         }
         
-        public TTaskAwaiter GetAwaiter()
+        public ITaskAwaiter<T> GetAwaiter()
         {
             throw new NotImplementedException();
         }
