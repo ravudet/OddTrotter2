@@ -128,6 +128,7 @@
 
             public Buzz Where(Expression<Func<string, bool>> predicate)
             {
+                //// TODO i think the mixin should call this `whereimpl` and you have the `where` extension on the mixin to support wrapping the result in a monad where applicable (otherwise the implementer of the monad will need to constantly wrap their results in the monad)
                 throw new NotImplementedException();
             }
         }
