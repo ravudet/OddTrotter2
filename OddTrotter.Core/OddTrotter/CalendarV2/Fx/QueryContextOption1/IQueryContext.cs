@@ -119,7 +119,7 @@
 
         public sealed class Buzz : IWhereQueryContextMixin<string, string, Exception, Buzz>, IHasTypeParameters<string, string, Exception>
         {
-            public ITypeParameters<string, string, Exception> TypeParameters => throw new NotImplementedException();
+            public static ITypeParameters<string, string, Exception> TypeParameters => throw new NotImplementedException();
 
             public Task<IQueryResult<string, Exception>> Evaluate()
             {
@@ -136,7 +136,7 @@
         {
             var bar = foo.ToBar(Of.Type<string>(), Of.Type<string>(), Of.Type<Exception>());
 
-            var bar2 = buzz.ToBar(buzz.TypeParameters);
+            var bar2 = buzz.ToBar(Buzz.TypeParameters);
 
         }
 
@@ -154,7 +154,7 @@
 
         public interface IHasTypeParameters<T1, T2, T3>
         {
-            ITypeParameters<T1, T2, T3> TypeParameters { get; }
+            static abstract ITypeParameters<T1, T2, T3> TypeParameters { get; } //// TODO is this being static *really* any better than be an intance property?
         }
 
         public interface ITypeParameters<T1, T2, T3>
