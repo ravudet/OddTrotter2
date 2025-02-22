@@ -5,6 +5,6 @@
 
     public interface IWhereQueryContextMixin<TResponse, TValue, TError, TQueryContext> : IQueryContext<TResponse, TValue, TError> where TQueryContext : IQueryContext<TResponse, TValue, TError>
     {
-        TQueryContext WhereImpl(Expression<Func<TValue, bool>> predicate);
+        TQueryContext Where(Expression<Func<TValue, bool>> predicate);
     }
 }

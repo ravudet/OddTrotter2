@@ -24,11 +24,11 @@
 
     public static class QueryContextExtensions
     {
-        public static TQueryContext Where<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, System.Linq.Expressions.Expression<Func<TValue, bool>> predicate)
+        /*public static TQueryContext Where<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, System.Linq.Expressions.Expression<Func<TValue, bool>> predicate)
             where TQueryContext : Mixins.IWhereQueryContextMixin<TResponse, TValue, TError, TQueryContext>
         {
-            return queryContext.WhereImpl(predicate);
-        }
+            return queryContext.Where(predicate);
+        }*/
 
         public sealed class Foo : IWhereQueryContextMixin<string, string, Exception, Foo>
         {
@@ -37,7 +37,7 @@
                 throw new NotImplementedException();
             }
 
-            public Foo WhereImpl(Expression<Func<string, bool>> predicate)
+            public Foo Where(Expression<Func<string, bool>> predicate)
             {
                 throw new NotImplementedException();
             }
@@ -56,12 +56,12 @@
             //where TQueryContext : IQueryContext<TResponse, TValue, TError>
             where TQueryContext : IWhereQueryContextMixin<TResponse, TValue, TError, TQueryContext>
         {
-            return monad.Unit<TQueryContext, TResponse, TValue, TError>()(monad.Source.WhereImpl(predicate));
+            return monad.Unit<TQueryContext, TResponse, TValue, TError>()(monad.Source.Where(predicate));
 
             throw new NotImplementedException();
         }
 
-        public sealed class Bar<TQueryContext, TResponse, TValue, TError> : IQueryContextMonad<TQueryContext, TResponse, TValue, TError>
+        public sealed class Bar<TQueryContext, TResponse, TValue, TError> : IQueryContextMonad<TQueryContext, TResponse, TValue, TError>, IWhereQueryContextMixin<TResponse, TValue, TError, Bar<TQueryContext, TResponse, TValue, TError>>
 
             where TQueryContext : IQueryContext<TResponse, TValue, TError>
         {
@@ -81,6 +81,11 @@
             {
                 ////return context => new Bar<TQueryContext2, TResponse2, TValue2, TError2>(context);
                 return ToBar<TQueryContext2, TResponse2, TValue2, TError2>;
+            }
+
+            public Bar<TQueryContext, TResponse, TValue, TError> Where(Expression<Func<TValue, bool>> predicate)
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -108,7 +113,7 @@
             var bar2 = fizz.ToBar<Fizz, string, string, Exception>();
             ////var result2 = bar2.Where(val => true);
 
-            foo = foo.WhereImpl(val => true).WhereImpl(val => true);
+            foo = foo.Where(val => true).Where(val => true);
         }
     }
 }
