@@ -2,7 +2,7 @@
 {
     using System.Runtime.CompilerServices;
 
-    public sealed class TaskWrapper<T, TTaskAwaiter> : ITask<T>
+    public sealed class TaskWrapper<T> : ITask<T>
     {
         private readonly Task<T> task;
 
