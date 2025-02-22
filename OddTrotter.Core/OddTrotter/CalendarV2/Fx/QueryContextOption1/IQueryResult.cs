@@ -5,8 +5,8 @@
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <typeparam name="TError"></typeparam>
-    public interface IQueryResult<TValue, TError>
+    public interface IQueryResult<out TValue, out TError>
     {
-        QueryResultNode<TValue, TError> Nodes { get; }
+        IQueryResultNode<TValue, TError> Nodes { get; }
     }
 }

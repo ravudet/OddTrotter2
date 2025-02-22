@@ -1,5 +1,33 @@
 ﻿namespace Fx.QueryContextOption1
 {
+    using System;
+
+    public interface IQueryResultNode<out TValue, out TError>
+    {
+        TResult Visit<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> elementAccept, Func<ITerminal<TError>, TContext, TResult> terminalAccept);
+    }
+
+    public interface IElement<out TValue, out TError>
+    {
+        TValue Value { get; }
+
+        IQueryResultNode<TValue, TError> Next();
+    }
+
+    public interface ITerminal<out TError>
+    {
+        TResult Visit<TResult, TContext>(Func<IError<TError>, TContext, TResult> errorAccept, Func<IEmpty, TContext, TResult> emptyAccept);
+    }
+
+    public interface IError<out TError>
+    {
+        TError Value { get; }
+    }
+
+    public interface IEmpty
+    {
+    }
+
     public abstract class QueryResultNode<TValue, TError>
     {
         private QueryResultNode()
