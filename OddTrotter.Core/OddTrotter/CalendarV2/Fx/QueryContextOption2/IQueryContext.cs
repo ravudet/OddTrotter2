@@ -12,6 +12,7 @@
 
     public interface ITask<out T>
     {
+        //// TODO it's tempting to call this `ifuture<T>`, but don't do it if any of the `await` requirements take an implied dependency on multi-tasking
         ITaskAwaiter<T> GetAwaiter();
     }
 
