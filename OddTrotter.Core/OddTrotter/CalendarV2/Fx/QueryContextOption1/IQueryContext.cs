@@ -132,18 +132,44 @@
             }
         }
 
-        public static void TypeParametersDriver(Foo foo, Buzz buzz)
+        public static void TypeParametersDriver(Foo foo, Buzz buzz, Frob frob)
         {
             var bar = foo.ToBar(Of.Type<string>(), Of.Type<string>(), Of.Type<Exception>());
 
             var bar2 = buzz.ToBar(Buzz.TypeParameters);
 
+
+            var bar3 = frob.ToBar();
+            bar3.Where(valu => true);
+        }
+
+        public sealed class Frob : IWhereQueryContextMixin<string, string, Exception, Frob>, IHasTypeParameters2<Frob, string, string, Exception>
+        {
+            public static ITypeParameters<string, string, Exception> TypeParameters => throw new NotImplementedException();
+
+            public Frob Instance
+            {
+                get
+                {
+                    return this;
+                }
+            }
+
+            public Task<IQueryResult<string, Exception>> Evaluate()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Frob Where(Expression<Func<string, bool>> predicate)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public static Bar<TQueryContext, TResponse, TValue, TError> ToBar<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, ITypeParameters<TResponse, TValue, TError> typeParameters)
             where TQueryContext : IQueryContext<TResponse, TValue, TError>
         {
-            return ToBar(queryContext, typeParameters.Type1, typeParameters.Type2, typeParameters.Type3);
+            return ToBar<TQueryContext, TResponse, TValue, TError>(queryContext);
         }
 
         public static Bar<TQueryContext, TResponse, TValue, TError> ToBar<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, Type<TResponse> response, Type<TValue> value, Type<TError> error)
@@ -152,16 +178,23 @@
             return ToBar<TQueryContext, TResponse, TValue, TError>(queryContext);
         }
 
+        public static Bar<TQueryContext, TResponse, TValue, TError> ToBar<TQueryContext, TResponse, TValue, TError>(this IHasTypeParameters2<TQueryContext, TResponse, TValue, TError> queryContext) where TQueryContext : IQueryContext<TResponse, TValue, TError>
+        {
+            return queryContext.Instance.ToBar<TQueryContext, TResponse, TValue, TError>();
+        }
+
+        public interface IHasTypeParameters2<TInstance, T1, T2, T3>
+        {
+            TInstance Instance { get; }
+        }
+
         public interface IHasTypeParameters<T1, T2, T3>
         {
-            static abstract ITypeParameters<T1, T2, T3> TypeParameters { get; } //// TODO is this being static *really* any better than be an intance property?
+            static abstract ITypeParameters<T1, T2, T3> TypeParameters { get; } //// TODO is this being static *really* any better than be an intance property? //// TODO it actually might if you put it on `iquerycontext` instead of `buzz`
         }
 
         public interface ITypeParameters<T1, T2, T3>
         {
-            Type<T1> Type1 { get; }
-            Type<T2> Type2 { get; }
-            Type<T3> Type3 { get; }
         }
 
         public static class Of
