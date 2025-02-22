@@ -4,6 +4,6 @@
 
     public interface ITask<out T>
     {
-        ITaskAwaiter<T> GetAwaiter();
+        ITaskAwaiter<T> GetAwaiter(); //// TODO you don't have configureawait(false) available here...
     }
 }
