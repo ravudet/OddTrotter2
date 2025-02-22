@@ -1,6 +1,7 @@
 ﻿namespace Fx.QueryContextOption1
 {
     using Fx.QueryContextOption1.Mixins;
+    using Stash;
     using System;
     using System.Collections.Generic;
     using System.Linq.Expressions;
@@ -114,6 +115,70 @@
             ////var result2 = bar2.Where(val => true);
 
             foo = foo.Where(val => true).Where(val => true);
+        }
+
+        public sealed class Buzz : IWhereQueryContextMixin<string, string, Exception, Buzz>, IHasTypeParameters<string, string, Exception>
+        {
+            public ITypeParameters<string, string, Exception> TypeParameters => throw new NotImplementedException();
+
+            public Task<IQueryResult<string, Exception>> Evaluate()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Buzz Where(Expression<Func<string, bool>> predicate)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public static void TypeParametersDriver(Foo foo, Buzz buzz)
+        {
+            var bar = foo.ToBar(Of.Type<string>(), Of.Type<string>(), Of.Type<Exception>());
+
+            var bar2 = buzz.ToBar(buzz.TypeParameters);
+
+        }
+
+        public static Bar<TQueryContext, TResponse, TValue, TError> ToBar<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, ITypeParameters<TResponse, TValue, TError> typeParameters)
+            where TQueryContext : IQueryContext<TResponse, TValue, TError>
+        {
+            return ToBar(queryContext, typeParameters.Type1, typeParameters.Type2, typeParameters.Type3);
+        }
+
+        public static Bar<TQueryContext, TResponse, TValue, TError> ToBar<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, Type<TResponse> response, Type<TValue> value, Type<TError> error)
+            where TQueryContext : IQueryContext<TResponse, TValue, TError>
+        {
+            return ToBar<TQueryContext, TResponse, TValue, TError>(queryContext);
+        }
+
+        public interface IHasTypeParameters<T1, T2, T3>
+        {
+            ITypeParameters<T1, T2, T3> TypeParameters { get; }
+        }
+
+        public interface ITypeParameters<T1, T2, T3>
+        {
+            Type<T1> Type1 { get; }
+            Type<T2> Type2 { get; }
+            Type<T3> Type3 { get; }
+        }
+
+        public static class Of
+        {
+            public static Type<T> Type<T>()
+            {
+                return QueryContextExtensions.Type<T>.Instance;
+            }
+        }
+
+        public sealed class Type<T>
+        {
+            private Type()
+            {
+            }
+
+            public static Type<T> Instance { get; } = new Type<T>();
         }
     }
 }
