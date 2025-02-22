@@ -13,7 +13,7 @@
         
         public ITaskAwaiter<T> GetAwaiter()
         {
-            throw new NotImplementedException();
+            return new TaskAwaiterWrapper<T>(this.task.GetAwaiter());
         }
     }
 }

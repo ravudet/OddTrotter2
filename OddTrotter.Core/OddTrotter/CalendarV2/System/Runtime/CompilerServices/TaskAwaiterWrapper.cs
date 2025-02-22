@@ -9,21 +9,27 @@
             this.taskAwaiter = taskAwaiter;
         }
 
-        public bool IsCompleted => throw new NotImplementedException();
+        public bool IsCompleted
+        {
+            get
+            {
+                return this.taskAwaiter.IsCompleted;
+            }
+        }
 
         public T GetResult()
         {
-            throw new NotImplementedException();
+            return this.taskAwaiter.GetResult();
         }
 
         public void OnCompleted(Action continuation)
         {
-            throw new NotImplementedException();
+            this.taskAwaiter.OnCompleted(continuation);
         }
 
         public void UnsafeOnCompleted(Action continuation)
         {
-            throw new NotImplementedException();
+            this.taskAwaiter.UnsafeOnCompleted(continuation);
         }
     }
 }
