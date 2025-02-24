@@ -223,6 +223,7 @@
 
     public static class NewEitherPlayground
     {
+        //// TODO can you somehow make all of this solve your visitor explosion problem? where you have a selectasync overload (for example) that takes in a TEither : IEitherAsync and returns a TEitherResult?
         public static void Driver()
         {
             var either = new Either<string, Exception>.Left("asdf");
