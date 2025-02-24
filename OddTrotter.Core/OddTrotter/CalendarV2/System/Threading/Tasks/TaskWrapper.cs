@@ -17,7 +17,12 @@
 
             this.task = task;
         }
-        
+
+        public IConfiguredAwaitable<T> ConfigureAwait(bool continueOnCapturedContext)
+        {
+            return new ConfiguredAwaitableWrapper<T>(this.task.ConfigureAwait(false));
+        }
+
         /// <inheritdoc/>
         public ITaskAwaiter<T> GetAwaiter()
         {
