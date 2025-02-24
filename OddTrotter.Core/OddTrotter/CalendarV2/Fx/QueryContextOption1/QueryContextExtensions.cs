@@ -222,4 +222,243 @@
             public static Type<T> Instance { get; } = new Type<T>();
         }
     }
+
+    public static class NewEitherPlayground
+    {
+        public static void Driver()
+        {
+            var either = new Either<string, Exception>.Left("asdf");
+            either.Select<Either<string, Exception>, string, Exception, Either<string, Nothing>, string, Nothing>(
+                val => val, 
+                error => new Nothing(),
+                EitherFactory<string, Nothing>.Instance);
+
+            either.Select2<Either<string, Exception>, string, Exception, Either<string, Nothing>, string, Nothing>(
+                val => val,
+                error => new Nothing());
+
+            ////either.Select3(val => val, error => new Nothing());
+        }
+
+        public static TEitherResult Select3<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>(this IHasGenericTypeParameters<TEitherSource, TLeftSource, TRightSource, TLeftResult, TRightResult> source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector)
+            where TEitherSource : IEither<TLeftSource, TRightSource>
+            where TEitherResult : IEither<TLeftResult, TRightResult>, IEitherFactory2<TEitherResult, TLeftResult, TRightResult>
+        {
+            return source.Self.Select3<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>(leftSelector, rightSelector);
+        }
+
+        public static TEitherResult Select3<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>(this TEitherSource source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector)
+            where TEitherSource : IEither<TLeftSource, TRightSource>
+            where TEitherResult : IEither<TLeftResult, TRightResult>, IEitherFactory2<TEitherResult, TLeftResult, TRightResult>
+        {
+            return source.Apply(
+                left => TEitherResult.MakeLeft(leftSelector(left)),
+                right => TEitherResult.MakeRight(rightSelector(right)));
+        }
+
+        public static TEitherResult Select2<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>(this TEitherSource source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector)
+            where TEitherSource : IEither<TLeftSource, TRightSource>
+            where TEitherResult : IEither<TLeftResult, TRightResult>, IEitherFactory2<TEitherResult, TLeftResult, TRightResult>
+        {
+            return source.Apply(
+                left => TEitherResult.MakeLeft(leftSelector(left)),
+                right => TEitherResult.MakeRight(rightSelector(right)));
+        }
+
+        public static TEitherResult Select<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>(this TEitherSource source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector,
+            IEitherFactory<TEitherResult, TLeftResult, TRightResult> factory)
+            where TEitherSource : IEither<TLeftSource, TRightSource>
+            where TEitherResult : IEither<TLeftResult, TRightResult>
+        {
+            return source.Apply(
+                left => factory.MakeLeft(leftSelector(left)),
+                right => factory.MakeRight(rightSelector(right)));
+        }
+
+        public interface IEither<out TLeft, out TRight>
+        {
+            TResult Apply<TResult>(Func<TLeft, TResult> leftMap, Func<TRight, TResult> rightMap);
+        }
+
+        public interface IEitherFactory<out TEither, TLeft, TRight> where TEither : IEither<TLeft, TRight>
+        {
+            TEither MakeLeft(TLeft left);
+
+            TEither MakeRight(TRight right);
+        }
+
+        public sealed class EitherFactory<TLeft, TRight> : IEitherFactory<Either<TLeft, TRight>, TLeft, TRight>
+        {
+            private EitherFactory()
+            {
+            }
+
+            public static EitherFactory<TLeft, TRight> Instance { get; } = new EitherFactory<TLeft, TRight>();
+
+            public Either<TLeft, TRight> MakeLeft(TLeft left)
+            {
+                return new Either<TLeft, TRight>.Left(left);
+            }
+
+            public Either<TLeft, TRight> MakeRight(TRight right)
+            {
+                return new Either<TLeft, TRight>.Right(right);
+            }
+        }
+
+        public interface IEitherFactory2<out TEither, TLeft, TRight> where TEither : IEither<TLeft, TRight>
+        {
+            static abstract TEither MakeLeft(TLeft left);
+
+            static abstract TEither MakeRight(TRight right);
+        }
+
+        public interface IEitherFactory3<out TEither, TLeft, TRight> where TEither : IEither<TLeft, TRight>
+        {
+            TEither MakeLeft(TLeft left);
+
+            TEither MakeRight(TRight right);
+        }
+
+        public sealed class EitherFactory3<TEither, TLeft, TRight> : IEitherFactory3<TEither, TLeft, TRight> where TEither : IEither<TLeft, TRight>
+        {
+            public TEither MakeLeft(TLeft left)
+            {
+                throw new NotImplementedException();
+            }
+
+            public TEither MakeRight(TRight right)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public abstract class Either2<TLeft, TRight, TLeft2, TRight2> : IEither<TLeft, TRight>, IEitherFactory2<Either2<TLeft2, TRight2, TLeft, TRight>, TLeft2, TRight2>, IHasGenericTypeParameters<Either2<TLeft, TRight, TLeft2, TRight2>, TLeft, TRight>
+        {
+            private Either2()
+            {
+            }
+
+            public Either2<TLeft, TRight, TLeft2, TRight2> Self
+            {
+                get
+                {
+                    return this;
+                }
+            }
+
+            public static Either2<TLeft2, TRight2, TLeft, TRight> MakeLeft(TLeft2 left)
+            {
+                return new Either2<TLeft2, TRight2, TLeft, TRight>.Left(left);
+            }
+
+            public static Either2<TLeft2, TRight2, TLeft, TRight> MakeRight(TRight2 right)
+            {
+                return new Either2<TLeft2, TRight2, TLeft, TRight>.Right(right);
+            }
+
+            public TResult Apply<TResult>(Func<TLeft, TResult> leftMap, Func<TRight, TResult> rightMap)
+            {
+                if (this is Left left)
+                {
+                    return leftMap(left.Value);
+                }
+                else if (this is Right right)
+                {
+                    return rightMap(right.Value);
+                }
+
+                throw new NotImplementedException("TODO use a visitor");
+            }
+
+            public sealed class Left : Either2<TLeft, TRight, TLeft2, TRight2>
+            {
+                public Left(TLeft value)
+                {
+                    Value = value;
+                }
+
+                public TLeft Value { get; }
+            }
+
+            public sealed class Right : Either2<TLeft, TRight, TLeft2, TRight2>
+            {
+                public Right(TRight value)
+                {
+                    Value = value;
+                }
+
+                public TRight Value { get; }
+            }
+        }
+
+        public abstract class Either<TLeft, TRight> : IEither<TLeft, TRight>, IEitherFactory2<Either<TLeft, TRight>, TLeft, TRight>, IHasGenericTypeParameters<Either<TLeft, TRight>, TLeft, TRight>
+        {
+            private Either()
+            {
+            }
+
+            public Either<TLeft, TRight> Self
+            {
+                get
+                {
+                    return this;
+                }
+            }
+
+            public static Either<TLeft, TRight> MakeLeft(TLeft left)
+            {
+                return new Either<TLeft, TRight>.Left(left);
+            }
+
+            public static Either<TLeft, TRight> MakeRight(TRight right)
+            {
+                return new Either<TLeft, TRight>.Right(right);
+            }
+
+            public TResult Apply<TResult>(Func<TLeft, TResult> leftMap, Func<TRight, TResult> rightMap)
+            {
+                if (this is Left left)
+                {
+                    return leftMap(left.Value);
+                }
+                else if (this is Right right)
+                {
+                    return rightMap(right.Value);
+                }
+
+                throw new NotImplementedException("TODO use a visitor");
+            }
+
+            public sealed class Left : Either<TLeft, TRight>
+            {
+                public Left(TLeft value)
+                {
+                    Value = value;
+                }
+
+                public TLeft Value { get; }
+            }
+
+            public sealed class Right : Either<TLeft, TRight>
+            {
+                public Right(TRight value)
+                {
+                    Value = value;
+                }
+
+                public TRight Value { get; }
+            }
+        }
+
+        public interface IHasGenericTypeParameters<TSelf, T1, T2>
+        {
+            TSelf Self { get; }
+        }
+
+        public interface IHasGenericTypeParameters<TSelf, T1, T2, T3, T4>
+        {
+            TSelf Self { get; }
+        }
+    }
 }
