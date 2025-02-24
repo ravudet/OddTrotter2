@@ -41,6 +41,18 @@
             return stateMachine.builder.Task;
         }
 
+        /// <summary>
+        ///
+        /// </summary>
+        /// <remarks>
+        /// This class is a copy of the compiler-generated code for the async test method with the following body:
+        /// ```
+        /// var value = await new AwaitedType().GetValue();
+        /// Assert.AreEqual("asdf", value);
+        /// ```
+        /// 
+        /// It has only been modified to use <see cref="AsyncTaskMethodBuilder.AwaitOnCompleted{TAwaiter, TStateMachine}(ref TAwaiter, ref TStateMachine)"/> instead of <see cref="AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted{TAwaiter, TStateMachine}(ref TAwaiter, ref TStateMachine)"/> in order to get code covereage on the <see cref="TaskAwaiterWrapper{T}.OnCompleted(Action)"/> method.
+        /// </remarks>
         private sealed class StateMachine : IAsyncStateMachine
         {
             public int state;
@@ -82,7 +94,7 @@
                     s = awaiter.GetResult();
                     value = s;
                     s = null;
-                    Assert.AreEqual(value, "asdf");
+                    Assert.AreEqual("asdf", value);
                 }
                 catch (Exception exception)
                 {
