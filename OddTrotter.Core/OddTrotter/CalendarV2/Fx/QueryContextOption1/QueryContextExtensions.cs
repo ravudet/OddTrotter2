@@ -105,11 +105,11 @@
         {
             ////foo.Where(val => true);
 
-            var bar = calendarContext.AddRavudetImprovedExtensions<CalendarContext, string, string, Exception>();
-            var result = bar.Where(val => true).Where(val => true);
+            var ravudetImprovedExtensions = calendarContext.AddRavudetImprovedExtensions<CalendarContext, string, string, Exception>();
+            var result = ravudetImprovedExtensions.Where(val => true).Where(val => true);
 
-            var bar2 = calendarContext2.AddRavudetImprovedExtensions<CalendarContext2, string, string, Exception>();
-            ////var result2 = bar2.Where(val => true);
+            var ravudetImprovedExtensions2 = calendarContext2.AddRavudetImprovedExtensions<CalendarContext2, string, string, Exception>();
+            var results2 = ravudetImprovedExtensions2.Where(val => true);
 
             calendarContext = calendarContext.Where(val => true).Where(val => true);
         }
@@ -146,13 +146,13 @@
             ravudetImprovedExtensions3.Where(valu => true);
         }
 
-        public static RavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError> AddRavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, ITypeParameters<TResponse, TValue, TError> typeParameters)
+        public static RavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError> AddRavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, Type<TResponse> response, Type<TValue> value, Type<TError> error)
             where TQueryContext : IQueryContext<TResponse, TValue, TError>
         {
             return AddRavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError>(queryContext);
         }
 
-        public static RavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError> AddRavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, Type<TResponse> response, Type<TValue> value, Type<TError> error)
+        public static RavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError> AddRavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, ITypeParameters<TResponse, TValue, TError> typeParameters)
             where TQueryContext : IQueryContext<TResponse, TValue, TError>
         {
             return AddRavudetImprovedExtensions<TQueryContext, TResponse, TValue, TError>(queryContext);
@@ -165,8 +165,6 @@
 
         public sealed class CalendarContext4 : IWhereQueryContextMixin<string, string, Exception, CalendarContext4>, IHasTypeParameters2<CalendarContext4, string, string, Exception>
         {
-            public static ITypeParameters<string, string, Exception> TypeParameters => throw new NotImplementedException();
-
             public CalendarContext4 Instance
             {
                 get

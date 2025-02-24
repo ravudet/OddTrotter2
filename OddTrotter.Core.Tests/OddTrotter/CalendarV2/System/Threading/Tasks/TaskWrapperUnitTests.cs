@@ -1,6 +1,7 @@
 ﻿namespace System.Threading.Tasks
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using System.Diagnostics;
     using System.Runtime.CompilerServices;
 
     [TestClass]
@@ -26,6 +27,90 @@
             {
                 await Task.Delay(100).ConfigureAwait(false);
                 return "asdf";
+            }
+        }
+
+        [TestMethod]
+        public Task Test2()
+        {
+            StateMachine stateMachine = new StateMachine();
+            stateMachine.builder = AsyncTaskMethodBuilder.Create();
+            stateMachine.self = this;
+            stateMachine.state = -1;
+            stateMachine.builder.Start(ref stateMachine);
+            return stateMachine.builder.Task;
+        }
+
+        private sealed class StateMachine : IAsyncStateMachine
+        {
+            public int state;
+
+            public AsyncTaskMethodBuilder builder;
+
+            public TaskWrapperUnitTests? self;
+
+            private string? value;
+
+            private string? s;
+
+            private object? u;
+
+            private void MoveNext()
+            {
+                int num = state;
+                try
+                {
+                    ITaskAwaiter<string> awaiter;
+                    if (num != 0)
+                    {
+                        awaiter = new AwaitedType().GetValue().GetAwaiter();
+                        if (!awaiter.IsCompleted)
+                        {
+                            num = (state = 0);
+                            u = awaiter;
+                            StateMachine stateMachine = this;
+                            builder.AwaitOnCompleted(ref awaiter, ref stateMachine);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        awaiter = ((ITaskAwaiter<string>)u!); //// TODO you addeed the bang, is that ok?
+                        u = null;
+                        num = (state = -1);
+                    }
+                    s = awaiter.GetResult();
+                    value = s;
+                    s = null;
+                    Assert.AreEqual(value, "asdf");
+                }
+                catch (Exception exception)
+                {
+                    state = -2;
+                    value = null;
+                    builder.SetException(exception);
+                    return;
+                }
+                state = -2;
+                value = null;
+                builder.SetResult();
+            }
+
+            void IAsyncStateMachine.MoveNext()
+            {
+                //ILSpy generated this explicit interface implementation from .override directive in MoveNext
+                this.MoveNext();
+            }
+
+            [DebuggerHidden]
+            private void SetStateMachine(IAsyncStateMachine stateMachine)
+            {
+            }
+
+            void IAsyncStateMachine.SetStateMachine(IAsyncStateMachine stateMachine)
+            {
+                //ILSpy generated this explicit interface implementation from .override directive in SetStateMachine
+                this.SetStateMachine(stateMachine);
             }
         }
     }
