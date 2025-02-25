@@ -1,12 +1,110 @@
 ﻿namespace System.Threading.Tasks
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using System.Collections.Concurrent;
     using System.Diagnostics;
     using System.Runtime.CompilerServices;
 
     [TestClass]
     public sealed class TaskWrapperUnitTests
     {
+        private sealed class Context : SynchronizationContext
+        {
+            private readonly ConcurrentQueue<(SendOrPostCallback, object?)> queue;
+            private readonly Thread thread;
+
+            public Context()
+            {
+                this.queue = new ConcurrentQueue<(SendOrPostCallback, object?)>();
+                this.thread = new Thread(Schedule);
+                thread.Start();
+            }
+
+            public int ThreadId => this.thread.ManagedThreadId;
+
+            public override void Send(SendOrPostCallback d, object? state)
+            {
+                this.queue.Enqueue((d, state));
+            }
+
+            public override void Post(SendOrPostCallback d, object? state)
+            {
+                this.queue.Enqueue((d, state));
+            }
+
+            private void Schedule()
+            {
+                SynchronizationContext.SetSynchronizationContext(this);
+
+                while (true)
+                {
+                    while (this.queue.TryDequeue(out var item))
+                    {
+                        item.Item1(item.Item2);
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task AnotherTest()
+        {
+            var current = Thread.CurrentThread;
+
+            SynchronizationContext.SetSynchronizationContext(new Context());
+
+            ////int hashCode;
+            /*if (SynchronizationContext.Current == null)
+            {
+                var context = new SynchronizationContext();
+                SynchronizationContext.SetSynchronizationContext(context);
+                SynchronizationContext.Current?.Post(state => Console.WriteLine(state), "post");
+                hashCode = context.GetHashCode();
+            }
+            else
+            {
+                SynchronizationContext.Current.Post(state => Console.WriteLine(state), "post");
+                hashCode = SynchronizationContext.Current.GetHashCode();
+            }*/
+
+            ////var getValueTask = new AwaitedType().GetValue().ConfigureAwait(true);
+
+            var taskId = Task.CurrentId;
+
+            await Task.Delay(1).ConfigureAwait(true);
+
+            if (SynchronizationContext.Current is Context context)
+            {
+                var threadId2 = context.ThreadId;
+            }
+            else
+            {
+                Assert.Fail();
+            }
+
+            await Task.Delay(100).ConfigureAwait(true);
+
+            if (SynchronizationContext.Current is Context context2)
+            {
+                var threadId2 = context2.ThreadId;
+            }
+            else
+            {
+                Assert.Fail();
+            }
+
+            /*var value = await getValueTask;
+
+            Assert.AreEqual("asdf", value);*/
+
+            var taskId2 = Task.CurrentId;
+
+            Assert.IsNotNull(SynchronizationContext.Current);
+            ////Assert.AreEqual(hashCode, SynchronizationContext.Current.GetHashCode());
+        }
+
+        private static object Lock = new object();
+
         [TestMethod]
         public async Task Test()
         {
