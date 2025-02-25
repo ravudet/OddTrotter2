@@ -237,9 +237,133 @@
                 error => new Nothing());
 
             ////either.Select3(val => val, error => new Nothing());
+
+            /*either.Select4<Either<string, Exception>, string, Exception, EitherFactory<string, Nothing>,  Either<string, Nothing>, string, Nothing>(val => val, error => new Nothing(), EitherFactory.Create<string, Nothing>);*/
+
+            /*Parameters.Create(either).AddLeftSelector(val => val).AddRightSelector(error => new Nothing()).AddFactory(EitherFactory.Generate);
+
+            either.Select4(val => val, error => new Nothing(), EitherFactory.Create);*/
         }
 
-        public static TEitherResult Select3<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>(this IHasGenericTypeParameters<TEitherSource, TLeftSource, TRightSource, TLeftResult, TRightResult> source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector)
+        public static class Parameters
+        {
+            public static Builder<TEitherSource, TLeftSource, TRightSource> Create<TEitherSource, TLeftSource, TRightSource>(IHasGenericTypeParameters<TEitherSource, TLeftSource, TRightSource> either)
+                where TEitherSource : IEither<TLeftSource, TRightSource>
+            {
+                return Create<TEitherSource, TLeftSource, TRightSource>(either.Self);
+            }
+
+            public static Builder<TEitherSource, TLeftSource, TRightSource> Create<TEitherSource, TLeftSource, TRightSource>(TEitherSource either)
+                where TEitherSource : IEither<TLeftSource, TRightSource>
+            {
+                return new Builder<TEitherSource, TLeftSource, TRightSource>(either);
+            }
+
+            public sealed class Builder<TEitherSource, TLeftSource, TRightSource>
+            {
+                private readonly TEitherSource either;
+
+                public Builder(TEitherSource either)
+                {
+                    this.either = either;
+                }
+
+                public Builder2<TLeftResult> AddLeftSelector<TLeftResult>(Func<TLeftSource, TLeftResult> leftSelector)
+                {
+                    return new Builder2<TLeftResult>(this.either, leftSelector);
+                }
+
+                public sealed class Builder2<TLeftResult>
+                {
+                    private readonly TEitherSource either;
+                    private readonly Func<TLeftSource, TLeftResult> leftSelector;
+
+                    public Builder2(TEitherSource either, Func<TLeftSource, TLeftResult> leftSelector)
+                    {
+                        this.either = either;
+                        this.leftSelector = leftSelector;
+                    }
+
+                    public Builder3<TRightResult> AddRightSelector<TRightResult>(Func<TRightSource, TRightResult> rightSelector)
+                    {
+                        return new Builder3<TRightResult>(this.either, this.leftSelector, rightSelector);
+                    }
+
+                    public sealed class Builder3<TRightResult>
+                    {
+                        private readonly TEitherSource either;
+                        private readonly Func<TLeftSource, TLeftResult> leftSelector;
+                        private readonly Func<TRightSource, TRightResult> rightSelector;
+
+                        public Builder3(TEitherSource either, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector)
+                        {
+                            this.either = either;
+                            this.leftSelector = leftSelector;
+                            this.rightSelector = rightSelector;
+                        }
+
+                        public Builder4<TFactory> AddFactory<TFactory, TEitherResult>(Func<IHasGenericTypeParameters<TFactory, TEitherResult, TLeftResult, TRightResult>> factory)
+                        {
+                            return new Builder4<TFactory>(factory.Invoke().Self);
+                        }
+
+                        public sealed class Builder4<TFactory>
+                        {
+                            public Builder4(TFactory factory)
+                            {
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public sealed class FuncWrapper<T> : IFunc<T>, IHasGenericTypeParameters<FuncWrapper<T>, T>
+        {
+            private readonly Func<T> func;
+
+            public FuncWrapper(Func<T> func)
+            {
+                this.func = func;
+            }
+
+            public FuncWrapper<T> Self => this;
+
+            public T Invoke()
+            {
+                return this.func();
+            }
+        }
+
+        public interface IFunc<T>
+        {
+            T Invoke();
+        }
+
+        public sealed class Parameters<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>
+        {
+
+        }
+
+        public static TEitherResult Select4<TEitherSource, TLeftSource, TRightSource, TFactory, TEitherResult, TLeftResult, TRightResult>(this IHasGenericTypeParameters<TEitherSource, TLeftSource, TRightSource> source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector, Func<IHasGenericTypeParameters<TFactory, TEitherResult, TLeftResult, TRightResult>> factory)
+            where TEitherSource : IEither<TLeftSource, TRightSource>
+            where TEitherResult : IEither<TLeftResult, TRightResult>
+            where TFactory : IEitherFactory<TEitherResult, TLeftResult, TRightResult>
+        {
+            return Select4<TEitherSource, TLeftSource, TRightSource, TFactory, TEitherResult, TLeftResult, TRightResult>(source.Self, leftSelector, rightSelector, factory().Self);
+        }
+
+        public static TEitherResult Select4<TEitherSource, TLeftSource, TRightSource, TFactory, TEitherResult, TLeftResult, TRightResult>(this TEitherSource source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector, TFactory factory)
+            where TEitherSource : IEither<TLeftSource, TRightSource>
+            where TEitherResult : IEither<TLeftResult, TRightResult>
+            where TFactory : IEitherFactory<TEitherResult, TLeftResult, TRightResult>
+        {
+            return source.Apply(
+                left => factory.MakeLeft(leftSelector(left)),
+                right => factory.MakeRight(rightSelector(right)));
+        }
+
+        /*public static TEitherResult Select3<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>(this IHasGenericTypeParameters<TEitherSource, TLeftSource, TRightSource, TLeftResult, TRightResult> source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector)
             where TEitherSource : IEither<TLeftSource, TRightSource>
             where TEitherResult : IEither<TLeftResult, TRightResult>, IEitherFactory2<TEitherResult, TLeftResult, TRightResult>
         {
@@ -253,7 +377,7 @@
             return source.Apply(
                 left => TEitherResult.MakeLeft(leftSelector(left)),
                 right => TEitherResult.MakeRight(rightSelector(right)));
-        }
+        }*/
 
         public static TEitherResult Select2<TEitherSource, TLeftSource, TRightSource, TEitherResult, TLeftResult, TRightResult>(this TEitherSource source, Func<TLeftSource, TLeftResult> leftSelector, Func<TRightSource, TRightResult> rightSelector)
             where TEitherSource : IEither<TLeftSource, TRightSource>
@@ -279,6 +403,19 @@
             TResult Apply<TResult>(Func<TLeft, TResult> leftMap, Func<TRight, TResult> rightMap);
         }
 
+        public static class EitherFactory
+        {
+            public static Func<EitherFactory<TLeft, TRight>> Generate<TLeft, TRight>()
+            {
+                return new Func<EitherFactory<TLeft, TRight>>(Create<TLeft, TRight>);
+            }
+
+            public static EitherFactory<TLeft, TRight> Create<TLeft, TRight>()
+            {
+                return EitherFactory<TLeft, TRight>.Instance;
+            }
+        }
+
         public interface IEitherFactory<out TEither, TLeft, TRight> where TEither : IEither<TLeft, TRight>
         {
             TEither MakeLeft(TLeft left);
@@ -286,13 +423,15 @@
             TEither MakeRight(TRight right);
         }
 
-        public sealed class EitherFactory<TLeft, TRight> : IEitherFactory<Either<TLeft, TRight>, TLeft, TRight>
+        public sealed class EitherFactory<TLeft, TRight> : IEitherFactory<Either<TLeft, TRight>, TLeft, TRight>, IHasGenericTypeParameters<EitherFactory<TLeft, TRight>, TLeft, TRight>, IHasGenericTypeParameters<EitherFactory<TLeft, TRight>, Either<TLeft, TRight>, TLeft, TRight>
         {
             private EitherFactory()
             {
             }
 
             public static EitherFactory<TLeft, TRight> Instance { get; } = new EitherFactory<TLeft, TRight>();
+
+            public EitherFactory<TLeft, TRight> Self => this;
 
             public Either<TLeft, TRight> MakeLeft(TLeft left)
             {
@@ -455,7 +594,12 @@
             TSelf Self { get; }
         }
 
-        public interface IHasGenericTypeParameters<TSelf, T1, T2, T3, T4>
+        public interface IHasGenericTypeParameters<TSelf, T1, T2, T3>
+        {
+            TSelf Self { get; }
+        }
+
+        public interface IHasGenericTypeParameters<TSelf, T1>
         {
             TSelf Self { get; }
         }
