@@ -87,6 +87,55 @@
         [TestMethod]
         public void ApplyLeftMapException()
         {
+            var value = "asdf";
+            var invalidOperationException = new InvalidOperationException();
+            var node = new QueryResultNode<string, Exception>(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
+
+            var leftMapException = Assert.ThrowsException<LeftMapException>(() => node.Apply(
+                (element, context) => throw invalidOperationException,
+                (terminal, context) => terminal.Apply(
+                    (error, context) => error.Value.Message,
+                    (empty, context) => string.Empty,
+                    new Nothing()),
+                new Nothing()));
+
+            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
+
+            node = new QueryResultNode<string, Exception>(Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
+
+            var result = node.Apply(
+                (element, context) => throw invalidOperationException,
+                (terminal, context) => terminal.Apply(
+                    (error, context) => error.Value.Message,
+                    (empty, context) => string.Empty,
+                    new Nothing()),
+                new Nothing());
+
+            Assert.AreEqual(value, result);
+        }
+
+        [TestMethod]
+        public void ApplyRightMapException()
+        {
+            var value = "asdf";
+            var invalidOperationException = new InvalidOperationException();
+            var node = new QueryResultNode<string, Exception>(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
+
+            var result = node.Apply(
+                (element, context) => string.Concat(element.Value, element.Value),
+                (terminal, context) => throw invalidOperationException,
+                new Nothing());
+
+            Assert.AreEqual(value + value, result);
+            
+            node = new QueryResultNode<string, Exception>(Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
+
+            var rightMapException = Assert.ThrowsException<RightMapException>(() => node.Apply(
+                (element, context) => string.Concat(element.Value, element.Value),
+                (terminal, context) => throw invalidOperationException,
+                new Nothing()));
+
+            Assert.AreEqual(invalidOperationException, rightMapException.InnerException);
         }
 
         [TestMethod]
