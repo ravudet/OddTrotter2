@@ -6,6 +6,7 @@
 
     using Fx.Either;
     using Fx.Try;
+    using Stash;
 
     public static class QueryResultExtensions
     {
@@ -74,11 +75,11 @@
                     return WhereQueryResult<TValue, TError>.Visit(this.next, this.predicate);
                 }
 
-                public TResult Visit2<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> elementAccept, Func<QueryContextOption1.ITerminal<TValue, TError>, TContext, TResult> terminalAccept, TContext context)
+                /*public TResult Visit2<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> elementAccept, Func<QueryContextOption1.ITerminal<TValue, TError>, TContext, TResult> terminalAccept, TContext context)
                 {
                     ////this.Visit(elementAccept, terminalAccept, context);
                     return this.current.Visit(elementAccept, terminalAccept, context);
-                }
+                }*/
 
                 /*public override QueryResultNode<TValue, TError> Next()
                 {
@@ -156,6 +157,62 @@
             }
         }
         #endregion
+
+        public static IQueryResult<TResult, TError> Select2<TSource, TError, TResult>(this IQueryResult<TSource, TError> source, Func<TSource, TResult> selector)
+        {
+            return new Select2Result<TSource, TError, TResult>(source, selector);
+        }
+
+        private sealed class Select2Result<TSource, TError, TResult> : IQueryResult<TResult, TError>
+        {
+            private readonly IQueryResult<TSource, TError> source;
+            private readonly Func<TSource, TResult> selector;
+
+            public Select2Result(IQueryResult<TSource, TError> source, Func<TSource, TResult> selector)
+            {
+                this.source = source;
+                this.selector = selector;
+            }
+
+            public IQueryResultNode<TResult, TError> Nodes
+            {
+                get
+                {
+                    return Select(this.source.Nodes, this.selector);
+                }
+            }
+
+            private static IQueryResultNode<TResult, TError> Select(IQueryResultNode<TSource, TError> node, Func<TSource, TResult> selector)
+            {
+                return node.Visit(
+                    (element, context) => (IQueryResultNode<TResult, TError>)new Element(selector(element.Value), element.Next(), selector),
+                    (terminal, context) => terminal.Visit(
+                        (error, context) => (ITerminal<TResult, TError>)new QueryResultNode<TResult, TError>.Terminal.Error(error.Value),
+                        (empty, context) => QueryResultNode<TResult, TError>.Terminal.Empty.Instance,
+                        new Nothing()),
+                    new Nothing());
+            }
+
+            private sealed class Element : IElement<TResult, TError>
+            {
+                private readonly IQueryResultNode<TSource, TError> next;
+                private readonly Func<TSource, TResult> selector;
+
+                public Element(TResult value, IQueryResultNode<TSource, TError> next, Func<TSource, TResult> selector)
+                {
+                    Value = value;
+                    this.next = next;
+                    this.selector = selector;
+                }
+
+                public TResult Value { get; }
+
+                public IQueryResultNode<TResult, TError> Next()
+                {
+                    return Select2Result<TSource, TError, TResult>.Select(this.next, this.selector);
+                }
+            }
+        }
 
         public static IQueryResult<TResult, TError> Select<TSource, TError, TResult>(this IQueryResult<TSource, TError> source, Func<TSource, TResult> selector)
         {

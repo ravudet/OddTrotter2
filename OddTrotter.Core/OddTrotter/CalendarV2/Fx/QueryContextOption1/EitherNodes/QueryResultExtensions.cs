@@ -4,9 +4,9 @@
 
     using Fx.Either;
 
-    /*public static class QueryResultExtensions
+    public static class QueryResultExtensions
     {
-        public static IQueryResult<TValue, TError> Where<TValue, TError>(this IQueryResult<TValue, TError> source, Func<TValue, bool> predicate)
+        /*public static IQueryResult<TValue, TError> Where<TValue, TError>(this IQueryResult<TValue, TError> source, Func<TValue, bool> predicate)
         {
             source.Nodes.SelectLeft(element => predicate(element.Value) ? )
         }
@@ -57,6 +57,77 @@
 
                 }
             }
+        }*/
+
+        public static IQueryResult<TValueResult, TError> Select<TValueSource, TError, TValueResult>(this IQueryResult<TValueSource, TError> source, Func<TValueSource, TValueResult> selector)
+        {
+            return new SelectQueryResult<TValueSource, TError, TValueResult>(source, selector);
         }
-    }*/
+
+        private sealed class SelectQueryResult<TValueSource, TError, TValueResult> : IQueryResult<TValueResult, TError>
+        {
+            private readonly IQueryResult<TValueSource, TError> source;
+            private readonly Func<TValueSource, TValueResult> selector;
+
+            public SelectQueryResult(IQueryResult<TValueSource, TError> source, Func<TValueSource, TValueResult> selector)
+            {
+                this.source = source;
+                this.selector = selector;
+            }
+
+            public IQueryResultNode<TValueResult, TError> Nodes
+            {
+                get
+                {
+                    return Select(this.source.Nodes);
+                }
+            }
+
+            private IQueryResultNode<TValueResult, TError> Select(IQueryResultNode<TValueSource, TError> node)
+            {
+                return new EitherAdapter<TValueResult, TError>(node.SelectLeft(element => new Element(this.selector(element.Value), element.Next(), this.selector)));
+            }
+
+            private sealed class Element : QueryResultNode<TValueResult, TError>.Element, IElement<TValueResult, TError>
+            {
+                private readonly IQueryResultNode<TValueSource, TError> next;
+                private readonly Func<TValueSource, TValueResult> selector;
+
+                public Element(TValueResult value, IQueryResultNode<TValueSource, TError> next, Func<TValueSource, TValueResult> selector)
+                {
+                    Value = value;
+                    this.next = next;
+                    this.selector = selector;
+                }
+
+                public override TValueResult Value { get; }
+
+                public override QueryResultNode<TValueResult, TError> Next()
+                {
+                    ////return this.next;
+                    throw new NotImplementedException();
+                }
+
+                IQueryResultNode<TValueResult, TError> IElement<TValueResult, TError>.Next()
+                {
+                    return this.Next();
+                }
+            }
+        }
+
+        private sealed class EitherAdapter<TValue, TError> : IQueryResultNode<TValue, TError>
+        {
+            private readonly IEither<IElement<TValue, TError>, ITerminal<TError>> either;
+
+            public EitherAdapter(IEither<IElement<TValue, TError>, ITerminal<TError>> either)
+            {
+                this.either = either;
+            }
+
+            public TResult Apply<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> leftMap, Func<ITerminal<TError>, TContext, TResult> rightMap, TContext context)
+            {
+                return either.Apply(leftMap, rightMap, context);
+            }
+        }
+    }
 }
