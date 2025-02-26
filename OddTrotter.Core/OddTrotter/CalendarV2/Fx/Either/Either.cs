@@ -115,8 +115,15 @@ namespace Fx.Either
         /// <param name="leftFactory">assumed to not throw exceptions</param>
         /// <param name="rightFactory">assumed to not throw exceptions</param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="discriminator"/> or <paramref name="leftFactory"/> or <paramref name="rightFactory"/> is <see langword="null"/></exception>
-        public static IEither<TLeft, TRight> Create<TValue, TLeft, TRight>(TValue value, Func<TValue, bool> discriminator, Func<TValue, TLeft> leftFactory, Func<TValue, TRight> rightFactory)
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="discriminator"/> or <paramref name="leftFactory"/> or <paramref name="rightFactory"/> is
+        /// <see langword="null"/>
+        /// </exception>
+        public static IEither<TLeft, TRight> Create<TValue, TLeft, TRight>(
+            TValue value, 
+            Func<TValue, bool> discriminator, 
+            Func<TValue, TLeft> leftFactory, 
+            Func<TValue, TRight> rightFactory)
         {
             ArgumentNullException.ThrowIfNull(discriminator);
             ArgumentNullException.ThrowIfNull(leftFactory);
