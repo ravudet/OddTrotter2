@@ -5,7 +5,7 @@
 
     //// TODO can you get rid of `iempty` and use `nothing` instead? (or perhaps just have no parameter for that case) //// TODO maybe eithers just avoids this entirely?
 
-    public abstract class QueryResultNode<TValue, TError> : IQueryResultNode<TValue, TError>
+    /*public abstract class QueryResultNode<TValue, TError> : IQueryResultNode<TValue, TError>
     {
         private QueryResultNode()
         {
@@ -150,5 +150,5 @@
                 }
             }
         }
-    }
+    }*/
 }
