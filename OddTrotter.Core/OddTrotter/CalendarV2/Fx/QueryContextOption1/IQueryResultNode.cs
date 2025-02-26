@@ -1,4 +1,4 @@
-﻿namespace Fx.QueryContextOption1.EitherNodesV3
+﻿namespace Fx.QueryContextOption1
 {
     using System;
 

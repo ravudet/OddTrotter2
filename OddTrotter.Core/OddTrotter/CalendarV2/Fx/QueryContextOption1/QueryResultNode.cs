@@ -1,4 +1,4 @@
-﻿namespace Fx.QueryContextOption1.EitherNodesV3
+﻿namespace Fx.QueryContextOption1
 {
     using Fx.Either;
 
@@ -13,7 +13,7 @@
 
         public TResult Apply<TResult, TContext>(System.Func<IElement<TValue, TError>, TContext, TResult> leftMap, System.Func<IEither<IError<TError>, IEmpty>, TContext, TResult> rightMap, TContext context)
         {
-            return this.node.Apply(leftMap, rightMap, context);
+            return node.Apply(leftMap, rightMap, context);
         }
     }
 }

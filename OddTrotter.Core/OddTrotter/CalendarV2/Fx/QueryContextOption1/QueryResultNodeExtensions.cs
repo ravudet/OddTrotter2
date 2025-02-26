@@ -1,6 +1,7 @@
-﻿namespace Fx.QueryContextOption1.EitherNodesV3
+﻿namespace Fx.QueryContextOption1
 {
     using Fx.Either;
+    using Fx.QueryContextOption1;
     using System;
 
     public static class QueryResultNodeExtensions
@@ -16,8 +17,8 @@
                 .SelectLeft(
                     element => Either2
                         .Create(
-                            element, 
-                            _ => predicate(_.Value), 
+                            element,
+                            _ => predicate(_.Value),
                             _ => new WhereElement<TValue, TError>(_.Value, _.Next(), predicate),
                             _ => _.Next().Where(predicate))
                         .SelectManyRight())
@@ -41,7 +42,7 @@
 
             public IQueryResultNode<TValue, TError> Next()
             {
-                return this.next.Where(this.predicate);
+                return next.Where(predicate);
             }
         }
 
@@ -49,9 +50,9 @@
         {
             return source
                 .SelectLeft(
-                    element => 
+                    element =>
                         new SelectElement<TValueSource, TError, TValueResult>(
-                            selector(element.Value), 
+                            selector(element.Value),
                             element.Next(),
                             selector))
                 .ToQueryResultNode();
@@ -73,7 +74,7 @@
 
             public IQueryResultNode<TValueResult, TError> Next()
             {
-                return this.next.Select(this.selector);
+                return next.Select(selector);
             }
         }
     }

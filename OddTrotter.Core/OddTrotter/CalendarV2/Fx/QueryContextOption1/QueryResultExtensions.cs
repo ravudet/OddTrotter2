@@ -1,4 +1,4 @@
-﻿namespace Fx.QueryContextOption1.EitherNodesV3
+﻿namespace Fx.QueryContextOption1
 {
     using System;
 
@@ -24,7 +24,7 @@
             {
                 get
                 {
-                    return this.source.Nodes.Where(this.predicate);
+                    return source.Nodes.Where(predicate);
                 }
             }
         }
@@ -50,7 +50,7 @@
             {
                 get
                 {
-                    return this.source.Nodes.Select(this.selector);
+                    return source.Nodes.Select(selector);
                 }
             }
         }
