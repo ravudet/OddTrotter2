@@ -381,6 +381,8 @@
             // unit tests
             // do everything above for unit tests
 
+            //// TODO do stuff in fx.querycontext
+            //// TODO then move stuff from Fx.QueryContextOption1
             //// TODO then do querycontext (and move everything to use it); the query context stuff will need some diligence and effort around adding the third type parameter that allows mixins to work correctly; do query contexts next probably and just know that you're going to need to put the effort in
             //// TODO code review system.threading.tasks
             //// TODO code review system.runtime.compilerservices
