@@ -23,7 +23,8 @@ namespace Fx.QueryContext
         public void ApplyNullLeftMap()
         {
             var value = "asdf";
-            var node = new QueryResultNode<string, Exception>(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
+            var node = new QueryResultNode<string, Exception>(
+                Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
 
             Assert.ThrowsException<ArgumentNullException>(() => node.Apply(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -86,7 +87,8 @@ namespace Fx.QueryContext
         public void ApplyNullRightMap()
         {
             var value = "asdf";
-            var node = new QueryResultNode<string, Exception>(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
+            var node = new QueryResultNode<string, Exception>(
+                Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
 
             Assert.ThrowsException<ArgumentNullException>(() => node.Apply(
                 (element, context) => string.Concat(element.Value, element.Value),
@@ -101,7 +103,8 @@ namespace Fx.QueryContext
         {
             var value = "asdf";
             var invalidOperationException = new InvalidOperationException();
-            var node = new QueryResultNode<string, Exception>(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
+            var node = new QueryResultNode<string, Exception>(
+                Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
 
             var leftMapException = Assert.ThrowsException<LeftMapException>(() => node.Apply(
                 (element, context) => throw invalidOperationException,
@@ -113,7 +116,8 @@ namespace Fx.QueryContext
 
             Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
 
-            node = new QueryResultNode<string, Exception>(Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
+            node = new QueryResultNode<string, Exception>(
+                Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
 
             var result = node.Apply(
                 (element, context) => throw invalidOperationException,
@@ -131,7 +135,8 @@ namespace Fx.QueryContext
         {
             var value = "asdf";
             var invalidOperationException = new InvalidOperationException();
-            var node = new QueryResultNode<string, Exception>(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
+            var node = new QueryResultNode<string, Exception>(
+                Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
 
             var result = node.Apply(
                 (element, context) => string.Concat(element.Value, element.Value),
@@ -140,7 +145,8 @@ namespace Fx.QueryContext
 
             Assert.AreEqual(value + value, result);
             
-            node = new QueryResultNode<string, Exception>(Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
+            node = new QueryResultNode<string, Exception>(
+                Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
 
             var rightMapException = Assert.ThrowsException<RightMapException>(() => node.Apply(
                 (element, context) => string.Concat(element.Value, element.Value),
@@ -154,7 +160,8 @@ namespace Fx.QueryContext
         public void Apply()
         {
             var value = "asdf";
-            var node = new QueryResultNode<string, Exception>(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
+            var node = new QueryResultNode<string, Exception>(
+                Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
 
             var result = node.Apply(
                 (element, context) => string.Concat(element.Value, element.Value),
@@ -166,7 +173,8 @@ namespace Fx.QueryContext
 
             Assert.AreEqual(value + value, result);
 
-            node = new QueryResultNode<string, Exception>(Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
+            node = new QueryResultNode<string, Exception>(
+                Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
 
             result = node.Apply(
                 (element, context) => string.Concat(element.Value, element.Value),
@@ -178,7 +186,8 @@ namespace Fx.QueryContext
 
             Assert.AreEqual(value, result);
 
-            node = new QueryResultNode<string, Exception>(Either.Left<MockElement>().Right(Either.Left<MockError>().Right(MockEmpty.Instance)));
+            node = new QueryResultNode<string, Exception>(
+                Either.Left<MockElement>().Right(Either.Left<MockError>().Right(MockEmpty.Instance)));
 
             result = node.Apply(
                 (element, context) => string.Concat(element.Value, element.Value),
