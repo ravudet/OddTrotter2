@@ -30,8 +30,12 @@
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                 ,
-                (terminal, context) => terminal.Apply((error, context) => error.ToString(),
-                (empty, context) => string.Empty, new Nothing()), new Nothing()));
+                (terminal, context) => 
+                    terminal.Apply(
+                        (error, context) => error.Value.Message, 
+                        (empty, context) => string.Empty, 
+                        new Nothing()), 
+                new Nothing()));
         }
 
         private sealed class MockElement : IElement<string, Exception>
@@ -81,6 +85,59 @@
         }
 
         [TestMethod]
-        public void 
+        public void ApplyLeftMapException()
+        {
+        }
+
+        [TestMethod]
+        public void Apply()
+        {
+            var value = "asdf";
+            var node = new QueryResultNode<string, Exception>(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>());
+
+            var result = node.Apply(
+                (element, context) => string.Concat(element.Value, element.Value),
+                (terminal, context) => terminal.Apply(
+                    (error, context) => error.Value.Message, 
+                    (empty, context) => string.Empty, 
+                    new Nothing()), 
+                new Nothing());
+
+            Assert.AreEqual(value + value, result);
+
+            node = new QueryResultNode<string, Exception>(Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()));
+
+            result = node.Apply(
+                (element, context) => string.Concat(element.Value, element.Value),
+                (terminal, context) => terminal.Apply(
+                    (error, context) => error.Value.Message,
+                    (empty, context) => string.Empty,
+                    new Nothing()), 
+                new Nothing());
+
+            Assert.AreEqual(value, result);
+
+            node = new QueryResultNode<string, Exception>(Either.Left<MockElement>().Right(Either.Left<MockError>().Right(MockEmpty.Instance)));
+
+            result = node.Apply(
+                (element, context) => string.Concat(element.Value, element.Value),
+                (terminal, context) => terminal.Apply(
+                    (error, context) => error.Value.Message,
+                    (empty, context) => string.Empty,
+                    new Nothing()),
+                new Nothing());
+
+            Assert.AreEqual(string.Empty, result);
+        }
+
+        private sealed class MockError : IError<Exception>
+        {
+            public MockError(Exception value)
+            {
+                Value = value;
+            }
+
+            public Exception Value { get; }
+        }
     }
 }
