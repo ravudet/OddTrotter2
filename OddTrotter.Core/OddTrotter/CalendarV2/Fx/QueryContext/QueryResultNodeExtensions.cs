@@ -23,7 +23,7 @@ namespace Fx.QueryContext
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <typeparam name="TError"></typeparam>
@@ -55,7 +55,7 @@ namespace Fx.QueryContext
             private readonly Func<TValue, bool> predicate;
 
             /// <summary>
-            /// 
+            /// placeholder
             /// </summary>
             /// <param name="value"></param>
             /// <param name="next"></param>
@@ -71,8 +71,10 @@ namespace Fx.QueryContext
                 this.predicate = predicate;
             }
 
+            /// <inheritdoc/>
             public TValue Value { get; }
 
+            /// <inheritdoc/>
             public IQueryResultNode<TValue, TError> Next()
             {
                 return this.next.Where(predicate);
