@@ -1,8 +1,10 @@
-﻿namespace Fx.QueryContext
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.QueryContext
 {
+    using System;
+
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using System;
 
     [TestClass]
     public sealed class QueryResultNodeUnitTests
@@ -25,9 +27,7 @@
 
             Assert.ThrowsException<ArgumentNullException>(() => node.Apply(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-                (Func<IElement<string, Exception>, Nothing, string>)null
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                 ,
                 (terminal, context) => 
@@ -40,13 +40,19 @@
 
         private sealed class MockElement : IElement<string, Exception>
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="value"></param>
             public MockElement(string value)
             {
-                Value = value;
+                this.Value = value;
             }
 
+            /// <inheritdoc/>
             public string Value { get; }
 
+            /// <inheritdoc/>
             public IQueryResultNode<string, Exception> Next()
             {
                 return 
@@ -63,10 +69,16 @@
 
         private sealed class MockEmpty : IEmpty
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
             private MockEmpty()
             {
             }
 
+            /// <summary>
+            /// placeholder
+            /// </summary>
             public static MockEmpty Instance { get; } = new MockEmpty();
         }
 
@@ -181,11 +193,16 @@
 
         private sealed class MockError : IError<Exception>
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="value"></param>
             public MockError(Exception value)
             {
-                Value = value;
+                this.Value = value;
             }
 
+            /// <inheritdoc/>
             public Exception Value { get; }
         }
     }
