@@ -383,8 +383,6 @@
 
             //// TODO code review system.threading.tasks
             //// TODO code review system.runtime.compilerservices
-            //// TODO test queryresultnode
-            //// TODO code review queryresultnode tests
             //// TODO test queryresultnodeextensions
             //// TODO code review queryresultnodeextensions unit tests
             //// TODO code review queryresultextensions
