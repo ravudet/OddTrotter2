@@ -15,7 +15,8 @@ namespace Fx.QueryContext
         /// <param name="node"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
-        public static QueryResultNode<TValue, TError> ToQueryResultNode<TValue, TError>(this IEither<IElement<TValue, TError>, IEither<IError<TError>, IEmpty>> node)
+        public static QueryResultNode<TValue, TError> ToQueryResultNode<TValue, TError>(
+            this IEither<IElement<TValue, TError>, IEither<IError<TError>, IEmpty>> node)
         {
             ArgumentNullException.ThrowIfNull(node);
 
@@ -30,8 +31,12 @@ namespace Fx.QueryContext
         /// <param name="source"></param>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null"/></exception>
-        public static IQueryResultNode<TValue, TError> Where<TValue, TError>(this IQueryResultNode<TValue, TError> source, Func<TValue, bool> predicate)
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null"/>
+        /// </exception>
+        public static IQueryResultNode<TValue, TError> Where<TValue, TError>(
+            this IQueryResultNode<TValue, TError> source, 
+            Func<TValue, bool> predicate)
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(predicate);
@@ -60,7 +65,9 @@ namespace Fx.QueryContext
             /// <param name="value"></param>
             /// <param name="next"></param>
             /// <param name="predicate"></param>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> or <paramref name="predicate"/> is <see langword="null"/></exception>
+            /// <exception cref="ArgumentNullException">
+            /// Thrown if <paramref name="next"/> or <paramref name="predicate"/> is <see langword="null"/>
+            /// </exception>
             public WhereElement(TValue value, IQueryResultNode<TValue, TError> next, Func<TValue, bool> predicate)
             {
                 ArgumentNullException.ThrowIfNull(next);
@@ -90,8 +97,12 @@ namespace Fx.QueryContext
         /// <param name="source"></param>
         /// <param name="selector"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> or <paramref name="selector"/> is <see langword="null"/></exception>
-        public static IQueryResultNode<TValueResult, TError> Select<TValueSource, TError, TValueResult>(this IQueryResultNode<TValueSource, TError> source, Func<TValueSource, TValueResult> selector)
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="source"/> or <paramref name="selector"/> is <see langword="null"/>
+        /// </exception>
+        public static IQueryResultNode<TValueResult, TError> Select<TValueSource, TError, TValueResult>(
+            this IQueryResultNode<TValueSource, TError> source, 
+            Func<TValueSource, TValueResult> selector)
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(selector);
@@ -117,8 +128,13 @@ namespace Fx.QueryContext
             /// <param name="value"></param>
             /// <param name="next"></param>
             /// <param name="selector"></param>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> or <paramref name="selector"/> is <see langword="null"/></exception>
-            public SelectElement(TValueResult value, IQueryResultNode<TValueSource, TError> next, Func<TValueSource, TValueResult> selector)
+            /// <exception cref="ArgumentNullException">
+            /// Thrown if <paramref name="next"/> or <paramref name="selector"/> is <see langword="null"/>
+            /// </exception>
+            public SelectElement(
+                TValueResult value, 
+                IQueryResultNode<TValueSource, TError> next, 
+                Func<TValueSource, TValueResult> selector)
             {
                 ArgumentNullException.ThrowIfNull(next);
                 ArgumentNullException.ThrowIfNull(selector);
