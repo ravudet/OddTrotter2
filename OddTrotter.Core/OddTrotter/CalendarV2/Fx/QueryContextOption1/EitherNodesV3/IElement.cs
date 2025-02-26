@@ -8,6 +8,6 @@ namespace Fx.QueryContextOption1.EitherNodesV3
     {
         TValue Value { get; }
 
-        IEither<IElement<TValue, TError>, IEither<IError<TError>, IEmpty>> Next();
+        IQueryResultNode<TValue, TError> Next();
     }
 }
