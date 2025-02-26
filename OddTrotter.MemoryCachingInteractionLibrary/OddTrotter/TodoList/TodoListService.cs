@@ -382,9 +382,6 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO for the eithernodes, try going all the way with it and only have an interface for the 3 terminal types
-            //// TODO remove querycontextoption2 if you end up liking option1
-            //// TODO remove eithernodes if you don't like them //// TODO i don't think you do, there's just too many things going on; firstly, the queryresult extensions are using interfaces for input and output, and so the internal code that deals with queryresultnodes also needs to use interface; the either extensions use interfaces (which you are trying to fix, but haven't been able to do so yet, and i don't think it will ultimately matter actually), so you end up in a spot where, internally, you have eithers that you need to adapter to queryresultnodes, and you could have an adapter, but now you need to call that adapter everywhere, and you can't have an implicit conversion because the thing being converted (the either) is an interface; further, for some queries (like where), it doesn't seem to help at all that you use an either because the left side is ambiguously a value or a terminal
             //// TODO then do querycontext (and move everything to use it); the query context stuff will need some diligence and effort around adding the third type parameter that allows mixins to work correctly; do query contexts next probably and just know that you're going to need to put the effort in
             //// TODO code review system.threading.tasks
             //// TODO code review system.runtime.compilerservices
