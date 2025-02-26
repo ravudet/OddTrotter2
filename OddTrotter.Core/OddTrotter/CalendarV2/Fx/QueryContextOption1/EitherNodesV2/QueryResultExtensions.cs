@@ -32,6 +32,7 @@ namespace Fx.QueryContextOption1.EitherNodesV2
 
             private static IEither<IElement<TValue, TError>, IEither<IError<TError>, IEmpty>> Where(IEither<IElement<TValue, TError>, IEither<IError<TError>, IEmpty>> node, Func<TValue, bool> predicate)
             {
+                //// TODO eithers aren't lazy, so this will fully evaluate if you use the current concrete type; but if you have a deferredeither, then i think you don't need this queryresult class
                 return node
                     .SelectLeft(
                         element => Either
