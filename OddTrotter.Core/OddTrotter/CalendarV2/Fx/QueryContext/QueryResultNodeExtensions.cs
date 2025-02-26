@@ -81,6 +81,16 @@ namespace Fx.QueryContext
             }
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TValueSource"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TValueResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> or <paramref name="selector"/> is <see langword="null"/></exception>
         public static IQueryResultNode<TValueResult, TError> Select<TValueSource, TError, TValueResult>(this IQueryResultNode<TValueSource, TError> source, Func<TValueSource, TValueResult> selector)
         {
             ArgumentNullException.ThrowIfNull(source);
@@ -101,6 +111,13 @@ namespace Fx.QueryContext
             private readonly IQueryResultNode<TValueSource, TError> next;
             private readonly Func<TValueSource, TValueResult> selector;
 
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="next"></param>
+            /// <param name="selector"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> or <paramref name="selector"/> is <see langword="null"/></exception>
             public SelectElement(TValueResult value, IQueryResultNode<TValueSource, TError> next, Func<TValueSource, TValueResult> selector)
             {
                 ArgumentNullException.ThrowIfNull(next);
@@ -111,8 +128,10 @@ namespace Fx.QueryContext
                 this.selector = selector;
             }
 
+            /// <inheritdoc/>
             public TValueResult Value { get; }
 
+            /// <inheritdoc/>
             public IQueryResultNode<TValueResult, TError> Next()
             {
                 return this.next.Select(selector);
