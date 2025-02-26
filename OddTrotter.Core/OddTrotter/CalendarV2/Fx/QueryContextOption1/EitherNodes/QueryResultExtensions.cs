@@ -64,6 +64,7 @@
 
                 public TResult Apply<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> leftMap, Func<ITerminal<TError>, TContext, TResult> rightMap, TContext context)
                 {
+                    //// TODO needing to implement this method is the result of "nested discriminated unions" and not about either or interfaces or any of that (in your concrete implementation, an element can have `visit` called on it)
                     return leftMap(this, context);
                 }
 
