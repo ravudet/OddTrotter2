@@ -6,9 +6,9 @@
 
     public static class QueryResultExtensions
     {
-        /*public static IQueryResult<TValue, TError> Where<TValue, TError>(this IQueryResult<TValue, TError> source, Func<TValue, bool> predicate)
+        public static IQueryResult<TValue, TError> Where<TValue, TError>(this IQueryResult<TValue, TError> source, Func<TValue, bool> predicate)
         {
-            source.Nodes.SelectLeft(element => predicate(element.Value) ? )
+            return new WhereQueryResult<TValue, TError>(source, predicate);
         }
 
         private sealed class WhereQueryResult<TValue, TError> : IQueryResult<TValue, TError>
@@ -26,19 +26,28 @@
             {
                 get
                 {
-                    return SelectLeft(this.source.Nodes, predicate);
+                    return Where(this.source.Nodes, predicate);
                     ////return SelectLeft(this.source.Nodes, this.predicate);
                 }
             }
 
-            private static QueryResultNode<TValue, TError> SelectLeft(IQueryResultNode<TValue, TError> node, Func<TValue, bool> predicate)
+            private static IQueryResultNode<TValue, TError> Where(IQueryResultNode<TValue, TError> node, Func<TValue, bool> predicate)
             {
-                var result = node.SelectManyLeft(element => element.Next(), (element, next) => predicate(element.Value) ? new Element(element.Value, predicate, element.Next()) : SelectLeft(element.Next(), predicate));
+                var result = node.SelectLeft(element => predicate(element.Value) ? new Element(element.Value, predicate, element.Next()) : Where(element.Next(), predicate));
 
-                return new QueryResultNode<TValue, TError>(result);
+                var result2 = result.SelectLeft(left => AsEither(left));
+
+                var result3 = result2.SelectManyLeft();
+
+                return new EitherAdapter<TValue, TError>(result3);
             }
 
-            private sealed class Element : QueryResultNode<TValue, TError>.Element
+            private static IEither<IElement<TValue, TError>, ITerminal<TError>> AsEither(IQueryResultNode<TValue, TError> node)
+            {
+                return node;
+            }
+
+            private sealed class Element : IElement<TValue, TError> ////QueryResultNode<TValue, TError>.Element
             {
                 private readonly Func<TValue, bool> predicate;
                 private readonly IQueryResultNode<TValue, TError> next;
@@ -50,14 +59,19 @@
                     this.next = next;
                 }
 
-                public override TValue Value { get; }
+                public TValue Value { get; }
 
-                public override QueryResultNode<TValue, TError> Next()
+                public TResult Apply<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> leftMap, Func<ITerminal<TError>, TContext, TResult> rightMap, TContext context)
                 {
+                    return leftMap(this, context);
+                }
 
+                public IQueryResultNode<TValue, TError> Next()
+                {
+                    return WhereQueryResult<TValue, TError>.Where(this.next, this.predicate);
                 }
             }
-        }*/
+        }
 
         public static IQueryResult<TValueResult, TError> Select<TValueSource, TError, TValueResult>(this IQueryResult<TValueSource, TError> source, Func<TValueSource, TValueResult> selector)
         {
