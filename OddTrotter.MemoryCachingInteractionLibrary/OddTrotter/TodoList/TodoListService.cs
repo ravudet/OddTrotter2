@@ -350,6 +350,7 @@
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
 
 
+            //// TODO TOPIC queryresultnode implement ieither
             //// TODO TOPIC asbaseplayground
             //// TODO TOPIC should the either extensions be lazy?
             //// TODO TOPIC should i add the "ambiguous" select methods for left and right in order to light up the comprehension syntax?

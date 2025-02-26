@@ -29,13 +29,63 @@
             {
                 get
                 {
-                    throw new NotImplementedException();
                     ////return new Visitor(this.predicate).Visit(this.source.Nodes, new Nothing());
+                    return Visit(this.source.Nodes, this.predicate);
                 }
             }
 
+            #region covariance requiring visit methods on interfaces
+            private static QueryResultNode<TValue, TError> Visit(IQueryResultNode<TValue, TError> node, Func<TValue, bool> predicate)
+            {
+                return node.Visit<QueryResultNode<TValue, TError>, Nothing>(
+                        (element, context) => ElementAccept(element, predicate),
+                        (terminal, context) => TerminalAccept(terminal),
+                        new Nothing()); //// TODO make ierror and iempty derive iterminal, and make iterminal and ielement derive inode
+            }
+
+            private static QueryResultNode<TValue, TError> TerminalAccept(ITerminal<TError> terminal)
+            {
+                return terminal.Visit<QueryResultNode<TValue, TError>.Terminal, Nothing>(
+                    (error, context) => new QueryResultNode<TValue, TError>.Terminal.Error(error.Value),
+                    (empty, context) => QueryResultNode<TValue, TError>.Terminal.Empty.Instance,
+                    new Nothing());
+            }
+
+            private static QueryResultNode<TValue, TError> ElementAccept(IElement<TValue, TError> element, Func<TValue, bool> predicate)
+            {
+                if (predicate(element.Value))
+                {
+                    return new Element(element.Value, element.Next(), predicate);
+                }
+
+                return Visit(element.Next(), predicate);
+            }
+
+            private sealed class Element : QueryResultNode<TValue, TError>.Element
+            {
+                private readonly IQueryResultNode<TValue, TError> next;
+                private readonly Func<TValue, bool> predicate;
+
+                public Element(TValue value, IQueryResultNode<TValue, TError> next, Func<TValue, bool> predicate)
+                {
+                    Value = value;
+                    this.next = next;
+                    this.predicate = predicate;
+                }
+
+                public override TValue Value { get; }
+
+                public override QueryResultNode<TValue, TError> Next()
+                {
+                    return WhereQueryResult<TValue, TError>.Visit(this.next, this.predicate);
+                }
+            }
+            #endregion
+
             IQueryResultNode<TValue, TError> IQueryResult<TValue, TError>.Nodes => throw new NotImplementedException();
 
+
+            #region no covariance, using concrete types and directly deriving the visitor
             private sealed class Visitor : QueryResultNode<TValue, TError>.Visitor<QueryResultNode<TValue, TError>, Nothing>
             {
                 private readonly Func<TValue, bool> predicate;
@@ -100,6 +150,7 @@
                 }
             }
         }
+        #endregion
 
         public static IQueryResult<TResult, TError> Select<TSource, TError, TResult>(this IQueryResult<TSource, TError> source, Func<TSource, TResult> selector)
         {

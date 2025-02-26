@@ -1,10 +1,11 @@
 ﻿namespace Fx.QueryContextOption1
 {
+    using Fx.Either;
     using System;
 
     //// TODO can you get rid of `iempty` and use `nothing` instead? (or perhaps just have no parameter for that case) //// TODO maybe eithers just avoids this entirely?
 
-    public abstract class QueryResultNode<TValue, TError> : IQueryResultNode<TValue, TError>
+    public abstract class QueryResultNode<TValue, TError> : IQueryResultNode<TValue, TError>, EitherNodes.IQueryResultNode<TValue, TError>
     {
         private QueryResultNode()
         {
@@ -38,7 +39,16 @@
             }
         }
 
+        public QueryResultNode(IEither<IElement<TValue, Terminal>, ITerminal<TError>> either)
+        {
+        }
+
         protected abstract TResult Dispatch<TResult, TContext>(QueryResultNode<TValue, TError>.Visitor<TResult, TContext> visitor, TContext context);
+
+        public TResult Apply<TResult, TContext>(Func<EitherNodes.IElement<TValue, TError>, TContext, TResult> leftMap, Func<EitherNodes.ITerminal<TError>, TContext, TResult> rightMap, TContext context)
+        {
+            throw new NotImplementedException();
+        }
 
         public abstract class Visitor<TResult, TContext>
         {
