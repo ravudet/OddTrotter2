@@ -7,6 +7,14 @@ namespace Fx.QueryContext
 
     public static class QueryResultNodeExtensions
     {
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="node"/> is <see langword="null"/></exception>
         public static QueryResultNode<TValue, TError> ToQueryResultNode<TValue, TError>(this IEither<IElement<TValue, TError>, IEither<IError<TError>, IEmpty>> node)
         {
             ArgumentNullException.ThrowIfNull(node);
@@ -14,6 +22,15 @@ namespace Fx.QueryContext
             return new QueryResultNode<TValue, TError>(node);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null"/></exception>
         public static IQueryResultNode<TValue, TError> Where<TValue, TError>(this IQueryResultNode<TValue, TError> source, Func<TValue, bool> predicate)
         {
             ArgumentNullException.ThrowIfNull(source);
@@ -37,6 +54,13 @@ namespace Fx.QueryContext
             private readonly IQueryResultNode<TValue, TError> next;
             private readonly Func<TValue, bool> predicate;
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="next"></param>
+            /// <param name="predicate"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> or <paramref name="predicate"/> is <see langword="null"/></exception>
             public WhereElement(TValue value, IQueryResultNode<TValue, TError> next, Func<TValue, bool> predicate)
             {
                 ArgumentNullException.ThrowIfNull(next);
