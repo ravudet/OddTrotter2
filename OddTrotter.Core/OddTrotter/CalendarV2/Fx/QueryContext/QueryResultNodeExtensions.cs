@@ -1,8 +1,10 @@
-﻿namespace Fx.QueryContext
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.QueryContext
 {
-    using Fx.Either;
-    using Fx.QueryContextOption1;
     using System;
+
+
+    using Fx.Either;
 
     public static class QueryResultNodeExtensions
     {
@@ -18,9 +20,9 @@
                     element => Either2
                         .Create(
                             element,
-                            _ => predicate(_.Value),
-                            _ => new WhereElement<TValue, TError>(_.Value, _.Next(), predicate),
-                            _ => _.Next().Where(predicate))
+                            element => predicate(element.Value),
+                            element => new WhereElement<TValue, TError>(element.Value, element.Next(), predicate),
+                            element => element.Next().Where(predicate))
                         .SelectManyRight())
                 .SelectManyLeft()
                 .ToQueryResultNode();
@@ -81,15 +83,31 @@
 
     public static class Either2
     {
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TLeft"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="discriminator">assumed to not throw exceptions</param>
+        /// <param name="leftFactory">assumed to not throw exceptions</param>
+        /// <param name="rightFactory">assumed to not throw exceptions</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="discriminator"/> or <paramref name="leftFactory"/> or <paramref name="rightFactory"/> is <see langword="null"/></exception>
         public static IEither<TLeft, TRight> Create<TValue, TLeft, TRight>(TValue value, Func<TValue, bool> discriminator, Func<TValue, TLeft> leftFactory, Func<TValue, TRight> rightFactory)
         {
+            ArgumentNullException.ThrowIfNull(discriminator);
+            ArgumentNullException.ThrowIfNull(leftFactory);
+            ArgumentNullException.ThrowIfNull(rightFactory);
+
             if (discriminator(value))
             {
-                return Fx.Either.Either.Left(leftFactory(value)).Right<TRight>();
+                return Either.Left(leftFactory(value)).Right<TRight>();
             }
             else
             {
-                return Fx.Either.Either.Left<TLeft>().Right(rightFactory(value));
+                return Either.Left<TLeft>().Right(rightFactory(value));
             }
         }
     }
