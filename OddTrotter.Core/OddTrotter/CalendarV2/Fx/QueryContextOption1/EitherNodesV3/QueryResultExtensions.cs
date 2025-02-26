@@ -31,6 +31,7 @@
 
         public static IQueryResult<TValueResult, TError> Select<TValueSource, TError, TValueResult>(this IQueryResult<TValueSource, TError> source, Func<TValueSource, TValueResult> selector)
         {
+            //// TODO include an overload that selects the error
             return new SelectQueryResult<TValueSource, TError, TValueResult>(source, selector);
         }
 
@@ -53,5 +54,7 @@
                 }
             }
         }
+
+        //// TODO implement all (valuable?) linq queries
     }
 }
