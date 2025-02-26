@@ -186,7 +186,7 @@
             {
                 return node.Visit(
                     (element, context) => (IQueryResultNode<TResult, TError>)new Element(selector(element.Value), element.Next(), selector),
-                    (terminal, context) => terminal.Visit(
+                    (terminal, context) => terminal.Visit( //// TODO having two visit overloads here (one for iqueryresultnode and one for iterminal) is definitely confusion
                         (error, context) => (ITerminal<TResult, TError>)new QueryResultNode<TResult, TError>.Terminal.Error(error.Value),
                         (empty, context) => QueryResultNode<TResult, TError>.Terminal.Empty.Instance,
                         new Nothing()),

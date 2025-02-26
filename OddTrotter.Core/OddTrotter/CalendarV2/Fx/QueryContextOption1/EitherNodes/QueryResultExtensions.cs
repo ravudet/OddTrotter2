@@ -79,16 +79,16 @@
             {
                 get
                 {
-                    return Select(this.source.Nodes);
+                    return Select(this.source.Nodes, this.selector);
                 }
             }
 
-            private IQueryResultNode<TValueResult, TError> Select(IQueryResultNode<TValueSource, TError> node)
+            private static IQueryResultNode<TValueResult, TError> Select(IQueryResultNode<TValueSource, TError> node, Func<TValueSource, TValueResult> selector)
             {
-                return new EitherAdapter<TValueResult, TError>(node.SelectLeft(element => new Element(this.selector(element.Value), element.Next(), this.selector)));
+                return new EitherAdapter<TValueResult, TError>(node.SelectLeft(element => new Element(selector(element.Value), element.Next(), selector)));
             }
 
-            private sealed class Element : QueryResultNode<TValueResult, TError>.Element, IElement<TValueResult, TError>
+            private sealed class Element : IElement<TValueResult, TError>
             {
                 private readonly IQueryResultNode<TValueSource, TError> next;
                 private readonly Func<TValueSource, TValueResult> selector;
@@ -100,17 +100,16 @@
                     this.selector = selector;
                 }
 
-                public override TValueResult Value { get; }
+                public TValueResult Value { get; }
 
-                public override QueryResultNode<TValueResult, TError> Next()
+                public TResult Apply<TResult, TContext>(Func<IElement<TValueResult, TError>, TContext, TResult> leftMap, Func<ITerminal<TError>, TContext, TResult> rightMap, TContext context)
                 {
-                    ////return this.next;
-                    throw new NotImplementedException();
+                    return leftMap(this, context);
                 }
 
-                IQueryResultNode<TValueResult, TError> IElement<TValueResult, TError>.Next()
+                public IQueryResultNode<TValueResult, TError> Next()
                 {
-                    return this.Next();
+                    return SelectQueryResult<TValueSource, TError, TValueResult>.Select(this.next, this.selector);
                 }
             }
         }
