@@ -45,7 +45,13 @@
                 this.selector = selector;
             }
 
-            public IQueryResultNode<TValueResult, TError> Nodes => throw new NotImplementedException();
+            public IQueryResultNode<TValueResult, TError> Nodes
+            {
+                get
+                {
+                    return this.source.Nodes.Select(this.selector);
+                }
+            }
         }
     }
 }
