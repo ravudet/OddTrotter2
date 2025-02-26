@@ -59,5 +59,69 @@ namespace Fx.Either
         {
             Assert.ThrowsException<InvalidOperationException>(() => default(Either.Full<string>).Right<int>());
         }
+
+        [TestMethod]
+        public void CreateNullDisciminator()
+        {
+            var value = "Asfd";
+
+            Assert.ThrowsException<ArgumentNullException>(() => Either.Create(value,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                , int.Parse, val => string.Concat(val, val)));
+        }
+
+        [TestMethod]
+        public void CreateNullLeftFactory()
+        {
+            var value = "asdf";
+
+            Assert.ThrowsException<ArgumentNullException>(() => Either.Create(value, val => val.Length % 2 == 0,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                (Func<string, int>)null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                , val => string.Concat(val, val)));
+        }
+
+        [TestMethod]
+        public void CreateNullRightFactory()
+        {
+            var value = "asdf";
+
+            Assert.ThrowsException<ArgumentNullException>(() => Either.Create(value, val => val.Length % 2 == 0, int.Parse,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                (Func<string, string>)null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
+        }
+
+        [TestMethod]
+        public void CreateWithDiscriminatorLeft()
+        {
+            var value = "42";
+
+            var either = Either.Create(value, val => val.Length % 2 == 0, int.Parse, val => string.Concat(val, val));
+
+            Assert.IsTrue(either.TryGetLeft(out var left));
+            Assert.AreEqual(42, left);
+            Assert.IsFalse(either.TryGetRight(out var right));
+        }
+
+        [TestMethod]
+        public void CreateWithDiscriminatorRight()
+        {
+            var value = "423";
+
+            var either = Either.Create(value, val => val.Length % 2 == 0, int.Parse, val => string.Concat(val, val));
+
+            Assert.IsFalse(either.TryGetLeft(out var left));
+            Assert.IsTrue(either.TryGetRight(out var right));
+            Assert.AreEqual("423423", right);
+        }
     }
 }
