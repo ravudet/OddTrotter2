@@ -39,6 +39,7 @@
 
                 var result3 = result2.SelectManyLeft();
 
+                //// TODO if you got eitherextensions to use concrete return types, you wouldn't need this adapter anymore (or, rather, it'd be a detail and not "in your face");
                 return new EitherAdapter<TValue, TError>(result3);
             }
 
