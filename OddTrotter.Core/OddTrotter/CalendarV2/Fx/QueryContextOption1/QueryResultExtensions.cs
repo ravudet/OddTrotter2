@@ -25,7 +25,7 @@
                 this.predicate = predicate;
             }
 
-            public QueryResultNode<TValue, TError> Nodes
+            public IQueryResultNode<TValue, TError> Nodes
             {
                 get
                 {
@@ -35,50 +35,54 @@
             }
 
             #region covariance requiring visit methods on interfaces
-            private static QueryResultNode<TValue, TError> Visit(IQueryResultNode<TValue, TError> node, Func<TValue, bool> predicate)
+            private static IQueryResultNode<TValue, TError> Visit(IQueryResultNode<TValue, TError> node, Func<TValue, bool> predicate)
             {
-                return node.Visit<QueryResultNode<TValue, TError>, Nothing>(
+                return node.Visit<IQueryResultNode<TValue, TError>, Nothing>(
                         (element, context) => ElementAccept(element, predicate),
-                        (terminal, context) => TerminalAccept(terminal),
+                        (terminal, context) => terminal, //// TerminalAccept(terminal),
                         new Nothing()); //// TODO make ierror and iempty derive iterminal, and make iterminal and ielement derive inode
             }
 
-            private static QueryResultNode<TValue, TError> TerminalAccept(ITerminal<TError> terminal)
-            {
-                return terminal.Visit<QueryResultNode<TValue, TError>.Terminal, Nothing>(
-                    (error, context) => new QueryResultNode<TValue, TError>.Terminal.Error(error.Value),
-                    (empty, context) => QueryResultNode<TValue, TError>.Terminal.Empty.Instance,
-                    new Nothing());
-            }
-
-            private static QueryResultNode<TValue, TError> ElementAccept(IElement<TValue, TError> element, Func<TValue, bool> predicate)
+            private static IQueryResultNode<TValue, TError> ElementAccept(IElement<TValue, TError> element, Func<TValue, bool> predicate)
             {
                 if (predicate(element.Value))
                 {
-                    return new Element(element.Value, element.Next(), predicate);
+                    return new Element(element, element.Value, element.Next(), predicate);
                 }
 
                 return Visit(element.Next(), predicate);
             }
 
-            private sealed class Element : QueryResultNode<TValue, TError>.Element
+            private sealed class Element : IElement<TValue, TError>
             {
+                private readonly IQueryResultNode<TValue, TError> current;
                 private readonly IQueryResultNode<TValue, TError> next;
                 private readonly Func<TValue, bool> predicate;
 
-                public Element(TValue value, IQueryResultNode<TValue, TError> next, Func<TValue, bool> predicate)
+                public Element(IQueryResultNode<TValue, TError> current, TValue value, IQueryResultNode<TValue, TError> next, Func<TValue, bool> predicate)
                 {
+                    this.current = current;
                     Value = value;
                     this.next = next;
                     this.predicate = predicate;
                 }
 
-                public override TValue Value { get; }
+                public TValue Value { get; }
 
-                public override QueryResultNode<TValue, TError> Next()
+                public IQueryResultNode<TValue, TError> Next()
                 {
                     return WhereQueryResult<TValue, TError>.Visit(this.next, this.predicate);
                 }
+
+                /*public TResult Visit<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> elementAccept, Func<QueryContextOption1.ITerminal<TValue, TError>, TContext, TResult> terminalAccept, TContext context)
+                {
+                    return this.current.Visit(elementAccept, terminalAccept, context);
+                }*/
+
+                /*public override QueryResultNode<TValue, TError> Next()
+                {
+                    return WhereQueryResult<TValue, TError>.Visit(this.next, this.predicate);
+                }*/
             }
             #endregion
 

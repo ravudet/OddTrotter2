@@ -12,7 +12,7 @@
             //// TODO should the nodes be eithers?
         }
 
-        public TResult Visit<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> elementAccept, Func<ITerminal<TError>, TContext, TResult> terminalAccept, TContext context)
+        public TResult Visit<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> elementAccept, Func<ITerminal<TValue, TError>, TContext, TResult> terminalAccept, TContext context)
         {
             return new DelegateVisitor<TResult, TContext>(elementAccept, terminalAccept).Visit(this, context);
         }
@@ -37,10 +37,6 @@
             {
                 return this.terminalAccept(node, context);
             }
-        }
-
-        public QueryResultNode(IEither<IElement<TValue, Terminal>, ITerminal<TError>> either)
-        {
         }
 
         protected abstract TResult Dispatch<TResult, TContext>(QueryResultNode<TValue, TError>.Visitor<TResult, TContext> visitor, TContext context);
@@ -78,14 +74,14 @@
             }
         }
 
-        public abstract class Terminal : QueryResultNode<TValue, TError>, ITerminal<TError>
+        public abstract class Terminal : QueryResultNode<TValue, TError>, ITerminal<TValue, TError>
         {
             private Terminal()
             {
                 //// TODO should this be an either?
             }
 
-            public TResult Visit<TResult, TContext>(Func<IError<TError>, TContext, TResult> errorAccept, Func<IEmpty, TContext, TResult> emptyAccept, TContext context)
+            public TResult Visit<TResult, TContext>(Func<IError<TValue, TError>, TContext, TResult> errorAccept, Func<IEmpty<TValue, TError>, TContext, TResult> emptyAccept, TContext context)
             {
                 return new DelegateVisitor<TResult, TContext>(errorAccept, emptyAccept).Visit(this, context);
             }
@@ -130,7 +126,7 @@
                 protected internal abstract TResult Accept(QueryResultNode<TValue, TError>.Terminal.Empty node, TContext context);
             }
 
-            public sealed class Error : Terminal, IError<TError> //// TODO do you like this name?
+            public sealed class Error : Terminal, IError<TValue, TError> //// TODO do you like this name?
             {
                 public Error(TError value)
                 {
@@ -145,7 +141,7 @@
                 }
             }
 
-            public sealed class Empty : Terminal, IEmpty //// TODO do you like this name?
+            public sealed class Empty : Terminal, IEmpty<TValue, TError> //// TODO do you like this name?
             {
                 private Empty()
                 {

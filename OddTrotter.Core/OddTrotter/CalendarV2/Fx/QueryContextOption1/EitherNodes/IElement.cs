@@ -1,4 +1,6 @@
-﻿namespace Fx.QueryContextOption1.EitherNodes
+﻿using System;
+
+namespace Fx.QueryContextOption1.EitherNodes
 {
     public interface IElement<out TValue, out TError> : IQueryResultNode<TValue, TError>
     {
