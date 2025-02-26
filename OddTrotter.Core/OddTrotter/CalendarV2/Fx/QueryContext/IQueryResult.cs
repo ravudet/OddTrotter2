@@ -1,4 +1,4 @@
-﻿namespace Fx.QueryContextOption1
+﻿namespace Fx.QueryContext
 {
     public interface IQueryResult<out TValue, out TError>
     {

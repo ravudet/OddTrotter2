@@ -5,6 +5,8 @@
     using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
 
+    using Fx.QueryContext;
+
     public interface IQueryContext<out TResponse, out TValue, out TError> //// TODO you can't get covariance without an interface for queryresultnode
     {
         ITask<IQueryResult<TResponse, TError>> Evaluate();

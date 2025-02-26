@@ -1,7 +1,7 @@
 ﻿using System;
 using Fx.Either;
 
-namespace Fx.QueryContextOption1
+namespace Fx.QueryContext
 {
     public interface IElement<out TValue, out TError>
     {

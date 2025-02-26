@@ -1,4 +1,4 @@
-﻿namespace Fx.QueryContextOption1
+﻿namespace Fx.QueryContext
 {
     using Fx.Either;
     using Fx.QueryContextOption1;

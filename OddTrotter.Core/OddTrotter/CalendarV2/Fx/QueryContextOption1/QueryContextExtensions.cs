@@ -5,6 +5,8 @@
     using System.Linq.Expressions;
     using System.Threading.Tasks;
 
+    using Fx.QueryContext;
+
     public static class QueryContextExtensions
     {
         /*public static TQueryContext Where<TQueryContext, TResponse, TValue, TError>(this TQueryContext queryContext, System.Linq.Expressions.Expression<Func<TValue, bool>> predicate)
