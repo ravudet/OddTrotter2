@@ -55,11 +55,11 @@
 
             private sealed class Element : IElement<TValue, TError>
             {
-                private readonly IQueryResultNode<TValue, TError> current;
+                private readonly IElement<TValue, TError> current;
                 private readonly IQueryResultNode<TValue, TError> next;
                 private readonly Func<TValue, bool> predicate;
 
-                public Element(IQueryResultNode<TValue, TError> current, TValue value, IQueryResultNode<TValue, TError> next, Func<TValue, bool> predicate)
+                public Element(IElement<TValue, TError> current, TValue value, IQueryResultNode<TValue, TError> next, Func<TValue, bool> predicate)
                 {
                     this.current = current;
                     Value = value;
@@ -74,10 +74,11 @@
                     return WhereQueryResult<TValue, TError>.Visit(this.next, this.predicate);
                 }
 
-                /*public TResult Visit<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> elementAccept, Func<QueryContextOption1.ITerminal<TValue, TError>, TContext, TResult> terminalAccept, TContext context)
+                public TResult Visit2<TResult, TContext>(Func<IElement<TValue, TError>, TContext, TResult> elementAccept, Func<QueryContextOption1.ITerminal<TValue, TError>, TContext, TResult> terminalAccept, TContext context)
                 {
+                    ////this.Visit(elementAccept, terminalAccept, context);
                     return this.current.Visit(elementAccept, terminalAccept, context);
-                }*/
+                }
 
                 /*public override QueryResultNode<TValue, TError> Next()
                 {
