@@ -383,7 +383,6 @@
 
             //// TODO code review system.threading.tasks
             //// TODO code review system.runtime.compilerservices
-            //// TODO test queryresultnodeextensions
             //// TODO code review queryresultnodeextensions unit tests
             //// TODO code review queryresultextensions
             //// TODO then move stuff from Fx.QueryContextOption1
