@@ -397,6 +397,7 @@
             //// TODO go through stash namespace and see what you want to pull out (maybe to another repo and/or as branches with future work items)
             //// TODO write tests for todolistservice that confirm the URLs
 
+            //// TODO FUTURE implement all (valuable?) linq queries for iqueryresult
             //// TODO FUTURE eitherunittests.applyleftexception is an exception where a `throw` type might be useful; are there use-cases that aren't testing though?
             //// TODO FUTURE do you want to have an adapter from action to func now that you have `nothing`?
             //// TODO FUTURE you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>

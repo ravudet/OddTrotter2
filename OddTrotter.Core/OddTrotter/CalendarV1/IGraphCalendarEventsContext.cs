@@ -50,6 +50,7 @@
 
         public async Task<QueryResult<IEither<GraphCalendarEvent, GraphCalendarEventsContextTranslationException>, GraphPagingException>> Evaluate()
         {
+            //// TODO do you need a queryresult extension that select errors?
             //// TODO should the context or the evaluator be the one that knows about `/events`?
             var uri = new Uri($"{this.calendarRoot.Path}/events", UriKind.Relative).ToRelativeUri();
             var query = new GraphQuery.GetEvents(uri);
