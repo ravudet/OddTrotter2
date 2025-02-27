@@ -39,50 +39,6 @@ namespace Fx.QueryContext
                 new Nothing()));
         }
 
-        private sealed class MockElement : IElement<string, Exception>
-        {
-            /// <summary>
-            /// placeholder
-            /// </summary>
-            /// <param name="value"></param>
-            public MockElement(string value)
-            {
-                this.Value = value;
-            }
-
-            /// <inheritdoc/>
-            public string Value { get; }
-
-            /// <inheritdoc/>
-            public IQueryResultNode<string, Exception> Next()
-            {
-                return 
-                    Either
-                        .Left<IElement<string, Exception>>()
-                        .Right(
-                            Either
-                                .Left<IError<Exception>>()
-                                .Right(
-                                    MockEmpty.Instance))
-                        .ToQueryResultNode();
-            }
-        }
-
-        private sealed class MockEmpty : IEmpty
-        {
-            /// <summary>
-            /// placeholder
-            /// </summary>
-            private MockEmpty()
-            {
-            }
-
-            /// <summary>
-            /// placeholder
-            /// </summary>
-            public static MockEmpty Instance { get; } = new MockEmpty();
-        }
-
         [TestMethod]
         public void ApplyNullRightMap()
         {
@@ -198,21 +154,6 @@ namespace Fx.QueryContext
                 new Nothing());
 
             Assert.AreEqual(string.Empty, result);
-        }
-
-        private sealed class MockError : IError<Exception>
-        {
-            /// <summary>
-            /// placeholder
-            /// </summary>
-            /// <param name="value"></param>
-            public MockError(Exception value)
-            {
-                this.Value = value;
-            }
-
-            /// <inheritdoc/>
-            public Exception Value { get; }
         }
     }
 }
