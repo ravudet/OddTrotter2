@@ -242,5 +242,36 @@
             Assert.AreEqual(invalidOperationException, error.Value);
             Assert.IsFalse(terminal2.TryGetRight(out var empty));
         }
+
+        [TestMethod]
+        public void SelectNullSource()
+        {
+            IQueryResultNode<string, Exception> node =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                node
+#pragma warning restore CS8604 // Possible null reference argument.
+                .Select(val => val.Length));
+        }
+
+        [TestMethod]
+        public void SelectNullSelector()
+        {
+            var value = "asdf";
+            var node = Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>().ToQueryResultNode();
+
+            Assert.ThrowsException<ArgumentNullException>(() => node.Select(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<string, int>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
+        }
     }
 }
