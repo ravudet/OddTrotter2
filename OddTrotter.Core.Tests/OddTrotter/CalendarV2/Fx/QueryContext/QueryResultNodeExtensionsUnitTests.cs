@@ -123,5 +123,62 @@
             /// <inheritdoc/>
             public Exception Value { get; }
         }
+
+        [TestMethod]
+        public void WhereNullSource()
+        {
+            IQueryResultNode<string, Exception> node =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                node
+#pragma warning restore CS8604 // Possible null reference argument.
+                .Where(val => val.Length % 2 == 0));
+        }
+
+        [TestMethod]
+        public void WhereNullPredicate()
+        {
+            var value = "asdf";
+            var node = Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>().ToQueryResultNode();
+
+            Assert.ThrowsException<ArgumentNullException>(() => node.Where(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
+        }
+
+        [TestMethod]
+        public void WhereNoElements()
+        {
+            var node = Either.Left<MockElement>().Right(Either.Left<MockError>().Right(MockEmpty.Instance)).ToQueryResultNode();
+
+            var result = node.Where(_ => true);
+
+            Assert.IsFalse(result.TryGetLeft(out var element));
+            Assert.IsTrue(result.TryGetRight(out var terminal));
+            Assert.IsFalse(terminal.TryGetLeft(out var error));
+            Assert.IsTrue(terminal.TryGetRight(out var empty));
+        }
+
+        [TestMethod]
+        public void WhereNoElementsError()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var node = Either.Left<MockElement>().Right(Either.Left(new MockError(invalidOperationException)).Right<MockEmpty>()).ToQueryResultNode();
+
+            var result = node.Where(_ => true);
+
+            Assert.IsFalse(result.TryGetLeft(out var element));
+            Assert.IsTrue(result.TryGetRight(out var terminal));
+            Assert.IsTrue(terminal.TryGetLeft(out var error));
+            Assert.AreEqual(invalidOperationException, error.Value);
+            Assert.IsFalse(terminal.TryGetRight(out var empty));
+        }
     }
 }
