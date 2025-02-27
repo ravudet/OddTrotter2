@@ -67,13 +67,30 @@
 
         private sealed class MockElement : IElement<string, Exception>
         {
+            private readonly IQueryResultNode<string, Exception> next;
+
             /// <summary>
             /// placeholder
             /// </summary>
             /// <param name="value"></param>
             public MockElement(string value)
+                : this(
+                    value, 
+                    Either
+                        .Left<IElement<string, Exception>>()
+                        .Right(
+                            Either
+                                .Left<IError<Exception>>()
+                                .Right(
+                                    MockEmpty.Instance))
+                        .ToQueryResultNode())
+            {
+            }
+
+            public MockElement(string value, IQueryResultNode<string, Exception> next)
             {
                 this.Value = value;
+                this.next = next;
             }
 
             /// <inheritdoc/>
@@ -82,15 +99,7 @@
             /// <inheritdoc/>
             public IQueryResultNode<string, Exception> Next()
             {
-                return
-                    Either
-                        .Left<IElement<string, Exception>>()
-                        .Right(
-                            Either
-                                .Left<IError<Exception>>()
-                                .Right(
-                                    MockEmpty.Instance))
-                        .ToQueryResultNode();
+                return this.next;
             }
         }
 
@@ -191,6 +200,11 @@
 
             Assert.IsTrue(result.TryGetLeft(out var element));
             Assert.AreEqual(value, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var secondElement));
+            Assert.IsTrue(next.TryGetRight(out var secondTerminal));
+            Assert.IsFalse(secondTerminal.TryGetLeft(out var secondError));
+            Assert.IsTrue(secondTerminal.TryGetRight(out var secondEmpty));
             Assert.IsFalse(result.TryGetRight(out var terminal));
             
             result = node.Where(_ => false);
@@ -199,6 +213,34 @@
             Assert.IsTrue(result.TryGetRight(out var terminal2));
             Assert.IsFalse(terminal2.TryGetLeft(out var error));
             Assert.IsTrue(terminal2.TryGetRight(out var empty));
+        }
+
+        [TestMethod]
+        public void WhereElementFollowedByError()
+        {
+            var value = "asdf";
+            var invalidOperationException = new InvalidOperationException();
+            var node = Either.Left(new MockElement(value, Either.Left<MockElement>().Right(Either.Left(new MockError(invalidOperationException)).Right<MockEmpty>()).ToQueryResultNode())).Right<IEither<MockError, MockEmpty>>().ToQueryResultNode();
+
+            var result = node.Where(_ => true);
+
+            Assert.IsTrue(result.TryGetLeft(out var element));
+            Assert.AreEqual(value, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var secondElement));
+            Assert.IsTrue(next.TryGetRight(out var secondTerminal));
+            Assert.IsTrue(secondTerminal.TryGetLeft(out var secondError));
+            Assert.AreEqual(invalidOperationException, secondError.Value);
+            Assert.IsFalse(secondTerminal.TryGetRight(out var secondEmpty));
+            Assert.IsFalse(result.TryGetRight(out var terminal));
+
+            result = node.Where(_ => false);
+
+            Assert.IsFalse(result.TryGetLeft(out element));
+            Assert.IsTrue(result.TryGetRight(out var terminal2));
+            Assert.IsTrue(terminal2.TryGetLeft(out var error));
+            Assert.AreEqual(invalidOperationException, error.Value);
+            Assert.IsFalse(terminal2.TryGetRight(out var empty));
         }
     }
 }
