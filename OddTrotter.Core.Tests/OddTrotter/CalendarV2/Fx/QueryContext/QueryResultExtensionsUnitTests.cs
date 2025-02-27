@@ -182,5 +182,95 @@
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                 ));
         }
+
+        [TestMethod]
+        public void SelectNoElements()
+        {
+            var queryResult = new MockQueryResult(Either.Left<MockElement>().Right(Either.Left<MockError>().Right(MockEmpty.Instance)).ToQueryResultNode());
+
+            var selected = queryResult.Select(val => val.Length);
+
+            Assert.IsFalse(selected.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(selected.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(terminal.TryGetLeft(out var error));
+            Assert.IsTrue(terminal.TryGetRight(out var empty));
+        }
+
+        [TestMethod]
+        public void SelectNoElementsError()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left(
+                                    new MockError(invalidOperationException))
+                                .Right<MockEmpty>())
+                        .ToQueryResultNode());
+
+            var selected = queryResult.Select(val => val.Length);
+
+            Assert.IsFalse(selected.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(selected.Nodes.TryGetRight(out var terminal));
+            Assert.IsTrue(terminal.TryGetLeft(out var error));
+            Assert.AreEqual(invalidOperationException, error.Value);
+            Assert.IsFalse(terminal.TryGetRight(out var empty));
+        }
+
+        [TestMethod]
+        public void SelectNoError()
+        {
+            var value = "asdf";
+            var queryResult = new MockQueryResult(Either.Left(new MockElement(value)).Right<IEither<MockError, MockEmpty>>().ToQueryResultNode());
+
+            var selected = queryResult.Select(val => val.Length);
+
+            Assert.IsTrue(selected.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(4, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var secondElement));
+            Assert.IsTrue(next.TryGetRight(out var secondTerminal));
+            Assert.IsFalse(secondTerminal.TryGetLeft(out var secondError));
+            Assert.IsTrue(secondTerminal.TryGetRight(out var secondEmpty));
+            Assert.IsFalse(selected.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void SelectElementFollowedByError()
+        {
+            var value = "asdf";
+            var invalidOperationException = new InvalidOperationException();
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                value,
+                                Either
+                                    .Left<MockElement>()
+                                    .Right(
+                                        Either
+                                            .Left(
+                                                new MockError(invalidOperationException))
+                                            .Right<MockEmpty>())
+                                    .ToQueryResultNode()))
+                        .Right<IEither<MockError, MockEmpty>>()
+                        .ToQueryResultNode());
+
+            var selected = queryResult.Select(val => val.Length);
+
+            Assert.IsTrue(selected.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(4, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var secondElement));
+            Assert.IsTrue(next.TryGetRight(out var secondTerminal));
+            Assert.IsTrue(secondTerminal.TryGetLeft(out var secondError));
+            Assert.AreEqual(invalidOperationException, secondError.Value);
+            Assert.IsFalse(secondTerminal.TryGetRight(out var secondEmpty));
+            Assert.IsFalse(selected.Nodes.TryGetRight(out var terminal));
+        }
     }
 }
