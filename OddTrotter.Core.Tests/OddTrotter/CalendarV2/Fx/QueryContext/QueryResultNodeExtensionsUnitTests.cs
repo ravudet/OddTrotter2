@@ -180,5 +180,25 @@
             Assert.AreEqual(invalidOperationException, error.Value);
             Assert.IsFalse(terminal.TryGetRight(out var empty));
         }
+
+        [TestMethod]
+        public void WhereNoError()
+        {
+            var value = "asdf";
+            var node = Either.Left(new MockElement(value)).Right<IEither<MockError, MockEmpty>>().ToQueryResultNode();
+
+            var result = node.Where(_ => true);
+
+            Assert.IsTrue(result.TryGetLeft(out var element));
+            Assert.AreEqual(value, element.Value);
+            Assert.IsFalse(result.TryGetRight(out var terminal));
+            
+            result = node.Where(_ => false);
+
+            Assert.IsFalse(result.TryGetLeft(out element));
+            Assert.IsTrue(result.TryGetRight(out var terminal2));
+            Assert.IsFalse(terminal2.TryGetLeft(out var error));
+            Assert.IsTrue(terminal2.TryGetRight(out var empty));
+        }
     }
 }
