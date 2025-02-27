@@ -1,4 +1,5 @@
-﻿namespace Fx.QueryContext
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.QueryContext
 {
     using System;
 
@@ -40,7 +41,16 @@
 
             Assert.AreEqual(value + value, result);
 
-            node = Either.Left<MockElement>().Right(Either.Left(new MockError(new Exception(value))).Right<IEmpty>()).ToQueryResultNode();
+            node = 
+                Either
+                    .Left<MockElement>()
+                    .Right(
+                        Either
+                            .Left(
+                                new MockError(
+                                    new Exception(value)))
+                            .Right<IEmpty>())
+                    .ToQueryResultNode();
 
             result = node.Apply(
                 (element, context) => string.Concat(element.Value, element.Value),
@@ -87,8 +97,16 @@
             {
             }
 
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="next"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> is <see langword="null"/></exception>
             public MockElement(string value, IQueryResultNode<string, Exception> next)
             {
+                ArgumentNullException.ThrowIfNull(next);
+
                 this.Value = value;
                 this.next = next;
             }
@@ -179,7 +197,15 @@
         public void WhereNoElementsError()
         {
             var invalidOperationException = new InvalidOperationException();
-            var node = Either.Left<MockElement>().Right(Either.Left(new MockError(invalidOperationException)).Right<MockEmpty>()).ToQueryResultNode();
+            var node = 
+                Either
+                    .Left<MockElement>()
+                    .Right(
+                        Either
+                            .Left(
+                                new MockError(invalidOperationException))
+                            .Right<MockEmpty>())
+                    .ToQueryResultNode();
 
             var result = node.Where(_ => true);
 
@@ -220,7 +246,21 @@
         {
             var value = "asdf";
             var invalidOperationException = new InvalidOperationException();
-            var node = Either.Left(new MockElement(value, Either.Left<MockElement>().Right(Either.Left(new MockError(invalidOperationException)).Right<MockEmpty>()).ToQueryResultNode())).Right<IEither<MockError, MockEmpty>>().ToQueryResultNode();
+            var node = 
+                Either
+                    .Left(
+                        new MockElement(
+                            value, 
+                            Either
+                                .Left<MockElement>()
+                                .Right(
+                                    Either
+                                        .Left(
+                                            new MockError(invalidOperationException))
+                                        .Right<MockEmpty>())
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var result = node.Where(_ => true);
 
@@ -291,7 +331,15 @@
         public void SelectNoElementsError()
         {
             var invalidOperationException = new InvalidOperationException();
-            var node = Either.Left<MockElement>().Right(Either.Left(new MockError(invalidOperationException)).Right<MockEmpty>()).ToQueryResultNode();
+            var node = 
+                Either
+                    .Left<MockElement>()
+                    .Right(
+                        Either
+                            .Left(
+                                new MockError(invalidOperationException))
+                            .Right<MockEmpty>())
+                    .ToQueryResultNode();
 
             var result = node.Select(val => val.Length);
 
@@ -325,7 +373,21 @@
         {
             var value = "asdf";
             var invalidOperationException = new InvalidOperationException();
-            var node = Either.Left(new MockElement(value, Either.Left<MockElement>().Right(Either.Left(new MockError(invalidOperationException)).Right<MockEmpty>()).ToQueryResultNode())).Right<IEither<MockError, MockEmpty>>().ToQueryResultNode();
+            var node = 
+                Either
+                    .Left(
+                        new MockElement(
+                            value, 
+                            Either
+                                .Left<MockElement>()
+                                .Right(
+                                    Either
+                                        .Left(
+                                            new MockError(invalidOperationException))
+                                        .Right<MockEmpty>())
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var result = node.Select(val => val.Length);
 
