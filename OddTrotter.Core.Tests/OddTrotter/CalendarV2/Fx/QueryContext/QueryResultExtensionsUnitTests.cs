@@ -1,7 +1,7 @@
 ﻿namespace Fx.QueryContext
 {
     using System;
-
+    using System.Threading;
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -150,6 +150,37 @@
             Assert.IsTrue(terminal2.TryGetLeft(out var error));
             Assert.AreEqual(invalidOperationException, error.Value);
             Assert.IsFalse(terminal2.TryGetRight(out var empty));
+        }
+
+        [TestMethod]
+        public void SelectNullSource()
+        {
+            IQueryResult<string, Exception> queryResult =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                queryResult
+#pragma warning restore CS8604 // Possible null reference argument.
+                .Select(val => val.Length));
+        }
+
+        [TestMethod]
+        public void SelectNullSelector()
+        {
+            var value = "asdf";
+            var queryResult = new MockQueryResult(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>().ToQueryResultNode());
+
+            Assert.ThrowsException<ArgumentNullException>(() => queryResult.Select(
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                (Func<string, int>)null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ));
         }
     }
 }
