@@ -388,6 +388,7 @@
             //// TODO add obsolete attribute to the implicit operator on either so you get a build warning if you actually use it; is there a way to make *this specific one* a warning instead of an error?
             //// TODO do a pass cleaning up the existing code using the code quality above and either addressing todos or marking them TODO FUTURE and TODO TOPIC
 
+            //// TODO should the usage of `fx.querycontext.iempty` be replaced with `nothing`?
             //// TODO should you make generic tests for either? you could re-use them between `Either` and `FirstOrDefault` //// TODO also queryresultnode unit tests
             //// TODO mvoe things out of the calendarv2 folder
             //// TODO int.maxmagnitude(and others) intellisense doc doesn't match the learn doc
