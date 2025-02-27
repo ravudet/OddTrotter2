@@ -38,7 +38,13 @@
         public void WhereNullPredicate()
         {
             var value = "asdf";
-            var node = Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>().ToQueryResultNode();
+            var queryResult = new MockQueryResult(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>().ToQueryResultNode());
+
+            Assert.ThrowsException<ArgumentNullException>(() => queryResult.Where(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
         }
     }
 }
