@@ -1,7 +1,8 @@
-﻿namespace Fx.QueryContext
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace Fx.QueryContext
 {
     using System;
-    using System.Threading;
+
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -26,11 +27,19 @@
 
         private sealed class MockQueryResult : IQueryResult<string, Exception>
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="nodes"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is <see langword="null"/></exception>
             public MockQueryResult(IQueryResultNode<string, Exception> nodes)
             {
-                Nodes = nodes;
+                ArgumentNullException.ThrowIfNull(nodes);
+
+                this.Nodes = nodes;
             }
 
+            /// <inheritdoc/>
             public IQueryResultNode<string, Exception> Nodes { get; }
         }
 
@@ -38,7 +47,13 @@
         public void WhereNullPredicate()
         {
             var value = "asdf";
-            var queryResult = new MockQueryResult(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>().ToQueryResultNode());
+            var queryResult = 
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(value))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
 
             Assert.ThrowsException<ArgumentNullException>(() => queryResult.Where(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -49,7 +64,16 @@
         [TestMethod]
         public void WhereNoElements()
         {
-            var queryResult = new MockQueryResult(Either.Left<MockElement>().Right(Either.Left<MockError>().Right(MockEmpty.Instance)).ToQueryResultNode());
+            var queryResult = 
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(
+                                    MockEmpty.Instance))
+                        .ToQueryResultNode());
 
             var whered = queryResult.Where(_ => true);
 
@@ -88,7 +112,12 @@
         {
             var value = "asdf";
             var queryResult =
-                new MockQueryResult(Either.Left(new MockElement(value)).Right<IEither<MockError, MockEmpty>>().ToQueryResultNode());
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(value))
+                        .Right<IEither<MockError, MockEmpty>>()
+                        .ToQueryResultNode());
 
             var whered = queryResult.Where(_ => true);
 
@@ -172,7 +201,13 @@
         public void SelectNullSelector()
         {
             var value = "asdf";
-            var queryResult = new MockQueryResult(Either.Left(new MockElement(value)).Right<IEither<IError<Exception>, IEmpty>>().ToQueryResultNode());
+            var queryResult = 
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(value))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
 
             Assert.ThrowsException<ArgumentNullException>(() => queryResult.Select(
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -186,7 +221,16 @@
         [TestMethod]
         public void SelectNoElements()
         {
-            var queryResult = new MockQueryResult(Either.Left<MockElement>().Right(Either.Left<MockError>().Right(MockEmpty.Instance)).ToQueryResultNode());
+            var queryResult = 
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(
+                                    MockEmpty.Instance))
+                        .ToQueryResultNode());
 
             var selected = queryResult.Select(val => val.Length);
 
@@ -224,7 +268,13 @@
         public void SelectNoError()
         {
             var value = "asdf";
-            var queryResult = new MockQueryResult(Either.Left(new MockElement(value)).Right<IEither<MockError, MockEmpty>>().ToQueryResultNode());
+            var queryResult = 
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(value))
+                        .Right<IEither<MockError, MockEmpty>>()
+                        .ToQueryResultNode());
 
             var selected = queryResult.Select(val => val.Length);
 
