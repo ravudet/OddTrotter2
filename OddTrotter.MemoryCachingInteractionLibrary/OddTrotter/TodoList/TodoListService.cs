@@ -381,6 +381,7 @@
             // unit tests
             // do everything above for unit tests
 
+            //// TODO you are working on moving queryresultextensions2 to `fx.querycontext`; this started with b8dcccf88282d057caacc7ca8cbbc55cdb016233
             //// TODO code review system.threading.tasks
             //// TODO code review system.runtime.compilerservices
             //// TODO then move stuff from Fx.QueryContextOption1
@@ -397,7 +398,7 @@
             //// TODO go through stash namespace and see what you want to pull out (maybe to another repo and/or as branches with future work items)
             //// TODO write tests for todolistservice that confirm the URLs
 
-            //// TODO FUTURE implement all (valuable?) linq queries for iqueryresult
+            //// TODO FUTURE implement all (valuable?) linq queries for iqueryresult (note that you don't want to implement things like orderby (that requires the full context of the list to do correctly) because they give the wrong impression in the case where an error was encountered) (e.g. orderby can't know the first element of the result without knowing all of the elements of the list, so if there was an error, we can't know the correct order)
             //// TODO FUTURE eitherunittests.applyleftexception is an exception where a `throw` type might be useful; are there use-cases that aren't testing though?
             //// TODO FUTURE do you want to have an adapter from action to func now that you have `nothing`?
             //// TODO FUTURE you should be able to cast QueryResult<Either<CalendarEvent, GraphCalendarEvent>, IOException> to QueryResult<Either<CalendarEvent, GraphCalendarEvent>, Exception>

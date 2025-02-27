@@ -2,6 +2,7 @@
 namespace Fx.QueryContext
 {
     using System;
+    using System.Collections.Generic;
 
     using Fx.Either;
 
@@ -152,6 +153,121 @@ namespace Fx.QueryContext
             {
                 return this.next.Select(selector);
             }
+        }
+
+        public static IQueryResultNode<TValue, TError> Concat<TValue, TError>(this IQueryResultNode<TValue, TError> first, IQueryResultNode<TValue, TError> second)
+        {
+            return first.Concat(second, (firstError, secondError) => firstError ?? secondError!); //// TODO the bang here really demonstrates the need for `realnullable`
+            //// TODO you don't necessarily need this overload, but it was useful as a sanity check; maybe remove it
+        }
+
+        public static IQueryResultNode<TValue, TErrorResult> Concat<TValue, TErrorFirst, TErrorSecond, TErrorResult>(this IQueryResultNode<TValue, TErrorFirst> first, IQueryResultNode<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+        {
+            return first
+                .Apply(
+                    element =>
+                        Either
+                            .Left(
+                                new ConcatFirstElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(element.Value, element.Next(), second, errorAggregator))
+                            .Right<IEither<IError<TErrorResult>, IEmpty>>()
+                            .ToQueryResultNode(),
+                    terminal =>
+                        terminal
+                            .Apply(
+                                error => ConcatTraverseSecond(error.Value, second, errorAggregator),
+                                empty => ConcatTraverseSecond(default, second, errorAggregator)));
+        }
+
+        private sealed class ConcatFirstElement<TValue, TErrorFirst, TErrorSecond, TErrorResult> : IElement<TValue, TErrorResult>
+        {
+            private readonly IQueryResultNode<TValue, TErrorFirst> next;
+            private readonly IQueryResultNode<TValue, TErrorSecond> second;
+            private readonly Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator; //// TODO is it time to instroduce "realnullable"?
+
+            public ConcatFirstElement(TValue value, IQueryResultNode<TValue, TErrorFirst> next, IQueryResultNode<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+            {
+                Value = value;
+                this.next = next;
+                this.second = second;
+                this.errorAggregator = errorAggregator;
+            }
+
+            public TValue Value { get; }
+
+            public IQueryResultNode<TValue, TErrorResult> Next()
+            {
+                return this.next.Concat(this.second, this.errorAggregator);
+            }
+        }
+
+        private static IQueryResultNode<TValue, TErrorResult> ConcatTraverseSecond<TValue, TErrorFirst, TErrorSecond, TErrorResult>(TErrorFirst? error, IQueryResultNode<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+        {
+            return second
+                .Apply(
+                    element =>
+                        Either
+                            .Left(
+                                new ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(error, element.Value, element.Next(), errorAggregator))
+                            .Right<IEither<IError<TErrorResult>, IEmpty>>()
+                            .ToQueryResultNode(),
+                    terminal =>
+                        terminal
+                            .Apply(
+                                secondError =>
+                                    Either
+                                        .Left<IElement<TValue, TErrorResult>>()
+                                        .Right(
+                                            Either
+                                                .Left(new Error<TErrorResult>(errorAggregator(error, secondError.Value)))
+                                                .Right<IEmpty>())
+                                        .ToQueryResultNode(),
+                                empty =>
+                                    Either
+                                        .Left<IElement<TValue, TErrorResult>>()
+                                        .Right(
+                                            Either
+                                                .Left<IError<TErrorResult>>()
+                                                .Right(empty))
+                                        .ToQueryResultNode()));
+        }
+
+        //// TODO put this somewhere else and make it public?
+        private sealed class Error<TError> : IError<TError>
+        {
+            public Error(TError value)
+            {
+                Value = value;
+            }
+
+            public TError Value { get; }
+        }
+
+        private sealed class ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult> : IElement<TValue, TErrorResult>
+        {
+            private readonly TErrorFirst? error;
+            private readonly IQueryResultNode<TValue, TErrorSecond> next;
+            private readonly Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator;
+
+            public ConcatSecondErrorElement(TErrorFirst? error, TValue value, IQueryResultNode<TValue, TErrorSecond> next, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+            {
+                this.error = error;
+                Value = value;
+                this.next = next;
+                this.errorAggregator = errorAggregator;
+            }
+
+            public TValue Value { get; }
+
+            public IQueryResultNode<TValue, TErrorResult> Next()
+            {
+                return ConcatTraverseSecond(this.error, this.next, this.errorAggregator);
+            }
+        }
+
+        public static IQueryResultNode<TValue, TError> DistinctBy<TValue, TError, TKey>(this IQueryResultNode<TValue, TError> source, Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer)
+        {
+            var hashSet = new HashSet<TKey>(comparer);
+            return source.Where(element => hashSet.Add(keySelector(element)));
         }
     }
 }
