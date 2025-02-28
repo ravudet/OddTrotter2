@@ -137,7 +137,6 @@ IQueryResult<TElement, TError> source, TDefault @default)
                     element =>
                         Either
                             .Left(
-                                //// TODO add factory method for convenience?
                                 System.Linq.FirstOrDefault.Create(
                                     Either
                                         .Left(element.Value)
