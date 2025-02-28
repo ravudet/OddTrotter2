@@ -116,7 +116,18 @@ namespace Fx.QueryContext
             }
         }
 
-        public static IEither<FirstOrDefault<TElement, TDefault>, TError> FirstOrDefault<TElement, TError, TDefault>(this IQueryResult<TElement, TError> source, TDefault @default)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TDefault"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="default"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> is <see langword="null"/></exception>
+        public static IEither<FirstOrDefault<TElement, TDefault>, TError> FirstOrDefault<TElement, TError, TDefault>(this 
+IQueryResult<TElement, TError> source, TDefault @default)
         {
             ArgumentNullException.ThrowIfNull(source);
 
@@ -126,6 +137,7 @@ namespace Fx.QueryContext
                     element =>
                         Either
                             .Left(
+                                //// TODO add factory method for convenience?
                                 new FirstOrDefault<TElement, TDefault>(
                                         Either
                                             .Left(element.Value)
