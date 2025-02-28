@@ -463,7 +463,7 @@ namespace Fx.QueryContext
         }
 
         [TestMethod]
-        public void NullFirstErrorSelector()
+        public void ConcatNullFirstErrorSelector()
         {
             var first =
                 new MockQueryResult(
@@ -492,7 +492,7 @@ namespace Fx.QueryContext
         }
 
         [TestMethod]
-        public void NullSecondErrorSelector()
+        public void ConcatNullSecondErrorSelector()
         {
             var first =
                 new MockQueryResult(
@@ -521,7 +521,7 @@ namespace Fx.QueryContext
         }
 
         [TestMethod]
-        public void NullErrorAggregator()
+        public void ConcatNullErrorAggregator()
         {
             var first =
                 new MockQueryResult(
@@ -548,5 +548,31 @@ namespace Fx.QueryContext
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                             ));
         }
+
+        [TestMethod]
+        public void ConcatNoElements()
+        {
+
+        }
+
+/*
+first element   first error     second element      second error
+0               0               0                   0
+0               0               0                   1
+0               0               1                   0
+0               0               1                   1
+0               1               0                   0
+0               1               0                   1
+0               1               1                   0
+0               1               1                   1
+1               0               0                   0
+1               0               0                   1
+1               0               1                   0
+1               0               1                   1
+1               1               0                   0
+1               1               0                   1
+1               1               1                   0
+1               1               1                   1
+*/
     }
 }
