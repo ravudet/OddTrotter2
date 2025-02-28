@@ -118,6 +118,8 @@ namespace Fx.QueryContext
 
         public static IEither<FirstOrDefault<TElement, TDefault>, TError> FirstOrDefault<TElement, TError, TDefault>(this IQueryResult<TElement, TError> source, TDefault @default)
         {
+            ArgumentNullException.ThrowIfNull(source);
+
             return source
                 .Nodes
                 .Apply(
@@ -146,6 +148,10 @@ namespace Fx.QueryContext
 
         public static IQueryResult<TValue, TErrorResult> Concat<TValue, TErrorFirst, TErrorSecond, TErrorResult>(this IQueryResult<TValue, TErrorFirst> first, IQueryResult<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
         {
+            ArgumentNullException.ThrowIfNull(first);
+            ArgumentNullException.ThrowIfNull(second);
+            ArgumentNullException.ThrowIfNull(errorAggregator);
+
             return new ConcatQueryResult<TValue, TErrorFirst, TErrorSecond, TErrorResult>(first, second, errorAggregator);
         }
 
@@ -157,6 +163,10 @@ namespace Fx.QueryContext
 
             public ConcatQueryResult(IQueryResult<TValue, TErrorFirst> first, IQueryResult<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
             {
+                ArgumentNullException.ThrowIfNull(first);
+                ArgumentNullException.ThrowIfNull(second);
+                ArgumentNullException.ThrowIfNull(errorAggregator);
+
                 this.first = first;
                 this.second = second;
                 this.errorAggregator = errorAggregator;
@@ -173,6 +183,10 @@ namespace Fx.QueryContext
 
         public static IQueryResult<TValue, TError> DistinctBy<TValue, TError, TKey>(this IQueryResult<TValue, TError> source, Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer)
         {
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(keySelector);
+            ArgumentNullException.ThrowIfNull(comparer);
+
             return new DistinctByResult<TValue, TError, TKey>(source, keySelector, comparer);
         }
 
@@ -184,6 +198,10 @@ namespace Fx.QueryContext
 
             public DistinctByResult(IQueryResult<TValue, TError> source, Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer)
             {
+                ArgumentNullException.ThrowIfNull(source);
+                ArgumentNullException.ThrowIfNull(keySelector);
+                ArgumentNullException.ThrowIfNull(comparer);
+
                 this.source = source;
                 this.keySelector = keySelector;
                 this.comparer = comparer;
