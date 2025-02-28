@@ -2,7 +2,7 @@
 namespace Fx.QueryContext
 {
     using System;
-
+    using System.Security.Cryptography;
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using OddTrotter.Calendar;
@@ -632,20 +632,70 @@ namespace Fx.QueryContext
                         .Right<IEither<IError<Exception>, IEmpty>>()
                         .ToQueryResultNode());
 
-            var concated = first.Concat(second, firstError => new AggregateException(firstError), secondError => new AggregateException(secondError), (firstError, secondError) => new AggregateException(firstError, secondError));
+            var concated = first.Concat(
+                second, 
+                firstError => new AggregateException(firstError), 
+                secondError => new AggregateException(secondError), 
+                (firstError, secondError) => new AggregateException(firstError, secondError));
 
             Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
             Assert.AreEqual(secondValue, element.Value);
             var next = element.Next();
-            Assert.IsFalse(next.TryGetLeft(out var nextError));
+            Assert.IsFalse(next.TryGetLeft(out var nextTerminal));
             Assert.IsTrue(next.TryGetRight(out var empty));
+            Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void ConcatFirstNoElementNoErrorSecondElementError()
+        {
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(MockEmpty.Instance))
+                        .ToQueryResultNode());
+            var secondValue = "qwer";
+            var invalidCastException = new InvalidCastException();
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                secondValue,
+                                Either
+                                    .Left<IElement<string, Exception>>()
+                                    .Right(
+                                        Either
+                                            .Left(new MockError(invalidCastException))
+                                            .Right<IEmpty>())
+                                    .ToQueryResultNode()))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(secondValue, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var nextElement));
+            Assert.IsTrue(next.TryGetRight(out var nextTerminal));
+            Assert.IsTrue(nextTerminal.TryGetLeft(out var nextError));
+            Assert.AreEqual(1, nextError.Value.InnerExceptions.Count);
+            Assert.AreEqual(invalidCastException, nextError.Value.InnerExceptions[0]);
+            Assert.IsFalse(nextTerminal.TryGetRight(out var nextEmpty));
             Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
         }
 
 /*
 first element   first error     second element      second error
-0               0               1                   0
-0               0               1                   1
 0               1               0                   0
 0               1               0                   1
 0               1               1                   0
