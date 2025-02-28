@@ -408,7 +408,12 @@ namespace Fx.QueryContext
         [TestMethod]
         public void ConcatNullFirst()
         {
-            IQueryResult<string, InvalidOperationException> first = null;
+            IQueryResult<string, InvalidOperationException> first =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
             var second =
                 new MockQueryResult(
                     Either
@@ -416,7 +421,16 @@ namespace Fx.QueryContext
                         .Right<IEither<IError<InvalidCastException>, IEmpty>>()
                         .ToQueryResultNode());
 
-            Assert.ThrowsException<ArgumentNullException>(() => first.Concat(second, (firstError, secondError) => new AggregateException(firstError, secondError)));
+            Assert.ThrowsException<ArgumentNullException>(
+                () =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                    first
+#pragma warning restore CS8604 // Possible null reference argument.
+                        .Concat(
+                            second, 
+                            firstError => new AggregateException(firstError), 
+                            secondError => new AggregateException(secondError), 
+                            (firstError, secondError) => new AggregateException(firstError, secondError)));
         }
     }
 }
