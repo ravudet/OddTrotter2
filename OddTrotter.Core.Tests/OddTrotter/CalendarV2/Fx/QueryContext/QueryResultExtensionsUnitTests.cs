@@ -612,9 +612,38 @@ namespace Fx.QueryContext
             Assert.IsFalse(terminal.TryGetRight(out var empty));
         }
 
+        [TestMethod]
+        public void ConcatFirstNoElementNotErrorSecondElementNoError()
+        {
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(MockEmpty.Instance))
+                        .ToQueryResultNode());
+            var secondValue = "qwer";
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement(secondValue))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(second, firstError => new AggregateException(firstError), secondError => new AggregateException(secondError), (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(secondValue, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var nextError));
+            Assert.IsTrue(next.TryGetRight(out var empty));
+            Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
+
 /*
 first element   first error     second element      second error
-0               0               0                   1
 0               0               1                   0
 0               0               1                   1
 0               1               0                   0
