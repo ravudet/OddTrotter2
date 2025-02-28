@@ -161,6 +161,17 @@ namespace Fx.QueryContext
             //// TODO you don't necessarily need this overload, but it was useful as a sanity check; maybe remove it
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TErrorFirst"></typeparam>
+        /// <typeparam name="TErrorSecond"></typeparam>
+        /// <typeparam name="TErrorResult"></typeparam>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="errorAggregator"></param>
+        /// <returns></returns>
         public static IQueryResultNode<TValue, TErrorResult> Concat<TValue, TErrorFirst, TErrorSecond, TErrorResult>(this IQueryResultNode<TValue, TErrorFirst> first, IQueryResultNode<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
         {
             return first

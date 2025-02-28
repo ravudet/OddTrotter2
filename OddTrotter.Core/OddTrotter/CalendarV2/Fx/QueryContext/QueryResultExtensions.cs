@@ -117,7 +117,7 @@ namespace Fx.QueryContext
         }
 
         /// <summary>
-        /// 
+        /// placeholder
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <typeparam name="TError"></typeparam>
@@ -158,6 +158,18 @@ IQueryResult<TElement, TError> source, TDefault @default)
                                         .Right<TError>()));
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TErrorFirst"></typeparam>
+        /// <typeparam name="TErrorSecond"></typeparam>
+        /// <typeparam name="TErrorResult"></typeparam>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="errorAggregator"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="first"/> or <paramref name="second"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
         public static IQueryResult<TValue, TErrorResult> Concat<TValue, TErrorFirst, TErrorSecond, TErrorResult>(this IQueryResult<TValue, TErrorFirst> first, IQueryResult<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
         {
             ArgumentNullException.ThrowIfNull(first);
@@ -173,6 +185,13 @@ IQueryResult<TElement, TError> source, TDefault @default)
             private readonly IQueryResult<TValue, TErrorSecond> second;
             private readonly Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator;
 
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="first"></param>
+            /// <param name="second"></param>
+            /// <param name="errorAggregator"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="first"/> or <paramref name="second"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
             public ConcatQueryResult(IQueryResult<TValue, TErrorFirst> first, IQueryResult<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
             {
                 ArgumentNullException.ThrowIfNull(first);
@@ -184,6 +203,7 @@ IQueryResult<TElement, TError> source, TDefault @default)
                 this.errorAggregator = errorAggregator;
             }
 
+            /// <inheritdoc/>
             public IQueryResultNode<TValue, TErrorResult> Nodes
             {
                 get
@@ -193,6 +213,17 @@ IQueryResult<TElement, TError> source, TDefault @default)
             }
         }
 
+        /// <summary>
+        /// placeholder
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TError"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="keySelector"></param>
+        /// <param name="comparer"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> or <paramref name="keySelector"/> or <paramref name="comparer"/> is <see langword="null"/></exception>
         public static IQueryResult<TValue, TError> DistinctBy<TValue, TError, TKey>(this IQueryResult<TValue, TError> source, Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer)
         {
             ArgumentNullException.ThrowIfNull(source);
@@ -208,6 +239,13 @@ IQueryResult<TElement, TError> source, TDefault @default)
             private readonly Func<TValue, TKey> keySelector;
             private readonly IEqualityComparer<TKey> comparer;
 
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="source"></param>
+            /// <param name="keySelector"></param>
+            /// <param name="comparer"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> or <paramref name="keySelector"/> or <paramref name="comparer"/> is <see langword="null"/></exception>
             public DistinctByResult(IQueryResult<TValue, TError> source, Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer)
             {
                 ArgumentNullException.ThrowIfNull(source);
@@ -219,6 +257,7 @@ IQueryResult<TElement, TError> source, TDefault @default)
                 this.comparer = comparer;
             }
 
+            /// <inheritdoc/>
             public IQueryResultNode<TValue, TError> Nodes
             {
                 get
