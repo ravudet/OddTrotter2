@@ -381,7 +381,8 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO you are working on moving queryresultextensions2 to `fx.querycontext`; this started with b8dcccf88282d057caacc7ca8cbbc55cdb016233
+            //// TODO you are working on tests for queryresultextensions
+            //// TODO once the tests are finished, you are working on code reviewing the changes in 4f9cc62edc490a6c58c11ad8bf8d713be1f59ef9, and you are at the queryresultextensions file
             //// TODO code review system.threading.tasks
             //// TODO code review system.runtime.compilerservices
             //// TODO then move stuff from Fx.QueryContextOption1
