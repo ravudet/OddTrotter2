@@ -157,7 +157,7 @@ namespace Fx.QueryContext
 
         public static IQueryResultNode<TValue, TError> Concat<TValue, TError>(this IQueryResultNode<TValue, TError> first, IQueryResultNode<TValue, TError> second)
         {
-            return first.Concat(second, (firstError, secondError) => firstError ?? secondError!); //// TODO the bang here really demonstrates the need for `realnullable`
+            return first.Concat(second, _ => _, _ => _, (firstError, secondError) => firstError ?? secondError!); //// TODO the bang here really demonstrates the need for `realnullable`
             //// TODO you don't necessarily need this overload, but it was useful as a sanity check; maybe remove it
         }
 
@@ -190,8 +190,8 @@ namespace Fx.QueryContext
                     terminal =>
                         terminal
                             .Apply(
-                                error => ConcatTraverseSecond(error.Value, second, errorAggregator),
-                                empty => ConcatTraverseSecond(default, second, errorAggregator)));
+                                error => ConcatTraverseSecond(error.Value, second, firstErrorSelector, secondErrorSelector, errorAggregator),
+                                empty => ConcatTraverseSecond(default, second, firstErrorSelector, secondErrorSelector, errorAggregator)));
         }
 
         private sealed class ConcatFirstElement<TValue, TErrorFirst, TErrorSecond, TErrorResult> : IElement<TValue, TErrorResult>
@@ -226,14 +226,19 @@ namespace Fx.QueryContext
             }
         }
 
-        private static IQueryResultNode<TValue, TErrorResult> ConcatTraverseSecond<TValue, TErrorFirst, TErrorSecond, TErrorResult>(TErrorFirst? error, IQueryResultNode<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+        private static IQueryResultNode<TValue, TErrorResult> ConcatTraverseSecond<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
+            TErrorFirst? error,  //// TODO introduce real nullable?
+            IQueryResultNode<TValue, TErrorSecond> second,
+            Func<TErrorFirst, TErrorResult> firstErrorSelector,
+            Func<TErrorSecond, TErrorResult> secondErrorSelector,
+            Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
         {
             return second
                 .Apply(
                     element =>
                         Either
                             .Left(
-                                new ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(error, element.Value, element.Next(), errorAggregator))
+                                new ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(error, element.Value, element.Next(), firstErrorSelector, secondErrorSelector, errorAggregator))
                             .Right<IEither<IError<TErrorResult>, IEmpty>>()
                             .ToQueryResultNode(),
                     terminal =>
@@ -272,13 +277,23 @@ namespace Fx.QueryContext
         {
             private readonly TErrorFirst? error;
             private readonly IQueryResultNode<TValue, TErrorSecond> next;
-            private readonly Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator;
+            private readonly Func<TErrorFirst, TErrorResult> firstErrorSelector;
+            private readonly Func<TErrorSecond, TErrorResult> secondErrorSelector;
+            private readonly Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator;
 
-            public ConcatSecondErrorElement(TErrorFirst? error, TValue value, IQueryResultNode<TValue, TErrorSecond> next, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+            public ConcatSecondErrorElement(
+                TErrorFirst? error, 
+                TValue value, 
+                IQueryResultNode<TValue, TErrorSecond> next,
+                Func<TErrorFirst, TErrorResult> firstErrorSelector,
+                Func<TErrorSecond, TErrorResult> secondErrorSelector,
+                Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
             {
                 this.error = error;
                 Value = value;
                 this.next = next;
+                this.firstErrorSelector = firstErrorSelector;
+                this.secondErrorSelector = secondErrorSelector;
                 this.errorAggregator = errorAggregator;
             }
 
@@ -286,7 +301,7 @@ namespace Fx.QueryContext
 
             public IQueryResultNode<TValue, TErrorResult> Next()
             {
-                return ConcatTraverseSecond(this.error, this.next, this.errorAggregator);
+                return ConcatTraverseSecond(this.error, this.next, this.firstErrorSelector, this.secondErrorSelector, this.errorAggregator);
             }
         }
 
