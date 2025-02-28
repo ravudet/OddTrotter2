@@ -1,108 +1,47 @@
-﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-namespace System.Linq
+﻿namespace System.Linq
 {
-    using System;
-
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public sealed class FirstOrDefaultUnitTests
+    public sealed class FirstOrDefaultFactoryUnitTests
     {
         [TestMethod]
-        public void FirstOrDefaultNullEither()
+        public void CreateNullEither()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => new FirstOrDefault<string, int>(
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+            IEither<string, int> either =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                 null
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() => FirstOrDefault.Create(
+#pragma warning disable CS8604 // Possible null reference argument.
+                either
+#pragma warning restore CS8604 // Possible null reference argument.
                 ));
         }
 
         [TestMethod]
-        public void ApplyLeft()
+        public void Create()
         {
-            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
+            var value = "asdf";
+            var @default = 42;
+            var either = Either.Left(value).Right<int>();
 
-            var result = firstOrDefault.Apply(
-                (left, context) => left[0],
-                (right, context) => right.ToString()[0], 
-                new Nothing());
+            var firstOrDefault = FirstOrDefault.Create(either);
 
-            Assert.AreEqual('a', result);
-        }
+            Assert.IsTrue(firstOrDefault.TryGetLeft(out var left));
+            Assert.AreEqual(value, left);
+            Assert.IsFalse(firstOrDefault.TryGetRight(out var right));
 
-        [TestMethod]
-        public void ApplyRight()
-        {
-            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Right(42));
+            either = Either.Left<string>().Right(@default);
 
-            var result = firstOrDefault.Apply(
-                (left, context) => left[0],
-                (right, context) => right.ToString()[0], new Nothing());
+            firstOrDefault = FirstOrDefault.Create(either);
 
-            Assert.AreEqual('4', result);
-        }
-
-        [TestMethod]
-        public void ApplyLeftException()
-        {
-            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
-
-            var invalidOperationException = new InvalidOperationException();
-            var invalidCastException = new InvalidCastException();
-
-            var leftMapException = Assert.ThrowsException<LeftMapException>(
-                () => firstOrDefault.Apply<char, Nothing>(
-                    (left, context) => throw invalidOperationException,
-                    (right, context) => throw invalidCastException,
-                    default));
-
-            Assert.AreEqual(invalidOperationException, leftMapException.InnerException);
-        }
-
-        [TestMethod]
-        public void ApplyRightException()
-        {
-            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Right(42));
-
-            var invalidOperationException = new InvalidOperationException();
-            var invalidCastException = new InvalidCastException();
-
-            var rightMapException = Assert.ThrowsException<RightMapException>(
-                () => firstOrDefault.Apply<char, Nothing>(
-                    (left, context) => throw invalidOperationException,
-                    (right, context) => throw invalidCastException,
-                    default));
-
-            Assert.AreEqual(invalidCastException, rightMapException.InnerException);
-        }
-
-        [TestMethod]
-        public void ApplyNullLeftMap()
-        {
-            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
-
-            Assert.ThrowsException<ArgumentNullException>(() => firstOrDefault.Apply<Nothing, Nothing>(
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                null
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-                , (right, context) => default, default));
-        }
-
-        [TestMethod]
-        public void ApplyNullRightMap()
-        {
-            IEither<string, int> firstOrDefault = new FirstOrDefault<string, int>(new Either<string, int>.Left("asdf"));
-
-            Assert.ThrowsException<ArgumentNullException>(
-                () => 
-                    firstOrDefault.Apply<Nothing, Nothing>(
-                        (left, context) => default,
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                        null
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-                        , default));
+            Assert.IsFalse(firstOrDefault.TryGetLeft(out left));
+            Assert.IsTrue(firstOrDefault.TryGetRight(out right));
+            Assert.AreEqual(@default, right);
         }
     }
 }
