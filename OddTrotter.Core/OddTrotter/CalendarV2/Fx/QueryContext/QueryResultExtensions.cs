@@ -4,8 +4,7 @@ namespace Fx.QueryContext
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http.Headers;
-    using System.Numerics;
+
     using Fx.Either;
 
     public static class QueryResultExtensions
@@ -194,7 +193,7 @@ namespace Fx.QueryContext
             {
                 get
                 {
-
+                    return this.source.Nodes.DistinctBy(this.keySelector, comparer);
                 }
             }
         }
