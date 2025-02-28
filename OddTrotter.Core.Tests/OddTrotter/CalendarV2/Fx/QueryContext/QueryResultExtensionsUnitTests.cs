@@ -432,5 +432,121 @@ namespace Fx.QueryContext
                             secondError => new AggregateException(secondError), 
                             (firstError, secondError) => new AggregateException(firstError, secondError)));
         }
+
+        [TestMethod]
+        public void ConcatNullSecond()
+        {
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement("saf"))
+                        .Right<IEither<IError<InvalidCastException>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            IQueryResult<string, InvalidOperationException> second =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(
+                () =>
+                    first
+                        .Concat(
+#pragma warning disable CS8604 // Possible null reference argument.
+                            second
+#pragma warning restore CS8604 // Possible null reference argument.
+                            ,
+                            firstError => new AggregateException(firstError),
+                            secondError => new AggregateException(secondError),
+                            (firstError, secondError) => new AggregateException(firstError, secondError)));
+        }
+
+        [TestMethod]
+        public void NullFirstErrorSelector()
+        {
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement("saf"))
+                        .Right<IEither<IError<InvalidCastException>, IEmpty>>()
+                        .ToQueryResultNode());
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement("qwer"))
+                        .Right<IEither<IError<InvalidCastException>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            Assert.ThrowsException<ArgumentNullException>(
+                () => 
+                    first
+                        .Concat(
+                            second,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                            null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                            ,
+                            secondError => new AggregateException(secondError), 
+                            (firstError, secondError) => new AggregateException(firstError, secondError)));
+        }
+
+        [TestMethod]
+        public void NullSecondErrorSelector()
+        {
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement("saf"))
+                        .Right<IEither<IError<InvalidCastException>, IEmpty>>()
+                        .ToQueryResultNode());
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement("qwer"))
+                        .Right<IEither<IError<InvalidCastException>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            Assert.ThrowsException<ArgumentNullException>(
+                () =>
+                    first
+                        .Concat(
+                            second,
+                            firstError => new AggregateException(firstError),
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                            null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                            ,
+                            (firstError, secondError) => new AggregateException(firstError, secondError)));
+        }
+
+        [TestMethod]
+        public void NullErrorAggregator()
+        {
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement("saf"))
+                        .Right<IEither<IError<InvalidCastException>, IEmpty>>()
+                        .ToQueryResultNode());
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement("qwer"))
+                        .Right<IEither<IError<InvalidCastException>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            Assert.ThrowsException<ArgumentNullException>(
+                () =>
+                    first
+                        .Concat(
+                            second,
+                            firstError => new AggregateException(firstError),
+                            secondError => new AggregateException(secondError),
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                            null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                            ));
+        }
     }
 }
