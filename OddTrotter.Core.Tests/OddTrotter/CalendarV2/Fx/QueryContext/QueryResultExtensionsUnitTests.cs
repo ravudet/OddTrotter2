@@ -5,6 +5,7 @@ namespace Fx.QueryContext
 
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using OddTrotter.Calendar;
 
     [TestClass]
     public sealed class QueryResultExtensionsUnitTests
@@ -321,6 +322,87 @@ namespace Fx.QueryContext
             Assert.AreEqual(invalidOperationException, secondError.Value);
             Assert.IsFalse(secondTerminal.TryGetRight(out var secondEmpty));
             Assert.IsFalse(selected.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void FirstOrDefaultNullSource()
+        {
+            IQueryResult<string, Exception> queryResult =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                queryResult
+#pragma warning restore CS8604 // Possible null reference argument.
+                .FirstOrDefault(42));
+        }
+
+        [TestMethod]
+        public void FirstOrDefaultNoElements()
+        {
+            var defaultValue = 42;
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left<IElement<string, Exception>>()
+                        .Right(
+                            Either
+                                .Left<IError<Exception>>()
+                                .Right(MockEmpty.Instance))
+                        .ToQueryResultNode());
+
+            var firstOrDefaultOrError = queryResult.FirstOrDefault(defaultValue);
+
+            Assert.IsTrue(firstOrDefaultOrError.TryGetLeft(out var firstOrDefault));
+            Assert.IsFalse(firstOrDefault.TryGetLeft(out var first));
+            Assert.IsTrue(firstOrDefault.TryGetRight(out var @default));
+            Assert.AreEqual(defaultValue, @default);
+            Assert.IsFalse(firstOrDefaultOrError.TryGetRight(out var error));
+        }
+
+        [TestMethod]
+        public void FirstOrDefaultNoElementsError()
+        {
+            var errorValue = new InvalidOperationException();
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left<IElement<string, Exception>>()
+                        .Right(
+                            Either
+                                .Left(
+                                    new MockError(errorValue))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+
+            var firstOrDefaultOrError = queryResult.FirstOrDefault(42);
+
+            Assert.IsFalse(firstOrDefaultOrError.TryGetLeft(out var firstOrDefault));
+            Assert.IsTrue(firstOrDefaultOrError.TryGetRight(out var error));
+            Assert.AreEqual(errorValue, error);
+        }
+
+        [TestMethod]
+        public void FirstOrDefault()
+        {
+            var element = "ASdf";
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement(element))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            var firstOrDefaultOrError = queryResult.FirstOrDefault(42);
+
+            Assert.IsTrue(firstOrDefaultOrError.TryGetLeft(out var firstOrDefault));
+            Assert.IsTrue(firstOrDefault.TryGetLeft(out var first));
+            Assert.AreEqual(element, first);
+            Assert.IsFalse(firstOrDefault.TryGetRight(out var @default));
+            Assert.IsFalse(firstOrDefaultOrError.TryGetRight(out var error));
         }
     }
 }
