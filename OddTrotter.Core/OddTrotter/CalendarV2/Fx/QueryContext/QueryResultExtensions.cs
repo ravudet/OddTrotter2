@@ -138,10 +138,10 @@ IQueryResult<TElement, TError> source, TDefault @default)
                         Either
                             .Left(
                                 //// TODO add factory method for convenience?
-                                new FirstOrDefault<TElement, TDefault>(
-                                        Either
-                                            .Left(element.Value)
-                                            .Right<TDefault>()))
+                                System.Linq.FirstOrDefault.Create(
+                                    Either
+                                        .Left(element.Value)
+                                        .Right<TDefault>()))
                             .Right<TError>(),
                     terminal =>
                         terminal
@@ -153,7 +153,7 @@ IQueryResult<TElement, TError> source, TDefault @default)
                                 empty =>
                                     Either
                                         .Left(
-                                            new FirstOrDefault<TElement, TDefault>(
+                                            System.Linq.FirstOrDefault.Create(
                                                 Either.Left<TElement>().Right(@default)))
                                         .Right<TError>()));
         }

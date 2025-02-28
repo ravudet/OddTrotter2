@@ -50,10 +50,10 @@ namespace System.Linq
             {
                 if (!enumerator.MoveNext())
                 {
-                    return new FirstOrDefault<TElement, TDefault>(Either.Left<TElement>().Right(@default));
+                    return FirstOrDefault.Create(Either.Left<TElement>().Right(@default));
                 }
 
-                return new FirstOrDefault<TElement, TDefault>(Either.Left(enumerator.Current).Right<TDefault>());
+                return FirstOrDefault.Create(Either.Left(enumerator.Current).Right<TDefault>());
             }
         }
 
