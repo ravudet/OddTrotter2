@@ -249,17 +249,28 @@ namespace Fx.QueryContext
                                         .Left<IElement<TValue, TErrorResult>>()
                                         .Right(
                                             Either
-                                                .Left(new Error<TErrorResult>(errorAggregator(error, secondError.Value)))
+                                                .Left(new Error<TErrorResult>(
+                                                    error == null ? secondErrorSelector(secondError.Value) : errorAggregator(error, secondError.Value)))
                                                 .Right<IEmpty>())
                                         .ToQueryResultNode(),
                                 empty =>
-                                    Either
-                                        .Left<IElement<TValue, TErrorResult>>()
-                                        .Right(
-                                            Either
-                                                .Left<IError<TErrorResult>>()
-                                                .Right(empty))
-                                        .ToQueryResultNode()));
+                                    error == null
+                                        ? Either
+                                            .Left<IElement<TValue, TErrorResult>>()
+                                            .Right(
+                                                Either
+                                                    .Left<IError<TErrorResult>>()
+                                                    .Right(empty))
+                                            .ToQueryResultNode()
+                                        : Either
+                                            .Left<IElement<TValue, TErrorResult>>()
+                                            .Right(
+                                                Either
+                                                    .Left(
+                                                        new Error<TErrorResult>(
+                                                            firstErrorSelector(error)))
+                                                    .Right<IEmpty>())
+                                            .ToQueryResultNode()));
         }
 
         //// TODO put this somewhere else and make it public?
