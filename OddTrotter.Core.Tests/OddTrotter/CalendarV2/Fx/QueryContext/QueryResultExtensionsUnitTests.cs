@@ -404,5 +404,19 @@ namespace Fx.QueryContext
             Assert.IsFalse(firstOrDefault.TryGetRight(out var @default));
             Assert.IsFalse(firstOrDefaultOrError.TryGetRight(out var error));
         }
+
+        [TestMethod]
+        public void ConcatNullFirst()
+        {
+            IQueryResult<string, InvalidOperationException> first = null;
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement("saf"))
+                        .Right<IEither<IError<InvalidCastException>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            Assert.ThrowsException<ArgumentNullException>(() => first.Concat(second, (firstError, secondError) => new AggregateException(firstError, secondError)));
+        }
     }
 }

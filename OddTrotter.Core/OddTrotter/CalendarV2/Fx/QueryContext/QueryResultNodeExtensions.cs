@@ -172,14 +172,19 @@ namespace Fx.QueryContext
         /// <param name="second"></param>
         /// <param name="errorAggregator"></param>
         /// <returns></returns>
-        public static IQueryResultNode<TValue, TErrorResult> Concat<TValue, TErrorFirst, TErrorSecond, TErrorResult>(this IQueryResultNode<TValue, TErrorFirst> first, IQueryResultNode<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+        public static IQueryResultNode<TValue, TErrorResult> Concat<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
+            this IQueryResultNode<TValue, TErrorFirst> first, 
+            IQueryResultNode<TValue, TErrorSecond> second,
+            Func<TErrorFirst, TErrorResult> firstErrorSelector,
+            Func<TErrorSecond, TErrorResult> secondErrorSelector,
+            Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
         {
             return first
                 .Apply(
                     element =>
                         Either
                             .Left(
-                                new ConcatFirstElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(element.Value, element.Next(), second, errorAggregator))
+                                new ConcatFirstElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(element.Value, element.Next(), second, firstErrorSelector, secondErrorSelector, errorAggregator))
                             .Right<IEither<IError<TErrorResult>, IEmpty>>()
                             .ToQueryResultNode(),
                     terminal =>
@@ -193,13 +198,23 @@ namespace Fx.QueryContext
         {
             private readonly IQueryResultNode<TValue, TErrorFirst> next;
             private readonly IQueryResultNode<TValue, TErrorSecond> second;
-            private readonly Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator; //// TODO is it time to instroduce "realnullable"?
+            private readonly Func<TErrorFirst, TErrorResult> firstErrorSelector;
+            private readonly Func<TErrorSecond, TErrorResult> secondErrorSelector;
+            private readonly Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator; //// TODO is it time to instroduce "realnullable"?
 
-            public ConcatFirstElement(TValue value, IQueryResultNode<TValue, TErrorFirst> next, IQueryResultNode<TValue, TErrorSecond> second, Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+            public ConcatFirstElement(
+                TValue value, 
+                IQueryResultNode<TValue, TErrorFirst> next, 
+                IQueryResultNode<TValue, TErrorSecond> second,
+                Func<TErrorFirst, TErrorResult> firstErrorSelector,
+                Func<TErrorSecond, TErrorResult> secondErrorSelector,
+                Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
             {
                 Value = value;
                 this.next = next;
                 this.second = second;
+                this.firstErrorSelector = firstErrorSelector;
+                this.secondErrorSelector = secondErrorSelector;
                 this.errorAggregator = errorAggregator;
             }
 
@@ -207,7 +222,7 @@ namespace Fx.QueryContext
 
             public IQueryResultNode<TValue, TErrorResult> Next()
             {
-                return this.next.Concat(this.second, this.errorAggregator);
+                return this.next.Concat(this.second, this.firstErrorSelector, this.secondErrorSelector, this.errorAggregator);
             }
         }
 

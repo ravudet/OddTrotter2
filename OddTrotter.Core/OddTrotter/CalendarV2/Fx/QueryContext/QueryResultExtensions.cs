@@ -170,19 +170,23 @@ namespace Fx.QueryContext
         /// <param name="errorAggregator"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="first"/> or <paramref name="second"/> or <paramref name="errorAggregator"/> is
-        /// <see langword="null"/>
+        /// Thrown if <paramref name="first"/> or <paramref name="second"/> <paramref name="firstErrorSelector"/> or
+        /// <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/>
         /// </exception>
         public static IQueryResult<TValue, TErrorResult> Concat<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
             this IQueryResult<TValue, TErrorFirst> first, 
             IQueryResult<TValue, TErrorSecond> second, 
-            Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+            Func<TErrorFirst, TErrorResult> firstErrorSelector,
+            Func<TErrorSecond, TErrorResult> secondErrorSelector,
+            Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
         {
             ArgumentNullException.ThrowIfNull(first);
             ArgumentNullException.ThrowIfNull(second);
+            ArgumentNullException.ThrowIfNull(firstErrorSelector);
+            ArgumentNullException.ThrowIfNull(secondErrorSelector);
             ArgumentNullException.ThrowIfNull(errorAggregator);
 
-            return new ConcatQueryResult<TValue, TErrorFirst, TErrorSecond, TErrorResult>(first, second, errorAggregator);
+            return new ConcatQueryResult<TValue, TErrorFirst, TErrorSecond, TErrorResult>(first, second, firstErrorSelector, secondErrorSelector, errorAggregator);
         }
 
         private sealed class ConcatQueryResult<TValue, TErrorFirst, TErrorSecond, TErrorResult> : 
@@ -190,7 +194,9 @@ namespace Fx.QueryContext
         {
             private readonly IQueryResult<TValue, TErrorFirst> first;
             private readonly IQueryResult<TValue, TErrorSecond> second;
-            private readonly Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator;
+            private readonly Func<TErrorFirst, TErrorResult> firstErrorSelector;
+            private readonly Func<TErrorSecond, TErrorResult> secondErrorSelector;
+            private readonly Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator;
 
             /// <summary>
             /// placeholder
@@ -199,20 +205,26 @@ namespace Fx.QueryContext
             /// <param name="second"></param>
             /// <param name="errorAggregator"></param>
             /// <exception cref="ArgumentNullException">
-            /// Thrown if <paramref name="first"/> or <paramref name="second"/> or <paramref name="errorAggregator"/> is
-            /// <see langword="null"/>
+            /// Thrown if <paramref name="first"/> or <paramref name="second"/> <paramref name="firstErrorSelector"/> or
+            /// <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/>
             /// </exception>
             public ConcatQueryResult(
                 IQueryResult<TValue, TErrorFirst> first, 
-                IQueryResult<TValue, TErrorSecond> second, 
-                Func<TErrorFirst?, TErrorSecond?, TErrorResult> errorAggregator)
+                IQueryResult<TValue, TErrorSecond> second,
+                Func<TErrorFirst, TErrorResult> firstErrorSelector,
+                Func<TErrorSecond, TErrorResult> secondErrorSelector,
+                Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
             {
                 ArgumentNullException.ThrowIfNull(first);
                 ArgumentNullException.ThrowIfNull(second);
+                ArgumentNullException.ThrowIfNull(firstErrorSelector);
+                ArgumentNullException.ThrowIfNull(secondErrorSelector);
                 ArgumentNullException.ThrowIfNull(errorAggregator);
 
                 this.first = first;
                 this.second = second;
+                this.firstErrorSelector = firstErrorSelector;
+                this.secondErrorSelector = secondErrorSelector;
                 this.errorAggregator = errorAggregator;
             }
 
