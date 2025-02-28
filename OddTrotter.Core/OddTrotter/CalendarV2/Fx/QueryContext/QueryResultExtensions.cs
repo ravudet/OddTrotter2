@@ -233,7 +233,7 @@ namespace Fx.QueryContext
             {
                 get
                 {
-                    return this.first.Nodes.Concat(second.Nodes, this.errorAggregator);
+                    return this.first.Nodes.Concat(second.Nodes, this.firstErrorSelector, this.secondErrorSelector, this.errorAggregator);
                 }
             }
         }
