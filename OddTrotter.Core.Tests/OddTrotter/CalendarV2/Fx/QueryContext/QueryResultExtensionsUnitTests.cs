@@ -1631,8 +1631,92 @@ namespace Fx.QueryContext
             Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
         }
 
-        //// no duplicates using comparer with error
-        //// duplicates using comparer
-        //// duplicates using comparer with error
+        [TestMethod]
+        public void DistinctByDuplicatesNoErrorWithComparer()
+        {
+            var firstValue = "asdf";
+            var secondValue = "Asdf";
+            var thirdValue = "azxcv";
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                firstValue,
+                                Either
+                                    .Left(
+                                        new MockElement(
+                                            secondValue,
+                                            Either
+                                                .Left(
+                                                    new MockElement(
+                                                        thirdValue))
+                                                .Right<IEither<MockError, MockEmpty>>()
+                                                .ToQueryResultNode()))
+                                    .Right<IEither<MockError, MockEmpty>>()
+                                    .ToQueryResultNode()))
+                        .Right<IEither<MockError, MockEmpty>>()
+                        .ToQueryResultNode());
+
+            var distinctByed = queryResult.DistinctBy(element => element[0], CharCaseInsensitiveComparer.Instance);
+
+            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(firstValue, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var nextElement));
+            Assert.IsTrue(next.TryGetRight(out var nextTerminal));
+            Assert.IsFalse(nextTerminal.TryGetLeft(out var nextError));
+            Assert.IsTrue(nextTerminal.TryGetRight(out var nextEmpty));
+            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void DistinctByDuplicatesErrorWithComparer()
+        {
+            var firstValue = "asdf";
+            var secondValue = "Asdf";
+            var thirdValue = "azxcv";
+            var invalidOperationException = new InvalidOperationException();
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                firstValue,
+                                Either
+                                    .Left(
+                                        new MockElement(
+                                            secondValue,
+                                            Either
+                                                .Left(
+                                                    new MockElement(
+                                                        thirdValue,
+                                                        Either
+                                                            .Left<MockElement>()
+                                                            .Right(
+                                                                Either
+                                                                    .Left(
+                                                                        new MockError(invalidOperationException))
+                                                                    .Right<MockEmpty>())
+                                                            .ToQueryResultNode()))
+                                                .Right<IEither<MockError, MockEmpty>>()
+                                                .ToQueryResultNode()))
+                                    .Right<IEither<MockError, MockEmpty>>()
+                                    .ToQueryResultNode()))
+                        .Right<IEither<MockError, MockEmpty>>()
+                        .ToQueryResultNode());
+
+            var distinctByed = queryResult.DistinctBy(element => element[0], CharCaseInsensitiveComparer.Instance);
+
+            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(firstValue, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var nextElement));
+            Assert.IsTrue(next.TryGetRight(out var nextTerminal));
+            Assert.IsTrue(nextTerminal.TryGetLeft(out var nextError));
+            Assert.AreEqual(invalidOperationException, nextError.Value);
+            Assert.IsFalse(nextTerminal.TryGetRight(out var nextEmpty));
+            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+        }
     }
 }
