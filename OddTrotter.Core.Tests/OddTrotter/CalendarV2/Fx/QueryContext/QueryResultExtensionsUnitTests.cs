@@ -3,6 +3,7 @@ namespace Fx.QueryContext
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Security.Cryptography;
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1349,7 +1350,7 @@ namespace Fx.QueryContext
         public void DistinctByNoDuplicatesNoError()
         {
             var firstValue = "asdf";
-            var secondValue = "qwer";
+            var secondValue = "Asdf";
             var queryResult =
                 new MockQueryResult(
                     Either
@@ -1385,7 +1386,7 @@ namespace Fx.QueryContext
         public void DistinctByNoDuplicatesError()
         {
             var firstValue = "asdf";
-            var secondValue = "qwer";
+            var secondValue = "Asdf";
             var invalidOperationException = new InvalidOperationException();
             var queryResult =
                 new MockQueryResult(
@@ -1431,7 +1432,7 @@ namespace Fx.QueryContext
         public void DistinctByDuplicatesNoError()
         {
             var firstValue = "asdf";
-            var secondValue = "qwer";
+            var secondValue = "Asdf";
             var thirdValue = "azxcv";
             var queryResult =
                 new MockQueryResult(
@@ -1474,7 +1475,7 @@ namespace Fx.QueryContext
         public void DistinctByDuplicatesError()
         {
             var firstValue = "asdf";
-            var secondValue = "qwer";
+            var secondValue = "Asdf";
             var thirdValue = "azxcv";
             var invalidOperationException = new InvalidOperationException();
             var queryResult =
@@ -1521,6 +1522,67 @@ namespace Fx.QueryContext
             Assert.IsFalse(nextNextTerminal.TryGetRight(out var nextNextEmpty));
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
             Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void DistinctByNoDuplicatesNoErrorWithComparer()
+        {
+            var firstValue = "asdf";
+            var secondValue = "qwer";
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                firstValue,
+                                Either
+                                    .Left(
+                                        new MockElement(
+                                            secondValue))
+                                    .Right<IEither<MockError, MockEmpty>>()
+                                    .ToQueryResultNode()))
+                        .Right<IEither<MockError, MockEmpty>>()
+                        .ToQueryResultNode());
+
+            var distinctByed = queryResult.DistinctBy(element => element[0], CharCaseInsensitiveComparer.Instance);
+
+            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(firstValue, element.Value);
+            var next = element.Next();
+            Assert.IsTrue(next.TryGetLeft(out var nextElement));
+            Assert.AreEqual(secondValue, nextElement.Value);
+            var nextNext = nextElement.Next();
+            Assert.IsFalse(nextNext.TryGetLeft(out var nextNextElement));
+            Assert.IsTrue(nextNext.TryGetRight(out var nextNextTerminal));
+            Assert.IsFalse(nextNextTerminal.TryGetLeft(out var nextNextError));
+            Assert.IsTrue(nextNextTerminal.TryGetRight(out var nextNextEmpty));
+            Assert.IsFalse(next.TryGetRight(out var nextTerminal));
+            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// This should not be productionized. It likely only works for ASCII characters.
+        /// </remarks>
+        private sealed class CharCaseInsensitiveComparer : IEqualityComparer<char>
+        {
+            private CharCaseInsensitiveComparer()
+            {
+            }
+
+            public static CharCaseInsensitiveComparer Instance { get; } = new CharCaseInsensitiveComparer();
+
+            public bool Equals(char x, char y)
+            {
+                return EqualityComparer<char>.Default.Equals(char.ToUpper(x), char.ToUpper(y));
+            }
+
+            public int GetHashCode([DisallowNull] char obj)
+            {
+                return char.ToUpper(obj).GetHashCode();
+            }
         }
 
         //// no duplicates using comparer
