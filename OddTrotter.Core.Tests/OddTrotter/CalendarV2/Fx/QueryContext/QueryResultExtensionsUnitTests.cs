@@ -1031,7 +1031,6 @@ namespace Fx.QueryContext
         }
 /*
 first element   first error     second element      second error
-1               0               1                   1
 1               1               0                   0
 1               1               0                   1
 1               1               1                   0
