@@ -4,10 +4,9 @@ namespace Fx.QueryContext
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using System.Security.Cryptography;
+
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using OddTrotter.Calendar;
 
     [TestClass]
     public sealed class QueryResultExtensionsUnitTests
@@ -573,7 +572,11 @@ namespace Fx.QueryContext
                                 .Right(MockEmpty.Instance))
                         .ToQueryResultNode());
 
-            var concated = first.Concat(second, firstError => new AggregateException(firstError), secondError => new AggregateException(secondError), (firstError, secondError) => new AggregateException(firstError, secondError));
+            var concated = first.Concat(
+                second, 
+                firstError => new AggregateException(firstError), 
+                secondError => new AggregateException(secondError), 
+                (firstError, secondError) => new AggregateException(firstError, secondError));
 
             Assert.IsFalse(concated.Nodes.TryGetLeft(out var element));
             Assert.IsTrue(concated.Nodes.TryGetRight(out var terminal));
@@ -604,7 +607,11 @@ namespace Fx.QueryContext
                                 .Right<IEmpty>())
                         .ToQueryResultNode());
 
-            var concated = first.Concat(second, firstError => new AggregateException(firstError), secondError => new AggregateException(secondError), (firstError, secondError) => new AggregateException(firstError, secondError));
+            var concated = first.Concat(
+                second, 
+                firstError => new AggregateException(firstError), 
+                secondError => new AggregateException(secondError), 
+                (firstError, secondError) => new AggregateException(firstError, secondError));
 
             Assert.IsFalse(concated.Nodes.TryGetLeft(out var element));
             Assert.IsTrue(concated.Nodes.TryGetRight(out var terminal));
@@ -1568,17 +1575,25 @@ namespace Fx.QueryContext
         /// </remarks>
         private sealed class CharCaseInsensitiveComparer : IEqualityComparer<char>
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
             private CharCaseInsensitiveComparer()
             {
             }
 
+            /// <summary>
+            /// placeholder
+            /// </summary>
             public static CharCaseInsensitiveComparer Instance { get; } = new CharCaseInsensitiveComparer();
 
+            /// <inheritdoc/>
             public bool Equals(char x, char y)
             {
                 return EqualityComparer<char>.Default.Equals(char.ToUpper(x), char.ToUpper(y));
             }
 
+            /// <inheritdoc/>
             public int GetHashCode([DisallowNull] char obj)
             {
                 return char.ToUpper(obj).GetHashCode();
