@@ -769,11 +769,135 @@ namespace Fx.QueryContext
             Assert.AreEqual(invalidCastException, error.Value.InnerExceptions[1]);
             Assert.IsFalse(terminal.TryGetRight(out var empty));
         }
+
+        [TestMethod]
+        public void ConcatFirstNoElementErrorSecondElementNoError()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left(new MockError(invalidOperationException))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+            var secondValue = "qwer";
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement(secondValue))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(secondValue, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var nextElement));
+            Assert.IsTrue(next.TryGetRight(out var nextTerminal));
+            Assert.IsTrue(nextTerminal.TryGetLeft(out var nextError));
+            Assert.AreEqual(1, nextError.Value.InnerExceptions.Count);
+            Assert.AreEqual(invalidOperationException, nextError.Value.InnerExceptions[0]);
+            Assert.IsFalse(nextTerminal.TryGetRight(out var nextEmpty));
+            Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void ConcatFirstNoElementErrorSecondElementError()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left(new MockError(invalidOperationException))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+            var secondValue = "qwer";
+            var invalidCastException = new InvalidCastException();
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                secondValue,
+                                Either
+                                    .Left<IElement<string, Exception>>()
+                                    .Right(
+                                        Either
+                                            .Left(new MockError(invalidCastException))
+                                            .Right<IEmpty>())
+                                    .ToQueryResultNode()))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(secondValue, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var nextElement));
+            Assert.IsTrue(next.TryGetRight(out var nextTerminal));
+            Assert.IsTrue(nextTerminal.TryGetLeft(out var nextError));
+            Assert.AreEqual(2, nextError.Value.InnerExceptions.Count);
+            Assert.AreEqual(invalidOperationException, nextError.Value.InnerExceptions[0]);
+            Assert.AreEqual(invalidCastException, nextError.Value.InnerExceptions[1]);
+            Assert.IsFalse(nextTerminal.TryGetRight(out var nextEmpty));
+            Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void ConcatFirstElementNoErrorSecondNoElementNoError()
+        {
+            var firstValue = "Asdf";
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                    firstValue))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(MockEmpty.Instance))
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(firstValue, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var nextElement));
+            Assert.IsTrue(next.TryGetRight(out var nextTerminal));
+            Assert.IsFalse(nextTerminal.TryGetLeft(out var nextError));
+            Assert.IsTrue(nextTerminal.TryGetRight(out var nextEmpty));
+            Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
 /*
 first element   first error     second element      second error
-0               1               1                   0
-0               1               1                   1
-1               0               0                   0
 1               0               0                   1
 1               0               1                   0
 1               0               1                   1
