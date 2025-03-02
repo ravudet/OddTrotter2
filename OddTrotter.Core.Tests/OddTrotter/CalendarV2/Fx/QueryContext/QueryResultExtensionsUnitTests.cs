@@ -2,6 +2,7 @@
 namespace Fx.QueryContext
 {
     using System;
+    using System.Collections.Generic;
     using System.Security.Cryptography;
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1242,5 +1243,150 @@ namespace Fx.QueryContext
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
             Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
         }
+
+        [TestMethod]
+        public void DistinctByNullSource()
+        {
+            IQueryResult<string, Exception> queryResult =
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+                null
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+                ;
+
+            Assert.ThrowsException<ArgumentNullException>(() =>
+#pragma warning disable CS8604 // Possible null reference argument.
+                queryResult
+#pragma warning restore CS8604 // Possible null reference argument.
+                .DistinctBy(element => element[0], EqualityComparer<char>.Default));
+        }
+
+        [TestMethod]
+        public void DistinctByNullKeySelector()
+        {
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(MockEmpty.Instance))
+                        .ToQueryResultNode());
+
+            Assert.ThrowsException<ArgumentNullException>(() => queryResult.DistinctBy(
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                , EqualityComparer<char>.Default));
+        }
+
+        [TestMethod]
+        public void DistinctByNullComparer()
+        {
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(MockEmpty.Instance))
+                        .ToQueryResultNode());
+
+            Assert.ThrowsException<ArgumentNullException>(() => queryResult.DistinctBy(element => element[0],
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                null
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+                ));
+        }
+
+        [TestMethod]
+        public void DistinctByEmpty()
+        {
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(MockEmpty.Instance))
+                        .ToQueryResultNode());
+
+            var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
+
+            Assert.IsFalse(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(terminal.TryGetLeft(out var error));
+            Assert.IsTrue(terminal.TryGetRight(out var empty));
+        }
+
+        [TestMethod]
+        public void DistinctByNoElementsError()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left(
+                                    new MockError(invalidOperationException))
+                                .Right<MockEmpty>())
+                        .ToQueryResultNode());
+
+            var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
+
+            Assert.IsFalse(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsTrue(terminal.TryGetLeft(out var error));
+            Assert.AreEqual(invalidOperationException, error.Value);
+            Assert.IsFalse(terminal.TryGetRight(out var empty));
+        }
+
+        [TestMethod]
+        public void DistinctByNoDuplicatesNoError()
+        {
+            var firstValue = "asdf";
+            var secondValue = "qwer";
+            var queryResult =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                firstValue,
+                                Either
+                                    .Left(
+                                        new MockElement(
+                                            secondValue))
+                                    .Right<IEither<MockError, MockEmpty>>()
+                                    .ToQueryResultNode()))
+                        .Right<IEither<MockError, MockEmpty>>()
+                        .ToQueryResultNode());
+
+            var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
+
+            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(firstValue, element.Value);
+            var next = element.Next();
+            Assert.IsTrue(next.TryGetLeft(out var nextElement));
+            Assert.AreEqual(secondValue, nextElement.Value);
+            var nextNext = nextElement.Next();
+            Assert.IsFalse(nextNext.TryGetLeft(out var nextNextElement));
+            Assert.IsTrue(nextNext.TryGetRight(out var nextNextTerminal));
+            Assert.IsFalse(nextNextTerminal.TryGetLeft(out var nextNextError));
+            Assert.IsTrue(nextNextTerminal.TryGetRight(out var nextNextEmpty));
+            Assert.IsFalse(next.TryGetRight(out var nextTerminal));
+            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+        }
+
+        
+
+        //// no duplicates
+        //// duplicates
+        //// error skus
+        //// no duplicates using comparer
+        //// duplicates using comparer
     }
 }
