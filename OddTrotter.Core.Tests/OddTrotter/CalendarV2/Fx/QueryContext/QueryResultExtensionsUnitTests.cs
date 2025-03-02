@@ -1523,9 +1523,9 @@ namespace Fx.QueryContext
             Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
         }
 
-        //// duplicates
-        //// error skus
         //// no duplicates using comparer
+        //// no duplicates using comparer with error
         //// duplicates using comparer
+        //// duplicates using comparer with error
     }
 }
