@@ -896,9 +896,89 @@ namespace Fx.QueryContext
             Assert.IsTrue(nextTerminal.TryGetRight(out var nextEmpty));
             Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
         }
+
+        [TestMethod]
+        public void ConcatFirstElementNoErrorSecondNoElementError()
+        {
+            var firstValue = "Asdf";
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                    firstValue))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+            var invalidCastException = new InvalidCastException();
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left(new MockError(invalidCastException))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(firstValue, element.Value);
+            var next = element.Next();
+            Assert.IsFalse(next.TryGetLeft(out var nextElement));
+            Assert.IsTrue(next.TryGetRight(out var nextTerminal));
+            Assert.IsTrue(nextTerminal.TryGetLeft(out var nextError));
+            Assert.AreEqual(1, nextError.Value.InnerExceptions.Count);
+            Assert.AreEqual(invalidCastException, nextError.Value.InnerExceptions[0]);
+            Assert.IsFalse(nextTerminal.TryGetRight(out var nextEmpty));
+            Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void ConcatFirstElementNoErrorSecondElementNoError()
+        {
+            var firstValue = "Asdf";
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                    firstValue))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+            var secondValue = "qwer";
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(new MockElement(secondValue))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(firstValue, element.Value);
+            var next = element.Next();
+            Assert.IsTrue(next.TryGetLeft(out var nextElement));
+            Assert.AreEqual(secondValue, nextElement.Value);
+            var nextNext = nextElement.Next();
+            Assert.IsFalse(nextNext.TryGetLeft(out var nextNextElement));
+            Assert.IsTrue(nextNext.TryGetRight(out var nextNextTerminal));
+            Assert.IsFalse(nextNextTerminal.TryGetLeft(out var nextNextError));
+            Assert.IsTrue(nextNextTerminal.TryGetRight(out var nextNextEmpty));
+            Assert.IsFalse(next.TryGetRight(out var nextTerminal));
+            Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
 /*
 first element   first error     second element      second error
-1               0               0                   1
 1               0               1                   0
 1               0               1                   1
 1               1               0                   0
