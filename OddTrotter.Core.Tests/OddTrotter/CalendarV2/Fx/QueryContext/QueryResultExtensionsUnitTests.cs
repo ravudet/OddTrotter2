@@ -694,10 +694,83 @@ namespace Fx.QueryContext
             Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
         }
 
+        [TestMethod]
+        public void ConcatFirstNoElementErrorSecondNoElementNoError()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left(new MockError(invalidOperationException))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left<MockError>()
+                                .Right(MockEmpty.Instance))
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsFalse(concated.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(concated.Nodes.TryGetRight(out var terminal));
+            Assert.IsTrue(terminal.TryGetLeft(out var error));
+            Assert.AreEqual(1, error.Value.InnerExceptions.Count);
+            Assert.AreEqual(invalidOperationException, error.Value.InnerExceptions[0]);
+            Assert.IsFalse(terminal.TryGetRight(out var empty));
+        }
+
+        [TestMethod]
+        public void ConcatFirstNoElementErrorSecondNoElementError()
+        {
+            var invalidOperationException = new InvalidOperationException();
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left(new MockError(invalidOperationException))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+            var invalidCastException = new InvalidCastException();
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left<MockElement>()
+                        .Right(
+                            Either
+                                .Left(new MockError(invalidCastException))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsFalse(concated.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(concated.Nodes.TryGetRight(out var terminal));
+            Assert.IsTrue(terminal.TryGetLeft(out var error));
+            Assert.AreEqual(2, error.Value.InnerExceptions.Count);
+            Assert.AreEqual(invalidOperationException, error.Value.InnerExceptions[0]);
+            Assert.AreEqual(invalidCastException, error.Value.InnerExceptions[1]);
+            Assert.IsFalse(terminal.TryGetRight(out var empty));
+        }
 /*
 first element   first error     second element      second error
-0               1               0                   0
-0               1               0                   1
 0               1               1                   0
 0               1               1                   1
 1               0               0                   0
