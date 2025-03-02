@@ -1180,9 +1180,67 @@ namespace Fx.QueryContext
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
             Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
         }
-/*
-first element   first error     second element      second error
-1               1               1                   1
-*/
+
+        [TestMethod]
+        public void ConcatFirstElementErrorSecondElementError()
+        {
+            var firstValue = "Asdf";
+            var invalidOperationException = new InvalidOperationException();
+            var first =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                firstValue,
+                                Either
+                                    .Left<MockElement>()
+                                    .Right(
+                                        Either
+                                            .Left(
+                                                new MockError(invalidOperationException))
+                                            .Right<IEmpty>())
+                                    .ToQueryResultNode()))
+                        .Right<IEither<MockError, IEmpty>>()
+                        .ToQueryResultNode());
+            var secondValue = "qwer";
+            var invalidCastException = new InvalidCastException();
+            var second =
+                new MockQueryResult(
+                    Either
+                        .Left(
+                            new MockElement(
+                                secondValue,
+                                Either
+                                    .Left<IElement<string, Exception>>()
+                                    .Right(
+                                        Either
+                                            .Left(new MockError(invalidCastException))
+                                            .Right<IEmpty>())
+                                    .ToQueryResultNode()))
+                        .Right<IEither<IError<Exception>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new AggregateException(firstError),
+                secondError => new AggregateException(secondError),
+                (firstError, secondError) => new AggregateException(firstError, secondError));
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(firstValue, element.Value);
+            var next = element.Next();
+            Assert.IsTrue(next.TryGetLeft(out var nextElement));
+            Assert.AreEqual(secondValue, nextElement.Value);
+            var nextNext = nextElement.Next();
+            Assert.IsFalse(nextNext.TryGetLeft(out var nextNextElement));
+            Assert.IsTrue(nextNext.TryGetRight(out var nextNextTerminal));
+            Assert.IsTrue(nextNextTerminal.TryGetLeft(out var nextNextError));
+            Assert.AreEqual(2, nextNextError.Value.InnerExceptions.Count);
+            Assert.AreEqual(invalidOperationException, nextNextError.Value.InnerExceptions[0]);
+            Assert.AreEqual(invalidCastException, nextNextError.Value.InnerExceptions[1]);
+            Assert.IsFalse(nextNextTerminal.TryGetRight(out var nextNextEmpty));
+            Assert.IsFalse(next.TryGetRight(out var nextTerminal));
+            Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
     }
 }
