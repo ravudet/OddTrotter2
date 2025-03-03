@@ -4,7 +4,7 @@ namespace Fx.QueryContext
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-
+    using System.Linq;
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -1250,6 +1250,173 @@ namespace Fx.QueryContext
             Assert.IsFalse(nextNextTerminal.TryGetRight(out var nextNextEmpty));
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
             Assert.IsFalse(concated.Nodes.TryGetRight(out var terminal));
+        }
+
+        [TestMethod]
+        public void ConcatNullableErrorNullFirstErrorSecondElement()
+        {
+            var first =
+                new NullableErrorQueryResult(
+                    Either
+                        .Left<IElement<string, int?>>()
+                        .Right(
+                            Either
+                                .Left(
+                                    new Error<int?>(null))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+            var secondValue = "asdf";
+            var second =
+                new NullableErrorQueryResult(
+                    Either
+                        .Left(
+                            new NullableErrorElement(secondValue))
+                        .Right<IEither<IError<int?>, IEmpty>>()
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new[] { firstError },
+                secondError => new[] { secondError },
+                (firstError, secondError) => new[] { firstError, secondError });
+
+            Assert.IsTrue(concated.Nodes.TryGetLeft(out var element));
+            Assert.AreEqual(secondValue, element.Value);
+            var next = element.Next();
+            Assert.IsTrue(next.TryGetRight(out var terminal));
+            Assert.IsTrue(terminal.TryGetLeft(out var error));
+            Assert.AreEqual(1, error.Value.Length);
+            Assert.AreEqual(null, error.Value[0]);
+        }
+
+        private sealed class NullableErrorQueryResult : IQueryResult<string, int?>
+        {
+            public NullableErrorQueryResult(IQueryResultNode<string, int?> nodes)
+            {
+                Nodes = nodes;
+            }
+
+            public IQueryResultNode<string, int?> Nodes { get; }
+        }
+
+        private sealed class NullableErrorElement : IElement<string, int?>
+        {
+            private readonly IQueryResultNode<string, int?> next;
+
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="value"></param>
+            public NullableErrorElement(string value)
+                : this(
+                    value,
+                    Either
+                        .Left<IElement<string, int?>>()
+                        .Right(
+                            Either
+                                .Left<IError<int?>>()
+                                .Right(
+                                    MockEmpty.Instance))
+                        .ToQueryResultNode())
+            {
+            }
+
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="next"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> is <see langword="null"/></exception>
+            public NullableErrorElement(string value, IQueryResultNode<string, int?> next)
+            {
+                ArgumentNullException.ThrowIfNull(next);
+
+                this.Value = value;
+                this.next = next;
+            }
+
+            /// <inheritdoc/>
+            public string Value { get; }
+
+            /// <inheritdoc/>
+            public IQueryResultNode<string, int?> Next()
+            {
+                return this.next;
+            }
+        }
+
+        [TestMethod]
+        public void ConcatNullableErrorNullFirstErrorSecondError()
+        {
+            var first =
+                new NullableErrorQueryResult(
+                    Either
+                        .Left<IElement<string, int?>>()
+                        .Right(
+                            Either
+                                .Left(
+                                    new Error<int?>(null))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+            var secondError = 42;
+            var second =
+                new NullableErrorQueryResult(
+                    Either
+                        .Left<IElement<string, int?>>()
+                        .Right(
+                            Either
+                                .Left(
+                                    new Error<int?>(secondError))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new[] { firstError },
+                secondError => new[] { secondError },
+                (firstError, secondError) => new[] { firstError, secondError });
+
+            Assert.IsTrue(concated.Nodes.TryGetRight(out var terminal));
+            Assert.IsTrue(terminal.TryGetLeft(out var error));
+            Assert.AreEqual(2, error.Value.Length);
+            Assert.AreEqual(null, error.Value[0]);
+            Assert.AreEqual(secondError, error.Value[1]);
+        }
+
+        [TestMethod]
+        public void ConcatNullableErrorNullFirstErrorSecondEmpty()
+        {
+            var first =
+                new NullableErrorQueryResult(
+                    Either
+                        .Left<IElement<string, int?>>()
+                        .Right(
+                            Either
+                                .Left(
+                                    new Error<int?>(null))
+                                .Right<IEmpty>())
+                        .ToQueryResultNode());
+            var second =
+                new NullableErrorQueryResult(
+                    Either
+                        .Left<IElement<string, int?>>()
+                        .Right(
+                            Either
+                                .Left<IError<int?>>()
+                                .Right(
+                                    MockEmpty.Instance))
+                        .ToQueryResultNode());
+
+            var concated = first.Concat(
+                second,
+                firstError => new[] { firstError },
+                secondError => new[] { secondError },
+                (firstError, secondError) => new[] { firstError, secondError });
+
+            Assert.IsTrue(concated.Nodes.TryGetRight(out var terminal));
+            Assert.IsTrue(terminal.TryGetLeft(out var error));
+            Assert.AreEqual(1, error.Value.Length);
+            Assert.AreEqual(null, error.Value[0]);
         }
 
         [TestMethod]
