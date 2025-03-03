@@ -167,7 +167,10 @@ namespace Fx.QueryContext
         /// <param name="second"></param>
         /// <param name="errorAggregator"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="first"/> or <paramref name="second"/> or <paramref name="firstErrorSelector"/> or <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="first"/> or <paramref name="second"/> or <paramref name="firstErrorSelector"/> or
+        /// <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/>
+        /// </exception>
         public static IQueryResultNode<TValue, TErrorResult> Concat<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
             this IQueryResultNode<TValue, TErrorFirst> first, 
             IQueryResultNode<TValue, TErrorSecond> second,
@@ -186,14 +189,32 @@ namespace Fx.QueryContext
                     element =>
                         Either
                             .Left(
-                                new ConcatFirstElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(element.Value, element.Next(), second, firstErrorSelector, secondErrorSelector, errorAggregator))
+                                new ConcatFirstElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
+                                    element.Value, 
+                                    element.Next(),
+                                    second, 
+                                    firstErrorSelector, 
+                                    secondErrorSelector, 
+                                    errorAggregator))
                             .Right<IEither<IError<TErrorResult>, IEmpty>>()
                             .ToQueryResultNode(),
                     terminal =>
                         terminal
                             .Apply(
-                                error => ConcatTraverseSecond(new RealNullable<TErrorFirst>(error.Value), second, firstErrorSelector, secondErrorSelector, errorAggregator),
-                                empty => ConcatTraverseSecond(default, second, firstErrorSelector, secondErrorSelector, errorAggregator)));
+                                error =>
+                                    ConcatTraverseSecond(
+                                        new RealNullable<TErrorFirst>(error.Value),
+                                        second, 
+                                        firstErrorSelector, 
+                                        secondErrorSelector, 
+                                        errorAggregator),
+                                empty => 
+                                    ConcatTraverseSecond(
+                                        default,
+                                        second, 
+                                        firstErrorSelector, 
+                                        secondErrorSelector, 
+                                        errorAggregator)));
         }
 
         private sealed class ConcatFirstElement<TValue, TErrorFirst, TErrorSecond, TErrorResult> : IElement<TValue, TErrorResult>
@@ -213,7 +234,10 @@ namespace Fx.QueryContext
             /// <param name="firstErrorSelector"></param>
             /// <param name="secondErrorSelector"></param>
             /// <param name="errorAggregator"></param>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> or <paramref name="second"/> or <paramref name="firstErrorSelector"/> or <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
+            /// <exception cref="ArgumentNullException">
+            /// Thrown if <paramref name="next"/> or <paramref name="second"/> or <paramref name="firstErrorSelector"/> or
+            /// <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/>
+            /// </exception>
             public ConcatFirstElement(
                 TValue value, 
                 IQueryResultNode<TValue, TErrorFirst> next, 
@@ -259,13 +283,22 @@ namespace Fx.QueryContext
         /// <param name="secondErrorSelector"></param>
         /// <param name="errorAggregator"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="second"/> or <paramref name="firstErrorSelector"/> or <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
-        private static IQueryResultNode<TValue, TErrorResult> ConcatTraverseSecond<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
-            RealNullable<TErrorFirst> error,
-            IQueryResultNode<TValue, TErrorSecond> second,
-            Func<TErrorFirst, TErrorResult> firstErrorSelector,
-            Func<TErrorSecond, TErrorResult> secondErrorSelector,
-            Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="second"/> or <paramref name="firstErrorSelector"/> or
+        /// <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/>
+        /// </exception>
+        private static IQueryResultNode<TValue, TErrorResult> ConcatTraverseSecond
+            <
+                TValue, 
+                TErrorFirst, 
+                TErrorSecond, 
+                TErrorResult
+            >(
+                RealNullable<TErrorFirst> error,
+                IQueryResultNode<TValue, TErrorSecond> second,
+                Func<TErrorFirst, TErrorResult> firstErrorSelector,
+                Func<TErrorSecond, TErrorResult> secondErrorSelector,
+                Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator)
         {
             ArgumentNullException.ThrowIfNull(second);
             ArgumentNullException.ThrowIfNull(firstErrorSelector);
@@ -277,7 +310,13 @@ namespace Fx.QueryContext
                     element =>
                         Either
                             .Left(
-                                new ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(error, element.Value, element.Next(), firstErrorSelector, secondErrorSelector, errorAggregator))
+                                new ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
+                                    error, 
+                                    element.Value, 
+                                    element.Next(),
+                                    firstErrorSelector, 
+                                    secondErrorSelector, 
+                                    errorAggregator))
                             .Right<IEither<IError<TErrorResult>, IEmpty>>()
                             .ToQueryResultNode(),
                     terminal =>
@@ -288,8 +327,11 @@ namespace Fx.QueryContext
                                         .Left<IElement<TValue, TErrorResult>>()
                                         .Right(
                                             Either
-                                                .Left(new Error<TErrorResult>(
-                                                    error.TryGetValue(out var firstError) ? errorAggregator(firstError, secondError.Value) : secondErrorSelector(secondError.Value)))
+                                                .Left(
+                                                    new Error<TErrorResult>(
+                                                        error.TryGetValue(out var firstError) 
+                                                            ? errorAggregator(firstError, secondError.Value) 
+                                                            : secondErrorSelector(secondError.Value)))
                                                 .Right<IEmpty>())
                                         .ToQueryResultNode(),
                                 empty =>
@@ -312,7 +354,8 @@ namespace Fx.QueryContext
                                             .ToQueryResultNode()));
         }
 
-        private sealed class ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult> : IElement<TValue, TErrorResult>
+        private sealed class ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult> : 
+            IElement<TValue, TErrorResult>
         {
             private readonly RealNullable<TErrorFirst> error;
             private readonly IQueryResultNode<TValue, TErrorSecond> next;
@@ -329,7 +372,10 @@ namespace Fx.QueryContext
             /// <param name="firstErrorSelector"></param>
             /// <param name="secondErrorSelector"></param>
             /// <param name="errorAggregator"></param>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> or <paramref name="firstErrorSelector"/> or <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
+            /// <exception cref="ArgumentNullException">
+            /// Thrown if <paramref name="next"/> or <paramref name="firstErrorSelector"/> or
+            /// <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/>
+            /// </exception>
             public ConcatSecondErrorElement(
                 RealNullable<TErrorFirst> error, 
                 TValue value, 
@@ -357,7 +403,12 @@ namespace Fx.QueryContext
             /// <inheritdoc/>
             public IQueryResultNode<TValue, TErrorResult> Next()
             {
-                return ConcatTraverseSecond(this.error, this.next, this.firstErrorSelector, this.secondErrorSelector, this.errorAggregator);
+                return ConcatTraverseSecond(
+                    this.error, 
+                    this.next, 
+                    this.firstErrorSelector, 
+                    this.secondErrorSelector, 
+                    this.errorAggregator);
             }
         }
 
@@ -371,8 +422,14 @@ namespace Fx.QueryContext
         /// <param name="keySelector"></param>
         /// <param name="comparer"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="source"/> is <see langword="null"/> or <paramref name="keySelector"/> or <paramref name="comparer"/> is <see langword="null"/></exception>
-        public static IQueryResultNode<TValue, TError> DistinctBy<TValue, TError, TKey>(this IQueryResultNode<TValue, TError> source, Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer)
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="source"/> is <see langword="null"/> or <paramref name="keySelector"/> or
+        /// <paramref name="comparer"/> is <see langword="null"/>
+        /// </exception>
+        public static IQueryResultNode<TValue, TError> DistinctBy<TValue, TError, TKey>(
+            this IQueryResultNode<TValue, TError> source, 
+            Func<TValue, TKey> keySelector, 
+            IEqualityComparer<TKey> comparer)
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(keySelector);

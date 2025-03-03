@@ -382,6 +382,7 @@
             // unit tests
             // do everything above for unit tests
 
+            //// TODO add nullable error concat tests to queryresultextensions
             //// TODO unit test realnullable
             //// TODO once the tests are finished, you are working on code reviewing the changes in 4f9cc62edc490a6c58c11ad8bf8d713be1f59ef9, and you are at the queryresultextensions file
             //// TODO code review system.threading.tasks
