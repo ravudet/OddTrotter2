@@ -228,7 +228,7 @@ namespace Fx.QueryContext
                 ArgumentNullException.ThrowIfNull(secondErrorSelector);
                 ArgumentNullException.ThrowIfNull(errorAggregator);
 
-                Value = value;
+                this.Value = value;
                 this.next = next;
                 this.second = second;
                 this.firstErrorSelector = firstErrorSelector;
@@ -344,7 +344,7 @@ namespace Fx.QueryContext
                 ArgumentNullException.ThrowIfNull(errorAggregator);
 
                 this.error = error;
-                Value = value;
+                this.Value = value;
                 this.next = next;
                 this.firstErrorSelector = firstErrorSelector;
                 this.secondErrorSelector = secondErrorSelector;
