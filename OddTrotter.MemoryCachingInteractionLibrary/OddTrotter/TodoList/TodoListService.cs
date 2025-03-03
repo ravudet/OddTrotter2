@@ -350,6 +350,7 @@
             var originalLastRecordedEventTimeStamp = oddTrotterTodoList.LastRecordedEventTimeStamp;
 
 
+            //// TODO TOPIC naming of `realnullable`; this really has nothing to do with null, maybe call it valuable?
             //// TODO TOPIC asbaseplayground
             //// TODO TOPIC should the either extensions be lazy?
             //// TODO TOPIC should i add the "ambiguous" select methods for left and right in order to light up the comprehension syntax?
@@ -381,6 +382,7 @@
             // unit tests
             // do everything above for unit tests
 
+            //// TODO unit test realnullable
             //// TODO once the tests are finished, you are working on code reviewing the changes in 4f9cc62edc490a6c58c11ad8bf8d713be1f59ef9, and you are at the queryresultextensions file
             //// TODO code review system.threading.tasks
             //// TODO code review system.runtime.compilerservices
@@ -398,6 +400,7 @@
             //// TODO go through stash namespace and see what you want to pull out (maybe to another repo and/or as branches with future work items)
             //// TODO write tests for todolistservice that confirm the URLs
 
+            //// TODO FUTURE do you still need mockerror in the unit tests? it does provide convience that it fixes the error type, and that's *probably* what most implementers of querycontexts will do anyway is create their own concrete type with the correct error
             //// TODO FUTURE do you want to add a convenience overload for concat that uses an aggregate exception as the resulting error type?
             //// TODO FUTURE implement all (valuable?) linq queries for iqueryresult (note that you don't want to implement things like orderby (that requires the full context of the list to do correctly) because they give the wrong impression in the case where an error was encountered) (e.g. orderby can't know the first element of the result without knowing all of the elements of the list, so if there was an error, we can't know the correct order)
             //// TODO FUTURE eitherunittests.applyleftexception is an exception where a `throw` type might be useful; are there use-cases that aren't testing though?

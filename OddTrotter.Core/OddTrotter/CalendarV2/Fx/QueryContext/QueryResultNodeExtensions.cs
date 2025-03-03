@@ -4,6 +4,7 @@ namespace Fx.QueryContext
     using System;
     using System.Collections.Generic;
 
+    using Fx;
     using Fx.Either;
 
     public static class QueryResultNodeExtensions
@@ -201,7 +202,7 @@ namespace Fx.QueryContext
             private readonly IQueryResultNode<TValue, TErrorSecond> second;
             private readonly Func<TErrorFirst, TErrorResult> firstErrorSelector;
             private readonly Func<TErrorSecond, TErrorResult> secondErrorSelector;
-            private readonly Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator; //// TODO is it time to instroduce "realnullable"?
+            private readonly Func<TErrorFirst, TErrorSecond, TErrorResult> errorAggregator;
 
             /// <summary>
             /// placeholder
@@ -245,26 +246,6 @@ namespace Fx.QueryContext
             }
         }
 
-        private readonly struct RealNullable<T> //// TODO needs a better name ///// TODO this really has nothing to do with null, maybe call it valuable?
-        {
-            private readonly T value;
-
-            private readonly bool hasValue;
-
-            public RealNullable(T value)
-            {
-                this.value = value;
-
-                this.hasValue = true;
-            }
-
-            public bool TryGetValue(out T value)
-            {
-                value = this.value;
-                return this.hasValue;
-            }
-        }
-
         /// <summary>
         /// placeholder
         /// </summary>
@@ -280,7 +261,7 @@ namespace Fx.QueryContext
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="second"/> or <paramref name="firstErrorSelector"/> or <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
         private static IQueryResultNode<TValue, TErrorResult> ConcatTraverseSecond<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
-            RealNullable<TErrorFirst> error,  //// TODO introduce real nullable?
+            RealNullable<TErrorFirst> error,
             IQueryResultNode<TValue, TErrorSecond> second,
             Func<TErrorFirst, TErrorResult> firstErrorSelector,
             Func<TErrorSecond, TErrorResult> secondErrorSelector,
@@ -329,22 +310,6 @@ namespace Fx.QueryContext
                                                     .Left<IError<TErrorResult>>()
                                                     .Right(empty))
                                             .ToQueryResultNode()));
-        }
-
-        //// TODO put this somewhere else and make it public?
-        private sealed class Error<TError> : IError<TError>
-        {
-            /// <summary>
-            /// placeholder
-            /// </summary>
-            /// <param name="value"></param>
-            public Error(TError value)
-            {
-                Value = value;
-            }
-
-            /// <inheritdoc/>
-            public TError Value { get; }
         }
 
         private sealed class ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult> : IElement<TValue, TErrorResult>
