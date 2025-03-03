@@ -2,6 +2,8 @@
 namespace Fx.QueryContext
 {
     using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     using Fx.Either;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1237,10 +1239,10 @@ namespace Fx.QueryContext
             Assert.AreEqual(null, error.Value[0]);
         }
 
-        /*[TestMethod]
+        [TestMethod]
         public void DistinctByNullSource()
         {
-            IQueryResult<string, Exception> queryResult =
+            IQueryResultNode<string, Exception> queryResult =
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                 null
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
@@ -1257,14 +1259,13 @@ namespace Fx.QueryContext
         public void DistinctByNullKeySelector()
         {
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left<MockElement>()
-                        .Right(
-                            Either
-                                .Left<MockError>()
-                                .Right(MockEmpty.Instance))
-                        .ToQueryResultNode());
+                Either
+                    .Left<MockElement>()
+                    .Right(
+                        Either
+                            .Left<MockError>()
+                            .Right(MockEmpty.Instance))
+                    .ToQueryResultNode();
 
             Assert.ThrowsException<ArgumentNullException>(() => queryResult.DistinctBy(
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -1277,14 +1278,13 @@ namespace Fx.QueryContext
         public void DistinctByNullComparer()
         {
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left<MockElement>()
-                        .Right(
-                            Either
-                                .Left<MockError>()
-                                .Right(MockEmpty.Instance))
-                        .ToQueryResultNode());
+                Either
+                    .Left<MockElement>()
+                    .Right(
+                        Either
+                            .Left<MockError>()
+                            .Right(MockEmpty.Instance))
+                    .ToQueryResultNode();
 
             Assert.ThrowsException<ArgumentNullException>(() => queryResult.DistinctBy(element => element[0],
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -1297,19 +1297,18 @@ namespace Fx.QueryContext
         public void DistinctByEmpty()
         {
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left<MockElement>()
-                        .Right(
-                            Either
-                                .Left<MockError>()
-                                .Right(MockEmpty.Instance))
-                        .ToQueryResultNode());
+                Either
+                    .Left<MockElement>()
+                    .Right(
+                        Either
+                            .Left<MockError>()
+                            .Right(MockEmpty.Instance))
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
 
-            Assert.IsFalse(distinctByed.Nodes.TryGetLeft(out var element));
-            Assert.IsTrue(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetRight(out var terminal));
             Assert.IsFalse(terminal.TryGetLeft(out var error));
             Assert.IsTrue(terminal.TryGetRight(out var empty));
         }
@@ -1319,20 +1318,19 @@ namespace Fx.QueryContext
         {
             var invalidOperationException = new InvalidOperationException();
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left<MockElement>()
-                        .Right(
-                            Either
-                                .Left(
-                                    new MockError(invalidOperationException))
-                                .Right<MockEmpty>())
-                        .ToQueryResultNode());
+                Either
+                    .Left<MockElement>()
+                    .Right(
+                        Either
+                            .Left(
+                                new MockError(invalidOperationException))
+                            .Right<MockEmpty>())
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
 
-            Assert.IsFalse(distinctByed.Nodes.TryGetLeft(out var element));
-            Assert.IsTrue(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetRight(out var terminal));
             Assert.IsTrue(terminal.TryGetLeft(out var error));
             Assert.AreEqual(invalidOperationException, error.Value);
             Assert.IsFalse(terminal.TryGetRight(out var empty));
@@ -1344,23 +1342,22 @@ namespace Fx.QueryContext
             var firstValue = "asdf";
             var secondValue = "Asdf";
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left(
-                            new MockElement(
-                                firstValue,
-                                Either
-                                    .Left(
-                                        new MockElement(
-                                            secondValue))
-                                    .Right<IEither<MockError, MockEmpty>>()
-                                    .ToQueryResultNode()))
-                        .Right<IEither<MockError, MockEmpty>>()
-                        .ToQueryResultNode());
+                Either
+                    .Left(
+                        new MockElement(
+                            firstValue,
+                            Either
+                                .Left(
+                                    new MockElement(
+                                        secondValue))
+                                .Right<IEither<MockError, MockEmpty>>()
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
 
-            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetLeft(out var element));
             Assert.AreEqual(firstValue, element.Value);
             var next = element.Next();
             Assert.IsTrue(next.TryGetLeft(out var nextElement));
@@ -1371,7 +1368,7 @@ namespace Fx.QueryContext
             Assert.IsFalse(nextNextTerminal.TryGetLeft(out var nextNextError));
             Assert.IsTrue(nextNextTerminal.TryGetRight(out var nextNextEmpty));
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
-            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetRight(out var terminal));
         }
 
         [TestMethod]
@@ -1381,31 +1378,30 @@ namespace Fx.QueryContext
             var secondValue = "Asdf";
             var invalidOperationException = new InvalidOperationException();
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left(
-                            new MockElement(
-                                firstValue,
-                                Either
-                                    .Left(
-                                        new MockElement(
-                                            secondValue,
-                                            Either
-                                                .Left<MockElement>()
-                                                .Right(
-                                                    Either
-                                                        .Left(
-                                                            new MockError(invalidOperationException))
-                                                        .Right<MockEmpty>())
-                                                .ToQueryResultNode()))
-                                    .Right<IEither<MockError, MockEmpty>>()
-                                    .ToQueryResultNode()))
-                        .Right<IEither<MockError, MockEmpty>>()
-                        .ToQueryResultNode());
+                Either
+                    .Left(
+                        new MockElement(
+                            firstValue,
+                            Either
+                                .Left(
+                                    new MockElement(
+                                        secondValue,
+                                        Either
+                                            .Left<MockElement>()
+                                            .Right(
+                                                Either
+                                                    .Left(
+                                                        new MockError(invalidOperationException))
+                                                    .Right<MockEmpty>())
+                                            .ToQueryResultNode()))
+                                .Right<IEither<MockError, MockEmpty>>()
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
 
-            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetLeft(out var element));
             Assert.AreEqual(firstValue, element.Value);
             var next = element.Next();
             Assert.IsTrue(next.TryGetLeft(out var nextElement));
@@ -1417,7 +1413,7 @@ namespace Fx.QueryContext
             Assert.AreEqual(invalidOperationException, nextNextError.Value);
             Assert.IsFalse(nextNextTerminal.TryGetRight(out var nextNextEmpty));
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
-            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetRight(out var terminal));
         }
 
         [TestMethod]
@@ -1427,29 +1423,28 @@ namespace Fx.QueryContext
             var secondValue = "Asdf";
             var thirdValue = "azxcv";
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left(
-                            new MockElement(
-                                firstValue,
-                                Either
-                                    .Left(
-                                        new MockElement(
-                                            secondValue,
-                                            Either
-                                                .Left(
-                                                    new MockElement(
-                                                        thirdValue))
-                                                .Right<IEither<MockError, MockEmpty>>()
-                                                .ToQueryResultNode()))
-                                    .Right<IEither<MockError, MockEmpty>>()
-                                    .ToQueryResultNode()))
-                        .Right<IEither<MockError, MockEmpty>>()
-                        .ToQueryResultNode());
+                Either
+                    .Left(
+                        new MockElement(
+                            firstValue,
+                            Either
+                                .Left(
+                                    new MockElement(
+                                        secondValue,
+                                        Either
+                                            .Left(
+                                                new MockElement(
+                                                    thirdValue))
+                                            .Right<IEither<MockError, MockEmpty>>()
+                                            .ToQueryResultNode()))
+                                .Right<IEither<MockError, MockEmpty>>()
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
 
-            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetLeft(out var element));
             Assert.AreEqual(firstValue, element.Value);
             var next = element.Next();
             Assert.IsTrue(next.TryGetLeft(out var nextElement));
@@ -1460,7 +1455,7 @@ namespace Fx.QueryContext
             Assert.IsFalse(nextNextTerminal.TryGetLeft(out var nextNextError));
             Assert.IsTrue(nextNextTerminal.TryGetRight(out var nextNextEmpty));
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
-            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetRight(out var terminal));
         }
 
         [TestMethod]
@@ -1471,37 +1466,36 @@ namespace Fx.QueryContext
             var thirdValue = "azxcv";
             var invalidOperationException = new InvalidOperationException();
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left(
-                            new MockElement(
-                                firstValue,
-                                Either
-                                    .Left(
-                                        new MockElement(
-                                            secondValue,
-                                            Either
-                                                .Left(
-                                                    new MockElement(
-                                                        thirdValue,
-                                                        Either
-                                                            .Left<MockElement>()
-                                                            .Right(
-                                                                Either
-                                                                    .Left(
-                                                                        new MockError(invalidOperationException))
-                                                                    .Right<MockEmpty>())
-                                                            .ToQueryResultNode()))
-                                                .Right<IEither<MockError, MockEmpty>>()
-                                                .ToQueryResultNode()))
-                                    .Right<IEither<MockError, MockEmpty>>()
-                                    .ToQueryResultNode()))
-                        .Right<IEither<MockError, MockEmpty>>()
-                        .ToQueryResultNode());
+                Either
+                    .Left(
+                        new MockElement(
+                            firstValue,
+                            Either
+                                .Left(
+                                    new MockElement(
+                                        secondValue,
+                                        Either
+                                            .Left(
+                                                new MockElement(
+                                                    thirdValue,
+                                                    Either
+                                                        .Left<MockElement>()
+                                                        .Right(
+                                                            Either
+                                                                .Left(
+                                                                    new MockError(invalidOperationException))
+                                                                .Right<MockEmpty>())
+                                                        .ToQueryResultNode()))
+                                            .Right<IEither<MockError, MockEmpty>>()
+                                            .ToQueryResultNode()))
+                                .Right<IEither<MockError, MockEmpty>>()
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], EqualityComparer<char>.Default);
 
-            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetLeft(out var element));
             Assert.AreEqual(firstValue, element.Value);
             var next = element.Next();
             Assert.IsTrue(next.TryGetLeft(out var nextElement));
@@ -1513,7 +1507,7 @@ namespace Fx.QueryContext
             Assert.AreEqual(invalidOperationException, nextNextError.Value);
             Assert.IsFalse(nextNextTerminal.TryGetRight(out var nextNextEmpty));
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
-            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetRight(out var terminal));
         }
 
         [TestMethod]
@@ -1522,23 +1516,22 @@ namespace Fx.QueryContext
             var firstValue = "asdf";
             var secondValue = "qwer";
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left(
-                            new MockElement(
-                                firstValue,
-                                Either
-                                    .Left(
-                                        new MockElement(
-                                            secondValue))
-                                    .Right<IEither<MockError, MockEmpty>>()
-                                    .ToQueryResultNode()))
-                        .Right<IEither<MockError, MockEmpty>>()
-                        .ToQueryResultNode());
+                Either
+                    .Left(
+                        new MockElement(
+                            firstValue,
+                            Either
+                                .Left(
+                                    new MockElement(
+                                        secondValue))
+                                .Right<IEither<MockError, MockEmpty>>()
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], CharCaseInsensitiveComparer.Instance);
 
-            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetLeft(out var element));
             Assert.AreEqual(firstValue, element.Value);
             var next = element.Next();
             Assert.IsTrue(next.TryGetLeft(out var nextElement));
@@ -1549,7 +1542,7 @@ namespace Fx.QueryContext
             Assert.IsFalse(nextNextTerminal.TryGetLeft(out var nextNextError));
             Assert.IsTrue(nextNextTerminal.TryGetRight(out var nextNextEmpty));
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
-            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetRight(out var terminal));
         }
 
         /// <summary>
@@ -1592,31 +1585,30 @@ namespace Fx.QueryContext
             var secondValue = "qwer";
             var invalidOperationException = new InvalidOperationException();
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left(
-                            new MockElement(
-                                firstValue,
-                                Either
-                                    .Left(
-                                        new MockElement(
-                                            secondValue,
-                                            Either
-                                                .Left<MockElement>()
-                                                .Right(
-                                                    Either
-                                                        .Left(
-                                                            new MockError(invalidOperationException))
-                                                        .Right<MockEmpty>())
-                                                .ToQueryResultNode()))
-                                    .Right<IEither<MockError, MockEmpty>>()
-                                    .ToQueryResultNode()))
-                        .Right<IEither<MockError, MockEmpty>>()
-                        .ToQueryResultNode());
+                Either
+                    .Left(
+                        new MockElement(
+                            firstValue,
+                            Either
+                                .Left(
+                                    new MockElement(
+                                        secondValue,
+                                        Either
+                                            .Left<MockElement>()
+                                            .Right(
+                                                Either
+                                                    .Left(
+                                                        new MockError(invalidOperationException))
+                                                    .Right<MockEmpty>())
+                                            .ToQueryResultNode()))
+                                .Right<IEither<MockError, MockEmpty>>()
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], CharCaseInsensitiveComparer.Instance);
 
-            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetLeft(out var element));
             Assert.AreEqual(firstValue, element.Value);
             var next = element.Next();
             Assert.IsTrue(next.TryGetLeft(out var nextElement));
@@ -1628,7 +1620,7 @@ namespace Fx.QueryContext
             Assert.AreEqual(invalidOperationException, nextNextError.Value);
             Assert.IsFalse(nextNextTerminal.TryGetRight(out var nextNextEmpty));
             Assert.IsFalse(next.TryGetRight(out var nextTerminal));
-            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetRight(out var terminal));
         }
 
         [TestMethod]
@@ -1638,36 +1630,35 @@ namespace Fx.QueryContext
             var secondValue = "Asdf";
             var thirdValue = "azxcv";
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left(
-                            new MockElement(
-                                firstValue,
-                                Either
-                                    .Left(
-                                        new MockElement(
-                                            secondValue,
-                                            Either
-                                                .Left(
-                                                    new MockElement(
-                                                        thirdValue))
-                                                .Right<IEither<MockError, MockEmpty>>()
-                                                .ToQueryResultNode()))
-                                    .Right<IEither<MockError, MockEmpty>>()
-                                    .ToQueryResultNode()))
-                        .Right<IEither<MockError, MockEmpty>>()
-                        .ToQueryResultNode());
+                Either
+                    .Left(
+                        new MockElement(
+                            firstValue,
+                            Either
+                                .Left(
+                                    new MockElement(
+                                        secondValue,
+                                        Either
+                                            .Left(
+                                                new MockElement(
+                                                    thirdValue))
+                                            .Right<IEither<MockError, MockEmpty>>()
+                                            .ToQueryResultNode()))
+                                .Right<IEither<MockError, MockEmpty>>()
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], CharCaseInsensitiveComparer.Instance);
 
-            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetLeft(out var element));
             Assert.AreEqual(firstValue, element.Value);
             var next = element.Next();
             Assert.IsFalse(next.TryGetLeft(out var nextElement));
             Assert.IsTrue(next.TryGetRight(out var nextTerminal));
             Assert.IsFalse(nextTerminal.TryGetLeft(out var nextError));
             Assert.IsTrue(nextTerminal.TryGetRight(out var nextEmpty));
-            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
+            Assert.IsFalse(distinctByed.TryGetRight(out var terminal));
         }
 
         [TestMethod]
@@ -1678,37 +1669,36 @@ namespace Fx.QueryContext
             var thirdValue = "azxcv";
             var invalidOperationException = new InvalidOperationException();
             var queryResult =
-                new MockQueryResult(
-                    Either
-                        .Left(
-                            new MockElement(
-                                firstValue,
-                                Either
-                                    .Left(
-                                        new MockElement(
-                                            secondValue,
-                                            Either
-                                                .Left(
-                                                    new MockElement(
-                                                        thirdValue,
-                                                        Either
-                                                            .Left<MockElement>()
-                                                            .Right(
-                                                                Either
-                                                                    .Left(
-                                                                        new MockError(invalidOperationException))
-                                                                    .Right<MockEmpty>())
-                                                            .ToQueryResultNode()))
-                                                .Right<IEither<MockError, MockEmpty>>()
-                                                .ToQueryResultNode()))
-                                    .Right<IEither<MockError, MockEmpty>>()
-                                    .ToQueryResultNode()))
-                        .Right<IEither<MockError, MockEmpty>>()
-                        .ToQueryResultNode());
+                Either
+                    .Left(
+                        new MockElement(
+                            firstValue,
+                            Either
+                                .Left(
+                                    new MockElement(
+                                        secondValue,
+                                        Either
+                                            .Left(
+                                                new MockElement(
+                                                    thirdValue,
+                                                    Either
+                                                        .Left<MockElement>()
+                                                        .Right(
+                                                            Either
+                                                                .Left(
+                                                                    new MockError(invalidOperationException))
+                                                                .Right<MockEmpty>())
+                                                        .ToQueryResultNode()))
+                                            .Right<IEither<MockError, MockEmpty>>()
+                                            .ToQueryResultNode()))
+                                .Right<IEither<MockError, MockEmpty>>()
+                                .ToQueryResultNode()))
+                    .Right<IEither<MockError, MockEmpty>>()
+                    .ToQueryResultNode();
 
             var distinctByed = queryResult.DistinctBy(element => element[0], CharCaseInsensitiveComparer.Instance);
 
-            Assert.IsTrue(distinctByed.Nodes.TryGetLeft(out var element));
+            Assert.IsTrue(distinctByed.TryGetLeft(out var element));
             Assert.AreEqual(firstValue, element.Value);
             var next = element.Next();
             Assert.IsFalse(next.TryGetLeft(out var nextElement));
@@ -1716,7 +1706,7 @@ namespace Fx.QueryContext
             Assert.IsTrue(nextTerminal.TryGetLeft(out var nextError));
             Assert.AreEqual(invalidOperationException, nextError.Value);
             Assert.IsFalse(nextTerminal.TryGetRight(out var nextEmpty));
-            Assert.IsFalse(distinctByed.Nodes.TryGetRight(out var terminal));
-        }*/
+            Assert.IsFalse(distinctByed.TryGetRight(out var terminal));
+        }
     }
 }
