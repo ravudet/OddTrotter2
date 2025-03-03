@@ -1291,9 +1291,16 @@ namespace Fx.QueryContext
 
         private sealed class NullableErrorQueryResult : IQueryResult<string, int?>
         {
+            /// <summary>
+            /// placeholder
+            /// </summary>
+            /// <param name="nodes"></param>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is <see langword="null"/></exception>
             public NullableErrorQueryResult(IQueryResultNode<string, int?> nodes)
             {
-                Nodes = nodes;
+                ArgumentNullException.ThrowIfNull(nodes);
+
+                this.Nodes = nodes;
             }
 
             public IQueryResultNode<string, int?> Nodes { get; }

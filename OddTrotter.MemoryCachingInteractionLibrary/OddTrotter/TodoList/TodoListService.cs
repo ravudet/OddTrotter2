@@ -382,7 +382,6 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO add nullable error concat tests to queryresultextensions
             //// TODO code review nullable error concat tests 
             //// TODO unit test queryresultnodeextensions
             //// TODO code review unit tests for queryresultnodeextensions
