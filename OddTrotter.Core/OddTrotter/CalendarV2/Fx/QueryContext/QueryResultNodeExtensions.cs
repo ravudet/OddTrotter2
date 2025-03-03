@@ -5,7 +5,6 @@ namespace Fx.QueryContext
     using System.Collections.Generic;
 
     using Fx.Either;
-    using static OddTrotter.Calendar.QueryResultExtensions.FirstOrDefaultResult<TElement, TError, TDefault>;
 
     public static class QueryResultNodeExtensions
     {
@@ -154,24 +153,6 @@ namespace Fx.QueryContext
             {
                 return this.next.Select(selector);
             }
-        }
-
-        /// <summary>
-        /// placeholder
-        /// </summary>
-        /// <typeparam name="TValue"></typeparam>
-        /// <typeparam name="TError"></typeparam>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="first"/> or <paramref name="second"/> is <see langword="null"/></exception>
-        public static IQueryResultNode<TValue, TError> Concat<TValue, TError>(this IQueryResultNode<TValue, TError> first, IQueryResultNode<TValue, TError> second)
-        {
-            ArgumentNullException.ThrowIfNull(first);
-            ArgumentNullException.ThrowIfNull(second);
-
-            return first.Concat(second, _ => _, _ => _, (firstError, secondError) => firstError ?? secondError!); //// TODO the bang here really demonstrates the need for `realnullable`
-            //// TODO you don't necessarily need this overload, but it was useful as a sanity check; maybe remove it
         }
 
         /// <summary>
