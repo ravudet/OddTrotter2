@@ -20,6 +20,7 @@ namespace Fx.QueryContext
                 /// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is <see langword="null"/></exception>
                 public MockQueryResult(IQueryResultNode<string, int?> nodes)
                 {
+                    //// TODO clean this up as a real test
                     ArgumentNullException.ThrowIfNull(nodes);
 
                     this.Nodes = nodes;
