@@ -191,7 +191,7 @@ namespace Fx.QueryContext
                     terminal =>
                         terminal
                             .Apply(
-                                error => ConcatTraverseSecond(error.Value, second, firstErrorSelector, secondErrorSelector, errorAggregator),
+                                error => ConcatTraverseSecond(new RealNullable<TErrorFirst>(error.Value), second, firstErrorSelector, secondErrorSelector, errorAggregator),
                                 empty => ConcatTraverseSecond(default, second, firstErrorSelector, secondErrorSelector, errorAggregator)));
         }
 
@@ -245,6 +245,26 @@ namespace Fx.QueryContext
             }
         }
 
+        private readonly struct RealNullable<T> //// TODO needs a better name
+        {
+            private readonly T value;
+
+            private readonly bool hasValue;
+
+            public RealNullable(T value)
+            {
+                this.value = value;
+
+                this.hasValue = true;
+            }
+
+            public bool TryGetValue(out T value)
+            {
+                value = this.value;
+                return this.hasValue;
+            }
+        }
+
         /// <summary>
         /// placeholder
         /// </summary>
@@ -260,7 +280,7 @@ namespace Fx.QueryContext
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="second"/> or <paramref name="firstErrorSelector"/> or <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
         private static IQueryResultNode<TValue, TErrorResult> ConcatTraverseSecond<TValue, TErrorFirst, TErrorSecond, TErrorResult>(
-            TErrorFirst? error,  //// TODO introduce real nullable?
+            RealNullable<TErrorFirst> error,  //// TODO introduce real nullable?
             IQueryResultNode<TValue, TErrorSecond> second,
             Func<TErrorFirst, TErrorResult> firstErrorSelector,
             Func<TErrorSecond, TErrorResult> secondErrorSelector,
@@ -288,26 +308,26 @@ namespace Fx.QueryContext
                                         .Right(
                                             Either
                                                 .Left(new Error<TErrorResult>(
-                                                    error == null ? secondErrorSelector(secondError.Value) : errorAggregator(error, secondError.Value)))
+                                                    error.TryGetValue(out var firstError) ? errorAggregator(firstError, secondError.Value) : secondErrorSelector(secondError.Value)))
                                                 .Right<IEmpty>())
                                         .ToQueryResultNode(),
                                 empty =>
-                                    error == null
+                                    error.TryGetValue(out var firstError)
                                         ? Either
-                                            .Left<IElement<TValue, TErrorResult>>()
-                                            .Right(
-                                                Either
-                                                    .Left<IError<TErrorResult>>()
-                                                    .Right(empty))
-                                            .ToQueryResultNode()
-                                        : Either
                                             .Left<IElement<TValue, TErrorResult>>()
                                             .Right(
                                                 Either
                                                     .Left(
                                                         new Error<TErrorResult>(
-                                                            firstErrorSelector(error)))
+                                                            firstErrorSelector(firstError)))
                                                     .Right<IEmpty>())
+                                            .ToQueryResultNode()
+                                        : Either
+                                            .Left<IElement<TValue, TErrorResult>>()
+                                            .Right(
+                                                Either
+                                                    .Left<IError<TErrorResult>>()
+                                                    .Right(empty))
                                             .ToQueryResultNode()));
         }
 
@@ -329,7 +349,7 @@ namespace Fx.QueryContext
 
         private sealed class ConcatSecondErrorElement<TValue, TErrorFirst, TErrorSecond, TErrorResult> : IElement<TValue, TErrorResult>
         {
-            private readonly TErrorFirst? error;
+            private readonly RealNullable<TErrorFirst> error;
             private readonly IQueryResultNode<TValue, TErrorSecond> next;
             private readonly Func<TErrorFirst, TErrorResult> firstErrorSelector;
             private readonly Func<TErrorSecond, TErrorResult> secondErrorSelector;
@@ -346,7 +366,7 @@ namespace Fx.QueryContext
             /// <param name="errorAggregator"></param>
             /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> or <paramref name="firstErrorSelector"/> or <paramref name="secondErrorSelector"/> or <paramref name="errorAggregator"/> is <see langword="null"/></exception>
             public ConcatSecondErrorElement(
-                TErrorFirst? error, 
+                RealNullable<TErrorFirst> error, 
                 TValue value, 
                 IQueryResultNode<TValue, TErrorSecond> next,
                 Func<TErrorFirst, TErrorResult> firstErrorSelector,
@@ -393,7 +413,7 @@ namespace Fx.QueryContext
             ArgumentNullException.ThrowIfNull(keySelector);
             ArgumentNullException.ThrowIfNull(comparer);
 
-            var hashSet = new HashSet<TKey>(comparer);s
+            var hashSet = new HashSet<TKey>(comparer);
             return source.Where(element => hashSet.Add(keySelector(element)));
         }
     }

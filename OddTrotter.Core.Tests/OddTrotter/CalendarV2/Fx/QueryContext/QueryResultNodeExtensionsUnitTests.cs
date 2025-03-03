@@ -9,6 +9,141 @@ namespace Fx.QueryContext
     [TestClass]
     public sealed class QueryResultNodeExtensionsUnitTests
     {
+        private static class NullablePlayground
+        {
+            private sealed class MockQueryResult : IQueryResult<string, int?>
+            {
+                /// <summary>
+                /// placeholder
+                /// </summary>
+                /// <param name="nodes"></param>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is <see langword="null"/></exception>
+                public MockQueryResult(IQueryResultNode<string, int?> nodes)
+                {
+                    ArgumentNullException.ThrowIfNull(nodes);
+
+                    this.Nodes = nodes;
+                }
+
+                /// <inheritdoc/>
+                public IQueryResultNode<string, int?> Nodes { get; }
+            }
+            internal sealed class MockError : IError<int?>
+            {
+                /// <summary>
+                /// placeholder
+                /// </summary>
+                /// <param name="value"></param>
+                public MockError(int? value)
+                {
+                    this.Value = value;
+                }
+
+                /// <inheritdoc/>
+                public int? Value { get; }
+            }
+
+
+            internal sealed class MockEmpty : IEmpty
+            {
+                /// <summary>
+                /// placeholder
+                /// </summary>
+                private MockEmpty()
+                {
+                }
+
+                /// <summary>
+                /// placeholder
+                /// </summary>
+                public static MockEmpty Instance { get; } = new MockEmpty();
+            }
+            internal sealed class MockElement : IElement<string, int?>
+            {
+                private readonly IQueryResultNode<string, int?> next;
+
+                /// <summary>
+                /// placeholder
+                /// </summary>
+                /// <param name="value"></param>
+                public MockElement(string value)
+                    : this(
+                        value,
+                        Either
+                            .Left<IElement<string, int?>>()
+                            .Right(
+                                Either
+                                    .Left<IError<int?>>()
+                                    .Right(
+                                        MockEmpty.Instance))
+                            .ToQueryResultNode())
+                {
+                }
+
+                /// <summary>
+                /// placeholder
+                /// </summary>
+                /// <param name="value"></param>
+                /// <param name="next"></param>
+                /// <exception cref="ArgumentNullException">Thrown if <paramref name="next"/> is <see langword="null"/></exception>
+                public MockElement(string value, IQueryResultNode<string, int?> next)
+                {
+                    ArgumentNullException.ThrowIfNull(next);
+
+                    this.Value = value;
+                    this.next = next;
+                }
+
+                /// <inheritdoc/>
+                public string Value { get; }
+
+                /// <inheritdoc/>
+                public IQueryResultNode<string, int?> Next()
+                {
+                    return this.next;
+                }
+            }
+
+            public static void DoWork()
+            {
+                var first =
+                    new MockQueryResult(
+                        Either
+                            .Left<MockElement>()
+                            .Right(
+                                Either
+                                    .Left(new MockError(null))
+                                    .Right<MockEmpty>())
+                            .ToQueryResultNode());
+                var second =
+                    new MockQueryResult(
+                        Either
+                            .Left<MockElement>()
+                            .Right(
+                                Either
+                                    .Left(new MockError(5))
+                                    .Right<MockEmpty>())
+                            .ToQueryResultNode());
+
+                var concated = first
+                    .Concat(
+                        second,
+                        firstError => new[] { firstError },
+                        secondError => new[] { secondError },
+                        (firstError, secondError) => new[] { firstError, secondError });
+
+                Assert.IsTrue(concated.Nodes.TryGetRight(out var terminal));
+                Assert.IsTrue(terminal.TryGetLeft(out var error));
+                Assert.AreEqual(2, error.Value.Length);
+            }
+        }
+
+        [TestMethod]
+        public void Play()
+        {
+            NullablePlayground.DoWork();
+        }
+
         [TestMethod]
         public void ToQueryResultNodeNullNode()
         {
@@ -41,7 +176,7 @@ namespace Fx.QueryContext
 
             Assert.AreEqual(value + value, result);
 
-            node = 
+            node =
                 Either
                     .Left<MockElement>()
                     .Right(
@@ -121,7 +256,7 @@ namespace Fx.QueryContext
         public void WhereNoElementsError()
         {
             var invalidOperationException = new InvalidOperationException();
-            var node = 
+            var node =
                 Either
                     .Left<MockElement>()
                     .Right(
@@ -170,11 +305,11 @@ namespace Fx.QueryContext
         {
             var value = "asdf";
             var invalidOperationException = new InvalidOperationException();
-            var node = 
+            var node =
                 Either
                     .Left(
                         new MockElement(
-                            value, 
+                            value,
                             Either
                                 .Left<MockElement>()
                                 .Right(
@@ -255,7 +390,7 @@ namespace Fx.QueryContext
         public void SelectNoElementsError()
         {
             var invalidOperationException = new InvalidOperationException();
-            var node = 
+            var node =
                 Either
                     .Left<MockElement>()
                     .Right(
@@ -297,11 +432,11 @@ namespace Fx.QueryContext
         {
             var value = "asdf";
             var invalidOperationException = new InvalidOperationException();
-            var node = 
+            var node =
                 Either
                     .Left(
                         new MockElement(
-                            value, 
+                            value,
                             Either
                                 .Left<MockElement>()
                                 .Right(
