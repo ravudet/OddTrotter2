@@ -245,7 +245,7 @@ namespace Fx.QueryContext
             }
         }
 
-        private readonly struct RealNullable<T> //// TODO needs a better name
+        private readonly struct RealNullable<T> //// TODO needs a better name ///// TODO this really has nothing to do with null, maybe call it valuable?
         {
             private readonly T value;
 
