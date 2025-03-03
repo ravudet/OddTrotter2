@@ -382,7 +382,6 @@
             // unit tests
             // do everything above for unit tests
 
-            //// TODO code review nullable error concat tests 
             //// TODO unit test queryresultnodeextensions
             //// TODO code review unit tests for queryresultnodeextensions
             //// TODO sanity check changes from 4f9cc62edc490a6c58c11ad8bf8d713be1f59ef9 (02/27) onward
